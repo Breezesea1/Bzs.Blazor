@@ -1,0 +1,131 @@
+:root,
+[data-bzs-theme="light"] {
+    color-scheme: light;
+    --bzs-canvas: #edf1f5;
+    --bzs-surface: #edf1f5;
+    --bzs-surface-raised: #f5f7fa;
+    --bzs-surface-inset: #e4eaf0;
+    --bzs-surface-overlay: #ffffff;
+    --bzs-text: #172033;
+    --bzs-text-muted: #536174;
+    --bzs-border: #c8d1dc;
+    --bzs-focus-ring: #2563eb;
+    --bzs-primary: #2563eb;
+    --bzs-on-primary: #ffffff;
+    --bzs-success: #15803d;
+    --bzs-warning: #a16207;
+    --bzs-error: #b42318;
+    --bzs-info: #0369a1;
+    --bzs-disabled-surface: #e2e8f0;
+    --bzs-disabled-text: #7b8796;
+    --bzs-shadow-raised: 6px 6px 14px rgb(163 177 198 / 0.42), -5px -5px 12px rgb(255 255 255 / 0.82);
+    --bzs-shadow-inset: inset 3px 3px 7px rgb(163 177 198 / 0.38), inset -3px -3px 7px rgb(255 255 255 / 0.68);
+    --bzs-shadow-overlay: 0 18px 40px rgb(31 45 61 / 0.2);
+    --bzs-shadow-focus: 0 0 0 3px rgb(36 99 235 / 0.32);
+}
+
+[data-bzs-theme="dark"] {
+    color-scheme: dark;
+    --bzs-canvas: #171c24;
+    --bzs-surface: #171c24;
+    --bzs-surface-raised: #202834;
+    --bzs-surface-inset: #12161d;
+    --bzs-surface-overlay: #252f3d;
+    --bzs-text: #f2f5f8;
+    --bzs-text-muted: #b2bdca;
+    --bzs-border: #3b4655;
+    --bzs-focus-ring: #7aa2ff;
+    --bzs-primary: #7aa2ff;
+    --bzs-on-primary: #0d1726;
+    --bzs-success: #4ade80;
+    --bzs-warning: #fbbf24;
+    --bzs-error: #fb7185;
+    --bzs-info: #67c7ff;
+    --bzs-disabled-surface: #293240;
+    --bzs-disabled-text: #7e8998;
+    --bzs-shadow-raised: 6px 6px 14px rgb(5 8 12 / 0.52), -4px -4px 10px rgb(53 66 84 / 0.32);
+    --bzs-shadow-inset: inset 3px 3px 7px rgb(5 8 12 / 0.52), inset -3px -3px 7px rgb(53 66 84 / 0.22);
+    --bzs-shadow-overlay: 0 20px 48px rgb(0 0 0 / 0.48);
+    --bzs-shadow-focus: 0 0 0 3px rgb(122 162 255 / 0.36);
+}
+
+:root,
+[data-bzs-theme] {
+    --bzs-radius-control: 0.4375rem;
+    --bzs-radius-container: 0.5rem;
+    --bzs-radius-overlay: 0.5rem;
+    --bzs-border-width: 1px;
+    --bzs-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --bzs-font-size: 0.875rem;
+    --bzs-font-size-small: 0.75rem;
+    --bzs-line-height: 1.4;
+    --bzs-font-weight-regular: 400;
+    --bzs-font-weight-medium: 500;
+    --bzs-font-weight-bold: 600;
+    --bzs-motion-fast: 120ms;
+    --bzs-motion-normal: 180ms;
+    --bzs-motion-slow: 240ms;
+    --bzs-motion-easing: cubic-bezier(0.2, 0, 0, 1);
+    --bzs-control-height: 2.25rem;
+    --bzs-control-padding-inline: 0.75rem;
+    --bzs-control-gap: 0.5rem;
+}
+
+[data-bzs-density="comfortable"] {
+    --bzs-control-height: 2.75rem;
+    --bzs-control-padding-inline: 1rem;
+    --bzs-control-gap: 0.625rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root,
+    [data-bzs-theme] {
+        --bzs-motion-fast: 0ms;
+        --bzs-motion-normal: 0ms;
+        --bzs-motion-slow: 0ms;
+    }
+}
+
+@media (forced-colors: active) {
+    :root,
+    [data-bzs-theme] {
+        --bzs-border: CanvasText;
+        --bzs-focus-ring: Highlight;
+        --bzs-shadow-raised: none;
+        --bzs-shadow-inset: none;
+        --bzs-shadow-overlay: none;
+        --bzs-shadow-focus: 0 0 0 2px Highlight;
+    }
+}
+
+.bzs-input {
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-inline-size: 0;
+    min-block-size: var(--bzs-control-height);
+    border: var(--bzs-border-width) solid var(--bzs-border);
+    border-radius: var(--bzs-radius-control);
+    padding-inline: var(--bzs-control-padding-inline);
+    background: var(--bzs-surface-inset);
+    box-shadow: var(--bzs-shadow-inset);
+    color: var(--bzs-text);
+    font: inherit;
+}
+
+.bzs-input:focus-visible {
+    outline: 2px solid var(--bzs-focus-ring);
+    outline-offset: 2px;
+    box-shadow: var(--bzs-shadow-focus);
+}
+
+.bzs-input.invalid,
+.bzs-input[aria-invalid="true"] { border-color: var(--bzs-error); }
+.bzs-input:disabled { background: var(--bzs-disabled-surface); color: var(--bzs-disabled-text); }
+.bzs-input[readonly] { color: var(--bzs-text-muted); }
+.bzs-textarea { min-block-size: 6rem; padding-block: 0.625rem; resize: vertical; }
+.bzs-checkbox { inline-size: 1.125rem; min-block-size: 1.125rem; accent-color: var(--bzs-primary); box-shadow: none; }
+
+@media (forced-colors: active) {
+    .bzs-input { box-shadow: none; }
+}
+

@@ -1,0 +1,31 @@
+.bzs-overlay-host {
+    position: relative;
+    z-index: 1000;
+}
+
+.bzs-overlay-host__toasts {
+    position: fixed;
+    z-index: 1100;
+    inset-block-start: 1rem;
+    inset-inline-end: 1rem;
+    display: grid;
+    gap: 0.75rem;
+    max-inline-size: calc(100vw - 2rem);
+}
+
+.bzs-overlay-host__toasts ::deep .bzs-toast {
+    pointer-events: auto;
+}
+
+@media (forced-colors: active) {
+    .bzs-overlay-host__toasts {
+        outline: 1px solid CanvasText;
+        outline-offset: 0.25rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bzs-overlay-host__toasts {
+        scroll-behavior: auto;
+    }
+}

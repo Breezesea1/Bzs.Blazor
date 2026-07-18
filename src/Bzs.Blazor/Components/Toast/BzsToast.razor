@@ -1,0 +1,27 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+<div @attributes="RootAttributes"
+     @onmouseenter="() => PauseRequested.InvokeAsync(BzsToastPauseReason.Hover)"
+     @onmouseleave="() => ResumeRequested.InvokeAsync(BzsToastPauseReason.Hover)"
+     @onfocusin="() => PauseRequested.InvokeAsync(BzsToastPauseReason.Focus)"
+     @onfocusout="() => ResumeRequested.InvokeAsync(BzsToastPauseReason.Focus)">
+    <BzsIcon Icon="SeverityIcon" Class="bzs-toast__icon" />
+    <div class="bzs-toast__content">
+        @if (!string.IsNullOrWhiteSpace(Toast!.Title))
+        {
+            <strong class="bzs-toast__title">@Toast.Title</strong>
+        }
+        <span class="bzs-toast__message">@Toast.Message</span>
+    </div>
+    @if (Toast.Dismissible)
+    {
+        <BzsButton StartIcon="BzsIcons.Close"
+                   AccessibleName="@EffectiveDismissLabel"
+                   Variant="BzsButtonVariant.Ghost"
+                   Size="BzsButtonSize.Small"
+                   Class="bzs-toast__dismiss"
+                   Click="RequestDismissAsync" />
+    }
+</div>
+

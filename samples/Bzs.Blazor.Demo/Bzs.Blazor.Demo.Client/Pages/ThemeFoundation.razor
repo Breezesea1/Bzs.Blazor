@@ -1,0 +1,64 @@
+@page "/theme-foundation"
+@rendermode InteractiveAuto
+
+<PageTitle>Theme foundation - Bzs.Blazor</PageTitle>
+
+<BzsThemeProvider Mode="@_mode"
+                  ModeChanged="SetMode"
+                  Density="@_density"
+                  DensityChanged="SetDensity"
+                  Class="demo-theme-stage demo-external-theme">
+    <section class="demo-page" aria-labelledby="theme-title">
+        <header class="demo-page-header">
+            <p class="demo-eyebrow">Theme foundation</p>
+            <h1 id="theme-title">Light, Dark, and System</h1>
+            <p class="demo-page-summary">
+                The application owns mode and density while Bzs.Blazor supplies semantic tokens.
+            </p>
+        </header>
+
+        <section class="demo-panel" aria-label="Theme controls">
+            <p class="demo-runtime-status" role="status">
+                @(_isInteractive ? "Interactive runtime ready" : "Waiting for interactive runtime")
+            </p>
+            <div class="demo-control-row" role="group" aria-label="Theme mode">
+                <button type="button" disabled="@(!_isInteractive)" aria-pressed="@(_mode == BzsThemeMode.Light)" @onclick="() => SetMode(BzsThemeMode.Light)">Light</button>
+                <button type="button" disabled="@(!_isInteractive)" aria-pressed="@(_mode == BzsThemeMode.Dark)" @onclick="() => SetMode(BzsThemeMode.Dark)">Dark</button>
+                <button type="button" disabled="@(!_isInteractive)" aria-pressed="@(_mode == BzsThemeMode.System)" @onclick="() => SetMode(BzsThemeMode.System)">System</button>
+            </div>
+            <div class="demo-control-row" role="group" aria-label="Theme density">
+                <button type="button" disabled="@(!_isInteractive)" aria-pressed="@(_density == BzsDensity.Compact)" @onclick="() => SetDensity(BzsDensity.Compact)">Compact</button>
+                <button type="button" disabled="@(!_isInteractive)" aria-pressed="@(_density == BzsDensity.Comfortable)" @onclick="() => SetDensity(BzsDensity.Comfortable)">Comfortable</button>
+            </div>
+            <p class="demo-runtime-status" aria-live="polite">Requested mode: @_mode; density: @_density</p>
+            <div class="demo-theme-swatch">External custom CSS overrides the semantic primary token.</div>
+        </section>
+    </section>
+</BzsThemeProvider>
+
+@code {
+    private BzsThemeMode _mode = BzsThemeMode.Light;
+    private BzsDensity _density = BzsDensity.Compact;
+    private bool _isInteractive;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isInteractive = true;
+            StateHasChanged();
+        }
+    }
+
+    private Task SetMode(BzsThemeMode mode)
+    {
+        _mode = mode;
+        return Task.CompletedTask;
+    }
+
+    private Task SetDensity(BzsDensity density)
+    {
+        _density = density;
+        return Task.CompletedTask;
+    }
+}

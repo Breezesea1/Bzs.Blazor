@@ -1,0 +1,13 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+<div @attributes="RootAttributes">
+    <BzsIcon Icon="SeverityIcon" Class="bzs-message__icon" />
+    <div class="bzs-message__content">
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <strong class="bzs-message__title">@Title</strong>
+        }
+        @ChildContent
+    </div>
+</div>

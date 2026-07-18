@@ -1,0 +1,16 @@
+@page "/static-smoke"
+
+<BzsThemeProvider Mode="BzsThemeMode.Light" data-testid="static-theme">
+    <h1>Static SSR package smoke</h1>
+    <BzsSurface Level="BzsSurfaceLevel.Raised">
+        <BzsMessage Severity="BzsMessageSeverity.Information">
+            Package-only static markup is available.
+        </BzsMessage>
+        <BzsProgress Value="42" AccessibleName="Package progress" />
+        <BzsTabs AccessibleName="Static package tabs">
+            <BzsTabItem Value="summary" Title="Summary">Static tab content.</BzsTabItem>
+            <BzsTabItem Value="details" Title="Details">Static details content.</BzsTabItem>
+        </BzsTabs>
+    </BzsSurface>
+    <BzsOverlayHost data-testid="static-overlay-host" />
+</BzsThemeProvider>

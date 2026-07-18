@@ -1,0 +1,163 @@
+@page "/tabs"
+@rendermode InteractiveAuto
+
+<PageTitle>Tabs - Bzs.Blazor</PageTitle>
+
+<BzsThemeProvider Mode="BzsThemeMode.Light" Density="BzsDensity.Compact" Class="demo-tabs-stage">
+    <section class="demo-page" aria-labelledby="tabs-title" data-testid="tabs-workbench">
+        <header class="demo-page-header">
+            <p class="demo-eyebrow">Navigation</p>
+            <h1 id="tabs-title">Tabs, language, and direction</h1>
+            <p class="demo-page-summary">
+                Controlled selection keeps application state explicit while keyboard behavior follows orientation and direction.
+            </p>
+        </header>
+
+        <p class="demo-runtime-status" role="status" data-testid="tabs-runtime-status">
+            @(_isInteractive ? "Interactive runtime ready" : "Rendering tabs markup")
+        </p>
+
+        <section class="demo-panel demo-tabs-workbench" aria-label="Tabs examples">
+            <section class="demo-tabs-section" aria-labelledby="automatic-tabs-title">
+                <header class="demo-tabs-section-header">
+                    <h2 id="automatic-tabs-title">Automatic horizontal tabs</h2>
+                    <p>Arrow, Home, and End activate the next enabled tab.</p>
+                </header>
+
+                <BzsTabs ActiveValue="@_automaticActiveValue"
+                         ActiveValueChanged="SetAutomaticActiveValue"
+                         Orientation="BzsTabsOrientation.Horizontal"
+                         ActivationMode="BzsTabActivationMode.Automatic"
+                         aria-label="Automatic project tabs"
+                         data-testid="automatic-tabs">
+                    <BzsTabItem Value="overview" Title="Overview" data-testid="automatic-overview">
+                        <p class="demo-tabs-panel-copy">Overview is active: plan, owners, and milestones are ready to review.</p>
+                    </BzsTabItem>
+                    <BzsTabItem Value="schedule" Title="Schedule unavailable" Disabled="true" data-testid="automatic-schedule">
+                        <p class="demo-tabs-panel-copy">Schedule is unavailable until the delivery plan is approved.</p>
+                    </BzsTabItem>
+                    <BzsTabItem Value="activity" Title="Activity" data-testid="automatic-activity">
+                        <p class="demo-tabs-panel-copy">Activity is active: three recent workflow updates are available.</p>
+                    </BzsTabItem>
+                </BzsTabs>
+                <p class="demo-tabs-selection" aria-live="polite" data-testid="automatic-selection">Selected: @_automaticActiveValue</p>
+            </section>
+
+            <section class="demo-tabs-section" aria-labelledby="manual-tabs-title">
+                <header class="demo-tabs-section-header">
+                    <h2 id="manual-tabs-title">Manual vertical tabs</h2>
+                    <p>Arrow keys move focus; Enter or Space commits the controlled selection.</p>
+                </header>
+
+                <BzsTabs ActiveValue="@_manualActiveValue"
+                         ActiveValueChanged="SetManualActiveValue"
+                         Orientation="BzsTabsOrientation.Vertical"
+                         ActivationMode="BzsTabActivationMode.Manual"
+                         aria-label="Manual account tabs"
+                         data-testid="manual-tabs">
+                    <BzsTabItem Value="profile" Title="Profile" data-testid="manual-profile">
+                        <p class="demo-tabs-panel-copy">Profile details stay selected until another focused tab is explicitly activated.</p>
+                    </BzsTabItem>
+                    <BzsTabItem Value="preferences" Title="Preferences" data-testid="manual-preferences">
+                        <p class="demo-tabs-panel-copy">Preferences contain notification and density choices for this workspace.</p>
+                    </BzsTabItem>
+                    <BzsTabItem Value="security" Title="Security" data-testid="manual-security">
+                        <p class="demo-tabs-panel-copy">Security records active sessions and required sign-in checks.</p>
+                    </BzsTabItem>
+                </BzsTabs>
+                <p class="demo-tabs-selection" aria-live="polite" data-testid="manual-selection">Selected: @_manualActiveValue</p>
+            </section>
+
+            <div class="demo-tabs-locale-grid">
+                <section class="demo-tabs-section" lang="en" aria-labelledby="english-tabs-title">
+                    <header class="demo-tabs-section-header">
+                        <h2 id="english-tabs-title">English</h2>
+                    </header>
+
+                    <BzsTabs InitialActiveValue="details" lang="en" aria-label="English content tabs" data-testid="english-tabs">
+                        <BzsTabItem Value="details" Title="Details">
+                            <p class="demo-tabs-panel-copy">Project details use English application content.</p>
+                        </BzsTabItem>
+                        <BzsTabItem Value="history" Title="History">
+                            <p class="demo-tabs-panel-copy">History records approvals and delivery notes.</p>
+                        </BzsTabItem>
+                    </BzsTabs>
+                </section>
+
+                <section class="demo-tabs-section" lang="zh-Hans" aria-labelledby="chinese-tabs-title">
+                    <header class="demo-tabs-section-header">
+                        <h2 id="chinese-tabs-title">简体中文</h2>
+                    </header>
+
+                    <BzsTabs InitialActiveValue="summary" lang="zh-Hans" aria-label="中文内容选项卡" data-testid="chinese-tabs">
+                        <BzsTabItem Value="summary" Title="概览">
+                            <p class="demo-tabs-panel-copy">项目概览包含当前进度、负责人和下一次评审日期。</p>
+                        </BzsTabItem>
+                        <BzsTabItem Value="delivery" Title="交付">
+                            <p class="demo-tabs-panel-copy">交付记录会保留已批准的版本和发布说明。</p>
+                        </BzsTabItem>
+                    </BzsTabs>
+                </section>
+            </div>
+
+            <section class="demo-tabs-section" dir="rtl" lang="ar" aria-labelledby="rtl-tabs-title">
+                <header class="demo-tabs-section-header">
+                    <h2 id="rtl-tabs-title">علامات تبويب من اليمين إلى اليسار</h2>
+                    <p>ArrowRight follows the physical right direction for this horizontal tab list.</p>
+                </header>
+
+                <BzsTabs ActiveValue="@_rtlActiveValue"
+                         ActiveValueChanged="SetRtlActiveValue"
+                         Orientation="BzsTabsOrientation.Horizontal"
+                         ActivationMode="BzsTabActivationMode.Automatic"
+                         aria-label="RTL workflow tabs"
+                         data-testid="rtl-tabs">
+                    <BzsTabItem Value="summary" Title="ملخص" data-testid="rtl-summary">
+                        <p class="demo-tabs-panel-copy">ملخص سير العمل ومواعيد المراجعة الحالية.</p>
+                    </BzsTabItem>
+                    <BzsTabItem Value="review" Title="مراجعة" data-testid="rtl-review">
+                        <p class="demo-tabs-panel-copy">حالة المراجعة والمالكون المطلوبون للتسليم.</p>
+                    </BzsTabItem>
+                    <BzsTabItem Value="decisions" Title="قرارات" data-testid="rtl-decisions">
+                        <p class="demo-tabs-panel-copy">القرارات المعتمدة وخطوات النشر التالية.</p>
+                    </BzsTabItem>
+                </BzsTabs>
+                <p class="demo-tabs-selection" aria-live="polite" data-testid="rtl-selection">المحدد: @_rtlActiveValue</p>
+            </section>
+        </section>
+    </section>
+</BzsThemeProvider>
+
+@code {
+    private string _automaticActiveValue = "overview";
+    private string _manualActiveValue = "profile";
+    private string _rtlActiveValue = "summary";
+    private bool _isInteractive;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isInteractive = true;
+            StateHasChanged();
+        }
+    }
+
+    private Task SetAutomaticActiveValue(string value)
+    {
+        _automaticActiveValue = value;
+        return Task.CompletedTask;
+    }
+
+    private Task SetManualActiveValue(string value)
+    {
+        _manualActiveValue = value;
+        return Task.CompletedTask;
+    }
+
+    private Task SetRtlActiveValue(string value)
+    {
+        _rtlActiveValue = value;
+        return Task.CompletedTask;
+    }
+}

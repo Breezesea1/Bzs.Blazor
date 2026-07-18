@@ -1,0 +1,12 @@
+<p data-testid="package-dialog-prompt">@Prompt</p>
+<BzsButton Id="package-dialog-complete" Click="Complete">Complete package dialog</BzsButton>
+
+@code {
+    [Parameter]
+    public string Prompt { get; set; } = string.Empty;
+
+    [CascadingParameter]
+    public BzsDialogContext<bool>? DialogContext { get; set; }
+
+    private void Complete() => DialogContext?.Complete(true);
+}

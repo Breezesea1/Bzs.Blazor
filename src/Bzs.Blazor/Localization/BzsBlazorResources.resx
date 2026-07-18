@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="FormValidationBoolean" xml:space="preserve">
+    <value>The {0} field must be true or false.</value>
+  </data>
+  <data name="FormValidationDate" xml:space="preserve">
+    <value>The {0} field must be a date.</value>
+  </data>
+  <data name="FormValidationNumber" xml:space="preserve">
+    <value>The {0} field must be a number.</value>
+  </data>
+  <data name="FormValidationSelection" xml:space="preserve">
+    <value>The {0} field has an invalid selection.</value>
+  </data>
+  <data name="DismissNotification" xml:space="preserve">
+    <value>Dismiss notification</value>
+  </data>
+  <data name="NotificationLabel" xml:space="preserve">
+    <value>Notification</value>
+  </data>
+  <data name="ProgressLabel" xml:space="preserve">
+    <value>Progress</value>
+  </data>
+  <data name="CloseDialog" xml:space="preserve">
+    <value>Close dialog</value>
+  </data>
+  <data name="CloseDrawer" xml:space="preserve">
+    <value>Close drawer</value>
+  </data>
+  <data name="DialogLabel" xml:space="preserve">
+    <value>Dialog</value>
+  </data>
+  <data name="DrawerLabel" xml:space="preserve">
+    <value>Drawer</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+</root>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bzs.Blazor" Version="0.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <RazorComponent Include="..\Bzs.Blazor.Consumer.Client\Components\PackageDialog.razor"
+                    Link="Components\PackageDialog.razor" />
+    <RazorComponent Include="..\Bzs.Blazor.Consumer.Client\Components\SmokeWorkbench.razor"
+                    Link="Components\SmokeWorkbench.razor" />
+  </ItemGroup>
+
+</Project>

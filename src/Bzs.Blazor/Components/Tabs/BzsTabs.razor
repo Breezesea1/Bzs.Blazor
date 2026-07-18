@@ -1,0 +1,35 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+@inject IJSRuntime JS
+
+<div @ref="_rootElement" @attributes="RootAttributes">
+    <div class="bzs-tabs__composition" hidden>
+        <CascadingValue Value="this" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
+    </div>
+
+    <div @ref="_tabListElement" @attributes="TabListAttributes">
+        @foreach (var item in Items)
+        {
+            var isSelected = IsSelected(item);
+            <button @key="item"
+                    @ref="item.TabElement"
+                    @attributes="item.BuildTabAttributes(isSelected, IsFocusable(item))"
+                    @onclick="eventArgs => HandleTabClickAsync(item, eventArgs)"
+                    @onkeydown="eventArgs => HandleTabKeyDownAsync(item, eventArgs)">
+                @item.EffectiveTitle
+            </button>
+        }
+    </div>
+
+    <div class="bzs-tabs__panels">
+        @foreach (var item in Items)
+        {
+            <section @key="item"
+                     @attributes="item.BuildPanelAttributes(IsSelected(item))">
+                @item.ChildContent
+            </section>
+        }
+    </div>
+</div>

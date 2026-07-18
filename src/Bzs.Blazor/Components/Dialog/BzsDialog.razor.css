@@ -1,0 +1,94 @@
+.bzs-dialog {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    pointer-events: none;
+}
+
+.bzs-dialog__backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgb(23 32 51 / 0.42);
+    pointer-events: auto;
+}
+
+.bzs-dialog__panel {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    inline-size: min(34rem, 100%);
+    max-block-size: min(42rem, calc(100vh - 2rem));
+    overflow: auto;
+    border: var(--bzs-border-width) solid var(--bzs-border);
+    border-radius: var(--bzs-radius-overlay);
+    background-color: var(--bzs-surface-overlay);
+    box-shadow: var(--bzs-shadow-overlay);
+    color: var(--bzs-text);
+    font-family: var(--bzs-font-family);
+    font-size: var(--bzs-font-size);
+    line-height: var(--bzs-line-height);
+    pointer-events: auto;
+}
+
+.bzs-dialog__panel:focus-visible {
+    outline: 2px solid var(--bzs-focus-ring);
+    outline-offset: 2px;
+}
+
+.bzs-dialog__header,
+.bzs-dialog__footer {
+    display: flex;
+    align-items: center;
+    gap: var(--bzs-control-gap);
+    padding: 1rem;
+}
+
+.bzs-dialog__header {
+    justify-content: space-between;
+    border-block-end: var(--bzs-border-width) solid var(--bzs-border);
+}
+
+.bzs-dialog__footer {
+    justify-content: flex-end;
+    border-block-start: var(--bzs-border-width) solid var(--bzs-border);
+}
+
+.bzs-dialog__title {
+    margin: 0;
+    min-inline-size: 0;
+    font-size: 1rem;
+    font-weight: var(--bzs-font-weight-bold);
+    overflow-wrap: anywhere;
+}
+
+.bzs-dialog__close {
+    flex: none;
+}
+
+.bzs-dialog__content {
+    min-inline-size: 0;
+    padding: 1rem;
+    overflow-wrap: anywhere;
+}
+
+@media (forced-colors: active) {
+    .bzs-dialog__backdrop {
+        background-color: Canvas;
+        opacity: 0.72;
+    }
+
+    .bzs-dialog__panel {
+        box-shadow: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bzs-dialog__panel {
+        scroll-behavior: auto;
+    }
+}

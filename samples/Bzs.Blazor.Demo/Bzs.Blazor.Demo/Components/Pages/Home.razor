@@ -1,0 +1,23 @@
+@page "/"
+
+<PageTitle>Bzs.Blazor catalog</PageTitle>
+
+<section class="demo-page" aria-labelledby="catalog-title">
+    <header class="demo-page-header">
+        <p class="demo-eyebrow">Component catalog</p>
+        <h1 id="catalog-title">Bzs.Blazor</h1>
+        <p class="demo-page-summary">
+            A compact inspection shell for the package foundation and its supported render modes.
+        </p>
+    </header>
+
+    <section class="demo-panel" aria-labelledby="route-catalog-title">
+        <h2 id="route-catalog-title">Render-mode routes</h2>
+        <ul class="demo-route-list">
+            <li><a href="render-modes/static">Static SSR</a><span>Meaningful passive markup.</span></li>
+            <li><a href="render-modes/server">Interactive Server</a><span>Server circuit interaction.</span></li>
+            <li><a href="render-modes/webassembly">Interactive WebAssembly</a><span>Browser-hosted interaction.</span></li>
+            <li><a href="render-modes/auto">Interactive Auto</a><span>Automatic server-to-browser selection.</span></li>
+        </ul>
+    </section>
+</section>

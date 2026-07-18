@@ -1,0 +1,17 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+@inject IJSRuntime JS
+
+<CascadingValue Value="_context" IsFixed="false">
+    <div @ref="_rootElement"
+         @attributes="RootAttributes"
+         data-bzs-theme="@EffectiveModeName"
+         data-bzs-density="@DensityName"
+         data-bzs-theme-scope="@_scopeId">
+        @if (_customThemeCss is not null)
+        {
+            <style nonce="@CspNonce">@((MarkupString)_customThemeCss)</style>
+        }
+        @ChildContent
+    </div>
+</CascadingValue>

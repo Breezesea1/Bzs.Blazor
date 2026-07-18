@@ -1,0 +1,7 @@
+@namespace Bzs.Blazor
+@typeparam TValue where TValue : struct, System.IParsable<TValue>, System.IFormattable
+@inherits BzsInputBase<TValue>
+
+<BzsField InputId="@InputId" Label="@Label" Description="@Description" Error="@FieldError" Required="@Required">
+    <input @attributes="InputAttributes" value="@CurrentValueAsString" @onchange="OnChanged" />
+</BzsField>

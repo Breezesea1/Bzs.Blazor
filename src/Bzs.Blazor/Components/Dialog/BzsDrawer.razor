@@ -1,0 +1,46 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+@inject IJSRuntime JS
+
+@if (_isOpen)
+{
+    <div class="bzs-drawer" data-bzs-overlay-root="drawer" data-bzs-drawer-placement="@PlacementName">
+        @if (Modal)
+        {
+            <div class="bzs-drawer__backdrop" aria-hidden="true" @onclick="RequestBackdropDismissAsync"></div>
+        }
+        <section @ref="_panelElement"
+                 @attributes="PanelAttributes"
+                 @onkeydown="HandleKeyDownAsync"
+                 @onkeydown:stopPropagation="true"
+                 @onclick:stopPropagation="true">
+            @if (HasTitle || ShowCloseButton)
+            {
+                <header class="bzs-drawer__header">
+                    @if (HasTitle)
+                    {
+                        <h2 id="@_titleId" class="bzs-drawer__title">@EffectiveTitle</h2>
+                    }
+                    @if (ShowCloseButton)
+                    {
+                        <BzsButton StartIcon="BzsIcons.Close"
+                                   AccessibleName="@EffectiveCloseLabel"
+                                   Variant="BzsButtonVariant.Ghost"
+                                   Size="BzsButtonSize.Small"
+                                   Class="bzs-drawer__close"
+                                   Click="RequestCloseAsync" />
+                    }
+                </header>
+            }
+            <div class="bzs-drawer__content">
+                @ChildContent
+            </div>
+            @if (FooterContent is not null)
+            {
+                <footer class="bzs-drawer__footer">
+                    @FooterContent
+                </footer>
+            }
+        </section>
+    </div>
+}

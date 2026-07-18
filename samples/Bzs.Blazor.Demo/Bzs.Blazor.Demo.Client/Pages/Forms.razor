@@ -1,0 +1,244 @@
+@page "/forms"
+@rendermode InteractiveAuto
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Forms - Bzs.Blazor</PageTitle>
+
+<BzsThemeProvider Mode="@_mode" ModeChanged="SetMode" Density="@_density" DensityChanged="SetDensity" Class="demo-form-stage">
+    <section class="demo-page" aria-labelledby="forms-title">
+        <header class="demo-page-header">
+            <p class="demo-eyebrow">Native forms</p>
+            <h1 id="forms-title">Profile editor</h1>
+            <p class="demo-page-summary">
+                Compact controls, validation, and locale specimens use the same native Blazor form contract.
+            </p>
+        </header>
+
+        <section class="demo-panel demo-form-settings" aria-label="Form display settings">
+            <div class="demo-form-setting">
+                <p class="demo-form-setting-label">Appearance</p>
+                <div class="demo-control-row" role="group" aria-label="Theme mode">
+                    <BzsButton Variant="BzsButtonVariant.Outline" Disabled="@(!_isInteractive)" aria-pressed="@(_mode == BzsThemeMode.Light)" Click="() => SetMode(BzsThemeMode.Light)">Light</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Outline" Disabled="@(!_isInteractive)" aria-pressed="@(_mode == BzsThemeMode.Dark)" Click="() => SetMode(BzsThemeMode.Dark)">Dark</BzsButton>
+                </div>
+            </div>
+            <div class="demo-form-setting">
+                <p class="demo-form-setting-label">Density</p>
+                <div class="demo-control-row" role="group" aria-label="Form density">
+                    <BzsButton Variant="BzsButtonVariant.Outline" Disabled="@(!_isInteractive)" aria-pressed="@(_density == BzsDensity.Compact)" Click="() => SetDensity(BzsDensity.Compact)">Compact</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Outline" Disabled="@(!_isInteractive)" aria-pressed="@(_density == BzsDensity.Comfortable)" Click="() => SetDensity(BzsDensity.Comfortable)">Comfortable</BzsButton>
+                </div>
+            </div>
+            <p class="demo-runtime-status" role="status">
+                @(_isInteractive ? "Interactive runtime ready" : "Rendering form markup")
+            </p>
+        </section>
+
+        <EditForm Model="@ActiveProfile" OnValidSubmit="SubmitValid" OnInvalidSubmit="SubmitInvalid" FormName="demo-profile" class="demo-form-workbench">
+            <DataAnnotationsValidator />
+
+            <section class="demo-form-section" aria-labelledby="profile-fields-title">
+                <header class="demo-form-section-header">
+                    <h2 id="profile-fields-title">Profile details</h2>
+                    <p>Required fields report errors inline after validation.</p>
+                </header>
+
+                <div class="demo-form-grid">
+                    <BzsTextInput Id="profile-full-name"
+                                  @bind-Value="ActiveProfile.FullName"
+                                  Label="Full name"
+                                  Description="Shown to workspace members."
+                                  Required="true" />
+                    <BzsTextInput Id="profile-work-email"
+                                  @bind-Value="ActiveProfile.WorkEmail"
+                                  Label="Work email"
+                                  Description="Used for approval notifications."
+                                  Required="true" />
+                    <BzsNumberInput TValue="int"
+                                    Id="profile-seat-count"
+                                    @bind-Value="ActiveProfile.SeatCount"
+                                    Label="Seats"
+                                    Description="Available seats for this profile."
+                                    Required="true"
+                                    Step="1" />
+                    <BzsDateInput TValue="DateOnly"
+                                  Id="profile-delivery-date"
+                                  @bind-Value="ActiveProfile.DeliveryDate"
+                                  Label="Delivery date"
+                                  Description="The first planned review date."
+                                  Required="true" />
+                    <BzsSelect TValue="string"
+                               Id="profile-workspace"
+                               @bind-Value="ActiveProfile.Workspace"
+                               Options="WorkspaceOptions"
+                               Label="Workspace"
+                               Description="Choose the default production area."
+                               Required="true" />
+                    <BzsCheckbox Id="profile-notifications"
+                                 @bind-Value="ActiveProfile.ReceiveNotifications"
+                                 Label="Receive approval notifications"
+                                 Description="A native checkbox keeps the opt-in explicit." />
+                    <div class="demo-form-field-full">
+                        <BzsTextArea Id="profile-release-notes"
+                                     @bind-Value="ActiveProfile.ReleaseNotes"
+                                     Label="Release notes"
+                                     Description="A short handoff note for the next reviewer."
+                                     Rows="3" />
+                    </div>
+                </div>
+
+                <div class="demo-form-actions">
+                    <BzsButton Type="BzsButtonType.Submit">Validate profile</BzsButton>
+                    <p role="status">@_formStatus</p>
+                </div>
+            </section>
+
+            <section class="demo-form-section" aria-labelledby="state-examples-title">
+                <header class="demo-form-section-header">
+                    <h2 id="state-examples-title">Control states</h2>
+                    <p>The active form supplies the valid and invalid states; these controls show disabled and read-only treatment.</p>
+                </header>
+
+                <div class="demo-form-grid">
+                    <BzsTextInput Id="profile-disabled"
+                                  @bind-Value="ActiveProfile.DisabledValue"
+                                  Label="Disabled assignment"
+                                  Description="This assignment is unavailable for changes."
+                                  Disabled="true" />
+                    <BzsTextInput Id="profile-read-only"
+                                  @bind-Value="ActiveProfile.ReadOnlyValue"
+                                  Label="Read-only identifier"
+                                  Description="This value remains selectable but cannot be edited."
+                                  ReadOnly="true" />
+                </div>
+            </section>
+
+            <section class="demo-form-section" aria-labelledby="locale-examples-title">
+                <header class="demo-form-section-header">
+                    <h2 id="locale-examples-title">Locale specimens</h2>
+                    <p>Labels and field spacing remain useful for English, Chinese, and right-to-left content.</p>
+                </header>
+
+                <div class="demo-form-locale-grid">
+                    <section class="demo-form-locale" lang="en" aria-labelledby="locale-english-title">
+                        <h3 id="locale-english-title">English</h3>
+                        <BzsTextInput Id="profile-locale-english"
+                                      @bind-Value="ActiveProfile.EnglishProjectName"
+                                      Label="Project name"
+                                      ReadOnly="true" />
+                    </section>
+                    <section class="demo-form-locale" lang="zh-Hans" aria-labelledby="locale-chinese-title">
+                        <h3 id="locale-chinese-title">中文</h3>
+                        <BzsTextInput Id="profile-locale-chinese"
+                                      @bind-Value="ActiveProfile.ChineseProjectName"
+                                      Label="项目名称"
+                                      ReadOnly="true" />
+                    </section>
+                    <section class="demo-form-locale" dir="rtl" lang="ar" aria-labelledby="locale-rtl-title">
+                        <h3 id="locale-rtl-title">RTL</h3>
+                        <BzsTextInput Id="profile-locale-rtl"
+                                      @bind-Value="ActiveProfile.RtlProjectName"
+                                      Label="اسم المشروع"
+                                      ReadOnly="true" />
+                    </section>
+                </div>
+            </section>
+        </EditForm>
+    </section>
+</BzsThemeProvider>
+
+@code {
+    private static readonly IReadOnlyList<BzsSelectOption<string>> WorkspaceOptions =
+    [
+        new("production", "Production"),
+        new("lighting", "Lighting"),
+        new("review", "Review"),
+    ];
+
+    [SupplyParameterFromForm(FormName = "demo-profile")]
+    private ProfileModel? Profile { get; set; }
+
+    private ProfileModel ActiveProfile => Profile
+        ?? throw new InvalidOperationException("The profile model was not initialized.");
+
+    private BzsThemeMode _mode = BzsThemeMode.Light;
+    private BzsDensity _density = BzsDensity.Compact;
+    private bool _isInteractive;
+    private string _formStatus = "Ready to validate the profile.";
+
+    protected override void OnInitialized()
+    {
+        Profile ??= new ProfileModel
+        {
+            FullName = "Alicia Santos",
+            WorkEmail = "alicia@example.com",
+            SeatCount = 8,
+            DeliveryDate = DateOnly.FromDateTime(DateTime.Today.AddDays(14)),
+            Workspace = "production",
+            ReceiveNotifications = true,
+            ReleaseNotes = "Review lighting and publish notes before the scheduled handoff.",
+            DisabledValue = "Animation sequence 042",
+            ReadOnlyValue = "PRF-2048",
+            EnglishProjectName = "North Harbor",
+            ChineseProjectName = "北港项目",
+            RtlProjectName = "مشروع الميناء",
+        };
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isInteractive = true;
+            StateHasChanged();
+        }
+    }
+
+    private Task SetMode(BzsThemeMode mode)
+    {
+        _mode = mode;
+        return Task.CompletedTask;
+    }
+
+    private Task SetDensity(BzsDensity density)
+    {
+        _density = density;
+        return Task.CompletedTask;
+    }
+
+    private void SubmitValid() => _formStatus = "Profile checks passed.";
+
+    private void SubmitInvalid() => _formStatus = "Correct the highlighted fields.";
+
+    private sealed class ProfileModel
+    {
+        [Required(ErrorMessage = "Enter a full name.")]
+        public string? FullName { get; set; }
+
+        [Required(ErrorMessage = "Enter a work email.")]
+        [EmailAddress(ErrorMessage = "Enter a valid work email.")]
+        public string? WorkEmail { get; set; }
+
+        [Range(1, 99, ErrorMessage = "Choose between 1 and 99 seats.")]
+        public int SeatCount { get; set; }
+
+        public DateOnly DeliveryDate { get; set; }
+
+        [Required(ErrorMessage = "Choose a workspace.")]
+        public string? Workspace { get; set; }
+
+        public bool ReceiveNotifications { get; set; }
+
+        public string? ReleaseNotes { get; set; }
+
+        public string? DisabledValue { get; set; }
+
+        public string? ReadOnlyValue { get; set; }
+
+        public string? EnglishProjectName { get; set; }
+
+        public string? ChineseProjectName { get; set; }
+
+        public string? RtlProjectName { get; set; }
+    }
+}

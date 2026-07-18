@@ -1,0 +1,33 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+<div @attributes="RootAttributes">
+    @foreach (var dialog in _dialogs)
+    {
+        <BzsDialog @key="dialog.Id"
+                   Open="true"
+                   Title="@dialog.Options.Title"
+                   AccessibleName="@dialog.Options.AccessibleName"
+                   Modal="@dialog.Options.Modal"
+                   CloseOnEscape="@dialog.Options.CloseOnEscape"
+                   CloseOnBackdropClick="@dialog.Options.CloseOnBackdropClick"
+                   ShowCloseButton="@dialog.Options.ShowCloseButton"
+                   InitialFocusSelector="@dialog.Options.InitialFocusSelector"
+                   Dismissed="reason => DismissDialogAsync(dialog.Id, reason)">
+            @dialog.Content
+        </BzsDialog>
+    }
+    @if (_toasts.Count > 0)
+    {
+        <section class="bzs-overlay-host__toasts" aria-label="@NotificationsLabel">
+            @foreach (var toast in _toasts)
+            {
+                <BzsToast @key="toast.Id"
+                          Toast="toast"
+                          DismissRequested="reason => DismissToastAsync(toast.Id, reason)"
+                          PauseRequested="reason => PauseToastAsync(toast.Id, reason)"
+                          ResumeRequested="reason => ResumeToastAsync(toast.Id, reason)" />
+            }
+        </section>
+    }
+</div>

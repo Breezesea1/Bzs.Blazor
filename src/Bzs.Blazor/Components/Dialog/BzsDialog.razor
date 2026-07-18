@@ -1,0 +1,43 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+@inject IJSRuntime JS
+
+@if (_isOpen)
+{
+    <div class="bzs-dialog" data-bzs-overlay-root="dialog">
+        @if (Modal)
+        {
+            <div class="bzs-dialog__backdrop" aria-hidden="true" @onclick="RequestBackdropDismissAsync"></div>
+        }
+        <section @ref="_panelElement"
+                 @attributes="PanelAttributes"
+                 @onkeydown="HandleKeyDownAsync"
+                 @onkeydown:stopPropagation="true"
+                 @onclick:stopPropagation="true">
+            <header class="bzs-dialog__header">
+                @if (HasTitle)
+                {
+                    <h2 id="@_titleId" class="bzs-dialog__title">@EffectiveTitle</h2>
+                }
+                @if (ShowCloseButton)
+                {
+                    <BzsButton StartIcon="BzsIcons.Close"
+                               AccessibleName="@EffectiveCloseLabel"
+                               Variant="BzsButtonVariant.Ghost"
+                               Size="BzsButtonSize.Small"
+                               Class="bzs-dialog__close"
+                               Click="RequestCloseAsync" />
+                }
+            </header>
+            <div class="bzs-dialog__content">
+                @ChildContent
+            </div>
+            @if (FooterContent is not null)
+            {
+                <footer class="bzs-dialog__footer">
+                    @FooterContent
+                </footer>
+            }
+        </section>
+    </div>
+}

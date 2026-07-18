@@ -1,0 +1,92 @@
+@page "/foundation"
+@rendermode InteractiveAuto
+
+<PageTitle>Foundation components - Bzs.Blazor</PageTitle>
+
+<BzsThemeProvider Mode="@_mode" ModeChanged="SetMode" Density="@_density" DensityChanged="SetDensity">
+    <section class="demo-page" aria-labelledby="foundation-title">
+        <header class="demo-page-header">
+            <p class="demo-eyebrow">Foundation components</p>
+            <h1 id="foundation-title">Icon, Surface, and Button</h1>
+            <p class="demo-page-summary">The first visible component slice uses only semantic Bzs.Blazor tokens.</p>
+        </header>
+
+        <p class="demo-runtime-status" role="status">
+            @(_isInteractive ? "Interactive runtime ready" : "Waiting for interactive runtime")
+        </p>
+
+        <section class="demo-panel" aria-labelledby="surface-title">
+            <h2 id="surface-title">Surfaces</h2>
+            <div class="demo-component-grid">
+                <BzsSurface Level="BzsSurfaceLevel.Base" Class="demo-component-surface">Base</BzsSurface>
+                <BzsSurface Level="BzsSurfaceLevel.Raised" Class="demo-component-surface">Raised</BzsSurface>
+                <BzsSurface Level="BzsSurfaceLevel.Inset" Class="demo-component-surface">Inset</BzsSurface>
+                <BzsSurface Level="BzsSurfaceLevel.Overlay" Class="demo-component-surface">Overlay</BzsSurface>
+            </div>
+        </section>
+
+        <section class="demo-panel" aria-labelledby="button-title">
+            <h2 id="button-title">Buttons</h2>
+            <div class="demo-control-row">
+                <BzsButton Click="OnAction" StartIcon="BzsIcons.Check">Primary action @_actionCount</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Secondary">Secondary</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" EndIcon="BzsIcons.ChevronRight">Outline</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Ghost">Ghost</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Danger">Danger</BzsButton>
+                <BzsButton Loading="true">Saving</BzsButton>
+                <BzsButton Disabled="true">Disabled</BzsButton>
+                <BzsButton StartIcon="BzsIcons.Close" AccessibleName="Close example" Variant="BzsButtonVariant.Ghost" />
+            </div>
+            <div class="demo-control-row">
+                <BzsButton Size="BzsButtonSize.Small">Small</BzsButton>
+                <BzsButton Size="BzsButtonSize.Medium">Medium</BzsButton>
+                <BzsButton Size="BzsButtonSize.Large">Large</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" Click="() => SetMode(BzsThemeMode.Light)">Light</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" Click="() => SetMode(BzsThemeMode.Dark)">Dark</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" Click="() => SetDensity(BzsDensity.Compact)">Compact density</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" Click="() => SetDensity(BzsDensity.Comfortable)">Comfortable density</BzsButton>
+            </div>
+        </section>
+
+        <section class="demo-panel" aria-labelledby="icon-title">
+            <h2 id="icon-title">Icons</h2>
+            <div class="demo-icon-row" aria-label="Curated icon examples">
+                <BzsIcon Icon="BzsIcons.Success" AccessibleName="Success" />
+                <BzsIcon Icon="BzsIcons.Info" AccessibleName="Information" />
+                <BzsIcon Icon="BzsIcons.Warning" AccessibleName="Warning" />
+                <BzsIcon Icon="BzsIcons.Error" AccessibleName="Error" />
+                <BzsIcon Icon="BzsIcons.Calendar" AccessibleName="Calendar" />
+            </div>
+        </section>
+    </section>
+</BzsThemeProvider>
+
+@code {
+    private BzsThemeMode _mode = BzsThemeMode.Light;
+    private BzsDensity _density = BzsDensity.Compact;
+    private bool _isInteractive;
+    private int _actionCount;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isInteractive = true;
+            StateHasChanged();
+        }
+    }
+
+    private Task SetMode(BzsThemeMode mode)
+    {
+        _mode = mode;
+        return Task.CompletedTask;
+    }
+
+    private Task SetDensity(BzsDensity density)
+    {
+        _density = density;
+        return Task.CompletedTask;
+    }
+
+    private void OnAction() => _actionCount++;
+}

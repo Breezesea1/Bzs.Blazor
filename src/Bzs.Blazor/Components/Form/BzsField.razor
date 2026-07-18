@@ -1,0 +1,25 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+<div @attributes="RootAttributes">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <label class="bzs-field__label" for="@InputId">
+            @Label
+            @if (Required)
+            {
+                <span class="bzs-field__required" aria-hidden="true">*</span>
+            }
+        </label>
+    }
+    @if (!string.IsNullOrWhiteSpace(Description))
+    {
+        <div id="@DescriptionId" class="bzs-field__description">@Description</div>
+    }
+    <div class="bzs-field__control">@ChildContent</div>
+    @if (!string.IsNullOrWhiteSpace(Error))
+    {
+        <div id="@ErrorId" class="bzs-field__error" role="alert">@Error</div>
+    }
+</div>
+

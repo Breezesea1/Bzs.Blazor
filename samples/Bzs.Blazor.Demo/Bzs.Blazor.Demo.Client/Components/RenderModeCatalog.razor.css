@@ -1,0 +1,102 @@
+.demo-render-catalog {
+    min-inline-size: 0;
+}
+
+.demo-render-catalog__header {
+    max-inline-size: 52rem;
+}
+
+.demo-render-catalog__runtime {
+    display: grid;
+    min-inline-size: 0;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 1rem;
+    align-items: center;
+    border-block: 1px solid var(--demo-border);
+    padding-block: 1rem;
+}
+
+.demo-render-catalog__readiness,
+.demo-render-catalog__section-header p,
+.demo-render-catalog__form-actions p,
+.demo-render-catalog__overlay-statuses p,
+.demo-render-catalog__selection,
+.demo-render-catalog__tab-copy {
+    margin: 0;
+    color: var(--demo-muted);
+    font-size: 0.8125rem;
+}
+
+.demo-render-catalog__readiness {
+    color: var(--bzs-text-muted);
+    font-weight: 650;
+}
+
+.demo-render-catalog__section {
+    display: grid;
+    min-inline-size: 0;
+    gap: 1rem;
+    border-block-end: 1px solid var(--demo-border);
+    padding-block-end: 1.25rem;
+}
+
+.demo-render-catalog__section-header {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.demo-render-catalog__control-groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.demo-render-catalog__surface {
+    min-inline-size: 0;
+}
+
+.demo-render-catalog__surface-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+}
+
+.demo-render-catalog__surface-content > :first-child {
+    color: var(--bzs-success);
+}
+
+.demo-render-catalog__form {
+    display: grid;
+    min-inline-size: 0;
+    gap: 1rem;
+}
+
+.demo-render-catalog__form-grid,
+.demo-render-catalog__feedback-grid {
+    display: grid;
+    min-inline-size: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.demo-render-catalog__form-actions,
+.demo-render-catalog__overlay-statuses {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.demo-render-catalog__overlay-statuses {
+    align-items: flex-start;
+}
+
+@media (max-width: 46rem) {
+    .demo-render-catalog__runtime,
+    .demo-render-catalog__form-grid,
+    .demo-render-catalog__feedback-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

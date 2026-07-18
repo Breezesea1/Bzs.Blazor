@@ -1,0 +1,22 @@
+@inherits LayoutComponentBase
+
+<div class="demo-shell">
+    <aside class="demo-sidebar">
+        <NavMenu />
+    </aside>
+
+    <main id="main-content" class="demo-main">
+        <header class="demo-header">
+            <p class="demo-header-context">Bzs.Blazor v0.1 foundation</p>
+            <p class="demo-header-status">Catalog routes are intentionally component-free.</p>
+        </header>
+        <article class="demo-content">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    The catalog could not complete this interaction.
+    <a href=".">Reload</a>
+</div>

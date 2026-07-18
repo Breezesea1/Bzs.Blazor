@@ -1,0 +1,10 @@
+@namespace Bzs.Blazor
+@inherits BzsInputBase<bool>
+
+<BzsField InputId="@InputId" Label="@Label" Description="@Description" Error="@FieldError" Required="@Required">
+    <input @attributes="InputAttributes" checked="@CurrentValue" value="true" @onchange="OnChanged" />
+    @if (ReadOnly && !Disabled)
+    {
+        <input type="hidden" name="@InputName" value="@CurrentValue.ToString().ToLowerInvariant()" />
+    }
+</BzsField>

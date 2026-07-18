@@ -1,0 +1,60 @@
+.bzs-progress {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.25rem var(--bzs-control-gap);
+    max-inline-size: 100%;
+    color: var(--bzs-text);
+    font-family: var(--bzs-font-family);
+    font-size: var(--bzs-font-size);
+    line-height: var(--bzs-line-height);
+}
+
+.bzs-progress__label {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+}
+
+.bzs-progress__value {
+    color: var(--bzs-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.bzs-progress__track {
+    grid-column: 1 / -1;
+    inline-size: 100%;
+    block-size: 0.625rem;
+    overflow: hidden;
+    border: var(--bzs-border-width) solid var(--bzs-border);
+    border-radius: var(--bzs-radius-control);
+    background-color: var(--bzs-surface-inset);
+    box-shadow: var(--bzs-shadow-inset);
+    color: var(--bzs-primary);
+    accent-color: var(--bzs-primary);
+}
+
+.bzs-progress__track::-webkit-progress-bar {
+    background-color: var(--bzs-surface-inset);
+}
+
+.bzs-progress__track::-webkit-progress-value {
+    background-color: var(--bzs-primary);
+    transition: inline-size var(--bzs-motion-normal) var(--bzs-motion-easing);
+}
+
+.bzs-progress__track::-moz-progress-bar {
+    background-color: var(--bzs-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bzs-progress__track::-webkit-progress-value {
+        transition: none;
+    }
+}
+
+@media (forced-colors: active) {
+    .bzs-progress__track {
+        box-shadow: none;
+        color: Highlight;
+        accent-color: Highlight;
+    }
+}

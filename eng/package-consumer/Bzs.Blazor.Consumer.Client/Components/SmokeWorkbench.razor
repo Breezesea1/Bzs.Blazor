@@ -1,0 +1,94 @@
+@inject IBzsDialogService DialogService
+
+<BzsThemeProvider Mode="@_mode"
+                  ModeChanged="SetMode"
+                  data-testid="@($"{Runtime}-theme")">
+    <h1>@Runtime package smoke</h1>
+    <p role="status" data-testid="@($"{Runtime}-ready")">
+        @(_ready ? "Interactive package ready" : "Package prerender")
+    </p>
+    <p data-testid="@($"{Runtime}-culture")">@CultureInfo.CurrentUICulture.Name</p>
+
+    <BzsButton Variant="BzsButtonVariant.Outline" Click="UseDarkTheme">Use dark theme</BzsButton>
+
+    <EditForm Model="_model" FormName="@($"{Runtime}-form")">
+        <BzsNumberInput TValue="int"
+                        @bind-Value="_model.ReviewerCount"
+                        Label="Reviewer count"
+                        data-testid="@($"{Runtime}-number")" />
+        <BzsSelect TValue="string"
+                   @bind-Value="_model.Stage"
+                   Options="StageOptions"
+                   Label="Stage"
+                   data-testid="@($"{Runtime}-select")" />
+    </EditForm>
+
+    <BzsTabs AccessibleName="Package tabs" data-testid="@($"{Runtime}-tabs")">
+        <BzsTabItem Value="summary" Title="Summary">Summary package content.</BzsTabItem>
+        <BzsTabItem Value="details" Title="Details">Details package content.</BzsTabItem>
+    </BzsTabs>
+
+    <BzsButton Click="OpenDialogAsync" data-testid="@($"{Runtime}-open-dialog")">
+        Open package dialog
+    </BzsButton>
+    <p data-testid="@($"{Runtime}-dialog-result")">@_dialogResult</p>
+    <BzsOverlayHost data-testid="@($"{Runtime}-overlay-host")" />
+</BzsThemeProvider>
+
+@code {
+    private static readonly IReadOnlyList<BzsSelectOption<string>> StageOptions =
+    [
+        new("layout", "Layout"),
+        new("review", "Review"),
+    ];
+
+    private readonly SmokeModel _model = new();
+    private BzsThemeMode _mode = BzsThemeMode.System;
+    private bool _ready;
+    private string _dialogResult = "No dialog result.";
+
+    [Parameter, EditorRequired]
+    public string Runtime { get; set; } = string.Empty;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _ready = true;
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private Task SetMode(BzsThemeMode mode)
+    {
+        _mode = mode;
+        return Task.CompletedTask;
+    }
+
+    private Task UseDarkTheme() => SetMode(BzsThemeMode.Dark);
+
+    private async Task OpenDialogAsync()
+    {
+        var result = await DialogService.ShowAsync<PackageDialog, bool>(
+            parameters => parameters.Add(
+                component => component.Prompt,
+                $"Complete the {Runtime} package workflow?"),
+            new BzsDialogOptions
+            {
+                Title = "Package dialog",
+                AccessibleName = "Package dialog",
+                InitialFocusSelector = "#package-dialog-complete",
+            });
+
+        _dialogResult = result.IsCompleted && result.Value == true
+            ? "Completed: true"
+            : $"Result: {result.Kind}";
+    }
+
+    private sealed class SmokeModel
+    {
+        public int ReviewerCount { get; set; } = 2;
+
+        public string Stage { get; set; } = "layout";
+    }
+}

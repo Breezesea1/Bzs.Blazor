@@ -1,0 +1,3 @@
+# Use component-typed dialog invocation and explicit results
+
+`IBzsDialogService` will open an `IComponent` type with parameters built through property expressions instead of string keys, and will return `BzsDialogResult<TResult>` with explicit completion, cancellation, dismissal, unavailable, and host-disposed outcomes. Dialog content completes through a cascaded typed context; common callers do not pass raw render fragments, string registrations, or untyped parameter dictionaries. Static SSR calls with a registered static host resolve as unavailable rather than leaving pending work, while an absent host remains a configuration error in every render mode.

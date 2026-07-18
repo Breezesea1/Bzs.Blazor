@@ -1,0 +1,23 @@
+.bzs-surface {
+    box-sizing: border-box;
+    border: var(--bzs-border-width) solid var(--bzs-border);
+    border-radius: var(--bzs-radius-container);
+    background-color: var(--bzs-surface);
+    color: var(--bzs-text);
+}
+
+.bzs-surface--raised {
+    background-color: var(--bzs-surface-raised);
+    box-shadow: var(--bzs-shadow-raised);
+}
+
+.bzs-surface--inset {
+    background-color: var(--bzs-surface-inset);
+    box-shadow: var(--bzs-shadow-inset);
+}
+
+.bzs-surface--overlay {
+    border-radius: var(--bzs-radius-overlay);
+    background-color: var(--bzs-surface-overlay);
+    box-shadow: var(--bzs-shadow-overlay);
+}

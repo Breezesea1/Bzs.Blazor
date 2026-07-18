@@ -1,0 +1,20 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+<button @attributes="ButtonAttributes" @onclick="HandleClickAsync">
+    @if (Loading)
+    {
+        <BzsIcon Icon="BzsIcons.Loader" Class="bzs-button__loading-icon" />
+    }
+    else if (StartIcon is not null)
+    {
+        <BzsIcon Icon="StartIcon" Class="bzs-button__icon" />
+    }
+
+    @ChildContent
+
+    @if (!Loading && EndIcon is not null)
+    {
+        <BzsIcon Icon="EndIcon" Class="bzs-button__icon" />
+    }
+</button>

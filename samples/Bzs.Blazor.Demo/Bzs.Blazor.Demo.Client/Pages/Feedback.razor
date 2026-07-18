@@ -1,0 +1,160 @@
+@page "/feedback"
+@rendermode InteractiveAuto
+@implements IAsyncDisposable
+@inject IBzsToastService ToastService
+
+<PageTitle>Feedback - Bzs.Blazor</PageTitle>
+
+<BzsThemeProvider Mode="BzsThemeMode.Light" Density="BzsDensity.Compact" Class="demo-feedback-stage">
+    <section class="demo-page" aria-labelledby="feedback-title">
+        <header class="demo-page-header">
+            <p class="demo-eyebrow">Feedback</p>
+            <h1 id="feedback-title">Status and notifications</h1>
+            <p class="demo-page-summary">
+                Inline status stays in the workflow while scoped notifications remain independently actionable.
+            </p>
+        </header>
+
+        <p class="demo-runtime-status" role="status">
+            @(_isInteractive ? "Interactive runtime ready" : "Rendering feedback markup")
+        </p>
+
+        <section class="demo-panel" aria-labelledby="message-title">
+            <h2 id="message-title">Message</h2>
+            <div class="demo-feedback-message-stack">
+                <BzsMessage Severity="BzsMessageSeverity.Information" Title="Review in progress">Two deliverables still need an owner.</BzsMessage>
+                <BzsMessage Severity="BzsMessageSeverity.Success" Title="Publish complete">The approved package is ready for downstream teams.</BzsMessage>
+                <BzsMessage Severity="BzsMessageSeverity.Warning" Title="Due date approaching">The lighting pass is due tomorrow.</BzsMessage>
+                <BzsMessage Severity="BzsMessageSeverity.Error" Title="Save blocked">Correct the required fields before publishing.</BzsMessage>
+            </div>
+        </section>
+
+        <section class="demo-panel" aria-labelledby="progress-title">
+            <h2 id="progress-title">Progress</h2>
+            <div class="demo-feedback-progress-grid">
+                <BzsProgress Label="Publishing assets" Value="64" />
+                <BzsProgress Label="Checking dependencies" />
+            </div>
+        </section>
+
+        <section class="demo-panel" aria-labelledby="toast-title">
+            <h2 id="toast-title">Toast</h2>
+            <div class="demo-feedback-toast-controls" role="group" aria-label="Toast examples">
+                <BzsButton Disabled="@(!_isInteractive)" Click="ShowTimedToast">Show timed toast</BzsButton>
+                <BzsButton Disabled="@(!_isInteractive)" Variant="BzsButtonVariant.Outline" Click="ShowPersistentToast">Show persistent toast</BzsButton>
+                <BzsButton Disabled="@(!_isInteractive)" Variant="BzsButtonVariant.Danger" Click="ShowErrorToast">Show error toast</BzsButton>
+            </div>
+
+            <div class="demo-feedback-toast-list" aria-label="Active toast examples">
+                @if (_toasts.Count == 0)
+                {
+                    <p class="demo-feedback-empty">No active notifications.</p>
+                }
+                @foreach (var toast in _toasts)
+                {
+                    <BzsToast @key="toast.Id"
+                              Toast="toast"
+                              DismissRequested="reason => DismissToast(toast.Id, reason)"
+                              PauseRequested="reason => PauseToast(toast.Id, reason)"
+                              ResumeRequested="reason => ResumeToast(toast.Id, reason)" />
+                }
+            </div>
+        </section>
+    </section>
+</BzsThemeProvider>
+
+@code {
+    private IReadOnlyList<BzsToastSnapshot> _toasts = [];
+    private bool _isInteractive;
+
+    protected override void OnInitialized()
+    {
+        _toasts = ToastService.Snapshot;
+        ToastService.Changed += HandleToastChanged;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isInteractive = true;
+            StateHasChanged();
+        }
+    }
+
+    private void ShowTimedToast()
+    {
+        ToastService.Show(new BzsToastOptions
+        {
+            Title = "Delivery queued",
+            Message = "This notification pauses while it is hovered or focused.",
+            Severity = BzsToastSeverity.Information,
+            Duration = TimeSpan.FromMilliseconds(1500),
+            AccessibleName = "Timed toast",
+        });
+    }
+
+    private void ShowPersistentToast()
+    {
+        ToastService.Show(new BzsToastOptions
+        {
+            Title = "Review saved",
+            Message = "This notification remains until you close it.",
+            Severity = BzsToastSeverity.Success,
+            Duration = Timeout.InfiniteTimeSpan,
+            AccessibleName = "Persistent toast",
+        });
+    }
+
+    private void ShowErrorToast()
+    {
+        ToastService.Show(new BzsToastOptions
+        {
+            Title = "Save failed",
+            Message = "The review could not be saved. Try again after correcting the field values.",
+            Severity = BzsToastSeverity.Error,
+            Duration = Timeout.InfiniteTimeSpan,
+            AccessibleName = "Save failure toast",
+        });
+    }
+
+    private Task DismissToast(BzsToastId id, BzsToastDismissReason reason)
+    {
+        ToastService.Dismiss(id, reason);
+        return Task.CompletedTask;
+    }
+
+    private Task PauseToast(BzsToastId id, BzsToastPauseReason reason)
+    {
+        ToastService.Pause(id, reason);
+        return Task.CompletedTask;
+    }
+
+    private Task ResumeToast(BzsToastId id, BzsToastPauseReason reason)
+    {
+        ToastService.Resume(id, reason);
+        return Task.CompletedTask;
+    }
+
+    private async void HandleToastChanged(object? sender, BzsToastChangedEventArgs args)
+    {
+        try
+        {
+            await InvokeAsync(() =>
+            {
+                _toasts = args.Snapshot;
+                StateHasChanged();
+            });
+        }
+        catch (Exception exception)
+        {
+            await DispatchExceptionAsync(exception);
+        }
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        ToastService.Changed -= HandleToastChanged;
+        return ValueTask.CompletedTask;
+    }
+}

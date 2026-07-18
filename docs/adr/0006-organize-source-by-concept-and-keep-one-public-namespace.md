@@ -1,0 +1,3 @@
+# Organize source by concept and keep one public namespace
+
+Public components will use the `Bzs` prefix and live in concept-oriented source folders with matching `.razor` and `.razor.cs` filenames plus optional colocated CSS and JavaScript files. Folder structure will not leak into consumption: public components remain in the single `Bzs.Blazor` namespace, CSS classes use `bzs-`, custom properties use `--bzs-`, and internal implementation types remain internal within concept-local `Internal` folders. Components extracted from reference applications may be renamed directly to this convention without shipping compatibility aliases for their old application-specific names.

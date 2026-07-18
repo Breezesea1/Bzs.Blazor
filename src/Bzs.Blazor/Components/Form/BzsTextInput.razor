@@ -1,0 +1,7 @@
+@namespace Bzs.Blazor
+@inherits BzsInputBase<string?>
+
+<BzsField InputId="@InputId" Label="@Label" Description="@Description" Error="@FieldError" Required="@Required">
+    <input @attributes="InputAttributes" value="@CurrentValueAsString" @onchange="OnChanged" />
+</BzsField>
+

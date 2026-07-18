@@ -1,0 +1,16 @@
+.bzs-field {
+    display: grid;
+    gap: 0.375rem;
+    min-inline-size: 0;
+    color: var(--bzs-text);
+    font-family: var(--bzs-font-family);
+    font-size: var(--bzs-font-size);
+    line-height: var(--bzs-line-height);
+}
+
+.bzs-field__label { font-weight: var(--bzs-font-weight-medium); }
+.bzs-field__required { color: var(--bzs-error); }
+.bzs-field__description { color: var(--bzs-text-muted); font-size: var(--bzs-font-size-small); }
+.bzs-field__control { min-inline-size: 0; }
+.bzs-field__error { color: var(--bzs-error); font-size: var(--bzs-font-size-small); }
+

@@ -1,0 +1,22 @@
+@namespace Bzs.Blazor
+@typeparam TValue
+@inherits BzsInputBase<TValue>
+
+<BzsField InputId="@InputId" Label="@Label" Description="@Description" Error="@FieldError" Required="@Required">
+    <select @attributes="InputAttributes" @onchange="OnChanged">
+        @if (!string.IsNullOrWhiteSpace(PlaceholderOption))
+        {
+            <option value="" selected="@IsEmptyValue">@PlaceholderOption</option>
+        }
+        @foreach (var option in Options)
+        {
+            <option @key="option" value="@FormatOptionValue(option.Value)" disabled="@option.Disabled" selected="@IsSelected(option.Value)">
+                @option.Label
+            </option>
+        }
+    </select>
+    @if (ReadOnly && !Disabled)
+    {
+        <input type="hidden" name="@InputName" value="@CurrentValueAsString" />
+    }
+</BzsField>

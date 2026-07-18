@@ -1,0 +1,7 @@
+@namespace Bzs.Blazor
+@inherits BzsInputBase<string?>
+
+<BzsField InputId="@InputId" Label="@Label" Description="@Description" Error="@FieldError" Required="@Required">
+    <textarea @attributes="InputAttributes" rows="@Rows" @onchange="OnChanged">@CurrentValueAsString</textarea>
+</BzsField>
+

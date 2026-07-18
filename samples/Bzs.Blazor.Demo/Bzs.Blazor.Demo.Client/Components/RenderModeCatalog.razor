@@ -1,0 +1,266 @@
+@namespace Bzs.Blazor.Demo.Client.Components
+
+<BzsThemeProvider Mode="@_mode"
+                  ModeChanged="SetModeAsync"
+                  Density="@_density"
+                  DensityChanged="SetDensityAsync"
+                  Class="demo-render-catalog-theme"
+                  data-testid="@ThemeTestId">
+    <section class="demo-page demo-render-catalog" aria-labelledby="@TitleId" data-testid="@RuntimeTestId">
+        <header class="demo-page-header demo-render-catalog__header">
+            <p class="demo-eyebrow">Render mode catalog</p>
+            <h1 id="@TitleId">@RuntimeName</h1>
+            <p class="demo-page-summary">
+                The same component workbench renders useful static markup and activates its commands only after an interactive runtime is ready.
+            </p>
+        </header>
+
+        <section class="demo-render-catalog__runtime" aria-label="@RuntimeName runtime status">
+            <div>
+                <p class="demo-runtime-label">Active runtime</p>
+                <p class="demo-runtime-status" data-testid="@RuntimeStatusTestId">@RuntimeStatus</p>
+            </div>
+            <p class="demo-render-catalog__readiness" role="status" data-testid="@ReadinessTestId">
+                @(CanInteract ? "Interactive runtime ready" : "Static catalog markup")
+            </p>
+            @if (CanInteract)
+            {
+                <BzsButton Click="Increment" data-testid="@CounterTestId">Interaction count: @_interactionCount</BzsButton>
+            }
+            else
+            {
+                <BzsButton Disabled="true" data-testid="@CounterTestId">Interaction unavailable</BzsButton>
+            }
+        </section>
+
+        <section class="demo-render-catalog__section" aria-labelledby="@FoundationTitleId">
+            <header class="demo-render-catalog__section-header">
+                <h2 id="@FoundationTitleId">Foundation</h2>
+                <p>Theme, density, semantic surface, icon, and button states are kept within the route-owned workbench.</p>
+            </header>
+            <div class="demo-render-catalog__control-groups">
+                <div class="demo-control-row" role="group" aria-label="Theme mode">
+                    <BzsButton Variant="BzsButtonVariant.Outline"
+                               Disabled="@(!CanInteract)"
+                               aria-pressed="@(_mode == BzsThemeMode.Light)"
+                               Click="() => SetModeAsync(BzsThemeMode.Light)">Light</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Outline"
+                               Disabled="@(!CanInteract)"
+                               aria-pressed="@(_mode == BzsThemeMode.Dark)"
+                               Click="() => SetModeAsync(BzsThemeMode.Dark)">Dark</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Outline"
+                               Disabled="@(!CanInteract)"
+                               aria-pressed="@(_mode == BzsThemeMode.System)"
+                               Click="() => SetModeAsync(BzsThemeMode.System)">System</BzsButton>
+                </div>
+                <div class="demo-control-row" role="group" aria-label="Density">
+                    <BzsButton Variant="BzsButtonVariant.Outline"
+                               Disabled="@(!CanInteract)"
+                               aria-pressed="@(_density == BzsDensity.Compact)"
+                               Click="() => SetDensityAsync(BzsDensity.Compact)">Compact</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Outline"
+                               Disabled="@(!CanInteract)"
+                               aria-pressed="@(_density == BzsDensity.Comfortable)"
+                               Click="() => SetDensityAsync(BzsDensity.Comfortable)">Comfortable</BzsButton>
+                </div>
+            </div>
+            <BzsSurface Level="BzsSurfaceLevel.Raised" Class="demo-render-catalog__surface">
+                <div class="demo-render-catalog__surface-content">
+                    <BzsIcon Icon="BzsIcons.Check" AccessibleName="Ready" />
+                    <span>Ready for review</span>
+                    <BzsButton Disabled="@(!CanInteract)" Variant="BzsButtonVariant.Secondary" Click="Increment">Record action</BzsButton>
+                    <BzsButton Loading="true">Saving</BzsButton>
+                </div>
+            </BzsSurface>
+        </section>
+
+        <section class="demo-render-catalog__section" aria-labelledby="@FormTitleId">
+            <header class="demo-render-catalog__section-header">
+                <h2 id="@FormTitleId">EditForm workflow</h2>
+                <p>All native input components remain visible in static SSR and become editable after the selected runtime activates.</p>
+            </header>
+            <EditForm EditContext="@_editContext" OnValidSubmit="SaveForm" FormName="@FormName" class="demo-render-catalog__form" data-testid="@FormTestId">
+                <DataAnnotationsValidator />
+                <div class="demo-render-catalog__form-grid">
+                    @if (CanInteract)
+                    {
+                        <BzsTextInput Id="@WorkItemInputId"
+                                      @bind-Value="_form.WorkItem"
+                                      Label="Work item"
+                                      Required="true"
+                                      data-testid="@WorkItemTestId" />
+                        <BzsTextArea Id="@NotesInputId"
+                                     @bind-Value="_form.Notes"
+                                     Label="Review notes"
+                                     Rows="3"
+                                     data-testid="@NotesTestId" />
+                        <BzsCheckbox Id="@NotifyInputId"
+                                     @bind-Value="_form.NotifyOwners"
+                                     Label="Notify owners"
+                                     data-testid="@NotifyTestId" />
+                        <BzsNumberInput TValue="int"
+                                        Id="@ReviewerInputId"
+                                        @bind-Value="_form.ReviewerCount"
+                                        Label="Reviewers"
+                                        Required="true"
+                                        Step="1"
+                                        data-testid="@ReviewerTestId" />
+                        <BzsDateInput TValue="DateOnly"
+                                      Id="@ReviewDateInputId"
+                                      @bind-Value="_form.ReviewDate"
+                                      Label="Review date"
+                                      Required="true"
+                                      data-testid="@ReviewDateTestId" />
+                        <BzsSelect TValue="string"
+                                   Id="@WorkspaceInputId"
+                                   @bind-Value="_form.Workspace"
+                                   Options="WorkspaceOptions"
+                                   Label="Workspace"
+                                   Required="true"
+                                   data-testid="@WorkspaceTestId" />
+                    }
+                    else
+                    {
+                        <BzsTextInput Id="@WorkItemInputId"
+                                      Value="@_form.WorkItem"
+                                      ValueExpression="@(() => _form.WorkItem)"
+                                      Label="Work item"
+                                      Required="true"
+                                      Disabled="true"
+                                      data-testid="@WorkItemTestId" />
+                        <BzsTextArea Id="@NotesInputId"
+                                     Value="@_form.Notes"
+                                     ValueExpression="@(() => _form.Notes)"
+                                     Label="Review notes"
+                                     Rows="3"
+                                     Disabled="true"
+                                     data-testid="@NotesTestId" />
+                        <BzsCheckbox Id="@NotifyInputId"
+                                     Value="@_form.NotifyOwners"
+                                     ValueExpression="@(() => _form.NotifyOwners)"
+                                     Label="Notify owners"
+                                     Disabled="true"
+                                     data-testid="@NotifyTestId" />
+                        <BzsNumberInput TValue="int"
+                                        Id="@ReviewerInputId"
+                                        Value="@_form.ReviewerCount"
+                                        ValueExpression="@(() => _form.ReviewerCount)"
+                                        Label="Reviewers"
+                                        Required="true"
+                                        Step="1"
+                                        Disabled="true"
+                                        data-testid="@ReviewerTestId" />
+                        <BzsDateInput TValue="DateOnly"
+                                      Id="@ReviewDateInputId"
+                                      Value="@_form.ReviewDate"
+                                      ValueExpression="@(() => _form.ReviewDate)"
+                                      Label="Review date"
+                                      Required="true"
+                                      Disabled="true"
+                                      data-testid="@ReviewDateTestId" />
+                        <BzsSelect TValue="string"
+                                   Id="@WorkspaceInputId"
+                                   Value="@_form.Workspace"
+                                   ValueExpression="@(() => _form.Workspace)"
+                                   Options="WorkspaceOptions"
+                                   Label="Workspace"
+                                   Required="true"
+                                   Disabled="true"
+                                   data-testid="@WorkspaceTestId" />
+                    }
+                </div>
+                <div class="demo-render-catalog__form-actions">
+                    <BzsButton Type="BzsButtonType.Submit" Disabled="@(!CanInteract)" data-testid="@SaveTestId">Save work item</BzsButton>
+                    <p role="status" data-testid="@FormStatusTestId">@_formStatus</p>
+                </div>
+            </EditForm>
+        </section>
+
+        <section class="demo-render-catalog__section" aria-labelledby="@FeedbackTitleId">
+            <header class="demo-render-catalog__section-header">
+                <h2 id="@FeedbackTitleId">Feedback</h2>
+                <p>Inline feedback remains meaningful even without a client-side component runtime.</p>
+            </header>
+            <div class="demo-render-catalog__feedback-grid">
+                <BzsMessage Severity="BzsMessageSeverity.Information" Title="Review ready">The next work item is staged for inspection.</BzsMessage>
+                <BzsProgress Label="Catalog coverage" Value="72" />
+            </div>
+        </section>
+
+        <section class="demo-render-catalog__section" aria-labelledby="@TabsTitleId">
+            <header class="demo-render-catalog__section-header">
+                <h2 id="@TabsTitleId">Tabs</h2>
+                <p>Controlled selection records the active inspection context after interactive activation.</p>
+            </header>
+            <BzsTabs ActiveValue="@_activeTab"
+                     ActiveValueChanged="SetActiveTabAsync"
+                     AccessibleName="Catalog inspection tabs"
+                     data-testid="@TabsTestId">
+                <BzsTabItem Value="summary" Title="Summary">
+                    <p class="demo-render-catalog__tab-copy">Summary keeps the current work item and feedback visible in one passive document.</p>
+                </BzsTabItem>
+                <BzsTabItem Value="details" Title="Details">
+                    <p class="demo-render-catalog__tab-copy">Details exposes the interactive component state when a runtime is available.</p>
+                </BzsTabItem>
+            </BzsTabs>
+            <p class="demo-render-catalog__selection" role="status" data-testid="@TabsStatusTestId">Active tab: @_activeTab</p>
+        </section>
+
+        <section class="demo-render-catalog__section" aria-labelledby="@OverlaysTitleId">
+            <header class="demo-render-catalog__section-header">
+                <h2 id="@OverlaysTitleId">Overlay host</h2>
+                <p>Controlled overlays, a typed service dialog, and toasts share one host for this route root.</p>
+            </header>
+            <div class="demo-control-row">
+                <BzsButton Disabled="@(!CanInteract)" Click="OpenControlledDialogAsync" data-testid="@OpenDialogTestId">Open controlled dialog</BzsButton>
+                <BzsButton Disabled="@(!CanInteract)" Variant="BzsButtonVariant.Outline" Click="OpenDrawerAsync" data-testid="@OpenDrawerTestId">Open drawer</BzsButton>
+                <BzsButton Disabled="@(!CanInteract)" Variant="BzsButtonVariant.Secondary" Click="OpenServiceDialogAsync" data-testid="@OpenServiceDialogTestId">Open service dialog</BzsButton>
+                <BzsButton Disabled="@(!CanInteract)" Variant="BzsButtonVariant.Outline" Click="ShowToast" data-testid="@ShowToastTestId">Show toast</BzsButton>
+            </div>
+            <div class="demo-render-catalog__overlay-statuses">
+                <p role="status" data-testid="@ControlledDialogStatusTestId">@_controlledDialogStatus</p>
+                <p role="status" data-testid="@DrawerStatusTestId">@_drawerStatus</p>
+                <p role="status" data-testid="@ServiceDialogStatusTestId">@_serviceDialogStatus</p>
+            </div>
+        </section>
+
+        <BzsDialog Open="@_isControlledDialogOpen"
+                   OpenChanged="SetControlledDialogOpenAsync"
+                   Title="Controlled catalog dialog"
+                   AccessibleName="Controlled catalog dialog"
+                   Modal="true"
+                   CloseOnEscape="true"
+                   CloseOnBackdropClick="true"
+                   ShowCloseButton="false"
+                   InitialFocusSelector="#render-mode-controlled-dialog-complete"
+                   Dismissed="HandleControlledDialogDismissedAsync"
+                   data-testid="@ControlledDialogTestId">
+            <p>Complete this controlled dialog to return to the component catalog.</p>
+            <div class="demo-control-row">
+                <BzsButton Id="render-mode-controlled-dialog-complete"
+                           data-testid="@CompleteControlledDialogTestId"
+                           Click="CompleteControlledDialogAsync">Complete dialog</BzsButton>
+            </div>
+        </BzsDialog>
+
+        <BzsDrawer Open="@_isDrawerOpen"
+                   OpenChanged="SetDrawerOpenAsync"
+                   Title="Catalog drawer"
+                   AccessibleName="Catalog drawer"
+                   Modal="true"
+                   Placement="BzsDrawerPlacement.End"
+                   CloseOnEscape="true"
+                   CloseOnBackdropClick="true"
+                   ShowCloseButton="false"
+                   InitialFocusSelector="#render-mode-drawer-close"
+                   Dismissed="HandleDrawerDismissedAsync"
+                   data-testid="@DrawerTestId">
+            <p>The controlled drawer is rendered by the route component and shares the selected theme.</p>
+            <div class="demo-control-row">
+                <BzsButton Id="render-mode-drawer-close" data-testid="@CloseDrawerTestId" Click="CloseDrawerAsync">Close drawer</BzsButton>
+            </div>
+        </BzsDrawer>
+
+        <BzsOverlayHost data-testid="@OverlayHostTestId" />
+    </section>
+</BzsThemeProvider>

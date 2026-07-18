@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/samples/" />
+  <Folder Name="/samples/Bzs.Blazor.Demo/">
+    <Project Path="samples/Bzs.Blazor.Demo/Bzs.Blazor.Demo.Client/Bzs.Blazor.Demo.Client.csproj" />
+    <Project Path="samples/Bzs.Blazor.Demo/Bzs.Blazor.Demo/Bzs.Blazor.Demo.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Bzs.Blazor/Bzs.Blazor.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Bzs.Blazor.BrowserTests/Bzs.Blazor.BrowserTests.csproj" />
+    <Project Path="tests/Bzs.Blazor.Tests/Bzs.Blazor.Tests.csproj" />
+  </Folder>
+</Solution>

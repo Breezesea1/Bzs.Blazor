@@ -1,0 +1,32 @@
+<section aria-label="Service dialog content" data-testid="service-dialog-content">
+    <p>@Prompt</p>
+    <div class="demo-overlays-dialog-actions">
+        <BzsButton Id="service-dialog-complete"
+                   data-testid="service-dialog-complete"
+                   Click="Complete">Complete service dialog</BzsButton>
+        <BzsButton Id="service-dialog-cancel"
+                   data-testid="service-dialog-cancel"
+                   Variant="BzsButtonVariant.Outline"
+                   Click="Cancel">Cancel service dialog</BzsButton>
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public string Prompt { get; set; } = string.Empty;
+
+    [CascadingParameter]
+    public BzsDialogContext<bool> Dialog { get; set; } = default!;
+
+    private Task Complete()
+    {
+        Dialog.Complete(true);
+        return Task.CompletedTask;
+    }
+
+    private Task Cancel()
+    {
+        Dialog.Cancel();
+        return Task.CompletedTask;
+    }
+}

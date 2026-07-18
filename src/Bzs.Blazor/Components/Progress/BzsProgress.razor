@@ -1,0 +1,13 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+<div @attributes="RootAttributes">
+    <span class="bzs-progress__label">@EffectiveLabel</span>
+    <progress @attributes="ProgressAttributes">
+        @ProgressFallbackText
+    </progress>
+    @if (ShowValue && IsDeterminate)
+    {
+        <span class="bzs-progress__value">@PercentText</span>
+    }
+</div>
