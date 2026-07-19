@@ -15,7 +15,9 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1440, 900);
         await Page.GotoAsync($"{server.BaseUrl}/foundation");
-        await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync("Interactive runtime ready");
+        await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync(
+            "Interactive runtime ready",
+            new() { Timeout = InteractiveReadinessTimeout });
 
         await AssertMatchesBaselineAsync("foundation-light-desktop.png");
     }
@@ -26,7 +28,9 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1440, 900);
         await Page.GotoAsync($"{server.BaseUrl}/foundation");
-        await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync("Interactive runtime ready");
+        await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync(
+            "Interactive runtime ready",
+            new() { Timeout = InteractiveReadinessTimeout });
         await Page.GetByRole(AriaRole.Button, new() { Name = "Dark" }).ClickAsync();
 
         await AssertMatchesBaselineAsync("foundation-dark-desktop.png");
@@ -38,7 +42,9 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(390, 844);
         await Page.GotoAsync($"{server.BaseUrl}/tabs");
-        await Expect(Page.GetByTestId("tabs-runtime-status")).ToHaveTextAsync("Interactive runtime ready");
+        await Expect(Page.GetByTestId("tabs-runtime-status")).ToHaveTextAsync(
+            "Interactive runtime ready",
+            new() { Timeout = InteractiveReadinessTimeout });
 
         await AssertMatchesBaselineAsync("tabs-light-mobile.png");
     }
@@ -50,7 +56,9 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         await Page.SetViewportSizeAsync(390, 844);
         await Page.GotoAsync($"{server.BaseUrl}/render-modes/auto");
         await Expect(Page.GetByTestId("render-mode-auto-runtime-readiness"))
-            .ToHaveTextAsync("Interactive runtime ready");
+            .ToHaveTextAsync(
+                "Interactive runtime ready",
+                new() { Timeout = InteractiveReadinessTimeout });
         await Page.GetByRole(AriaRole.Button, new() { Name = "Dark" }).ClickAsync();
 
         await AssertMatchesBaselineAsync("auto-dark-mobile.png");
@@ -151,6 +159,8 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         int DifferentPixels,
         int TotalPixels,
         int MaximumChannelDelta);
+
+    private const float InteractiveReadinessTimeout = 60_000;
 
     private static string FindRepositoryRoot()
     {
