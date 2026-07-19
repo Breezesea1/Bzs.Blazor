@@ -7,8 +7,8 @@ package has no third-party UI or reference-application dependency.
 
 ## Install and register
 
-Install the package into both the server host and WebAssembly client projects
-that render Bzs.Blazor components:
+After a release is published to nuget.org, install the package into both the
+server host and WebAssembly client projects that render Bzs.Blazor components:
 
 ```text
 dotnet add package Bzs.Blazor --version 0.1.0
@@ -37,11 +37,23 @@ under `Localization/` in the RCL so public component namespaces remain
 
 The package includes XML documentation, a portable symbol package, deterministic
 build settings, and a `LICENSE` file containing the project MIT license plus
-Lucide and Feather attribution. Source Link becomes
-resolvable when the repository has both a commit and a real remote URL; the
-local verifier reports that metadata boundary explicitly rather than inventing
-a repository location. The package is currently in `0.x` development and is
-intended for local validation before any public NuGet publication.
+Lucide and Feather attribution. Source Link maps package sources to the
+[GitHub repository](https://github.com/Breezesea1/Bzs.Blazor). The package is
+in `0.x` development, where documented breaking changes remain possible.
+
+## Publishing
+
+A strict SemVer tag such as `v0.1.0` starts the GitHub Actions release workflow.
+The workflow runs the release gates, packs the package and symbols, and publishes
+to nuget.org through the protected `nuget-production` environment. Creating a
+tag does not bypass the environment's configured approvals or protections.
+
+Publication uses NuGet.org Trusted Publishing. Configure a GitHub policy for
+`Breezesea1/Bzs.Blazor`, workflow `publish-nuget.yml`, and environment
+`nuget-production`, then set the environment variable `NUGET_USERNAME` to the
+NuGet.org profile username that created the policy (not an email address or
+package owner name). GitHub Actions exchanges its
+OIDC identity for a short-lived NuGet key; no long-lived NuGet API key is stored.
 
 ## Local verification
 

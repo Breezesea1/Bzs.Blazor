@@ -1,0 +1,154 @@
+name: Publish NuGet
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-nuget-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify release package
+    runs-on: windows-latest
+    timeout-minutes: 90
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Validate tag and project version
+        id: version
+        shell: pwsh
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          $identifier = '(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)'
+          $tagPattern = "^v(?<version>(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-$identifier(?:\.$identifier)*)?)$"
+          if ($env:TAG_NAME -notmatch $tagPattern) {
+              throw "Tag '$env:TAG_NAME' must be a strict v-prefixed semantic version, for example v1.2.3 or v1.2.3-preview.1."
+          }
+
+          $version = $Matches.version
+          [xml]$project = Get-Content -Raw -LiteralPath src/Bzs.Blazor/Bzs.Blazor.csproj
+          $versionNodes = @($project.SelectNodes('/Project/PropertyGroup/Version'))
+          if ($versionNodes.Count -ne 1) {
+              throw "Bzs.Blazor.csproj must define exactly one Version property."
+          }
+
+          $projectVersion = $versionNodes[0].InnerText.Trim()
+          if ($projectVersion -cne $version) {
+              throw "Tag version '$version' does not match Bzs.Blazor.csproj version '$projectVersion'."
+          }
+
+          "version=$version" | Add-Content -LiteralPath $env:GITHUB_OUTPUT
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: 10.0.302
+
+      - name: Install WASM workload
+        shell: pwsh
+        run: dotnet workload install wasm-tools --skip-manifest-update
+
+      - name: Build Playwright runner
+        shell: pwsh
+        run: dotnet build tests/Bzs.Blazor.BrowserTests/Bzs.Blazor.BrowserTests.csproj --configuration Release
+
+      - name: Install Playwright browsers
+        shell: pwsh
+        run: pwsh tests/Bzs.Blazor.BrowserTests/bin/Release/net10.0/playwright.ps1 install chromium firefox webkit
+
+      - name: Run complete release gate
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/verify-release.ps1 -Configuration Release -Version '${{ steps.version.outputs.version }}'
+
+      - name: Upload verified packages
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: nuget-${{ steps.version.outputs.version }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            artifacts/release/packages/Bzs.Blazor.${{ steps.version.outputs.version }}.nupkg
+            artifacts/release/packages/Bzs.Blazor.${{ steps.version.outputs.version }}.snupkg
+            artifacts/release/verification-summary.md
+
+      - name: Upload failed release evidence
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: failed-release-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            artifacts/release/**
+            TestResults/**
+            tests/**/TestResults/**
+
+  publish:
+    name: Publish to nuget.org
+    needs: verify
+    runs-on: windows-latest
+    timeout-minutes: 15
+    environment: nuget-production
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: 10.0.302
+
+      - name: Download verified packages
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: nuget-${{ needs.verify.outputs.version }}
+          path: release-artifacts
+
+      - name: Validate NuGet.org username
+        shell: pwsh
+        env:
+          NUGET_USERNAME: ${{ vars.NUGET_USERNAME }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_USERNAME)) {
+              throw "Set the NUGET_USERNAME variable on the nuget-production environment."
+          }
+
+      - name: Log in to NuGet.org with OIDC
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1 peeled commit
+        with:
+          user: ${{ vars.NUGET_USERNAME }}
+
+      - name: Publish package and symbols
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          PACKAGE_VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          $package = "release-artifacts/packages/Bzs.Blazor.$($env:PACKAGE_VERSION).nupkg"
+          $symbols = "release-artifacts/packages/Bzs.Blazor.$($env:PACKAGE_VERSION).snupkg"
+          if (-not (Test-Path -LiteralPath $package -PathType Leaf)) {
+              throw "Verified package was not downloaded at '$package'."
+          }
+          if (-not (Test-Path -LiteralPath $symbols -PathType Leaf)) {
+              throw "Verified symbols package was not downloaded at '$symbols'."
+          }
+
+          dotnet nuget push $package --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --no-symbols
+          if ($LASTEXITCODE -ne 0) { throw "NuGet package publication failed." }
+
+          dotnet nuget push $symbols --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+          if ($LASTEXITCODE -ne 0) { throw "NuGet symbols publication failed." }

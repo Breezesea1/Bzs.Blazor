@@ -2,6 +2,8 @@
 param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
+    [ValidatePattern('^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$')]
+    [string]$Version,
     [switch]$SkipBrowserMatrix,
     [switch]$SkipAot
 )
@@ -25,6 +27,25 @@ $consumerPackagesDirectory = Join-Path $releaseRoot "consumer-packages"
 $publishDirectory = Join-Path $releaseRoot "publish"
 $aotDirectory = Join-Path $releaseRoot "aot-client"
 $summaryPath = Join-Path $releaseRoot "verification-summary.md"
+$versionPattern = '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$'
+
+[xml]$packageProjectXml = Get-Content -Raw -LiteralPath $packageProject
+$versionNodes = @($packageProjectXml.SelectNodes("/Project/PropertyGroup/Version"))
+if ($versionNodes.Count -ne 1 -or [string]::IsNullOrWhiteSpace($versionNodes[0].InnerText)) {
+    throw "The package project must define exactly one non-empty Version property."
+}
+
+$projectVersion = $versionNodes[0].InnerText.Trim()
+if ([string]::IsNullOrWhiteSpace($Version)) {
+    $Version = $projectVersion
+}
+elseif ($Version -cne $projectVersion) {
+    throw "Requested version '$Version' must match the package project's Version '$projectVersion'."
+}
+
+if ($Version -notmatch $versionPattern) {
+    throw "Version '$Version' must be a normalized semantic version such as '1.2.3' or '1.2.3-preview.1'."
+}
 
 function Assert-RepositoryPath {
     param([Parameter(Mandatory = $true)][string]$Path)
@@ -115,7 +136,8 @@ function Read-ZipEntry {
 function Assert-PackageContents {
     param(
         [Parameter(Mandatory = $true)][string]$PackagePath,
-        [Parameter(Mandatory = $true)][string]$SymbolPackagePath
+        [Parameter(Mandatory = $true)][string]$SymbolPackagePath,
+        [Parameter(Mandatory = $true)][string]$ExpectedVersion
     )
 
     $entries = Get-ZipEntries $PackagePath
@@ -178,8 +200,8 @@ function Assert-PackageContents {
 
     [xml]$nuspec = Read-ZipEntry $PackagePath "Bzs.Blazor.nuspec"
     $metadata = $nuspec.package.metadata
-    if ($metadata.id -ne "Bzs.Blazor" -or $metadata.version -ne "0.1.0") {
-        throw "Package identity or version is incorrect."
+    if ($metadata.id -ne "Bzs.Blazor" -or $metadata.version -ne $ExpectedVersion) {
+        throw "Package identity or version is incorrect; expected Bzs.Blazor $ExpectedVersion."
     }
     if ($metadata.license.type -ne "expression" -or $metadata.license.'#text' -ne "MIT") {
         throw "Package license metadata is incorrect."
@@ -198,18 +220,40 @@ function Assert-PackageContents {
 }
 
 function Assert-RestoredPackageMatches {
-    param([Parameter(Mandatory = $true)][string]$ExpectedPackagePath)
+    param(
+        [Parameter(Mandatory = $true)][string]$ExpectedPackagePath,
+        [Parameter(Mandatory = $true)][string]$ExpectedVersion
+    )
 
     $restoredPackagePath = Join-Path $consumerPackagesDirectory `
-        "bzs.blazor\0.1.0\bzs.blazor.0.1.0.nupkg"
+        "bzs.blazor\$ExpectedVersion\bzs.blazor.$ExpectedVersion.nupkg"
     if (-not (Test-Path -LiteralPath $restoredPackagePath)) {
-        throw "The isolated consumer cache does not contain Bzs.Blazor 0.1.0."
+        throw "The isolated consumer cache does not contain Bzs.Blazor $ExpectedVersion."
     }
 
     $expectedHash = (Get-FileHash -LiteralPath $ExpectedPackagePath -Algorithm SHA256).Hash
     $restoredHash = (Get-FileHash -LiteralPath $restoredPackagePath -Algorithm SHA256).Hash
     if ($expectedHash -ne $restoredHash) {
-        throw "The temporary consumer restored a different Bzs.Blazor 0.1.0 package."
+        throw "The temporary consumer restored a different Bzs.Blazor $ExpectedVersion package."
+    }
+}
+
+function Set-ConsumerPackageVersion {
+    param(
+        [Parameter(Mandatory = $true)][string[]]$ProjectPaths,
+        [Parameter(Mandatory = $true)][string]$PackageVersion
+    )
+
+    foreach ($projectPath in $ProjectPaths) {
+        [xml]$projectXml = Get-Content -Raw -LiteralPath $projectPath
+        $packageReferences = @($projectXml.SelectNodes(
+            "/Project/ItemGroup/PackageReference[@Include='Bzs.Blazor']"))
+        if ($packageReferences.Count -ne 1) {
+            throw "Consumer project '$projectPath' must contain exactly one Bzs.Blazor package reference."
+        }
+
+        $packageReferences[0].SetAttribute("Version", $PackageVersion)
+        $projectXml.Save($projectPath)
     }
 }
 
@@ -339,11 +383,12 @@ Invoke-DotNet @(
     "pack", $packageProject,
     "--configuration", $Configuration,
     "--no-build", "--no-restore",
-    "--output", $packageDirectory)
+    "--output", $packageDirectory,
+    "-p:Version=$Version")
 
-$packagePath = Join-Path $packageDirectory "Bzs.Blazor.0.1.0.nupkg"
-$symbolPackagePath = Join-Path $packageDirectory "Bzs.Blazor.0.1.0.snupkg"
-Assert-PackageContents $packagePath $symbolPackagePath
+$packagePath = Join-Path $packageDirectory "Bzs.Blazor.$Version.nupkg"
+$symbolPackagePath = Join-Path $packageDirectory "Bzs.Blazor.$Version.snupkg"
+Assert-PackageContents $packagePath $symbolPackagePath $Version
 
 Reset-Directory $consumerRoot | Out-Null
 Reset-Directory $consumerPackagesDirectory | Out-Null
@@ -352,6 +397,7 @@ Get-ChildItem -LiteralPath $consumerTemplate | Copy-Item -Destination $consumerR
 $hostProject = Join-Path $consumerRoot "Bzs.Blazor.Consumer\Bzs.Blazor.Consumer.csproj"
 $clientProject = Join-Path $consumerRoot "Bzs.Blazor.Consumer.Client\Bzs.Blazor.Consumer.Client.csproj"
 $aotProject = Join-Path $consumerRoot "Bzs.Blazor.Consumer.Aot\Bzs.Blazor.Consumer.Aot.csproj"
+Set-ConsumerPackageVersion @($hostProject, $clientProject, $aotProject) $Version
 $projectText = Get-Content -Raw $hostProject, $clientProject, $aotProject
 if ($projectText -match 'src[\\/]Bzs\.Blazor|Bzs\.Blazor\.csproj') {
     throw "The temporary consumer contains a forbidden runtime project reference."
@@ -361,7 +407,7 @@ $restoreSources = @(
     "-p:RestoreAdditionalProjectSources=$packageDirectory",
     "-p:RestorePackagesPath=$consumerPackagesDirectory")
 Invoke-DotNet (@("restore", $hostProject) + $restoreSources)
-Assert-RestoredPackageMatches $packagePath
+Assert-RestoredPackageMatches $packagePath $Version
 Invoke-DotNet @("build", $hostProject, "--configuration", $Configuration, "--no-restore")
 Invoke-DotNet @("restore", $consumerTestProject)
 Invoke-DotNet @("build", $consumerTestProject, "--configuration", $Configuration, "--no-restore")
@@ -431,7 +477,7 @@ else {
 }
 
 @"
-# Bzs.Blazor 0.1.0 local verification
+# Bzs.Blazor $Version local verification
 
 - Configuration: $Configuration
 - Package: $packagePath
