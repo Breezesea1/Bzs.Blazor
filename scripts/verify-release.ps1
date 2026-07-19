@@ -4,6 +4,7 @@ param(
     [string]$Configuration = "Release",
     [ValidatePattern('^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$')]
     [string]$Version,
+    [switch]$SkipVisualRegression,
     [switch]$SkipBrowserMatrix,
     [switch]$SkipAot
 )
@@ -391,7 +392,11 @@ New-Item -ItemType Directory -Path $packageDirectory | Out-Null
 Invoke-DotNet @("clean", $solutionPath, "--configuration", $Configuration)
 Invoke-DotNet @("restore", $solutionPath)
 Invoke-DotNet @("build", $solutionPath, "--configuration", $Configuration, "--no-restore")
-Invoke-DotNet @("test", $solutionPath, "--configuration", $Configuration, "--no-build", "--no-restore")
+$testArguments = @("test", $solutionPath, "--configuration", $Configuration, "--no-build", "--no-restore")
+if ($SkipVisualRegression) {
+    $testArguments += @("--filter", "FullyQualifiedName!~VisualRegressionTests")
+}
+Invoke-DotNet $testArguments
 
 if (-not $SkipBrowserMatrix) {
     $browserMatrixScript = Join-NativePath $repositoryRoot @(
@@ -514,6 +519,7 @@ else {
 - Published consumer: $publishDirectory
 - Published AOT client: $aotDirectory
 - Source Link: $sourceLinkStatus
+- Visual regression skipped: $SkipVisualRegression
 - Browser matrix skipped: $SkipBrowserMatrix
 - WASM AOT publish skipped: $SkipAot
 "@ | Set-Content -Path $summaryPath -Encoding utf8

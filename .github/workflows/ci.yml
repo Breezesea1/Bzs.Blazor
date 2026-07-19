@@ -47,7 +47,7 @@ jobs:
 
       - name: Run complete release gate
         shell: pwsh
-        run: pwsh -NoProfile -File scripts/verify-release.ps1 -Configuration Release
+        run: pwsh -NoProfile -File scripts/verify-release.ps1 -Configuration Release -SkipVisualRegression
 
       - name: Upload release evidence
         if: ${{ always() }}
@@ -83,6 +83,10 @@ jobs:
         shell: pwsh
         run: pwsh tests/Bzs.Blazor.BrowserTests/bin/Release/net10.0/playwright.ps1 install chromium
 
+      - name: Run Windows visual regression baselines
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/verify-visual-regression.ps1 -Configuration Release
+
       - name: Run Chrome and Edge browser matrix
         shell: pwsh
         run: ./tests/Bzs.Blazor.BrowserTests/run-browser-matrix.ps1 -Configuration Release -Targets chrome,msedge -RequireAllTargets -ArtifactsDirectory TestResults/browser-matrix
@@ -94,4 +98,4 @@ jobs:
           name: windows-branded-browsers-${{ github.run_id }}
           if-no-files-found: warn
           retention-days: 14
-          path: TestResults/browser-matrix/**
+          path: TestResults/**

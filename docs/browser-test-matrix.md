@@ -2,12 +2,14 @@
 
 The browser suite has two execution paths:
 
-| Coverage | Browser selection | Purpose |
-| --- | --- | --- |
-| `PageTest` suite | Playwright Chromium | Fast, deterministic behavior, axe, forced-colors, zoom, and mobile-emulation gates. It does not read a `BROWSER` environment variable. |
+| Coverage             | Browser selection           | Purpose                                                                                                                                    |
+| -------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PageTest` suite     | Playwright Chromium         | Fast, deterministic behavior, axe, forced-colors, zoom, and mobile-emulation gates. It does not read a `BROWSER` environment variable.     |
 | `BrowserMatrixTests` | Manual `IPlaywright` launch | A representative Interactive Auto public-UI workflow across desktop engines plus Pixel 5 Chromium and iPhone 13 WebKit device descriptors. |
 
 The accessibility gate covers an Interactive Auto catalog completion, invalid form validation, an open controlled dialog, and tabs. It fails only for axe `critical` or `serious` violations and includes the rule help plus affected nodes in the assertion message. Keyboard/focus behavior remains covered by the focused browser tests.
+
+Pixel baselines are owned by Windows Chromium because operating-system font metrics and rasterization change full-page pixels and mobile document height. Linux release gates run the remaining behavior, accessibility, browser-matrix, package, trimming, and AOT coverage with `verify-release.ps1 -SkipVisualRegression`; the Windows branded-browser job runs all four visual baselines before Chrome and Edge. `verify-visual-regression.ps1` parses the TRX and requires exactly four executed and passed tests, so zero discovery or skipped baselines fail the gate.
 
 ## Install
 

@@ -74,7 +74,7 @@ jobs:
 
       - name: Run complete release gate
         shell: pwsh
-        run: pwsh -NoProfile -File scripts/verify-release.ps1 -Configuration Release -Version '${{ steps.version.outputs.version }}'
+        run: pwsh -NoProfile -File scripts/verify-release.ps1 -Configuration Release -Version '${{ steps.version.outputs.version }}' -SkipVisualRegression
 
       - name: Upload verified packages
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -121,6 +121,10 @@ jobs:
         shell: pwsh
         run: pwsh tests/Bzs.Blazor.BrowserTests/bin/Release/net10.0/playwright.ps1 install chromium
 
+      - name: Run Windows visual regression baselines
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/verify-visual-regression.ps1 -Configuration Release
+
       - name: Run required Chrome and Edge browser matrix
         shell: pwsh
         run: ./tests/Bzs.Blazor.BrowserTests/run-browser-matrix.ps1 -Configuration Release -Targets chrome,msedge -RequireAllTargets -ArtifactsDirectory TestResults/browser-matrix
@@ -132,7 +136,7 @@ jobs:
           name: publish-windows-branded-browsers-${{ github.run_id }}
           if-no-files-found: warn
           retention-days: 14
-          path: TestResults/browser-matrix/**
+          path: TestResults/**
 
   publish:
     name: Publish to nuget.org
