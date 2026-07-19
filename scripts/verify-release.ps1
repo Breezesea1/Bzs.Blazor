@@ -94,10 +94,14 @@ function Invoke-DotNet {
     )
 
     Write-Host "dotnet $($Arguments -join ' ')"
-    $output = & dotnet @Arguments 2>&1
+    $output = [System.Collections.Generic.List[string]]::new()
+    & dotnet @Arguments 2>&1 | ForEach-Object {
+        $line = $_.ToString()
+        $output.Add($line)
+        Write-Host $line
+    }
     $exitCode = $LASTEXITCODE
-    $output | ForEach-Object { Write-Host $_ }
-    $text = $output | Out-String
+    $text = $output -join [Environment]::NewLine
 
     if ($exitCode -ne 0) {
         throw "dotnet command failed with exit code $exitCode."
@@ -355,10 +359,16 @@ function Invoke-PackageConsumerSmoke {
         try {
             $env:BZS_PACKAGE_CONSUMER_BASE_URL = $baseUrl
             $env:BZS_PACKAGE_CONSUMER_RUNTIMES = $Runtimes
+            $consumerTestResults = Join-Path $releaseRoot "package-consumer-tests"
             Invoke-DotNet @(
                 "test", $consumerTestProject,
                 "--configuration", $Configuration,
-                "--no-build", "--no-restore")
+                "--no-build", "--no-restore",
+                "--results-directory", $consumerTestResults,
+                "--logger", "trx;LogFileName=$LogName.trx",
+                "--blame-hang",
+                "--blame-hang-timeout", "3m",
+                "--blame-hang-dump-type", "none")
         }
         finally {
             if ($null -eq $previousBaseUrl) {
