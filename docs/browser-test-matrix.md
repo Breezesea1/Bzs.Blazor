@@ -19,7 +19,7 @@ dotnet build Bzs.Blazor.slnx --configuration Release --no-restore
 pwsh tests/Bzs.Blazor.BrowserTests/bin/Release/net10.0/playwright.ps1 install chromium firefox webkit
 ```
 
-The sequential matrix target order is `chromium`, `mobile-chrome`, `chrome`, `msedge`, `firefox`, `webkit`, and `mobile-safari`. `mobile-chrome` launches Playwright Chromium with the `Pixel 5` descriptor; `mobile-safari` launches Playwright WebKit with the `iPhone 13` descriptor. Chrome and Edge channel coverage uses locally installed stable browser executables. The runner reports every unavailable optional engine or channel as an explicit `SKIP`. Chromium is the required local gate; its absence fails the matrix and prints the installation command, while the dependent Pixel 5 target is skipped.
+The sequential matrix target order is `chromium`, `mobile-chrome`, `chrome`, `msedge`, `firefox`, `webkit`, and `mobile-safari`. `mobile-chrome` launches Playwright Chromium with the `Pixel 5` descriptor; `mobile-safari` launches Playwright WebKit with the `iPhone 13` descriptor. Chrome and Edge channel coverage uses locally installed stable browser executables. On Windows the runner probes the standard per-machine and per-user installation directories. On Linux it looks for `google-chrome` or `google-chrome-stable`, and `microsoft-edge`, on `PATH`. The runner reports every unavailable optional engine or channel as an explicit `SKIP`. Chromium is the required local gate; its absence fails the matrix and prints the installation command, while the dependent Pixel 5 target is skipped.
 
 ## Run
 
@@ -34,9 +34,13 @@ Run the sequential cross-browser matrix. The script restores and builds first, t
 ```powershell
 pwsh tests/Bzs.Blazor.BrowserTests/run-browser-matrix.ps1
 pwsh tests/Bzs.Blazor.BrowserTests/run-browser-matrix.ps1 -DemoBaseUrl http://127.0.0.1:5000
+pwsh tests/Bzs.Blazor.BrowserTests/run-browser-matrix.ps1 -Targets chrome,msedge
+pwsh tests/Bzs.Blazor.BrowserTests/run-browser-matrix.ps1 -Targets chrome,msedge -RequireAllTargets
 ```
 
-Set `-ArtifactsDirectory` to redirect test output. The default is `TestResults/browser-matrix`.
+Set `-Targets` to run only a selected subset in the supplied order. Unknown or duplicate target names are rejected before restore and build. Add `-RequireAllTargets` when every selected browser must be installed; a missing browser then fails instead of skipping. Set `-ArtifactsDirectory` to redirect test output. The default is `TestResults/browser-matrix`.
+
+The runner first uses a nonzero `PLAYWRIGHT_BROWSERS_PATH` when locating installed Playwright browsers. Otherwise it uses `%LOCALAPPDATA%/ms-playwright` on Windows and `$XDG_CACHE_HOME/ms-playwright`, or `$HOME/.cache/ms-playwright` when `XDG_CACHE_HOME` is unset, on Linux.
 
 ## Artifacts
 

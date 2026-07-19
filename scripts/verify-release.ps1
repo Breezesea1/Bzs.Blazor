@@ -16,11 +16,26 @@ if ($env:BZS_UPDATE_VISUAL_BASELINES -eq "1") {
 }
 
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+
+function Join-NativePath {
+    param(
+        [Parameter(Mandatory = $true)][string]$BasePath,
+        [Parameter(Mandatory = $true)][string[]]$Segments
+    )
+
+    $path = $BasePath
+    foreach ($segment in $Segments) {
+        $path = Join-Path $path $segment
+    }
+
+    return $path
+}
+
 $solutionPath = Join-Path $repositoryRoot "Bzs.Blazor.slnx"
-$packageProject = Join-Path $repositoryRoot "src\Bzs.Blazor\Bzs.Blazor.csproj"
-$consumerTemplate = Join-Path $repositoryRoot "scripts\package-consumer"
-$consumerTestProject = Join-Path $repositoryRoot "tests\Bzs.Blazor.PackageConsumerTests\Bzs.Blazor.PackageConsumerTests.csproj"
-$releaseRoot = Join-Path $repositoryRoot "artifacts\release"
+$packageProject = Join-NativePath $repositoryRoot @("src", "Bzs.Blazor", "Bzs.Blazor.csproj")
+$consumerTemplate = Join-NativePath $repositoryRoot @("scripts", "package-consumer")
+$consumerTestProject = Join-NativePath $repositoryRoot @("tests", "Bzs.Blazor.PackageConsumerTests", "Bzs.Blazor.PackageConsumerTests.csproj")
+$releaseRoot = Join-NativePath $repositoryRoot @("artifacts", "release")
 $packageDirectory = Join-Path $releaseRoot "packages"
 $consumerRoot = Join-Path $releaseRoot "consumer"
 $consumerPackagesDirectory = Join-Path $releaseRoot "consumer-packages"
@@ -225,8 +240,10 @@ function Assert-RestoredPackageMatches {
         [Parameter(Mandatory = $true)][string]$ExpectedVersion
     )
 
-    $restoredPackagePath = Join-Path $consumerPackagesDirectory `
-        "bzs.blazor\$ExpectedVersion\bzs.blazor.$ExpectedVersion.nupkg"
+    $restoredPackagePath = Join-NativePath $consumerPackagesDirectory @(
+        "bzs.blazor",
+        $ExpectedVersion,
+        "bzs.blazor.$ExpectedVersion.nupkg")
     if (-not (Test-Path -LiteralPath $restoredPackagePath)) {
         throw "The isolated consumer cache does not contain Bzs.Blazor $ExpectedVersion."
     }
@@ -286,13 +303,19 @@ function Invoke-PackageConsumerSmoke {
     $previousAspNetCoreEnvironment = $env:ASPNETCORE_ENVIRONMENT
     try {
         $env:ASPNETCORE_ENVIRONMENT = $AspNetCoreEnvironment
-        $consumerProcess = Start-Process dotnet `
-            -ArgumentList $arguments `
-            -WorkingDirectory $WorkingDirectory `
-            -WindowStyle Hidden `
-            -RedirectStandardOutput $stdoutPath `
-            -RedirectStandardError $stderrPath `
-            -PassThru
+        $startProcessParameters = @{
+            FilePath = "dotnet"
+            ArgumentList = $arguments
+            WorkingDirectory = $WorkingDirectory
+            RedirectStandardOutput = $stdoutPath
+            RedirectStandardError = $stderrPath
+            PassThru = $true
+        }
+        if ($IsWindows) {
+            $startProcessParameters["WindowStyle"] = "Hidden"
+        }
+
+        $consumerProcess = Start-Process @startProcessParameters
     }
     finally {
         if ($null -eq $previousAspNetCoreEnvironment) {
@@ -371,7 +394,9 @@ Invoke-DotNet @("build", $solutionPath, "--configuration", $Configuration, "--no
 Invoke-DotNet @("test", $solutionPath, "--configuration", $Configuration, "--no-build", "--no-restore")
 
 if (-not $SkipBrowserMatrix) {
-    & pwsh (Join-Path $repositoryRoot "tests\Bzs.Blazor.BrowserTests\run-browser-matrix.ps1") `
+    $browserMatrixScript = Join-NativePath $repositoryRoot @(
+        "tests", "Bzs.Blazor.BrowserTests", "run-browser-matrix.ps1")
+    & pwsh $browserMatrixScript `
         -Configuration $Configuration `
         -ArtifactsDirectory (Join-Path $releaseRoot "browser-matrix")
     if ($LASTEXITCODE -ne 0) {
@@ -394,9 +419,9 @@ Reset-Directory $consumerRoot | Out-Null
 Reset-Directory $consumerPackagesDirectory | Out-Null
 Get-ChildItem -LiteralPath $consumerTemplate | Copy-Item -Destination $consumerRoot -Recurse -Force
 
-$hostProject = Join-Path $consumerRoot "Bzs.Blazor.Consumer\Bzs.Blazor.Consumer.csproj"
-$clientProject = Join-Path $consumerRoot "Bzs.Blazor.Consumer.Client\Bzs.Blazor.Consumer.Client.csproj"
-$aotProject = Join-Path $consumerRoot "Bzs.Blazor.Consumer.Aot\Bzs.Blazor.Consumer.Aot.csproj"
+$hostProject = Join-NativePath $consumerRoot @("Bzs.Blazor.Consumer", "Bzs.Blazor.Consumer.csproj")
+$clientProject = Join-NativePath $consumerRoot @("Bzs.Blazor.Consumer.Client", "Bzs.Blazor.Consumer.Client.csproj")
+$aotProject = Join-NativePath $consumerRoot @("Bzs.Blazor.Consumer.Aot", "Bzs.Blazor.Consumer.Aot.csproj")
 Set-ConsumerPackageVersion @($hostProject, $clientProject, $aotProject) $Version
 $projectText = Get-Content -Raw $hostProject, $clientProject, $aotProject
 if ($projectText -match 'src[\\/]Bzs\.Blazor|Bzs\.Blazor\.csproj') {
@@ -449,14 +474,16 @@ if (-not $SkipAot) {
         "--output", $publishDirectory)
 
     $aotWebRoot = Join-Path $aotDirectory "wwwroot"
-    $publishedAotRoot = Join-Path $publishDirectory "wwwroot\aot"
+    $publishedAotRoot = Join-NativePath $publishDirectory @("wwwroot", "aot")
     New-Item -ItemType Directory -Path $publishedAotRoot -Force | Out-Null
     Get-ChildItem -LiteralPath $aotWebRoot | Copy-Item -Destination $publishedAotRoot -Recurse -Force
 
-    if (-not (Get-ChildItem -LiteralPath (Join-Path $publishedAotRoot "_framework") -Filter "*.dat")) {
+    $aotFrameworkRoot = Join-Path $publishedAotRoot "_framework"
+    if (-not (Get-ChildItem -LiteralPath $aotFrameworkRoot -Filter "*.dat")) {
         throw "The published AOT consumer is missing ICU globalization data."
     }
-    if (-not (Get-ChildItem -LiteralPath (Join-Path $publishedAotRoot "_framework\zh-Hans") -Filter "Bzs.Blazor.resources*.wasm")) {
+    $aotZhHansRoot = Join-Path $aotFrameworkRoot "zh-Hans"
+    if (-not (Get-ChildItem -LiteralPath $aotZhHansRoot -Filter "Bzs.Blazor.resources*.wasm")) {
         throw "The published AOT consumer is missing the zh-Hans package satellite resource."
     }
 
