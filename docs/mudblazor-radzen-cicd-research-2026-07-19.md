@@ -1,6 +1,6 @@
 # MudBlazor 与 Radzen Blazor CI/CD 调研
 
-查询日期：2026-07-19（UTC+08:00）。本文只引用项目官方 GitHub 仓库、GitHub Actions 官方资料、NuGet/Microsoft 官方资料。上游仓库事实固定到查询时的 commit：MudBlazor [`745ce826`](https://github.com/MudBlazor/MudBlazor/commit/745ce826e7bbba9f0ed6ac797704fc7f0830d34d)，Radzen Blazor [`6d2a0dd8`](https://github.com/radzenhq/radzen-blazor/commit/6d2a0dd81a76386744d8436383c685e8ca4809a0)。“建议”是针对本仓库当前未提交的 `.github/workflows/ci.yml` 与 `.github/workflows/publish-nuget.yml` 的判断，不代表上游承诺。
+查询日期：2026-07-19（UTC+08:00）。本文只引用项目官方 GitHub 仓库、GitHub Actions 官方资料、NuGet/Microsoft 官方资料。上游仓库事实固定到查询时的 commit：MudBlazor [`745ce826`](https://github.com/MudBlazor/MudBlazor/commit/745ce826e7bbba9f0ed6ac797704fc7f0830d34d)，Radzen Blazor [`6d2a0dd8`](https://github.com/radzenhq/radzen-blazor/commit/6d2a0dd81a76386744d8436383c685e8ca4809a0)。“建议”针对本仓库发布 `v0.1.0` 时采用的 `.github/workflows/ci.yml` 与 `.github/workflows/publish-nuget.yml`，不代表上游承诺。
 
 ## 结论摘要
 
@@ -10,12 +10,18 @@
 
 ## 当前实现基线
 
-本报告评估的是查询日工作区中的未提交版本，而非 `HEAD`：
+本报告评估的实现已提交为 `e737f18`，并由 annotated tag `v0.1.0` 固定到同一 commit：
 
 - `ci.yml`：PR 与 `master` push 触发；Ubuntu release gate 安装 `wasm-tools` 和 Playwright Chromium/Firefox/WebKit；Windows 另跑 visual regression 与系统 Chrome/Edge；始终上传测试证据。
 - `publish-nuget.yml`：`v*.*.*` tag 触发；严格解析 SemVer，并要求 tag 与 `Bzs.Blazor.csproj` 中唯一的 `Version` 完全一致；Ubuntu 完成 release gate 并上传精确命名的 `.nupkg`/`.snupkg`，Windows 浏览器 job 通过后，独立 `publish` job 才从 artifact 发布。
 - 发布 job 使用 `environment: nuget-production`、仅授予 `id-token: write`，通过固定 commit SHA 的 `NuGet/login` 换取短期 API key；主包先以 `--no-symbols` 发布，再显式发布 `.snupkg`。
 - 所有外部 actions 均固定到完整 commit SHA；`global.json` 与 workflow 都固定 .NET SDK `10.0.302`。
+
+## v0.1.0 实跑结果
+
+- [`CI run 29686673611`](https://github.com/Breezesea1/Bzs.Blazor/actions/runs/29686673611) 在 `e737f18` 上成功完成 Ubuntu release gate 与 Windows branded-browser/visual gate。
+- [`Publish NuGet run 29687047745`](https://github.com/Breezesea1/Bzs.Blazor/actions/runs/29687047745) 从 tag `v0.1.0` 在同一 commit 上成功完成两端门禁、GitHub OIDC 登录以及 `.nupkg`/`.snupkg` 发布。
+- NuGet.org 的 flat-container、registration 和 search API 均已索引 `Bzs.Blazor 0.1.0`。一个全新 Blazor Web App 使用独立 `NUGET_PACKAGES`、禁用缓存并仅指定 `https://api.nuget.org/v3/index.json`，成功还原包、编译 `<BzsButton>`、解析 `_content/Bzs.Blazor/bzs.blazor.css`，Release 构建结果为 0 warning、0 error。
 
 ## 逐项对比
 
@@ -69,8 +75,8 @@ MudBlazor 将 nightly 放到 GitHub Packages，并限制只在原仓库、成功
 
 ## 边界与未验证项
 
-- 本次是静态源码与官方文档核对，没有触发上游 workflow，也没有发布 NuGet 包。
-- 仓库文件不能证明 `nuget-production` 的 required reviewers/deployment tag rules 或 NuGet.org Trusted Publishing policy 已在服务端正确配置；这些仍需仓库所有者在 UI 中实时确认。
+- 上游对比是静态源码与官方文档核对，没有触发 MudBlazor 或 Radzen 的 workflow。本仓库随后实际发布了 `Bzs.Blazor 0.1.0`。
+- 成功发布证明当前 GitHub environment 与 NuGet.org Trusted Publishing tuple 可完成 OIDC 交换；仓库文件仍不能证明 `nuget-production` 的 required reviewers 或 deployment tag rules 当前在服务端的具体配置。
 - 本报告不修改 workflow。package integrity 检查、lock file/caching 或 action 版本升级都需要独立实现与测试。
 - 上游分支会继续变化，所以事实引用尽量使用查询日 commit 永久链接；action 官方文档链接反映查询日最新状态。
 
