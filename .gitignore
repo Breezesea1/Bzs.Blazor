@@ -1,6 +1,45 @@
+# .NET build and package outputs
 **/bin/
 **/obj/
-**/TestResults/
 artifacts/
-playwright-report/
+.artifacts/
+*.nupkg
+*.snupkg
 
+# Test and coverage outputs
+**/TestResults/
+**/playwright-report/
+**/coverage/
+*.coverage
+*.coveragexml
+*.trx
+
+# IDE and editor state
+.vs/
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# Local tools and dependencies
+**/node_modules/
+.packages/
+
+# Machine-local configuration and temporary files
+.env
+.env.*
+!.env.example
+*.local.json
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini

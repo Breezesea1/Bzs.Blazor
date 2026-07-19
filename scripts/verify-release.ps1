@@ -16,7 +16,7 @@ if ($env:BZS_UPDATE_VISUAL_BASELINES -eq "1") {
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $solutionPath = Join-Path $repositoryRoot "Bzs.Blazor.slnx"
 $packageProject = Join-Path $repositoryRoot "src\Bzs.Blazor\Bzs.Blazor.csproj"
-$consumerTemplate = Join-Path $repositoryRoot "eng\package-consumer"
+$consumerTemplate = Join-Path $repositoryRoot "scripts\package-consumer"
 $consumerTestProject = Join-Path $repositoryRoot "tests\Bzs.Blazor.PackageConsumerTests\Bzs.Blazor.PackageConsumerTests.csproj"
 $releaseRoot = Join-Path $repositoryRoot "artifacts\release"
 $packageDirectory = Join-Path $releaseRoot "packages"
@@ -122,7 +122,6 @@ function Assert-PackageContents {
     $requiredEntries = @(
         "README.md",
         "LICENSE",
-        "THIRD-PARTY-NOTICES.md",
         "lib/net10.0/Bzs.Blazor.dll",
         "lib/net10.0/Bzs.Blazor.xml",
         "lib/net10.0/zh-Hans/Bzs.Blazor.resources.dll",
@@ -136,6 +135,35 @@ function Assert-PackageContents {
     foreach ($entry in $requiredEntries) {
         if ($entries -notcontains $entry) {
             throw "Package is missing required entry '$entry'."
+        }
+    }
+
+    $licenseText = Read-ZipEntry $PackagePath "LICENSE"
+    $repositoryLicenseText = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "LICENSE")
+    if (-not [string]::Equals($licenseText, $repositoryLicenseText, [StringComparison]::Ordinal)) {
+        throw "Package LICENSE does not match the repository LICENSE."
+    }
+
+    $requiredLicenseText = [ordered]@{
+        "Copyright (c) 2026 tongyu" = 1
+        "Permission is hereby granted, free of charge, to any person obtaining a copy" = 2
+        "The above copyright notice and this permission notice shall be included in all" = 2
+        'THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR' = 2
+        "ISC License" = 1
+        "Copyright (c) 2026 Lucide Icons and Contributors" = 1
+        "Permission to use, copy, modify, and/or distribute this software for any" = 1
+        "copyright notice and this permission notice appear in all copies." = 1
+        'THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH' = 1
+        "The MIT License (MIT) (for the icons listed above)" = 1
+        "Copyright (c) 2013-present Cole Bemis" = 1
+        "Source: https://github.com/lucide-icons/lucide" = 1
+    }
+    foreach ($notice in $requiredLicenseText.GetEnumerator()) {
+        $occurrenceCount = [regex]::Matches(
+            $licenseText,
+            [regex]::Escape($notice.Key)).Count
+        if ($occurrenceCount -ne $notice.Value) {
+            throw "Package LICENSE must contain '$($notice.Key)' exactly $($notice.Value) time(s); found $occurrenceCount."
         }
     }
 

@@ -36,7 +36,8 @@ under `Localization/` in the RCL so public component namespaces remain
 ## Package contents
 
 The package includes XML documentation, a portable symbol package, deterministic
-build settings, the MIT license, and Lucide attribution. Source Link becomes
+build settings, and a `LICENSE` file containing the project MIT license plus
+Lucide and Feather attribution. Source Link becomes
 resolvable when the repository has both a commit and a real remote URL; the
 local verifier reports that metadata boundary explicitly rather than inventing
 a repository location. The package is currently in `0.x` development and is
@@ -55,7 +56,7 @@ Run the complete browser, package-only consumer, trimming, and WebAssembly AOT
 release gate with:
 
 ```powershell
-pwsh eng/verify-release.ps1
+pwsh scripts/verify-release.ps1
 ```
 
 Release notes are recorded in `docs/releases/0.1.0.md`.

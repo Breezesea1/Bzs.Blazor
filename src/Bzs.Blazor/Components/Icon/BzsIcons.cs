@@ -5,7 +5,7 @@ namespace Bzs.Blazor;
 /// </summary>
 /// <remarks>
 /// Selected geometry is derived from Lucide Icons under the ISC license. See
-/// <c>THIRD-PARTY-NOTICES.md</c> in the package for the full attribution.
+/// <c>LICENSE</c> in the package for the full Lucide and Feather attribution.
 /// </remarks>
 public static class BzsIcons
 {
