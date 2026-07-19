@@ -113,6 +113,141 @@ function Invoke-DotNet {
 
 }
 
+function Write-CompletedProcessLines {
+    param(
+        [Parameter(Mandatory = $true)][IO.StreamReader]$Reader,
+        [Parameter(Mandatory = $true)][IO.StreamWriter]$Writer,
+        [Parameter(Mandatory = $true)][ref]$ReadTask,
+        [Parameter(Mandatory = $true)][ref]$ReadCompleted,
+        [ValidateRange(1, 4096)][int]$MaxLines = 256
+    )
+
+    $linesWritten = 0
+    while (-not $ReadCompleted.Value `
+        -and $ReadTask.Value.IsCompleted `
+        -and $linesWritten -lt $MaxLines) {
+        $line = $ReadTask.Value.GetAwaiter().GetResult()
+        if ($null -eq $line) {
+            $ReadCompleted.Value = $true
+            break
+        }
+
+        $Writer.WriteLine($line)
+        $Writer.Flush()
+        Write-Host $line
+        $ReadTask.Value = $Reader.ReadLineAsync()
+        $linesWritten++
+    }
+}
+
+function Invoke-DotNetWithTimeout {
+    param(
+        [Parameter(Mandatory = $true)][string[]]$Arguments,
+        [Parameter(Mandatory = $true)][TimeSpan]$Timeout,
+        [Parameter(Mandatory = $true)][string]$StdoutPath,
+        [Parameter(Mandatory = $true)][string]$StderrPath
+    )
+
+    $startInfo = [Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = "dotnet"
+    $startInfo.UseShellExecute = $false
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    foreach ($argument in $Arguments) {
+        $startInfo.ArgumentList.Add($argument)
+    }
+
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $startInfo
+    $utf8WithoutBom = [Text.UTF8Encoding]::new($false)
+    $stdoutWriter = [IO.StreamWriter]::new($StdoutPath, $false, $utf8WithoutBom)
+    $stderrWriter = [IO.StreamWriter]::new($StderrPath, $false, $utf8WithoutBom)
+    $processStarted = $false
+
+    try {
+        Write-Host "dotnet $($Arguments -join ' ')"
+        $processStarted = $process.Start()
+        if (-not $processStarted) {
+            throw "The dotnet process could not be started."
+        }
+
+        $stdoutTask = $process.StandardOutput.ReadLineAsync()
+        $stderrTask = $process.StandardError.ReadLineAsync()
+        $stdoutCompleted = $false
+        $stderrCompleted = $false
+        $deadline = [DateTimeOffset]::UtcNow.Add($Timeout)
+
+        while (-not $process.HasExited) {
+            Write-CompletedProcessLines `
+                $process.StandardOutput $stdoutWriter ([ref]$stdoutTask) ([ref]$stdoutCompleted)
+            Write-CompletedProcessLines `
+                $process.StandardError $stderrWriter ([ref]$stderrTask) ([ref]$stderrCompleted)
+
+            if ([DateTimeOffset]::UtcNow -ge $deadline) {
+                throw "dotnet command exceeded $($Timeout.TotalMinutes) minutes. See $StdoutPath and $StderrPath."
+            }
+
+            Start-Sleep -Milliseconds 100
+        }
+
+        $drainDeadline = [DateTimeOffset]::UtcNow.AddSeconds(2)
+        while ((-not $stdoutCompleted -or -not $stderrCompleted) `
+            -and [DateTimeOffset]::UtcNow -lt $drainDeadline) {
+            Write-CompletedProcessLines `
+                $process.StandardOutput $stdoutWriter ([ref]$stdoutTask) ([ref]$stdoutCompleted)
+            Write-CompletedProcessLines `
+                $process.StandardError $stderrWriter ([ref]$stderrTask) ([ref]$stderrCompleted)
+            if (-not $stdoutCompleted -or -not $stderrCompleted) {
+                Start-Sleep -Milliseconds 25
+            }
+        }
+
+        if ($process.ExitCode -ne 0) {
+            throw "dotnet command failed with exit code $($process.ExitCode). See $StdoutPath and $StderrPath."
+        }
+        if (-not $stdoutCompleted -or -not $stderrCompleted) {
+            throw "dotnet exited successfully, but a descendant kept its redirected output open. See $StdoutPath and $StderrPath."
+        }
+    }
+    finally {
+        if ($processStarted -and -not $process.HasExited) {
+            try {
+                $process.Kill($true)
+                if (-not $process.WaitForExit(10000)) {
+                    Write-Warning "The dotnet process tree did not exit within 10 seconds after it was killed."
+                }
+            }
+            catch {
+                Write-Warning "Could not stop the dotnet process tree: $($_.Exception.Message)"
+            }
+        }
+
+        try {
+            $stdoutWriter.Flush()
+            $stderrWriter.Flush()
+        }
+        catch {
+            Write-Warning "Could not flush the dotnet process logs: $($_.Exception.Message)"
+        }
+
+        foreach ($writer in @($stdoutWriter, $stderrWriter)) {
+            try {
+                $writer.Dispose()
+            }
+            catch {
+                Write-Warning "Could not close a dotnet process log: $($_.Exception.Message)"
+            }
+        }
+
+        try {
+            $process.Dispose()
+        }
+        catch {
+            Write-Warning "Could not dispose the dotnet process handle: $($_.Exception.Message)"
+        }
+    }
+}
+
 function Get-ZipEntries {
     param([Parameter(Mandatory = $true)][string]$Path)
 
@@ -331,6 +466,7 @@ function Invoke-PackageConsumerSmoke {
         }
     }
 
+    $smokeFailure = $null
     try {
         $deadline = [DateTimeOffset]::UtcNow.AddSeconds(90)
         do {
@@ -360,7 +496,8 @@ function Invoke-PackageConsumerSmoke {
             $env:BZS_PACKAGE_CONSUMER_BASE_URL = $baseUrl
             $env:BZS_PACKAGE_CONSUMER_RUNTIMES = $Runtimes
             $consumerTestResults = Join-Path $releaseRoot "package-consumer-tests"
-            Invoke-DotNet @(
+            New-Item -ItemType Directory -Path $consumerTestResults -Force | Out-Null
+            Invoke-DotNetWithTimeout -Arguments @(
                 "test", $consumerTestProject,
                 "--configuration", $Configuration,
                 "--no-build", "--no-restore",
@@ -368,7 +505,10 @@ function Invoke-PackageConsumerSmoke {
                 "--logger", "trx;LogFileName=$LogName.trx",
                 "--blame-hang",
                 "--blame-hang-timeout", "3m",
-                "--blame-hang-dump-type", "none")
+                "--blame-hang-dump-type", "none") `
+                -Timeout ([TimeSpan]::FromMinutes(5)) `
+                -StdoutPath (Join-Path $consumerTestResults "$LogName.test.stdout.log") `
+                -StderrPath (Join-Path $consumerTestResults "$LogName.test.stderr.log")
         }
         finally {
             if ($null -eq $previousBaseUrl) {
@@ -386,13 +526,40 @@ function Invoke-PackageConsumerSmoke {
             }
         }
     }
+    catch {
+        $smokeFailure = $_
+        throw
+    }
     finally {
+        $cleanupFailure = $null
         if (-not $consumerProcess.HasExited) {
-            Stop-Process -Id $consumerProcess.Id -Force
-            $consumerProcess.WaitForExit()
+            try {
+                $consumerProcess.Kill($true)
+                if (-not $consumerProcess.WaitForExit(10000)) {
+                    $cleanupFailure = "The package consumer process tree did not exit within 10 seconds after it was killed."
+                }
+            }
+            catch {
+                $cleanupFailure = "Could not stop the package consumer process tree: $($_.Exception.Message)"
+            }
         }
 
-        $consumerProcess.Dispose()
+        try {
+            $consumerProcess.Dispose()
+        }
+        catch {
+            if ($null -eq $cleanupFailure) {
+                $cleanupFailure = "Could not dispose the package consumer process handle: $($_.Exception.Message)"
+            }
+        }
+
+        if ($null -ne $cleanupFailure) {
+            if ($null -eq $smokeFailure) {
+                throw $cleanupFailure
+            }
+
+            Write-Warning "$cleanupFailure The earlier package smoke failure remains primary."
+        }
     }
 }
 

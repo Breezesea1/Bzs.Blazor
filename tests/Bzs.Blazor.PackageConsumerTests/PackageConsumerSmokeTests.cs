@@ -26,7 +26,7 @@ public sealed class PackageConsumerSmokeTests
         {
             ViewportSize = new ViewportSize { Width = 1280, Height = 900 },
         });
-        var page = await context.NewPageAsync();
+        await using var page = await context.NewPageAsync();
         page.SetDefaultTimeout(45_000);
         Microsoft.Playwright.Assertions.SetDefaultExpectTimeout(45_000);
 
