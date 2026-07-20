@@ -25,6 +25,32 @@ The registration establishes the library's standard .NET localization support.
 Consumer applications continue to choose render modes, theme persistence, and
 their own application-localization policy.
 
+## Run the Demo with Aspire
+
+The Aspire AppHost orchestrates the Demo without adding Aspire dependencies to
+the `Bzs.Blazor` runtime package. Start it from the repository root:
+
+```powershell
+aspire run
+```
+
+The repository-level `aspire.config.json` selects the Demo AppHost. Open the
+`bzs-demo` endpoint from the Aspire dashboard. For a parallel local instance
+with randomized ports and isolated user secrets, run `aspire run --isolated`.
+
+## GitHub Pages Demo
+
+After GitHub Pages is enabled, the workflow publishes the static demo to
+[`https://breezesea1.github.io/Bzs.Blazor/`](https://breezesea1.github.io/Bzs.Blazor/).
+The site runs entirely as Interactive WebAssembly and therefore demonstrates
+only browser-hosted routes; the Static SSR, Interactive Server, and Interactive
+Auto routes remain available through the Aspire-hosted demo above.
+
+The Pages workflow deploys automatically from `master` only while the repository
+is public. While the repository is private, push-triggered runs are skipped
+because Pages is unavailable under the current repository plan. After Pages is
+enabled, run the workflow manually once or make a new `master` commit to deploy.
+
 ## Localization convention
 
 Library-owned strings use standard `.resx` resource sets. The neutral resource

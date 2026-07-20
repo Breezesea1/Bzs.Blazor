@@ -1,7 +1,10 @@
 <Solution>
   <Folder Name="/samples/" />
   <Folder Name="/samples/Bzs.Blazor.Demo/">
+    <Project Path="samples/Bzs.Blazor.Demo/Bzs.Blazor.Demo.AppHost/Bzs.Blazor.Demo.AppHost.csproj" />
+    <Project Path="samples/Bzs.Blazor.Demo/Bzs.Blazor.Demo.Catalog/Bzs.Blazor.Demo.Catalog.csproj" />
     <Project Path="samples/Bzs.Blazor.Demo/Bzs.Blazor.Demo.Client/Bzs.Blazor.Demo.Client.csproj" />
+    <Project Path="samples/Bzs.Blazor.Demo/Bzs.Blazor.Demo.WebAssembly/Bzs.Blazor.Demo.WebAssembly.csproj" />
     <Project Path="samples/Bzs.Blazor.Demo/Bzs.Blazor.Demo/Bzs.Blazor.Demo.csproj" />
   </Folder>
   <Folder Name="/src/">
