@@ -1,6 +1,7 @@
 # Bzs.Blazor v0.1.0 发布交接
 
 - 生成时间：2026-07-19（UTC+08:00）
+- 最后更新：2026-07-20（UTC+08:00），发布后加固已合入 `master` 并通过 CI
 - 仓库：`git@github.com:Breezesea1/Bzs.Blazor.git`
 - NuGet：<https://www.nuget.org/packages/Bzs.Blazor/0.1.0>
 
@@ -14,17 +15,17 @@
 
 | 项目 | 当前值 |
 | --- | --- |
-| 当前分支 | `master` |
-| 当前 HEAD | `c31d912f87c4ec9c1a60dc756c38282e2da54800` |
-| `origin/master` | `c31d912f87c4ec9c1a60dc756c38282e2da54800` |
+| 加固分支 | `master` |
+| 加固实现 commit | `f091881d72e7ece40bff66751e959d59612879df` |
+| 加固 CI | run `29717988747`, success |
 | `v0.1.0` tag object | `dc393f99be0f9d127bec046ac3cf53f4a9bb36d3` |
 | `v0.1.0` peeled commit | `e737f182fc99b487958af092b29c764a9ee75280` |
 | NuGet package | `Bzs.Blazor 0.1.0`, listed |
 | NuGet published time | `2026-07-19T12:42:09.003Z` |
 
-`master` 比发布 tag 多一个发布结果文档提交 `c31d912`。这是预期状态。不要移动、删除或覆盖 `v0.1.0`，也不要尝试重新发布同版本主包。
+加固实现 commit `f091881` 比发布 tag 多两个提交：发布结果文档 `c31d912` 和发布控制加固 `f091881`。这是预期状态；本交接的后续状态同步可能再产生纯文档提交，接手时用 `git log` 复核最新 `master`。不要移动、删除或覆盖 `v0.1.0`，也不要尝试重新发布同版本主包。
 
-本交接之后的发布加固改动当前仍在工作区、尚未提交：发布授权 ADR/文档同步、Node 24 action pins，以及 package static-assets/integrity 校验。它们已通过完整本地 release gate，但新的 GitHub Actions pins 只有在 push 后才能获得 hosted runner 证据。
+发布授权 ADR/文档同步、Node 24 action pins，以及 package static-assets/integrity 校验已提交并 push 为 `f091881`。针对该精确 SHA 的 CI run `29717988747` 已在 Ubuntu 和 Windows hosted runners 上成功；没有创建或 push 新 tag，也没有触发 Publish NuGet workflow。
 
 仓库当前没有 GitHub Release 对象；只有 Git tag、仓库内 release notes 和 NuGet.org package。`gh release view v0.1.0` 返回 `release not found`。
 
@@ -180,6 +181,19 @@ GitHub environment API 的当前结果是：`nuget-production` 只有 `branch_po
 - Windows branded browsers：`4m40s`
 - Ubuntu release gate：`13m12s`
 
+### 发布后加固 master CI
+
+[CI run 29717988747](https://github.com/Breezesea1/Bzs.Blazor/actions/runs/29717988747) 针对 `f091881` 成功：
+
+- Windows branded browsers：成功，`4m36s`
+- Ubuntu release gate：成功，`13m39s`
+- `actions/checkout v7`、`actions/setup-dotnet v6` 和 `actions/upload-artifact v7` 在两端 hosted runner 正常执行
+- 完整 release gate：成功
+- Package consumer：source 与 published 两轮各 `19/19`
+- AOT：39 个 assembly，包括 `Bzs.Blazor.dll`
+- 没有 `IL2xxx`、`IL3050` 或 Node 20 deprecation warning
+- 同一 SHA 只触发 CI，没有触发 Publish NuGet workflow
+
 ### 测试与包消费
 
 完整本地/CI release gate 的已记录结果：
@@ -204,7 +218,7 @@ NuGet v3 flat-container、registration 和 search API 都已返回 `0.1.0`。
 
 ### 发布后加固验证
 
-当前工作区在增加 static-assets/integrity 校验后重新运行了完整本地 release gate：
+加固实现 commit `f091881` 在本地和 GitHub hosted runner 上均运行了完整 release gate：
 
 - Unit/component：`107/107`
 - Chromium browser（含视觉回归）：`36/36`
@@ -214,7 +228,7 @@ NuGet v3 flat-container、registration 和 search API 都已返回 `0.1.0`。
 - AOT：39 个 assembly，包括 `Bzs.Blazor.dll`
 - Trim/AOT：无 `IL2xxx` 或 `IL3050`
 
-这组结果是未提交工作区的本地证据，不替代 push 后 Ubuntu/Windows hosted runner 对新 action pins 的验证。
+本地证据由 CI run `29717988747` 的 Ubuntu/Windows hosted runner 结果补强；后续依赖升级仍需为对应新 commit 重新取得两端 CI 证据。
 
 ## 证据优先级与过时材料
 
@@ -237,11 +251,11 @@ NuGet v3 flat-container、registration 和 search API 都已返回 `0.1.0`。
 
 当前 workflow 只验证 tag 文本和项目 version，没有验证 tag peeled commit 等于 `origin/master`，也没有查询同一 SHA 的 branch CI 结果。tag commit 还携带它自己的 workflow 和 release script。因此人工发布流程必须比较 tag/master SHA 并核对精确 commit 的成功 CI；在已选定的 tag-push 授权策略下，真正抵御有写权限主体绕过这些人工步骤依赖已验证、且不能由普通发布主体修改的 protected tag/ruleset。
 
-### 本地完成：升级到 Node 24 runtime 的 pinned actions
+### 完成：升级到 Node 24 runtime 的 pinned actions
 
 两个 workflow 已将 `actions/checkout` 升级到 `v7.0.0`、`actions/setup-dotnet` 升级到 `v6.0.0`、`actions/upload-artifact` 升级到 `v7.0.1`、`actions/download-artifact` 升级到 `v8.0.1`；`NuGet/login v1.2.0` 保持不变。所有引用继续固定完整 commit SHA，官方 tag SHA 与各自 `action.yml` 的 `node24` runtime 已逐项核对。
 
-完整本地 release gate 已通过，但本地执行不会运行这些 actions。必须在 push 后检查 Ubuntu 与 Windows hosted runner；在两端新 CI 成功前，不把 Node 20 warning 的消除写成远端已验证事实。
+CI run `29717988747` 已在 Ubuntu 和 Windows hosted runners 上执行这些 pins，并成功完成两端 artifact upload；日志中没有 Node 20 deprecation warning。发布 workflow 中的 `download-artifact v8` 和 `NuGet/login v1.2.0` 只有发布 tag workflow 才会运行，本次没有为验证它们创建 tag；其 SHA、官方 tag 和 `node24` metadata 已静态核对。
 
 ### 完成：增加 package static-assets/integrity 校验
 
