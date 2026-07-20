@@ -6,6 +6,22 @@ namespace Bzs.Blazor.PackageConsumerTests;
 public sealed class PackageConsumerSmokeTests
 {
     [Fact]
+    public void PublishedPackageStaticAssetsMatchEndpointIntegrityMetadata()
+    {
+        var packagePath = Environment.GetEnvironmentVariable("BZS_PACKAGE_PATH");
+        var endpointManifestPath = Environment.GetEnvironmentVariable(
+            "BZS_PACKAGE_STATIC_WEB_ASSETS_MANIFEST");
+        Assert.False(
+            string.IsNullOrWhiteSpace(packagePath),
+            "BZS_PACKAGE_PATH must point to the package under release verification.");
+        Assert.False(
+            string.IsNullOrWhiteSpace(endpointManifestPath),
+            "BZS_PACKAGE_STATIC_WEB_ASSETS_MANIFEST must point to the consumer endpoint manifest.");
+
+        StaticWebAssetIntegrityVerifier.Verify(packagePath!, endpointManifestPath!);
+    }
+
+    [Fact]
     public async Task PublishedPackageConsumerExercisesAllRenderModesAndRuntimeAssets()
     {
         var baseUrl = Environment.GetEnvironmentVariable("BZS_PACKAGE_CONSUMER_BASE_URL");

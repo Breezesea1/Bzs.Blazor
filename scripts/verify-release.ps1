@@ -431,7 +431,9 @@ function Invoke-PackageConsumerSmoke {
         [Parameter(Mandatory = $true)][string]$WorkingDirectory,
         [Parameter(Mandatory = $true)][string]$Runtimes,
         [Parameter(Mandatory = $true)][string]$LogName,
-        [Parameter(Mandatory = $true)][string]$AspNetCoreEnvironment
+        [Parameter(Mandatory = $true)][string]$AspNetCoreEnvironment,
+        [Parameter(Mandatory = $true)][string]$PackagePath,
+        [Parameter(Mandatory = $true)][string]$StaticWebAssetsManifestPath
     )
 
     $port = Get-OpenPort
@@ -490,11 +492,19 @@ function Invoke-PackageConsumerSmoke {
             throw "The package consumer did not become ready at $baseUrl."
         }
 
-        $previousBaseUrl = $env:BZS_PACKAGE_CONSUMER_BASE_URL
-        $previousRuntimes = $env:BZS_PACKAGE_CONSUMER_RUNTIMES
+        $testEnvironment = [ordered]@{
+            BZS_PACKAGE_CONSUMER_BASE_URL = $baseUrl
+            BZS_PACKAGE_CONSUMER_RUNTIMES = $Runtimes
+            BZS_PACKAGE_PATH = $PackagePath
+            BZS_PACKAGE_STATIC_WEB_ASSETS_MANIFEST = $StaticWebAssetsManifestPath
+        }
+        $previousTestEnvironment = @{}
         try {
-            $env:BZS_PACKAGE_CONSUMER_BASE_URL = $baseUrl
-            $env:BZS_PACKAGE_CONSUMER_RUNTIMES = $Runtimes
+            foreach ($entry in $testEnvironment.GetEnumerator()) {
+                $previousTestEnvironment[$entry.Key] = [Environment]::GetEnvironmentVariable($entry.Key)
+                [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
+            }
+
             $consumerTestResults = Join-Path $releaseRoot "package-consumer-tests"
             New-Item -ItemType Directory -Path $consumerTestResults -Force | Out-Null
             Invoke-DotNetWithTimeout -Arguments @(
@@ -511,18 +521,10 @@ function Invoke-PackageConsumerSmoke {
                 -StderrPath (Join-Path $consumerTestResults "$LogName.test.stderr.log")
         }
         finally {
-            if ($null -eq $previousBaseUrl) {
-                Remove-Item Env:BZS_PACKAGE_CONSUMER_BASE_URL -ErrorAction SilentlyContinue
-            }
-            else {
-                $env:BZS_PACKAGE_CONSUMER_BASE_URL = $previousBaseUrl
-            }
-
-            if ($null -eq $previousRuntimes) {
-                Remove-Item Env:BZS_PACKAGE_CONSUMER_RUNTIMES -ErrorAction SilentlyContinue
-            }
-            else {
-                $env:BZS_PACKAGE_CONSUMER_RUNTIMES = $previousRuntimes
+            foreach ($entry in $testEnvironment.GetEnumerator()) {
+                [Environment]::SetEnvironmentVariable(
+                    $entry.Key,
+                    $previousTestEnvironment[$entry.Key])
             }
         }
     }
@@ -618,6 +620,11 @@ Assert-RestoredPackageMatches $packagePath $Version
 Invoke-DotNet @("build", $hostProject, "--configuration", $Configuration, "--no-restore")
 Invoke-DotNet @("restore", $consumerTestProject)
 Invoke-DotNet @("build", $consumerTestProject, "--configuration", $Configuration, "--no-restore")
+$staticWebAssetsManifestPath = Join-NativePath $consumerRoot @(
+    "Bzs.Blazor.Consumer", "obj", $Configuration, "net10.0", "staticwebassets.build.endpoints.json")
+if (-not (Test-Path -LiteralPath $staticWebAssetsManifestPath -PathType Leaf)) {
+    throw "The temporary consumer did not generate a static web asset endpoint manifest."
+}
 
 Invoke-PackageConsumerSmoke `
     -ProcessArguments @(
@@ -627,7 +634,9 @@ Invoke-PackageConsumerSmoke `
     -WorkingDirectory $consumerRoot `
     -Runtimes "server,wasm,auto" `
     -LogName "consumer-source" `
-    -AspNetCoreEnvironment "Development"
+    -AspNetCoreEnvironment "Development" `
+    -PackagePath $packagePath `
+    -StaticWebAssetsManifestPath $staticWebAssetsManifestPath
 
 if (-not $SkipAot) {
     $workloadList = dotnet workload list | Out-String
@@ -655,6 +664,12 @@ if (-not $SkipAot) {
         "--no-restore",
         "--output", $publishDirectory)
 
+    $publishedStaticWebAssetsManifestPath = Join-NativePath $consumerRoot @(
+        "Bzs.Blazor.Consumer", "obj", $Configuration, "net10.0", "staticwebassets.publish.endpoints.json")
+    if (-not (Test-Path -LiteralPath $publishedStaticWebAssetsManifestPath -PathType Leaf)) {
+        throw "The published consumer did not generate a static web asset endpoint manifest."
+    }
+
     $aotWebRoot = Join-Path $aotDirectory "wwwroot"
     $publishedAotRoot = Join-NativePath $publishDirectory @("wwwroot", "aot")
     New-Item -ItemType Directory -Path $publishedAotRoot -Force | Out-Null
@@ -674,7 +689,9 @@ if (-not $SkipAot) {
         -WorkingDirectory $publishDirectory `
         -Runtimes "server,aot" `
         -LogName "consumer-published" `
-        -AspNetCoreEnvironment "Production"
+        -AspNetCoreEnvironment "Production" `
+        -PackagePath $packagePath `
+        -StaticWebAssetsManifestPath $publishedStaticWebAssetsManifestPath
 }
 
 $remoteUrl = git -C $repositoryRoot remote get-url origin 2>$null

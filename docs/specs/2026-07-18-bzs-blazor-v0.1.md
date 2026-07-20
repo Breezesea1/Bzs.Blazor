@@ -1,8 +1,8 @@
 # Bzs.Blazor v0.1 Specification
 
-Status: accepted for implementation  
-Target release: `0.1.0`  
-Target framework: `.NET 10`
+- Status: released
+- Target release: `0.1.0`
+- Target framework: `.NET 10`
 
 ## Product
 
@@ -145,7 +145,7 @@ public enum BzsSurfaceLevel { Base, Raised, Inset, Overlay }
 ### Navigation
 
 - `BzsTabs`
-- `BzsTab`
+- `BzsTabItem`
 
 DataGrid, Tree, Scheduler, Charts, MultiSelect, ContextMenu, Popover, Sidebar, upload, media viewers, Radzen adapters, and business composites are outside v0.1.
 
@@ -200,5 +200,6 @@ Supported: current stable Chrome, Edge, Firefox, Safari, iOS Safari, and Android
 
 ## Release Policy
 
-Package ID, assembly, and root namespace are `Bzs.Blazor`. The package is MIT licensed and starts at `0.1.0`. Breaking changes are permitted during 0.x only when documented. Public nuget.org publication is deferred until the interface and visual contract stabilize.
+Package ID, assembly, and root namespace are `Bzs.Blazor`. The package is MIT licensed and starts at `0.1.0`, which is published on nuget.org. Breaking changes are permitted during 0.x only when documented.
 
+NuGet publication is authorized by the controlled push of a strict `v<SemVer>` tag; `nuget-production` does not require an additional reviewer. The release workflow retains exact tag/project-version equality, Ubuntu and Windows release gates, OIDC Trusted Publishing, the `nuget-production` environment, and restricted tag creation and update permissions. Before pushing a release tag, the operator verifies that its peeled commit equals both the intended release SHA and current `origin/master`, and confirms successful CI for that same SHA. The workflow does not currently enforce these commit and CI checks, and the effective tag ruleset has not yet been proven from repository evidence.
