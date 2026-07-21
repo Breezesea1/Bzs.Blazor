@@ -25,6 +25,20 @@ public sealed class ThemeTests
     }
 
     [Fact]
+    public void BuiltInInputBoundariesMeetNonTextContrast()
+    {
+        foreach (var colors in new[] { BzsThemes.Light, BzsThemes.Dark })
+        {
+            Assert.True(
+                GetContrastRatio(colors.Border, colors.Canvas) >= 3,
+                $"{colors.Border} must contrast with canvas {colors.Canvas} by at least 3:1.");
+            Assert.True(
+                GetContrastRatio(colors.Border, colors.SurfaceInset) >= 3,
+                $"{colors.Border} must contrast with input fill {colors.SurfaceInset} by at least 3:1.");
+        }
+    }
+
+    [Fact]
     public void CustomThemeRequiresAndEmitsACspNonce()
     {
         using var context = new BunitContext();
@@ -179,6 +193,25 @@ public sealed class ThemeTests
     {
         [CascadingParameter]
         public BzsThemeContext Context { get; set; } = BzsThemeContext.Default;
+    }
+
+    private static double GetContrastRatio(string first, string second)
+    {
+        var firstLuminance = GetRelativeLuminance(first);
+        var secondLuminance = GetRelativeLuminance(second);
+        return (Math.Max(firstLuminance, secondLuminance) + 0.05)
+            / (Math.Min(firstLuminance, secondLuminance) + 0.05);
+    }
+
+    private static double GetRelativeLuminance(string color)
+    {
+        var channels = new[] { 1, 3, 5 }
+            .Select(index => Convert.ToInt32(color.Substring(index, 2), 16) / 255d)
+            .Select(channel => channel <= 0.04045
+                ? channel / 12.92
+                : Math.Pow((channel + 0.055) / 1.055, 2.4))
+            .ToArray();
+        return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
     }
 
     private static void AssertTransientSystemModeSetupIsRecoverable(Exception exception)

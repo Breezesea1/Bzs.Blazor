@@ -1,61 +1,61 @@
 :root,
 [data-bzs-theme="light"] {
     color-scheme: light;
-    --bzs-canvas: #edf1f5;
-    --bzs-surface: #edf1f5;
-    --bzs-surface-raised: #f5f7fa;
-    --bzs-surface-inset: #e4eaf0;
-    --bzs-surface-overlay: #ffffff;
-    --bzs-text: #172033;
-    --bzs-text-muted: #536174;
-    --bzs-border: #c8d1dc;
-    --bzs-focus-ring: #2563eb;
-    --bzs-primary: #2563eb;
+    --bzs-canvas: #eceef1;
+    --bzs-surface: #eceef1;
+    --bzs-surface-raised: #f2f3f5;
+    --bzs-surface-inset: #e2e5e9;
+    --bzs-surface-overlay: #f8f9fa;
+    --bzs-text: #20252d;
+    --bzs-text-muted: #59616d;
+    --bzs-border: #747c87;
+    --bzs-focus-ring: #4b5968;
+    --bzs-primary: #303741;
     --bzs-on-primary: #ffffff;
-    --bzs-success: #15803d;
-    --bzs-warning: #a16207;
+    --bzs-success: #2f7d62;
+    --bzs-warning: #9a641f;
     --bzs-error: #b42318;
-    --bzs-info: #0369a1;
-    --bzs-disabled-surface: #e2e8f0;
-    --bzs-disabled-text: #7b8796;
-    --bzs-shadow-raised: 6px 6px 14px rgb(163 177 198 / 0.42), -5px -5px 12px rgb(255 255 255 / 0.82);
-    --bzs-shadow-inset: inset 3px 3px 7px rgb(163 177 198 / 0.38), inset -3px -3px 7px rgb(255 255 255 / 0.68);
-    --bzs-shadow-overlay: 0 18px 40px rgb(31 45 61 / 0.2);
-    --bzs-shadow-focus: 0 0 0 3px rgb(36 99 235 / 0.32);
+    --bzs-info: #356b86;
+    --bzs-disabled-surface: #dfe2e6;
+    --bzs-disabled-text: #89919c;
+    --bzs-shadow-raised: 7px 7px 16px rgb(166 172 182 / 0.48), -6px -6px 14px rgb(255 255 255 / 0.9);
+    --bzs-shadow-inset: inset 3px 3px 7px rgb(166 172 182 / 0.44), inset -3px -3px 7px rgb(255 255 255 / 0.78);
+    --bzs-shadow-overlay: 0 20px 44px rgb(38 45 56 / 0.2);
+    --bzs-shadow-focus: 0 0 0 3px rgb(75 89 104 / 0.26);
 }
 
 [data-bzs-theme="dark"] {
     color-scheme: dark;
-    --bzs-canvas: #171c24;
-    --bzs-surface: #171c24;
-    --bzs-surface-raised: #202834;
-    --bzs-surface-inset: #12161d;
-    --bzs-surface-overlay: #252f3d;
-    --bzs-text: #f2f5f8;
-    --bzs-text-muted: #b2bdca;
-    --bzs-border: #3b4655;
-    --bzs-focus-ring: #7aa2ff;
-    --bzs-primary: #7aa2ff;
-    --bzs-on-primary: #0d1726;
-    --bzs-success: #4ade80;
-    --bzs-warning: #fbbf24;
-    --bzs-error: #fb7185;
-    --bzs-info: #67c7ff;
-    --bzs-disabled-surface: #293240;
-    --bzs-disabled-text: #7e8998;
-    --bzs-shadow-raised: 6px 6px 14px rgb(5 8 12 / 0.52), -4px -4px 10px rgb(53 66 84 / 0.32);
-    --bzs-shadow-inset: inset 3px 3px 7px rgb(5 8 12 / 0.52), inset -3px -3px 7px rgb(53 66 84 / 0.22);
-    --bzs-shadow-overlay: 0 20px 48px rgb(0 0 0 / 0.48);
-    --bzs-shadow-focus: 0 0 0 3px rgb(122 162 255 / 0.36);
+    --bzs-canvas: #11151b;
+    --bzs-surface: #171c22;
+    --bzs-surface-raised: #1d232b;
+    --bzs-surface-inset: #0e1217;
+    --bzs-surface-overlay: #20262e;
+    --bzs-text: #f3f4f6;
+    --bzs-text-muted: #aeb4bd;
+    --bzs-border: #66717e;
+    --bzs-focus-ring: #d3dae4;
+    --bzs-primary: #d9dee5;
+    --bzs-on-primary: #171c22;
+    --bzs-success: #5fc69e;
+    --bzs-warning: #e8b45c;
+    --bzs-error: #f27d88;
+    --bzs-info: #7ab9d6;
+    --bzs-disabled-surface: #242b34;
+    --bzs-disabled-text: #7f8996;
+    --bzs-shadow-raised: 7px 7px 16px rgb(3 5 8 / 0.62), -5px -5px 12px rgb(45 53 64 / 0.42);
+    --bzs-shadow-inset: inset 3px 3px 7px rgb(3 5 8 / 0.64), inset -3px -3px 7px rgb(45 53 64 / 0.3);
+    --bzs-shadow-overlay: 0 22px 52px rgb(0 0 0 / 0.54);
+    --bzs-shadow-focus: 0 0 0 3px rgb(211 218 228 / 0.28);
 }
 
 :root,
 [data-bzs-theme] {
-    --bzs-radius-control: 0.4375rem;
+    --bzs-radius-control: 0.5rem;
     --bzs-radius-container: 0.5rem;
     --bzs-radius-overlay: 0.5rem;
     --bzs-border-width: 1px;
-    --bzs-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --bzs-font-family: "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
     --bzs-font-size: 0.875rem;
     --bzs-font-size-small: 0.75rem;
     --bzs-line-height: 1.4;
@@ -128,4 +128,3 @@
 @media (forced-colors: active) {
     .bzs-input { box-shadow: none; }
 }
-

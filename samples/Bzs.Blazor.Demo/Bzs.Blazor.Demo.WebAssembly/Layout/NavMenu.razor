@@ -1,10 +1,13 @@
 <nav class="demo-nav" aria-label="Bzs.Blazor catalog">
     <a class="demo-brand" href="">
         <span class="demo-brand-mark" aria-hidden="true">B</span>
-        <span>Bzs.Blazor</span>
+        <span class="demo-brand-copy">
+            <strong>Bzs.Blazor</strong>
+            <small>Component lab</small>
+        </span>
     </a>
 
-    <div>
+    <div class="demo-nav-section">
         <p class="demo-nav-heading">Catalog</p>
         <NavLink class="demo-nav-link" href="" Match="NavLinkMatch.All">Overview</NavLink>
         <NavLink class="demo-nav-link" href="theme-foundation">Theme foundation</NavLink>
@@ -15,7 +18,7 @@
         <NavLink class="demo-nav-link" href="overlays">Overlays</NavLink>
     </div>
 
-    <div>
+    <div class="demo-nav-section">
         <p class="demo-nav-heading">Runtime</p>
         <NavLink class="demo-nav-link" href="render-modes/webassembly">Interactive WebAssembly</NavLink>
     </div>
