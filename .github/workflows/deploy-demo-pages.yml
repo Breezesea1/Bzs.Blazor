@@ -1,22 +1,29 @@
 name: Deploy demo to GitHub Pages
 
 on:
-  push:
-    branches:
-      - master
-  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
 
 permissions:
   contents: read
 
 concurrency:
-  group: pages
+  group: pages-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: true
 
 jobs:
   build:
     name: Build static demo
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.repository.private == false }}
+    if: >-
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'master' &&
+        github.event.workflow_run.head_repository.full_name == github.repository
+      }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,6 +32,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Set up .NET SDK
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
@@ -60,7 +69,13 @@ jobs:
 
   deploy:
     name: Deploy static demo
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.repository.private == false }}
+    if: >-
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'master' &&
+        github.event.workflow_run.head_repository.full_name == github.repository
+      }}
     needs: build
     runs-on: ubuntu-latest
     permissions:

@@ -1,5 +1,6 @@
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
+using System.Text.RegularExpressions;
 
 namespace Bzs.Blazor.BrowserTests;
 
@@ -19,6 +20,29 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
             .ToBeVisibleAsync();
         await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Interaction unavailable" }))
             .ToBeDisabledAsync();
+    }
+
+    [Theory]
+    [InlineData("01 Theme foundation", "theme-foundation", "Light, Dark, and System")]
+    [InlineData("02 Foundation", "foundation", "Icon, Surface, and Button")]
+    [InlineData("03 Forms", "forms", "Profile editor")]
+    [InlineData("04 Feedback", "feedback", "Status and notifications")]
+    [InlineData("05 Tabs", "tabs", "Tabs, language, and direction")]
+    [InlineData("06 Overlays", "overlays", "Dialog, Drawer, and Host")]
+    public async Task CatalogComponentGroupLinksNavigateToTheirSamples(
+        string linkName,
+        string route,
+        string pageHeading)
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync(server.BaseUrl);
+
+        var componentGroups = Page.GetByRole(AriaRole.Region, new() { Name = "Component groups" });
+        await componentGroups.GetByRole(AriaRole.Link, new() { Name = linkName, Exact = true }).ClickAsync();
+
+        await Expect(Page).ToHaveURLAsync(new Regex($"/{Regex.Escape(route)}$"));
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = pageHeading }))
+            .ToBeVisibleAsync();
     }
 
     [Fact]
