@@ -192,13 +192,13 @@ dotnet add package Bzs.Blazor --version 0.1.1
 
 ## 后续 patch 发布 Runbook
 
-1. 从 clean `master` 开始，确认 `HEAD == origin/master`。
+1. 从 clean `main` 开始，确认 `HEAD == origin/main`。
 2. 更新 `Bzs.Blazor.csproj` 的唯一 `Version`、`PackageReleaseNotes`、README 和新的 `docs/releases/<version>.md`。
 3. 执行完整本地 release gate，并保留 build、test、browser、consumer、trimming、AOT 和 pack 结果。
 4. 只暂存本次范围，执行 `git diff --cached --check` 和独立 review。
-5. commit 并 push `master`。
+5. commit 并 push `main`。
 6. 等待该精确 SHA 的 CI 成功；同时确认 Pages run 成功并对线上站点做实际浏览器验收。
-7. 创建新的 annotated tag，逐项验证 peeled commit、`origin/master` 和 project version 完全一致。
+7. 创建新的 annotated tag，逐项验证 peeled commit、`origin/main` 和 project version 完全一致。
 8. push 新 tag，等待 `Publish NuGet` 的 verify、Windows browser 和 NuGet publish jobs 全部成功。
 9. 查询 NuGet flat-container、registration 和 package URL；区分 workflow push 成功与公共索引传播完成。
 10. 保持所有既有 release tag 不变，不使用 `--skip-duplicate` 掩盖部分发布或恢复问题。
@@ -208,14 +208,14 @@ dotnet add package Bzs.Blazor --version 0.1.1
 ```powershell
 git status --short --branch
 git rev-parse HEAD
-git rev-parse origin/master
-git rev-list --left-right --count HEAD...origin/master
+git rev-parse origin/main
+git rev-list --left-right --count HEAD...origin/main
 
 pwsh -NoProfile -File scripts/verify-release.ps1 -Configuration Release
 
 git tag -a v0.1.2 -m "Bzs.Blazor 0.1.2"
 git rev-parse 'refs/tags/v0.1.2^{commit}'
-git rev-parse origin/master
+git rev-parse origin/main
 git push origin v0.1.2
 
 gh run list --commit <release-sha> --workflow CI --limit 10
@@ -230,7 +230,7 @@ Invoke-RestMethod https://api.nuget.org/v3/registration5-gz-semver2/bzs.blazor/i
 ```powershell
 gh api repos/Breezesea1/Bzs.Blazor/rulesets
 gh api repos/Breezesea1/Bzs.Blazor/rulesets/19528030
-gh api repos/Breezesea1/Bzs.Blazor/branches/master/protection
+gh api repos/Breezesea1/Bzs.Blazor/branches/main/protection
 gh api repos/Breezesea1/Bzs.Blazor/environments/nuget-production
 gh api repos/Breezesea1/Bzs.Blazor/environments/nuget-production/deployment-branch-policies
 ```

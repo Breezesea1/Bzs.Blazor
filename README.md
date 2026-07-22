@@ -46,10 +46,10 @@ The site runs entirely as Interactive WebAssembly and therefore demonstrates
 only browser-hosted routes; the Static SSR, Interactive Server, and Interactive
 Auto routes remain available through the Aspire-hosted demo above.
 
-The Pages workflow deploys automatically from `master` only while the repository
+The Pages workflow deploys automatically from `main` only while the repository
 is public. While the repository is private, push-triggered runs are skipped
 because Pages is unavailable under the current repository plan. After Pages is
-enabled, run the workflow manually once or make a new `master` commit to deploy.
+enabled, make a new `main` commit to deploy.
 
 ## Localization convention
 
