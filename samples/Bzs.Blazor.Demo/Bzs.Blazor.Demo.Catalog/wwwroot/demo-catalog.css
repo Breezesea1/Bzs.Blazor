@@ -1,20 +1,20 @@
 :root {
     color-scheme: light;
-    --demo-canvas: #eef0f3;
-    --demo-panel: #eef0f3;
-    --demo-panel-raised: #f3f4f6;
-    --demo-panel-muted: #e7e9ed;
-    --demo-panel-inset: #e4e7eb;
-    --demo-border: #d6dae0;
+    --demo-canvas: #e6e9ef;
+    --demo-panel: #e6e9ef;
+    --demo-panel-raised: #f8f9fb;
+    --demo-panel-muted: #dee2e8;
+    --demo-panel-inset: #d6dae1;
+    --demo-border: #c8cdd5;
     --demo-text: #20252d;
     --demo-muted: #59616d;
     --demo-accent: #303741;
     --demo-accent-strong: #171c22;
     --demo-focus: #52606f;
     --demo-success: #367866;
-    --demo-shadow-raised: 0.55rem 0.55rem 1.2rem rgb(172 178 188 / 0.48), -0.5rem -0.5rem 1.1rem rgb(255 255 255 / 0.92);
+    --demo-shadow-raised: 0.6rem 0.6rem 1.3rem rgb(163 170 181 / 0.52), -0.5rem -0.5rem 1.1rem rgb(255 255 255 / 0.94);
     --demo-shadow-soft: 0 0.55rem 1.5rem rgb(38 45 56 / 0.12);
-    --demo-shadow-inset: inset 0.2rem 0.2rem 0.45rem rgb(178 184 194 / 0.46), inset -0.2rem -0.2rem 0.45rem rgb(255 255 255 / 0.78);
+    --demo-shadow-inset: inset 0.2rem 0.2rem 0.5rem rgb(163 170 181 / 0.52), inset -0.2rem -0.2rem 0.45rem rgb(255 255 255 / 0.8);
 }
 
 html {
@@ -104,7 +104,7 @@ button:focus-visible {
     gap: 1rem;
     border-bottom: 1px solid rgb(255 255 255 / 0.78);
     padding: 0.625rem clamp(1rem, 3vw, 2rem);
-    background: rgb(238 240 243 / 0.92);
+    background: rgb(230 233 239 / 0.92);
     box-shadow: var(--demo-shadow-soft);
 }
 
@@ -374,7 +374,7 @@ button:focus-visible {
 }
 
 .demo-overview-card:hover {
-    box-shadow: 0.7rem 0.7rem 1.35rem rgb(172 178 188 / 0.52), -0.55rem -0.55rem 1.15rem rgb(255 255 255 / 0.95);
+    box-shadow: 0.7rem 0.7rem 1.35rem rgb(163 170 181 / 0.58), -0.55rem -0.55rem 1.15rem rgb(255 255 255 / 0.95);
     transform: translateY(-1px);
 }
 

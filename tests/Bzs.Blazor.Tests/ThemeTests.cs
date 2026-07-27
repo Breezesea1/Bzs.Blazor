@@ -2,6 +2,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
+using System.Text.RegularExpressions;
 
 namespace Bzs.Blazor.Tests;
 
@@ -36,6 +37,20 @@ public sealed class ThemeTests
                 GetContrastRatio(colors.Border, colors.SurfaceInset) >= 3,
                 $"{colors.Border} must contrast with input fill {colors.SurfaceInset} by at least 3:1.");
         }
+    }
+
+    [Fact]
+    public void BuiltInThemeRecordsMatchStaticCss()
+    {
+        var stylesheet = File.ReadAllText(FindRepositoryFile(
+            "src",
+            "Bzs.Blazor",
+            "wwwroot",
+            "bzs.blazor.css"));
+
+        AssertThemeBlockMatches(stylesheet, "light", BzsThemes.Light, BzsThemes.Default.LightDepth);
+        AssertThemeBlockMatches(stylesheet, "dark", BzsThemes.Dark, BzsThemes.Default.DarkDepth);
+        AssertSharedThemeBlockMatches(stylesheet, BzsThemes.Default);
     }
 
     [Fact]
@@ -201,6 +216,128 @@ public sealed class ThemeTests
         var secondLuminance = GetRelativeLuminance(second);
         return (Math.Max(firstLuminance, secondLuminance) + 0.05)
             / (Math.Min(firstLuminance, secondLuminance) + 0.05);
+    }
+
+    private static void AssertThemeBlockMatches(
+        string stylesheet,
+        string mode,
+        BzsThemeColors colors,
+        BzsThemeDepth depth)
+    {
+        var selector = mode == "light"
+            ? @":root,\s*\[data-bzs-theme=""light""\]"
+            : @"\[data-bzs-theme=""dark""\]";
+        var match = Regex.Match(
+            stylesheet,
+            $@"{selector}\s*\{{(?<body>.*?)\}}",
+            RegexOptions.Singleline | RegexOptions.CultureInvariant);
+        Assert.True(match.Success, $"The static stylesheet is missing the {mode} theme block.");
+
+        var properties = ParseCustomProperties(match.Groups["body"].Value, $"{mode} theme block");
+        var tokens = new (string Name, string Value)[]
+        {
+            ("canvas", colors.Canvas),
+            ("surface", colors.Surface),
+            ("surface-raised", colors.SurfaceRaised),
+            ("surface-inset", colors.SurfaceInset),
+            ("surface-overlay", colors.SurfaceOverlay),
+            ("text", colors.Text),
+            ("text-muted", colors.TextMuted),
+            ("border", colors.Border),
+            ("focus-ring", colors.FocusRing),
+            ("primary", colors.Primary),
+            ("on-primary", colors.OnPrimary),
+            ("success", colors.Success),
+            ("warning", colors.Warning),
+            ("error", colors.Error),
+            ("info", colors.Info),
+            ("disabled-surface", colors.DisabledSurface),
+            ("disabled-text", colors.DisabledText),
+            ("shadow-raised", depth.RaisedShadow),
+            ("shadow-inset", depth.InsetShadow),
+            ("shadow-overlay", depth.OverlayShadow),
+            ("shadow-focus", depth.FocusShadow),
+        };
+
+        foreach (var (name, value) in tokens)
+        {
+            Assert.True(properties.TryGetValue(name, out var actual), $"The {mode} theme block is missing --bzs-{name}.");
+            Assert.Equal(value, actual);
+        }
+    }
+
+    private static void AssertSharedThemeBlockMatches(string stylesheet, BzsTheme theme)
+    {
+        var match = Regex.Match(
+            stylesheet,
+            @":root,\s*\[data-bzs-theme\]\s*\{(?<body>.*?)\}",
+            RegexOptions.Singleline | RegexOptions.CultureInvariant);
+        Assert.True(match.Success, "The static stylesheet is missing the shared theme block.");
+
+        var properties = ParseCustomProperties(match.Groups["body"].Value, "shared theme block");
+        var tokens = new (string Name, string Value)[]
+        {
+            ("radius-control", theme.Shape.ControlRadius),
+            ("radius-container", theme.Shape.ContainerRadius),
+            ("radius-overlay", theme.Shape.OverlayRadius),
+            ("border-width", theme.Shape.BorderWidth),
+            ("font-family", theme.Typography.FontFamily),
+            ("font-size", theme.Typography.FontSize),
+            ("font-size-small", theme.Typography.SmallFontSize),
+            ("line-height", theme.Typography.LineHeight),
+            ("font-weight-regular", theme.Typography.FontWeightRegular),
+            ("font-weight-medium", theme.Typography.FontWeightMedium),
+            ("font-weight-bold", theme.Typography.FontWeightBold),
+            ("motion-fast", theme.Motion.FastDuration),
+            ("motion-normal", theme.Motion.NormalDuration),
+            ("motion-slow", theme.Motion.SlowDuration),
+            ("motion-easing", theme.Motion.Easing),
+        };
+
+        foreach (var (name, value) in tokens)
+        {
+            Assert.True(properties.TryGetValue(name, out var actual), $"The shared theme block is missing --bzs-{name}.");
+            Assert.Equal(value, actual);
+        }
+    }
+
+    private static IReadOnlyDictionary<string, string> ParseCustomProperties(string block, string description)
+    {
+        var uncommented = Regex.Replace(
+            block,
+            @"/\*.*?\*/",
+            string.Empty,
+            RegexOptions.Singleline | RegexOptions.CultureInvariant);
+        var properties = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (Match declaration in Regex.Matches(
+            uncommented,
+            @"--bzs-(?<name>[a-z0-9-]+)\s*:\s*(?<value>[^;{}]+);",
+            RegexOptions.CultureInvariant))
+        {
+            var name = declaration.Groups["name"].Value;
+            var value = declaration.Groups["value"].Value.Trim();
+            Assert.True(
+                properties.TryAdd(name, value),
+                $"The {description} declares --bzs-{name} more than once.");
+        }
+
+        return properties;
+    }
+
+    private static string FindRepositoryFile(params string[] segments)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "Bzs.Blazor.slnx")))
+            {
+                return Path.Combine([directory.FullName, .. segments]);
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate the Bzs.Blazor repository root.");
     }
 
     private static double GetRelativeLuminance(string color)

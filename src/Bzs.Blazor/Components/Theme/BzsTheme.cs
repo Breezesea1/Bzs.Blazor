@@ -148,14 +148,14 @@ public static class BzsThemes
     /// Gets the independently designed built-in light color scheme.
     /// </summary>
     public static BzsThemeColors Light { get; } = new(
-        Canvas: "#eceef1",
-        Surface: "#eceef1",
-        SurfaceRaised: "#f2f3f5",
-        SurfaceInset: "#e2e5e9",
-        SurfaceOverlay: "#f8f9fa",
+        Canvas: "#dde2e9",
+        Surface: "#dde2e9",
+        SurfaceRaised: "#fafbfc",
+        SurfaceInset: "#d9dde3",
+        SurfaceOverlay: "#ffffff",
         Text: "#20252d",
         TextMuted: "#59616d",
-        Border: "#747c87",
+        Border: "#5c6570",
         FocusRing: "#4b5968",
         Primary: "#303741",
         OnPrimary: "#ffffff",
@@ -163,21 +163,21 @@ public static class BzsThemes
         Warning: "#9a641f",
         Error: "#b42318",
         Info: "#356b86",
-        DisabledSurface: "#dfe2e6",
+        DisabledSurface: "#c9ced6",
         DisabledText: "#89919c");
 
     /// <summary>
     /// Gets the independently designed built-in dark color scheme.
     /// </summary>
     public static BzsThemeColors Dark { get; } = new(
-        Canvas: "#11151b",
-        Surface: "#171c22",
-        SurfaceRaised: "#1d232b",
-        SurfaceInset: "#0e1217",
-        SurfaceOverlay: "#20262e",
+        Canvas: "#0c0f14",
+        Surface: "#141920",
+        SurfaceRaised: "#20272f",
+        SurfaceInset: "#0a0d11",
+        SurfaceOverlay: "#262d37",
         Text: "#f3f4f6",
         TextMuted: "#aeb4bd",
-        Border: "#66717e",
+        Border: "#7d8894",
         FocusRing: "#d3dae4",
         Primary: "#d9dee5",
         OnPrimary: "#171c22",
@@ -195,14 +195,14 @@ public static class BzsThemes
         LightColors: Light,
         DarkColors: Dark,
         LightDepth: new BzsThemeDepth(
-            RaisedShadow: "7px 7px 16px rgb(166 172 182 / 0.48), -6px -6px 14px rgb(255 255 255 / 0.9)",
-            InsetShadow: "inset 3px 3px 7px rgb(166 172 182 / 0.44), inset -3px -3px 7px rgb(255 255 255 / 0.78)",
-            OverlayShadow: "0 20px 44px rgb(38 45 56 / 0.2)",
+            RaisedShadow: "7px 7px 18px rgb(140 148 161 / 0.46), -6px -6px 14px rgb(255 255 255 / 0.88)",
+            InsetShadow: "inset 3px 3px 8px rgb(140 148 161 / 0.5), inset -3px -3px 7px rgb(255 255 255 / 0.82)",
+            OverlayShadow: "0 20px 44px rgb(38 45 56 / 0.24)",
             FocusShadow: "0 0 0 3px rgb(75 89 104 / 0.26)"),
         DarkDepth: new BzsThemeDepth(
-            RaisedShadow: "7px 7px 16px rgb(3 5 8 / 0.62), -5px -5px 12px rgb(45 53 64 / 0.42)",
-            InsetShadow: "inset 3px 3px 7px rgb(3 5 8 / 0.64), inset -3px -3px 7px rgb(45 53 64 / 0.3)",
-            OverlayShadow: "0 22px 52px rgb(0 0 0 / 0.54)",
+            RaisedShadow: "7px 7px 18px rgb(2 4 7 / 0.66), -5px -5px 13px rgb(56 66 79 / 0.46)",
+            InsetShadow: "inset 3px 3px 8px rgb(2 4 7 / 0.68), inset -3px -3px 7px rgb(56 66 79 / 0.38)",
+            OverlayShadow: "0 22px 52px rgb(0 0 0 / 0.6)",
             FocusShadow: "0 0 0 3px rgb(211 218 228 / 0.28)"),
         Shape: new BzsThemeShape(
             ControlRadius: "0.5rem",

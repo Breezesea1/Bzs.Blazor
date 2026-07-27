@@ -5,6 +5,7 @@ artifacts/
 .artifacts/
 *.nupkg
 *.snupkg
+.agents/
 
 # Test and coverage outputs
 **/TestResults/

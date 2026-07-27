@@ -20,7 +20,7 @@ public partial class RenderModeCatalog
         Notes = "Confirm the final camera notes before the next review.",
         NotifyOwners = true,
         ReviewerCount = 3,
-        ReviewDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
+        ReviewDate = new DateOnly(2026, 8, 3),
         Workspace = "production",
     };
 
