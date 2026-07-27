@@ -34,6 +34,7 @@ internal sealed class BzsOverlayHostRegistry : IDisposable
             switch (_state)
             {
                 case BzsOverlayHostState.Missing:
+                case BzsOverlayHostState.Inactive:
                     _state = BzsOverlayHostState.PresentStatic;
                     return;
 
@@ -60,10 +61,12 @@ internal sealed class BzsOverlayHostRegistry : IDisposable
             switch (_state)
             {
                 case BzsOverlayHostState.PresentStatic:
+                    _coordinator.ActivateHost();
                     _state = BzsOverlayHostState.ActiveInteractive;
                     return;
 
                 case BzsOverlayHostState.Missing:
+                case BzsOverlayHostState.Inactive:
                     throw new InvalidOperationException(
                         "BzsOverlayHost must register during static rendering before it can activate interactively.");
 
@@ -77,6 +80,19 @@ internal sealed class BzsOverlayHostRegistry : IDisposable
 
                 default:
                     throw new InvalidOperationException("The overlay host lifecycle state is not supported.");
+            }
+        }
+    }
+
+    /// <summary>Unregisters the current host without ending the service scope.</summary>
+    public void UnregisterHost()
+    {
+        lock (_gate)
+        {
+            if (_state is BzsOverlayHostState.PresentStatic or BzsOverlayHostState.ActiveInteractive)
+            {
+                _state = BzsOverlayHostState.Inactive;
+                _coordinator.DeactivateHost();
             }
         }
     }

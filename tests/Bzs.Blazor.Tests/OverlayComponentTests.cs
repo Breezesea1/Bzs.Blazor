@@ -146,6 +146,35 @@ public sealed class OverlayComponentTests
         Assert.Equal(BzsDialogResultKind.HostDisposed, result.Kind);
     }
 
+    [Fact]
+    public async Task DisposedOverlayHostCanBeReplacedWithinTheSameScope()
+    {
+        using var context = CreateContext();
+        var firstHost = context.Render<BzsOverlayHost>();
+        var dialogs = context.Services.GetRequiredService<IBzsDialogService>();
+        var firstResultTask = dialogs.ShowAsync<HostedDialogContent, string>();
+
+        await firstHost.Instance.DisposeAsync();
+
+        Assert.Equal(BzsDialogResultKind.HostDisposed, (await firstResultTask).Kind);
+        var inactiveResult = await dialogs.ShowAsync<HostedDialogContent, string>();
+        Assert.Equal(BzsDialogResultKind.HostDisposed, inactiveResult.Kind);
+
+        var secondHost = context.Render<BzsOverlayHost>();
+        var secondResultTask = dialogs.ShowAsync<HostedDialogContent, string>(
+            parameters => parameters.Add(component => component.Message, "Replacement host content"));
+
+        secondHost.WaitForAssertion(
+            () => Assert.Contains("Replacement host content", secondHost.Markup, StringComparison.Ordinal));
+        var content = secondHost.FindComponent<HostedDialogContent>().Instance;
+        Assert.NotNull(content.Dialog);
+        Assert.True(content.Dialog!.Complete("accepted"));
+
+        var secondResult = await secondResultTask;
+        Assert.Equal(BzsDialogResultKind.Completed, secondResult.Kind);
+        Assert.Equal("accepted", secondResult.Value);
+    }
+
     private static BunitContext CreateContext()
     {
         var context = new BunitContext();

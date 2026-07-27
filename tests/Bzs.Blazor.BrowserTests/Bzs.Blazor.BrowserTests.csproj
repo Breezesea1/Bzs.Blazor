@@ -22,7 +22,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\samples\Bzs.Blazor.Demo\Bzs.Blazor.Demo\Bzs.Blazor.Demo.csproj"
+                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\samples\Bzs.Blazor.Demo\Bzs.Blazor.Demo.WebAssembly\Bzs.Blazor.Demo.WebAssembly.csproj"
                       ReferenceOutputAssembly="false" />
   </ItemGroup>
 

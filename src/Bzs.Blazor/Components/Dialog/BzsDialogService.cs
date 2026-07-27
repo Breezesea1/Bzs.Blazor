@@ -39,6 +39,7 @@ public sealed class BzsDialogService : IBzsDialogService
             case BzsOverlayHostState.PresentStatic:
                 return Task.FromResult(BzsDialogResult<TResult>.Unavailable());
 
+            case BzsOverlayHostState.Inactive:
             case BzsOverlayHostState.Disposed:
                 return Task.FromResult(BzsDialogResult<TResult>.HostDisposed());
 

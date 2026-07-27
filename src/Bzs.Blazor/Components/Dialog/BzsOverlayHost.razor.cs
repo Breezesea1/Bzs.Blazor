@@ -172,7 +172,8 @@ public partial class BzsOverlayHost : BzsComponentBase, IAsyncDisposable
 
         if (_registered)
         {
-            HostRegistry.DisposeHost();
+            HostRegistry.UnregisterHost();
+            _registered = false;
         }
 
         return ValueTask.CompletedTask;

@@ -3,6 +3,7 @@ namespace Bzs.Blazor;
 internal enum BzsOverlayHostState
 {
     Missing,
+    Inactive,
     PresentStatic,
     ActiveInteractive,
     Disposed,
@@ -34,6 +35,7 @@ internal sealed class BzsOverlayCoordinator : IDisposable, IAsyncDisposable
     private readonly object _gate = new();
     private readonly List<BzsOverlayDialogRequest> _requests = [];
     private bool _disposed;
+    private bool _hostActive = true;
 
     /// <summary>Occurs after the host-renderable overlay snapshot changes.</summary>
     public event EventHandler<BzsOverlayChangedEventArgs>? Changed;
@@ -66,12 +68,12 @@ internal sealed class BzsOverlayCoordinator : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(request);
 
         BzsOverlayChangedEventArgs? changed = null;
-        var disposed = false;
+        var hostUnavailable = false;
         lock (_gate)
         {
-            if (_disposed)
+            if (_disposed || !_hostActive)
             {
-                disposed = true;
+                hostUnavailable = true;
             }
             else
             {
@@ -80,7 +82,7 @@ internal sealed class BzsOverlayCoordinator : IDisposable, IAsyncDisposable
             }
         }
 
-        if (disposed)
+        if (hostUnavailable)
         {
             request.TryComplete(BzsDialogResult<TResult>.HostDisposed());
             return request.Task;
@@ -112,8 +114,31 @@ internal sealed class BzsOverlayCoordinator : IDisposable, IAsyncDisposable
         return request?.TryDismiss(reason) ?? false;
     }
 
+    /// <summary>Allows the current interactive host to accept dialog requests.</summary>
+    internal void ActivateHost()
+    {
+        lock (_gate)
+        {
+            if (!_disposed)
+            {
+                _hostActive = true;
+            }
+        }
+    }
+
+    /// <summary>Completes current requests while allowing a later host to activate.</summary>
+    internal void DeactivateHost()
+    {
+        CompleteActiveRequests(disposeCoordinator: false);
+    }
+
     /// <summary>Completes all active dialog requests with a host-disposed result.</summary>
     public void Dispose()
+    {
+        CompleteActiveRequests(disposeCoordinator: true);
+    }
+
+    private void CompleteActiveRequests(bool disposeCoordinator)
     {
         List<BzsOverlayDialogRequest>? requests = null;
         BzsOverlayChangedEventArgs? changed = null;
@@ -124,7 +149,8 @@ internal sealed class BzsOverlayCoordinator : IDisposable, IAsyncDisposable
                 return;
             }
 
-            _disposed = true;
+            _disposed = disposeCoordinator;
+            _hostActive = false;
             requests = [.. _requests];
             _requests.Clear();
             changed = CreateChangedArgs();
