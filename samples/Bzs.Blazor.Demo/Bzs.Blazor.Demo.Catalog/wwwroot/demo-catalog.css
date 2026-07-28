@@ -14,9 +14,9 @@
     --demo-success: #367866;
     --demo-radius-compact: 0.3125rem;
     --demo-radius-round: 50%;
-    --demo-shadow-raised: 0.6rem 0.6rem 1.3rem rgb(163 170 181 / 0.52), -0.5rem -0.5rem 1.1rem rgb(255 255 255 / 0.94);
-    --demo-shadow-soft: 0 0.55rem 1.5rem rgb(38 45 56 / 0.12);
-    --demo-shadow-inset: inset 0.2rem 0.2rem 0.5rem rgb(163 170 181 / 0.52), inset -0.2rem -0.2rem 0.45rem rgb(255 255 255 / 0.8);
+    --demo-shadow-raised: 0.4rem 0.4rem 0.75rem rgb(163 170 181 / 0.56), -0.3rem -0.3rem 0.6rem rgb(255 255 255 / 0.72);
+    --demo-shadow-soft: 0 0.4rem 0.9rem rgb(38 45 56 / 0.14);
+    --demo-shadow-inset: inset 0.15rem 0.15rem 0.35rem rgb(163 170 181 / 0.56), inset -0.15rem -0.15rem 0.3rem rgb(255 255 255 / 0.84);
 }
 
 :root,
@@ -175,7 +175,7 @@ button:focus-visible {
     min-width: 0;
     align-items: center;
     gap: 0.75rem;
-    border: 1px solid rgb(255 255 255 / 0.72);
+    border: 0;
     border-radius: var(--demo-radius-container);
     padding: 0.75rem;
     background: var(--demo-panel-raised);
@@ -240,23 +240,22 @@ button:focus-visible {
     display: flex;
     min-height: 2.35rem;
     align-items: center;
-    border: 1px solid transparent;
+    border: 0;
     border-radius: var(--demo-radius-control);
     padding: 0.5rem 0.625rem;
     color: var(--demo-muted);
     font-size: 0.875rem;
     text-decoration: none;
-    transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease, color 140ms ease, transform 140ms ease;
+    transition: background-color 140ms ease, box-shadow 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
 .demo-nav .demo-nav-link:hover {
-    border-color: rgb(255 255 255 / 0.62);
     background: var(--demo-panel-raised);
+    box-shadow: var(--demo-shadow-soft);
     color: var(--demo-text);
 }
 
 .demo-nav .demo-nav-link.active {
-    border-color: rgb(255 255 255 / 0.78);
     background: var(--demo-panel-raised);
     box-shadow: var(--demo-shadow-raised);
     color: var(--demo-accent-strong);
@@ -280,7 +279,7 @@ button:focus-visible {
 .demo-content .bzs-theme-provider.bzs-theme-provider {
     display: block;
     min-width: 0;
-    border: 1px solid var(--bzs-border);
+    border: 0;
     border-radius: var(--bzs-radius-container);
     padding: 1.25rem;
     background: var(--bzs-canvas);
@@ -383,7 +382,7 @@ button:focus-visible {
 }
 
 .demo-overview-card:hover {
-    box-shadow: 0.7rem 0.7rem 1.35rem rgb(163 170 181 / 0.58), -0.55rem -0.55rem 1.15rem rgb(255 255 255 / 0.95);
+    box-shadow: 0.7rem 0.7rem 1.35rem rgb(163 170 181 / 0.58), -0.55rem -0.55rem 1.15rem rgb(255 255 255 / 0.76);
     transform: translateY(-1px);
 }
 
@@ -492,7 +491,6 @@ button:focus-visible {
 }
 
 .demo-control-row button[aria-pressed="true"] {
-    border-color: var(--bzs-primary);
     background: var(--bzs-primary);
     color: var(--bzs-on-primary);
 }

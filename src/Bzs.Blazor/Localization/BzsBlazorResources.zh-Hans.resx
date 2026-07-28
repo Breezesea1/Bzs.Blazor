@@ -48,4 +48,28 @@
   <data name="Notifications" xml:space="preserve">
     <value>通知</value>
   </data>
+  <data name="SelectSearchPlaceholder" xml:space="preserve">
+    <value>搜索选项</value>
+  </data>
+  <data name="SelectNoMatches" xml:space="preserve">
+    <value>没有匹配的选项</value>
+  </data>
+  <data name="SelectPlaceholder" xml:space="preserve">
+    <value>请选择一个选项</value>
+  </data>
+  <data name="MultiSelectPlaceholder" xml:space="preserve">
+    <value>请选择选项</value>
+  </data>
+  <data name="MultiSelectSelectionSuffix" xml:space="preserve">
+    <value>项已选择</value>
+  </data>
+  <data name="MultiSelectSelectAll" xml:space="preserve">
+    <value>全选</value>
+  </data>
+  <data name="MultiSelectInvert" xml:space="preserve">
+    <value>反选</value>
+  </data>
+  <data name="MultiSelectClear" xml:space="preserve">
+    <value>清除</value>
+  </data>
 </root>

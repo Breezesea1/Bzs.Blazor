@@ -50,6 +50,14 @@ public static class BzsIcons
     /// <summary>Gets the menu icon.</summary>
     public static BzsIconData Menu { get; } = new("M4 12h16M4 6h16M4 18h16");
 
+    /// <summary>Gets the package icon.</summary>
+    public static BzsIconData Package { get; } = new(
+        "m7.5 4.27 9 5.15M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16ZM3.3 7 12 12l8.7-5M12 22V12");
+
+    /// <summary>Gets the search icon.</summary>
+    public static BzsIconData Search { get; } = new(
+        "m21 21-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16");
+
     /// <summary>Gets the loading indicator icon.</summary>
     public static BzsIconData Loader { get; } = new(
         "M12 2v4M16.2 7.8l2.9-2.9M18 12h4M16.2 16.2l2.9 2.9M12 18v4M7.8 16.2l-2.9 2.9M6 12H2M7.8 7.8 4.9 4.9");

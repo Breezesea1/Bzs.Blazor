@@ -6,7 +6,7 @@
     gap: var(--bzs-control-gap);
     min-block-size: var(--bzs-control-height);
     max-inline-size: 100%;
-    border: var(--bzs-border-width) solid transparent;
+    border: 0;
     border-radius: var(--bzs-radius-control);
     padding-inline: var(--bzs-control-padding-inline);
     color: var(--bzs-text);
@@ -16,7 +16,6 @@
     line-height: var(--bzs-line-height);
     text-align: center;
     transition: background-color var(--bzs-motion-fast) var(--bzs-motion-easing),
-        border-color var(--bzs-motion-fast) var(--bzs-motion-easing),
         box-shadow var(--bzs-motion-fast) var(--bzs-motion-easing),
         color var(--bzs-motion-fast) var(--bzs-motion-easing),
         transform var(--bzs-motion-fast) var(--bzs-motion-easing);
@@ -35,21 +34,19 @@
 }
 
 .bzs-button--primary {
-    border-color: var(--bzs-primary);
     background-color: var(--bzs-primary);
     box-shadow: var(--bzs-shadow-raised);
     color: var(--bzs-on-primary);
 }
 
 .bzs-button--secondary {
-    border-color: var(--bzs-border);
     background-color: var(--bzs-surface-raised);
     box-shadow: var(--bzs-shadow-raised);
 }
 
 .bzs-button--outline {
-    border-color: var(--bzs-primary);
-    background-color: transparent;
+    background-color: color-mix(in srgb, var(--bzs-primary) 8%, var(--bzs-surface-raised));
+    box-shadow: var(--bzs-shadow-raised);
     color: var(--bzs-primary);
 }
 
@@ -58,9 +55,13 @@
     color: var(--bzs-primary);
 }
 
+.bzs-button--ghost:not(:disabled):hover {
+    background-color: color-mix(in srgb, var(--bzs-primary) 8%, transparent);
+}
+
 .bzs-button--danger {
-    border-color: var(--bzs-error);
-    background-color: transparent;
+    background-color: color-mix(in srgb, var(--bzs-error) 8%, var(--bzs-surface-raised));
+    box-shadow: var(--bzs-shadow-raised);
     color: var(--bzs-error);
 }
 
@@ -78,7 +79,6 @@
 }
 
 .bzs-button:disabled {
-    border-color: var(--bzs-border);
     background-color: var(--bzs-disabled-surface);
     box-shadow: none;
     color: var(--bzs-disabled-text);
@@ -102,5 +102,15 @@
 @media (prefers-reduced-motion: reduce) {
     .bzs-button ::deep .bzs-button__loading-icon {
         animation: none;
+    }
+}
+
+@media (forced-colors: active) {
+    .bzs-button {
+        outline: 1px solid ButtonText;
+    }
+
+    .bzs-button:focus-visible {
+        outline: 2px solid Highlight;
     }
 }

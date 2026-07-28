@@ -5,6 +5,8 @@ namespace Bzs.Blazor;
 /// <summary>Describes one strongly typed option rendered by <see cref="BzsSelect{TValue}" />.</summary>
 public sealed record BzsSelectOption<TValue>
 {
+    private string? _description;
+
     /// <summary>Initializes a strongly typed select option.</summary>
     public BzsSelectOption(TValue value, string label, bool disabled = false, string? valueText = null)
     {
@@ -23,6 +25,14 @@ public sealed record BzsSelectOption<TValue>
     public bool Disabled { get; }
     /// <summary>Gets the stable native option value used for form posts.</summary>
     public string ValueText { get; }
+    /// <summary>Gets optional supporting text shown below the option label.</summary>
+    public string? Description
+    {
+        get => _description;
+        init => _description = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+    /// <summary>Gets the optional decorative icon shown with the option.</summary>
+    public BzsIconData? Icon { get; init; }
 
     private static string FormatValue(TValue value) => value switch
     {

@@ -5,6 +5,10 @@ public partial class BzsField : BzsComponentBase
 {
     /// <summary>Gets or sets the identifier of the native input.</summary>
     [Parameter, EditorRequired] public string? InputId { get; set; }
+    /// <summary>Gets or sets the optional label identifier.</summary>
+    [Parameter] public string? LabelId { get; set; }
+    /// <summary>Gets or sets the label target; null uses InputId and an empty value omits for.</summary>
+    [Parameter] public string? LabelFor { get; set; }
     /// <summary>Gets or sets the field label.</summary>
     [Parameter] public string? Label { get; set; }
     /// <summary>Gets or sets supporting field text.</summary>
@@ -18,6 +22,9 @@ public partial class BzsField : BzsComponentBase
 
     private string DescriptionId => $"{InputId}-description";
     private string ErrorId => $"{InputId}-error";
+    private string? EffectiveLabelFor => LabelFor is null
+        ? InputId
+        : string.IsNullOrWhiteSpace(LabelFor) ? null : LabelFor.Trim();
     private IReadOnlyDictionary<string, object> RootAttributes => BuildAttributes("bzs-field");
 
     /// <inheritdoc />
@@ -29,4 +36,3 @@ public partial class BzsField : BzsComponentBase
         }
     }
 }
-

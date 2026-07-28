@@ -129,7 +129,8 @@ public sealed class FormsTests
             EventCallback.Factory.Create<string?>(model, value => model.Choice = value),
             (attributes, sequence) => attributes.AddAttribute(sequence, nameof(BzsSelect<string?>.Options), options)));
 
-        cut.Find("select").Change("published");
+        cut.Find("[role='combobox']").Click();
+        cut.FindAll("[role='option']").Single(option => option.TextContent.Contains("Published", StringComparison.Ordinal)).Click();
 
         Assert.Equal("published", model.Choice);
     }
@@ -241,9 +242,9 @@ public sealed class FormsTests
         });
 
         var checkbox = cut.Find("input[type='checkbox']");
-        var select = cut.Find("select");
+        var select = cut.Find("[role='combobox']");
         checkbox.Change(false);
-        select.Change("draft");
+        select.Click();
 
         Assert.True(model.Enabled);
         Assert.Equal("published", model.Choice);
@@ -416,7 +417,7 @@ public sealed class FormsTests
         Assert.True(checkbox.HasAttribute("checked"));
         Assert.Equal("7", cut.Find("input[name='profile.quantity']").GetAttribute("value"));
         Assert.Equal("2026-07-18", cut.Find("input[name='profile.dueDate']").GetAttribute("value"));
-        Assert.Equal("published", cut.Find("select[name='profile.choice'] option[selected]").GetAttribute("value"));
+        Assert.Equal("published", cut.Find("input[type='hidden'][name='profile.choice']").GetAttribute("value"));
     }
 
     [Fact]
@@ -471,6 +472,10 @@ public sealed class FormsTests
     {
         var context = new BunitContext();
         context.Services.AddBzsBlazor();
+        var module = context.JSInterop.SetupModule("./_content/Bzs.Blazor/Components/Form/BzsSelect.razor.js");
+        module.SetupVoid("initialize", _ => true);
+        module.SetupVoid("setOpen", _ => true);
+        module.SetupVoid("dispose", _ => true);
         return context;
     }
 

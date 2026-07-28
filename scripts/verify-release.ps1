@@ -304,6 +304,7 @@ function Assert-PackageContents {
         "lib/net10.0/zh-Hans/Bzs.Blazor.resources.dll",
         "staticwebassets/bzs.blazor.css",
         "staticwebassets/Components/Dialog/BzsDialog.razor.js",
+        "staticwebassets/Components/Form/BzsSelect.razor.js",
         "staticwebassets/Components/Tabs/BzsTabs.razor.js",
         "staticwebassets/Components/Theme/BzsThemeProvider.razor.js",
         "build/Bzs.Blazor.props",

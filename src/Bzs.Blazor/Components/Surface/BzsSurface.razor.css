@@ -1,6 +1,6 @@
 .bzs-surface {
     box-sizing: border-box;
-    border: var(--bzs-border-width) solid var(--bzs-border);
+    border: 0;
     border-radius: var(--bzs-radius-container);
     background-color: var(--bzs-surface);
     color: var(--bzs-text);
@@ -20,4 +20,10 @@
     border-radius: var(--bzs-radius-overlay);
     background-color: var(--bzs-surface-overlay);
     box-shadow: var(--bzs-shadow-overlay);
+}
+
+@media (forced-colors: active) {
+    .bzs-surface {
+        outline: var(--bzs-border-width) solid CanvasText;
+    }
 }

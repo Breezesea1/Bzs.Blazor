@@ -1,0 +1,41 @@
+@namespace Bzs.Blazor
+@typeparam TValue
+@inherits BzsInputBase<TValue>
+
+<BzsField InputId="@InputId"
+          LabelId="@FieldLabelId"
+          LabelFor="@LabelTargetId"
+          Label="@Label"
+          Description="@Description"
+          Error="@FieldError"
+          Required="@Required">
+    <div @attributes="GroupAttributes">
+        @for (var index = 0; index < Options.Count; index++)
+        {
+            var option = Options[index];
+            var optionId = GetOptionId(index);
+            <label @key="optionId" class="bzs-radio-group__option" for="@optionId">
+                <input id="@optionId"
+                       class="bzs-radio-group__input"
+                       type="radio"
+                       name="@InputName"
+                       value="@option.ValueText"
+                       checked="@IsSelected(option.Value)"
+                       disabled="@IsOptionDisabled(option)"
+                       required="@IsOptionRequired(index, option)"
+                       @onchange="args => OnChanged(option, args)" />
+                <span class="bzs-radio-group__label">
+                    @if (option.Icon is not null)
+                    {
+                        <BzsIcon Icon="option.Icon" Class="bzs-radio-group__icon" />
+                    }
+                    <span>@option.Label</span>
+                </span>
+            </label>
+        }
+    </div>
+    @if (ReadOnly && !Disabled)
+    {
+        <input type="hidden" name="@InputName" value="@CurrentValueAsString" />
+    }
+</BzsField>

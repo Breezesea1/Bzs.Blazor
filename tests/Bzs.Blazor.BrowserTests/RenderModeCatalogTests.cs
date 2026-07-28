@@ -22,6 +22,8 @@ public sealed class RenderModeCatalogTests(DemoServerFixture server) : BrowserGa
         Assert.Contains("data-bzs-tabs=\"horizontal\"", html, StringComparison.Ordinal);
         Assert.Contains("data-bzs-overlay-host=\"true\"", html, StringComparison.Ordinal);
         Assert.Contains("data-testid=\"render-mode-static-work-item\"", html, StringComparison.Ordinal);
+        Assert.Contains("<select", html, StringComparison.Ordinal);
+        Assert.Contains("value=\"review\"", html, StringComparison.Ordinal);
         Assert.Contains("Controlled dialog is closed.", html, StringComparison.Ordinal);
         Assert.Contains("Interaction unavailable", html, StringComparison.Ordinal);
     }

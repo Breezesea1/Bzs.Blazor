@@ -1,0 +1,19 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+<div @attributes="RootAttributes">
+    <span class="bzs-empty-state__icon-surface" aria-hidden="true">
+        <BzsIcon Icon="EffectiveIcon" Class="bzs-empty-state__icon" />
+    </span>
+    <div class="bzs-empty-state__content">
+        <h3 class="bzs-empty-state__title">@Title</h3>
+        @if (!string.IsNullOrWhiteSpace(Description))
+        {
+            <p class="bzs-empty-state__description">@Description</p>
+        }
+    </div>
+    @if (ActionContent is not null)
+    {
+        <div class="bzs-empty-state__action">@ActionContent</div>
+    }
+</div>

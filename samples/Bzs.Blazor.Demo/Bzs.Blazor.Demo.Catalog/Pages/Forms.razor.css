@@ -27,6 +27,14 @@
     gap: 1.25rem;
 }
 
+.demo-form-empty {
+    min-width: 0;
+}
+
+.demo-form-empty ::deep .bzs-empty-state {
+    min-block-size: 14rem;
+}
+
 .demo-form-section {
     display: grid;
     min-width: 0;

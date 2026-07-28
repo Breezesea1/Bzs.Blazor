@@ -1,19 +1,13 @@
 @namespace Bzs.Blazor
 @typeparam TValue
-@inherits BzsInputBase<TValue>
+@inherits BzsInputBase<IReadOnlyList<TValue>>
 @implements IAsyncDisposable
 @inject IJSRuntime JsRuntime
 
 <BzsField InputId="@InputId" Label="@Label" Description="@Description" Error="@FieldError" Required="@Required">
     @if (!_isInteractive)
     {
-        <select @attributes="NativeInputAttributes" @onchange="OnNativeChanged">
-            @if (SelectedOption is null || !string.IsNullOrWhiteSpace(PlaceholderOption))
-            {
-                <option value="" selected="@(SelectedOption is null)">
-                    @(string.IsNullOrWhiteSpace(PlaceholderOption) ? Localize("SelectPlaceholder") : PlaceholderOption.Trim())
-                </option>
-            }
+        <select @attributes="NativeInputAttributes" multiple size="@NativeSize">
             @foreach (var option in Options)
             {
                 <option @key="option.ValueText"
@@ -22,28 +16,30 @@
                         selected="@IsSelected(option.Value)">@option.Label</option>
             }
         </select>
-        @if (ReadOnly && !Disabled && CurrentValueAsString is not null)
+        @if (ReadOnly && !Disabled)
         {
-            <input type="hidden" name="@InputName" value="@CurrentValueAsString" />
+            @foreach (var option in SelectedOptions)
+            {
+                <input @key="option.ValueText" type="hidden" name="@InputName" value="@option.ValueText" />
+            }
         }
     }
     else
     {
-    <div class="bzs-select" @ref="_rootReference">
+    <div class="bzs-multi-select" @ref="_rootReference">
         <button @attributes="TriggerAttributes"
                 @ref="_triggerReference"
                 @onclick="ToggleAsync"
                 @onkeydown="HandleKeyDownAsync">
-            <span class="bzs-select__value @(SelectedOption is null ? "bzs-select__value--placeholder" : null)">
+            <span class="bzs-multi-select__value @(SelectedOptions.Count == 0 ? "bzs-multi-select__value--placeholder" : null)">
                 @SelectedText
             </span>
-            <BzsIcon Icon="BzsIcons.ChevronDown" Class="bzs-select__chevron" />
+            <BzsIcon Icon="BzsIcons.ChevronDown" Class="bzs-multi-select__chevron" />
         </button>
 
         @if (Required && !Disabled && !ReadOnly)
         {
             <select @attributes="ConstraintInputAttributes">
-                <option value="" selected="@(SelectedOption is null)"></option>
                 @foreach (var option in Options)
                 {
                     <option @key="option.ValueText"
@@ -56,11 +52,11 @@
 
         @if (_isOpen)
         {
-            <div class="bzs-select__panel" data-bzs-select-panel="true">
+            <div class="bzs-multi-select__panel" data-bzs-select-panel="true">
                 @if (SearchEnabled)
                 {
-                    <label class="bzs-select__search">
-                        <BzsIcon Icon="BzsIcons.Search" Class="bzs-select__search-icon" />
+                    <label class="bzs-multi-select__search">
+                        <BzsIcon Icon="BzsIcons.Search" Class="bzs-multi-select__search-icon" />
                         <input id="@SearchId"
                                @ref="_searchReference"
                                type="search"
@@ -74,15 +70,21 @@
                                @oninput="OnSearchInput"
                                @onkeydown="HandleKeyDownAsync" />
                     </label>
+                    <div class="bzs-multi-select__actions">
+                        <button type="button" disabled="@(!HasEnabledFilteredOptions)" @onclick="SelectVisibleAsync">@EffectiveSelectAllText</button>
+                        <button type="button" disabled="@(!HasEnabledFilteredOptions)" @onclick="InvertVisibleAsync">@EffectiveInvertSelectionText</button>
+                        <button type="button" disabled="@(!HasClearableFilteredSelection)" @onclick="ClearAsync">@EffectiveClearSelectionText</button>
+                    </div>
                 }
 
                 <div id="@ListboxId"
-                     class="bzs-select__options"
+                     class="bzs-multi-select__options"
                      role="listbox"
-                     aria-label="@EffectiveAccessibleName">
+                     aria-label="@EffectiveAccessibleName"
+                     aria-multiselectable="true">
                     @if (FilteredOptions.Count == 0)
                     {
-                        <div class="bzs-select__empty" role="status">@EffectiveEmptyText</div>
+                        <div class="bzs-multi-select__empty" role="status">@EffectiveEmptyText</div>
                     }
                     else
                     {
@@ -99,24 +101,26 @@
                                     aria-selected="@(selected ? "true" : "false")"
                                     disabled="@option.Disabled"
                                     @onmouseenter="() => Activate(index)"
-                                    @onclick="() => SelectAsync(option)">
-                                <span class="bzs-select__option-content">
-                                    <span class="bzs-select__option-heading">
+                                    @onclick="() => ToggleOptionAsync(option)">
+                                <span class="bzs-multi-select__check" aria-hidden="true">
+                                    @if (selected)
+                                    {
+                                        <BzsIcon Icon="BzsIcons.Check" />
+                                    }
+                                </span>
+                                <span class="bzs-multi-select__option-content">
+                                    <span class="bzs-multi-select__option-heading">
                                         @if (option.Icon is not null)
                                         {
-                                            <BzsIcon Icon="option.Icon" Class="bzs-select__option-icon" />
+                                            <BzsIcon Icon="option.Icon" Class="bzs-multi-select__option-icon" />
                                         }
-                                        <span class="bzs-select__option-label">@option.Label</span>
+                                        <span class="bzs-multi-select__option-label">@option.Label</span>
                                     </span>
                                     @if (option.Description is not null)
                                     {
-                                        <span class="bzs-select__option-description">@option.Description</span>
+                                        <span class="bzs-multi-select__option-description">@option.Description</span>
                                     }
                                 </span>
-                                @if (selected)
-                                {
-                                    <BzsIcon Icon="BzsIcons.Check" Class="bzs-select__check" />
-                                }
                             </button>
                         }
                     }
@@ -124,9 +128,12 @@
             </div>
         }
 
-        @if (!Disabled && CurrentValueAsString is not null)
+        @if (!Disabled)
         {
-            <input type="hidden" name="@InputName" value="@CurrentValueAsString" />
+            @foreach (var option in SelectedOptions)
+            {
+                <input @key="option.ValueText" type="hidden" name="@InputName" value="@option.ValueText" />
+            }
         }
     </div>
     }

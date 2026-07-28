@@ -147,6 +147,7 @@ public sealed class PackageConsumerSmokeTests
         "Components/Theme/BzsThemeProvider.razor.js",
         "Components/Tabs/BzsTabs.razor.js",
         "Components/Dialog/BzsDialog.razor.js",
+        "Components/Form/BzsSelect.razor.js",
     };
 
     private static readonly IReadOnlyList<string> ObservedAssets =
@@ -228,8 +229,10 @@ public sealed class PackageConsumerSmokeTests
 
         await page.GetByLabel("Reviewer count").FillAsync("4");
         await Expect(page.GetByLabel("Reviewer count")).ToHaveValueAsync("4");
-        await page.GetByLabel("Stage").SelectOptionAsync("review");
-        await Expect(page.GetByLabel("Stage")).ToHaveValueAsync("review");
+        var stage = page.GetByRole(AriaRole.Combobox, new() { Name = "Stage" });
+        await stage.ClickAsync();
+        await page.GetByRole(AriaRole.Option, new() { Name = "Review" }).ClickAsync();
+        await Expect(stage).ToContainTextAsync("Review");
 
         var tabs = page.GetByTestId($"{runtime}-tabs");
         await tabs.GetByRole(AriaRole.Tab, new() { Name = "Details" }).ClickAsync();

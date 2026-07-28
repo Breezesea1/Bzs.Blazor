@@ -48,4 +48,28 @@
   <data name="Notifications" xml:space="preserve">
     <value>Notifications</value>
   </data>
+  <data name="SelectSearchPlaceholder" xml:space="preserve">
+    <value>Search options</value>
+  </data>
+  <data name="SelectNoMatches" xml:space="preserve">
+    <value>No matching options</value>
+  </data>
+  <data name="SelectPlaceholder" xml:space="preserve">
+    <value>Select an option</value>
+  </data>
+  <data name="MultiSelectPlaceholder" xml:space="preserve">
+    <value>Select options</value>
+  </data>
+  <data name="MultiSelectSelectionSuffix" xml:space="preserve">
+    <value>selected</value>
+  </data>
+  <data name="MultiSelectSelectAll" xml:space="preserve">
+    <value>Select all</value>
+  </data>
+  <data name="MultiSelectInvert" xml:space="preserve">
+    <value>Invert</value>
+  </data>
+  <data name="MultiSelectClear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
 </root>

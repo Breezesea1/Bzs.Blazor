@@ -195,14 +195,14 @@ public static class BzsThemes
         LightColors: Light,
         DarkColors: Dark,
         LightDepth: new BzsThemeDepth(
-            RaisedShadow: "7px 7px 18px rgb(140 148 161 / 0.46), -6px -6px 14px rgb(255 255 255 / 0.88)",
-            InsetShadow: "inset 3px 3px 8px rgb(140 148 161 / 0.5), inset -3px -3px 7px rgb(255 255 255 / 0.82)",
-            OverlayShadow: "0 20px 44px rgb(38 45 56 / 0.24)",
+            RaisedShadow: "5px 5px 9px rgb(140 148 161 / 0.52), -4px -4px 7px rgb(255 255 255 / 0.72)",
+            InsetShadow: "inset 2px 2px 5px rgb(140 148 161 / 0.56), inset -2px -2px 4px rgb(255 255 255 / 0.84)",
+            OverlayShadow: "0 12px 26px rgb(38 45 56 / 0.26)",
             FocusShadow: "0 0 0 3px rgb(75 89 104 / 0.26)"),
         DarkDepth: new BzsThemeDepth(
-            RaisedShadow: "7px 7px 18px rgb(2 4 7 / 0.66), -5px -5px 13px rgb(56 66 79 / 0.46)",
-            InsetShadow: "inset 3px 3px 8px rgb(2 4 7 / 0.68), inset -3px -3px 7px rgb(56 66 79 / 0.38)",
-            OverlayShadow: "0 22px 52px rgb(0 0 0 / 0.6)",
+            RaisedShadow: "5px 5px 9px rgb(2 4 7 / 0.72), -4px -4px 7px rgb(56 66 79 / 0.5)",
+            InsetShadow: "inset 2px 2px 5px rgb(2 4 7 / 0.72), inset -2px -2px 4px rgb(56 66 79 / 0.4)",
+            OverlayShadow: "0 14px 30px rgb(0 0 0 / 0.64)",
             FocusShadow: "0 0 0 3px rgb(211 218 228 / 0.28)"),
         Shape: new BzsThemeShape(
             ControlRadius: "0.625rem",

@@ -1,0 +1,19 @@
+@namespace Bzs.Blazor
+@inherits BzsInputBase<bool>
+
+<BzsField InputId="@InputId" Label="@Label" Description="@Description" Error="@FieldError" Required="@Required">
+    <label class="bzs-toggle__control">
+        <input @attributes="InputAttributes" checked="@CurrentValue" value="true" @onchange="OnChanged" />
+        <span class="bzs-toggle__track" aria-hidden="true">
+            <span class="bzs-toggle__thumb"></span>
+            @if (CurrentText is not null)
+            {
+                <span class="bzs-toggle__text">@CurrentText</span>
+            }
+        </span>
+    </label>
+    @if (ReadOnly && !Disabled)
+    {
+        <input type="hidden" name="@InputName" value="@CurrentValue.ToString().ToLowerInvariant()" />
+    }
+</BzsField>

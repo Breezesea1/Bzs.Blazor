@@ -3,17 +3,17 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Bzs.Blazor;
 
-/// <summary>Renders a searchable, strongly typed combobox integrated with EditContext.</summary>
-public partial class BzsSelect<TValue> : BzsInputBase<TValue>
+/// <summary>Renders a searchable, strongly typed multi-select integrated with EditContext.</summary>
+public partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<TValue>>
 {
     /// <summary>Gets or sets the read-only option collection.</summary>
     [Parameter, EditorRequired] public IReadOnlyList<BzsSelectOption<TValue>> Options { get; set; } = [];
 
-    /// <summary>Gets or sets the optional placeholder shown when no option is selected.</summary>
-    [Parameter] public string? PlaceholderOption { get; set; }
-
-    /// <summary>Gets or sets whether the option panel includes a search field.</summary>
+    /// <summary>Gets or sets whether the option panel includes search and bulk actions.</summary>
     [Parameter] public bool SearchEnabled { get; set; } = true;
+
+    /// <summary>Gets or sets the text displayed when nothing is selected.</summary>
+    [Parameter] public string? PlaceholderOption { get; set; }
 
     /// <summary>Gets or sets the search field placeholder and accessible name.</summary>
     [Parameter] public string? SearchPlaceholder { get; set; }
@@ -21,11 +21,23 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
     /// <summary>Gets or sets the text shown when the current search has no matches.</summary>
     [Parameter] public string? EmptyText { get; set; }
 
-    private readonly string _instanceId = $"bzs-select-{Guid.NewGuid():N}";
+    /// <summary>Gets or sets the suffix used when selected labels do not fit the trigger.</summary>
+    [Parameter] public string? SelectionSuffix { get; set; }
+
+    /// <summary>Gets or sets the select-all action text.</summary>
+    [Parameter] public string? SelectAllText { get; set; }
+
+    /// <summary>Gets or sets the invert-selection action text.</summary>
+    [Parameter] public string? InvertSelectionText { get; set; }
+
+    /// <summary>Gets or sets the clear-selection action text.</summary>
+    [Parameter] public string? ClearSelectionText { get; set; }
+
+    private readonly string _instanceId = $"bzs-multi-select-{Guid.NewGuid():N}";
     private ElementReference _rootReference;
     private ElementReference _triggerReference;
     private ElementReference _searchReference;
-    private DotNetObjectReference<BzsSelect<TValue>>? _dotNetReference;
+    private DotNetObjectReference<BzsMultiSelect<TValue>>? _dotNetReference;
     private BzsSelectInterop? _interop;
     private bool _isOpen;
     private bool _isInteractive;
@@ -44,23 +56,44 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
     private string EffectiveEmptyText => string.IsNullOrWhiteSpace(EmptyText)
         ? Localize("SelectNoMatches")
         : EmptyText.Trim();
+    private string EffectiveSelectionSuffix => string.IsNullOrWhiteSpace(SelectionSuffix)
+        ? Localize("MultiSelectSelectionSuffix")
+        : SelectionSuffix.Trim();
+    private string EffectiveSelectAllText => string.IsNullOrWhiteSpace(SelectAllText)
+        ? Localize("MultiSelectSelectAll")
+        : SelectAllText.Trim();
+    private string EffectiveInvertSelectionText => string.IsNullOrWhiteSpace(InvertSelectionText)
+        ? Localize("MultiSelectInvert")
+        : InvertSelectionText.Trim();
+    private string EffectiveClearSelectionText => string.IsNullOrWhiteSpace(ClearSelectionText)
+        ? Localize("MultiSelectClear")
+        : ClearSelectionText.Trim();
     private string? ActiveOptionId => _activeIndex >= 0 && _activeIndex < FilteredOptions.Count
         ? GetOptionId(FilteredOptions[_activeIndex])
         : null;
-    private BzsSelectOption<TValue>? SelectedOption => Options.FirstOrDefault(option => IsSelected(option.Value));
-    private string SelectedText => SelectedOption?.Label
-        ?? (string.IsNullOrWhiteSpace(PlaceholderOption) ? Localize("SelectPlaceholder") : PlaceholderOption.Trim());
-    private string EffectiveAccessibleName => !string.IsNullOrWhiteSpace(Label) ? Label.Trim() : SelectedText;
+    private IReadOnlyList<TValue> SelectedValues => CurrentValue ?? [];
+    private HashSet<TValue> SelectedSet => SelectedValues.ToHashSet(EqualityComparer<TValue>.Default);
+    private IReadOnlyList<BzsSelectOption<TValue>> SelectedOptions => Options.Where(option => IsSelected(option.Value)).ToArray();
     private IReadOnlyList<BzsSelectOption<TValue>> FilteredOptions => string.IsNullOrWhiteSpace(_searchText)
         ? Options
         : Options.Where(MatchesSearch).ToArray();
+    private bool HasEnabledFilteredOptions => FilteredOptions.Any(static option => !option.Disabled);
+    private bool HasClearableFilteredSelection => FilteredOptions.Any(option => !option.Disabled && IsSelected(option.Value));
+    private int NativeSize => Math.Clamp(Options.Count, 2, 6);
+    private string SelectedText => SelectedOptions.Count switch
+    {
+        0 => string.IsNullOrWhiteSpace(PlaceholderOption) ? Localize("MultiSelectPlaceholder") : PlaceholderOption.Trim(),
+        <= 2 => string.Join(", ", SelectedOptions.Select(static option => option.Label)),
+        _ => $"{SelectedOptions.Count} {EffectiveSelectionSuffix}",
+    };
+    private string EffectiveAccessibleName => !string.IsNullOrWhiteSpace(Label) ? Label.Trim() : SelectedText;
 
     private IReadOnlyDictionary<string, object> TriggerAttributes
     {
         get
         {
             var attributes = new Dictionary<string, object>(
-                BuildInputAttributes("bzs-input bzs-select__trigger", supportsReadOnly: false),
+                BuildInputAttributes("bzs-input bzs-multi-select__trigger", supportsReadOnly: false),
                 StringComparer.OrdinalIgnoreCase)
             {
                 ["type"] = "button",
@@ -79,7 +112,8 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
                 attributes["aria-activedescendant"] = ActiveOptionId!;
             }
             if (string.IsNullOrWhiteSpace(Label)
-                && !HasAdditionalAccessibleName(attributes))
+                && !attributes.ContainsKey("aria-label")
+                && !attributes.ContainsKey("aria-labelledby"))
             {
                 attributes["aria-label"] = EffectiveAccessibleName;
             }
@@ -89,46 +123,31 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
     }
 
     private IReadOnlyDictionary<string, object> NativeInputAttributes =>
-        BuildInputAttributes("bzs-input bzs-select__native", supportsReadOnly: false);
+        BuildInputAttributes("bzs-input bzs-multi-select__native", supportsReadOnly: false);
 
     private IReadOnlyDictionary<string, object> ConstraintInputAttributes => new Dictionary<string, object>
     {
         ["id"] = ConstraintId,
-        ["class"] = "bzs-select__constraint",
+        ["class"] = "bzs-multi-select__constraint",
         ["required"] = "required",
+        ["multiple"] = "multiple",
         ["tabindex"] = "-1",
         ["aria-hidden"] = "true",
         ["data-bzs-select-constraint"] = "true",
     };
 
     /// <inheritdoc />
-    protected override string? FormatValueAsString(TValue? value) => Options
-        .FirstOrDefault(option => EqualityComparer<TValue>.Default.Equals(option.Value, value))
-        ?.ValueText;
+    protected override string FormatValueAsString(IReadOnlyList<TValue>? value) => string.Join(",", (value ?? [])
+        .Select(selected => Options.FirstOrDefault(option => EqualityComparer<TValue>.Default.Equals(option.Value, selected))?.ValueText)
+        .Where(static valueText => valueText is not null));
 
     /// <inheritdoc />
     protected override bool TryParseValueFromString(
         string? value,
-        out TValue result,
+        out IReadOnlyList<TValue> result,
         [NotNullWhen(false)] out string? validationErrorMessage)
     {
-        if (string.IsNullOrEmpty(value) && default(TValue) is null)
-        {
-            result = default!;
-            validationErrorMessage = null;
-            return true;
-        }
-
-        var option = Options.FirstOrDefault(candidate =>
-            string.Equals(candidate.ValueText, value, StringComparison.Ordinal));
-        if (option is not null)
-        {
-            result = option.Value;
-            validationErrorMessage = null;
-            return true;
-        }
-
-        result = default!;
+        result = [];
         validationErrorMessage = FormatValidationError("FormValidationSelection");
         return false;
     }
@@ -177,7 +196,7 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
         option.Label.Contains(_searchText, StringComparison.OrdinalIgnoreCase)
         || option.Description?.Contains(_searchText, StringComparison.OrdinalIgnoreCase) == true;
 
-    private bool IsSelected(TValue value) => EqualityComparer<TValue>.Default.Equals(CurrentValue, value);
+    private bool IsSelected(TValue value) => SelectedSet.Contains(value);
 
     private string GetOptionId(BzsSelectOption<TValue> option)
     {
@@ -188,20 +207,16 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
                 return $"{InputId}-option-{index}";
             }
         }
-
         return $"{InputId}-option";
     }
 
     private string GetOptionClass(int index, bool selected, bool disabled) => string.Join(" ", new[]
     {
-        "bzs-select__option",
-        selected ? "bzs-select__option--selected" : null,
-        index == _activeIndex ? "bzs-select__option--active" : null,
-        disabled ? "bzs-select__option--disabled" : null,
+        "bzs-multi-select__option",
+        selected ? "bzs-multi-select__option--selected" : null,
+        index == _activeIndex ? "bzs-multi-select__option--active" : null,
+        disabled ? "bzs-multi-select__option--disabled" : null,
     }.Where(static value => value is not null));
-
-    private static bool HasAdditionalAccessibleName(IReadOnlyDictionary<string, object> attributes) =>
-        attributes.ContainsKey("aria-label") || attributes.ContainsKey("aria-labelledby");
 
     private void Activate(int index)
     {
@@ -213,37 +228,22 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
 
     private async Task ToggleAsync()
     {
-        if (Disabled || ReadOnly)
-        {
-            return;
-        }
-
-        if (_isOpen)
-        {
-            await CloseAsync(false);
-        }
-        else
-        {
-            Open();
-        }
+        if (Disabled || ReadOnly) return;
+        if (_isOpen) await CloseAsync(false); else Open();
     }
 
     private void Open()
     {
         _isOpen = true;
         _searchText = string.Empty;
-        _activeIndex = FindInitialActiveIndex();
+        _activeIndex = FindFirstEnabledIndex();
         _positionPending = true;
         _focusSearchPending = SearchEnabled;
     }
 
     private async Task CloseAsync(bool restoreFocus)
     {
-        if (!_isOpen)
-        {
-            return;
-        }
-
+        if (!_isOpen) return;
         SetClosedState();
         if (_interop is not null)
         {
@@ -260,15 +260,51 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
         _focusSearchPending = false;
     }
 
-    private async Task SelectAsync(BzsSelectOption<TValue> option)
+    private Task ToggleOptionAsync(BzsSelectOption<TValue> option)
     {
-        if (Disabled || ReadOnly || option.Disabled)
-        {
-            return;
-        }
+        if (Disabled || ReadOnly || option.Disabled) return Task.CompletedTask;
 
-        CurrentValueAsString = option.ValueText;
-        await CloseAsync(true);
+        var selected = SelectedSet;
+        if (!selected.Add(option.Value)) selected.Remove(option.Value);
+        SetSelection(selected);
+        return Task.CompletedTask;
+    }
+
+    private Task SelectVisibleAsync()
+    {
+        var selected = SelectedSet;
+        foreach (var option in FilteredOptions.Where(static option => !option.Disabled)) selected.Add(option.Value);
+        SetSelection(selected);
+        return Task.CompletedTask;
+    }
+
+    private Task InvertVisibleAsync()
+    {
+        var selected = SelectedSet;
+        foreach (var option in FilteredOptions.Where(static option => !option.Disabled))
+        {
+            if (!selected.Add(option.Value)) selected.Remove(option.Value);
+        }
+        SetSelection(selected);
+        return Task.CompletedTask;
+    }
+
+    private Task ClearAsync()
+    {
+        var selected = SelectedSet;
+        foreach (var option in FilteredOptions.Where(static option => !option.Disabled))
+        {
+            selected.Remove(option.Value);
+        }
+        SetSelection(selected);
+        return Task.CompletedTask;
+    }
+
+    private void SetSelection(HashSet<TValue> selected)
+    {
+        var ordered = Options.Where(option => selected.Contains(option.Value)).Select(static option => option.Value).ToList();
+        ordered.AddRange(SelectedValues.Where(value => !Options.Any(option => EqualityComparer<TValue>.Default.Equals(option.Value, value)) && selected.Contains(value)));
+        CurrentValue = ordered;
     }
 
     private void OnSearchInput(ChangeEventArgs args)
@@ -277,20 +313,9 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
         _activeIndex = FindFirstEnabledIndex();
     }
 
-    private void OnNativeChanged(ChangeEventArgs args)
-    {
-        if (!Disabled && !ReadOnly)
-        {
-            CurrentValueAsString = args.Value?.ToString();
-        }
-    }
-
     private async Task HandleKeyDownAsync(KeyboardEventArgs args)
     {
-        if (Disabled || ReadOnly)
-        {
-            return;
-        }
+        if (Disabled || ReadOnly) return;
 
         switch (args.Key)
         {
@@ -307,10 +332,13 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
                 _activeIndex = FindLastEnabledIndex();
                 break;
             case "Enter" when _isOpen:
-                await SelectActiveAsync();
+                await ToggleActiveAsync();
                 break;
             case " " when !_isOpen:
                 Open();
+                break;
+            case " " when _isOpen && !SearchEnabled:
+                await ToggleActiveAsync();
                 break;
             case "Escape" when _isOpen:
                 await CloseAsync(true);
@@ -318,39 +346,23 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
         }
     }
 
-    private async Task SelectActiveAsync()
+    private Task ToggleActiveAsync()
     {
         var options = FilteredOptions;
-        if (_activeIndex >= 0 && _activeIndex < options.Count)
-        {
-            await SelectAsync(options[_activeIndex]);
-        }
+        return _activeIndex >= 0 && _activeIndex < options.Count
+            ? ToggleOptionAsync(options[_activeIndex])
+            : Task.CompletedTask;
     }
 
     private void MoveActive(int delta)
     {
         var options = FilteredOptions;
-        if (options.Count == 0)
-        {
-            _activeIndex = -1;
-            return;
-        }
-
+        if (options.Count == 0) { _activeIndex = -1; return; }
         for (var offset = 1; offset <= options.Count; offset++)
         {
             var candidate = (_activeIndex + delta * offset + options.Count) % options.Count;
-            if (!options[candidate].Disabled)
-            {
-                _activeIndex = candidate;
-                return;
-            }
+            if (!options[candidate].Disabled) { _activeIndex = candidate; return; }
         }
-    }
-
-    private int FindInitialActiveIndex()
-    {
-        var selected = FilteredOptions.ToList().FindIndex(option => IsSelected(option.Value) && !option.Disabled);
-        return selected >= 0 ? selected : FindFirstEnabledIndex();
     }
 
     private int FindFirstEnabledIndex() => FilteredOptions.ToList().FindIndex(static option => !option.Disabled);
@@ -366,22 +378,14 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
 
     private void ValidateOptions()
     {
-        if (Options is null)
+        if (Options is null) throw new InvalidOperationException("BzsMultiSelect requires an Options collection.");
+        if (Options.GroupBy(static option => option.ValueText, StringComparer.Ordinal).Any(static group => group.Count() > 1))
         {
-            throw new InvalidOperationException("BzsSelect requires an Options collection.");
+            throw new InvalidOperationException("BzsMultiSelect option ValueText values must be unique.");
         }
-
-        var duplicate = Options.GroupBy(static option => option.ValueText, StringComparer.Ordinal)
-            .FirstOrDefault(static group => group.Count() > 1);
-        if (duplicate is not null)
+        if (Options.GroupBy(static option => option.Value, EqualityComparer<TValue>.Default).Any(static group => group.Count() > 1))
         {
-            throw new InvalidOperationException($"BzsSelect option ValueText '{duplicate.Key}' must be unique.");
-        }
-
-        if (Options.GroupBy(static option => option.Value, EqualityComparer<TValue>.Default)
-            .Any(static group => group.Count() > 1))
-        {
-            throw new InvalidOperationException("BzsSelect option values must be unique.");
+            throw new InvalidOperationException("BzsMultiSelect option values must be unique.");
         }
     }
 
@@ -389,10 +393,7 @@ public partial class BzsSelect<TValue> : BzsInputBase<TValue>
     [JSInvokable]
     public Task CloseFromBrowserAsync() => InvokeAsync(() =>
     {
-        if (!_isOpen)
-        {
-            return;
-        }
+        if (!_isOpen) return;
 
         SetClosedState();
         StateHasChanged();

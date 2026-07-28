@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
 
@@ -6,6 +7,114 @@ namespace Bzs.Blazor.BrowserTests;
 [Collection(DemoCollection.Name)]
 public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGatePageTest
 {
+    [Fact]
+    public async Task SearchableSelectsCloseAfterOutsidePointerInteraction()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+
+        var releaseNotes = Page.GetByLabel("Release notes");
+        foreach (var name in new[] { "Workspace", "Review areas" })
+        {
+            var select = Page.GetByRole(AriaRole.Combobox, new() { Name = name });
+            await select.ClickAsync();
+            await Expect(select).ToHaveAttributeAsync("aria-expanded", "true");
+
+            await releaseNotes.ClickAsync();
+            await Expect(select).ToHaveAttributeAsync("aria-expanded", "false");
+        }
+    }
+
+    [Fact]
+    public async Task SearchableSelectKeyboardDoesNotSubmitTheForm()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+
+        var workspace = Page.GetByRole(AriaRole.Combobox, new() { Name = "Workspace" });
+        await workspace.FocusAsync();
+        await workspace.PressAsync("Space");
+        await Expect(workspace).ToHaveAttributeAsync("aria-expanded", "true");
+
+        var search = Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search options" });
+        await search.FillAsync("final approvals");
+        await search.PressAsync("Enter");
+
+        await Expect(workspace).ToContainTextAsync("Review");
+        await Expect(workspace).ToHaveAttributeAsync("aria-expanded", "false");
+        await Expect(Page.GetByRole(AriaRole.Status).Last).ToHaveTextAsync("Ready to validate the profile.");
+    }
+
+    [Fact]
+    public async Task SearchableSelectPanelAlignsInsideATransformedContainer()
+    {
+        BeginBrowserGateTest();
+        var pageErrors = new ConcurrentQueue<string>();
+        Page.PageError += (_, error) => pageErrors.Enqueue(error);
+        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+
+        foreach (var name in new[] { "Workspace", "Review areas" })
+        {
+            var select = Page.GetByRole(AriaRole.Combobox, new() { Name = name });
+            var field = select.Locator("xpath=ancestor::*[contains(@class, 'bzs-field')][1]");
+            await field.EvaluateAsync("element => { element.style.transform = 'scale(.8)'; element.style.transformOrigin = 'top left'; }");
+            await select.ClickAsync();
+
+            var panel = field.Locator("[data-bzs-select-panel='true']");
+            await Expect(panel).ToBeVisibleAsync();
+            var triggerBox = await select.BoundingBoxAsync();
+            var panelBox = await panel.BoundingBoxAsync();
+            Assert.NotNull(triggerBox);
+            Assert.NotNull(panelBox);
+            Assert.InRange(Math.Abs(triggerBox.X - panelBox.X), 0, 1);
+            Assert.InRange(Math.Abs(triggerBox.Width - panelBox.Width), 0, 1);
+
+            await Page.GetByLabel("Release notes").ClickAsync();
+            await Expect(select).ToHaveAttributeAsync("aria-expanded", "false");
+        }
+
+        Assert.Empty(pageErrors);
+    }
+
+    [Fact]
+    public async Task EnhancedChoiceControlsPreserveNativeRequiredAndLabelBehavior()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+
+        var constraints = Page.Locator("[data-bzs-select-constraint='true']");
+        await Expect(constraints).ToHaveCountAsync(2);
+        for (var index = 0; index < 2; index++)
+        {
+            var isValid = await constraints.Nth(index).EvaluateAsync<bool>(
+                "element => { element.selectedIndex = -1; return element.checkValidity(); }");
+            Assert.False(isValid);
+        }
+
+        var workspace = Page.GetByRole(AriaRole.Combobox, new() { Name = "Workspace" });
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Validate profile" }).ClickAsync();
+        await Expect(workspace).ToBeFocusedAsync();
+        await Expect(Page.GetByRole(AriaRole.Status).Last)
+            .ToHaveTextAsync("Ready to validate the profile.");
+
+        var selectedWorkflow = Page.Locator("#profile-workflow-option-2");
+        var selectedWorkflowLabel =
+            Page.Locator("label.bzs-radio-group__option[for='profile-workflow-option-2']");
+
+        await selectedWorkflowLabel.ClickAsync();
+        await Expect(selectedWorkflow).ToBeCheckedAsync();
+
+        var workflowLabel = Page.Locator("#profile-workflow-label");
+        await Expect(workflowLabel).ToHaveAttributeAsync("for", "profile-workflow-option-2");
+        await workflowLabel.ClickAsync();
+        await Expect(selectedWorkflow).ToBeFocusedAsync();
+        await Expect(selectedWorkflow).ToBeCheckedAsync();
+    }
+
     [Fact]
     public async Task FormsAcceptKeyboardInputValidateInlineAndFitAtTwoHundredPercentZoom()
     {

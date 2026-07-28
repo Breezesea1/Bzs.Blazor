@@ -4,7 +4,7 @@
 <div @attributes="RootAttributes">
     @if (!string.IsNullOrWhiteSpace(Label))
     {
-        <label class="bzs-field__label" for="@InputId">
+        <label id="@LabelId" class="bzs-field__label" for="@EffectiveLabelFor">
             @Label
             @if (Required)
             {
@@ -22,4 +22,3 @@
         <div id="@ErrorId" class="bzs-field__error" role="alert">@Error</div>
     }
 </div>
-

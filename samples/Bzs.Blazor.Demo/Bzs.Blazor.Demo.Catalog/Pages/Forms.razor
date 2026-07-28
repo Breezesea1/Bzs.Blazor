@@ -72,10 +72,28 @@
                                Label="Workspace"
                                Description="Choose the default production area."
                                Required="true" />
-                    <BzsCheckbox Id="profile-notifications"
-                                 @bind-Value="ActiveProfile.ReceiveNotifications"
-                                 Label="Receive approval notifications"
-                                 Description="A native checkbox keeps the opt-in explicit." />
+                    <BzsMultiSelect TValue="string"
+                                    Id="profile-review-areas"
+                                    @bind-Value="ActiveProfile.ReviewAreas"
+                                    Options="WorkspaceOptions"
+                                    Label="Review areas"
+                                    Description="Search and select more than one production area."
+                                    Required="true"
+                                    PlaceholderOption="Choose areas" />
+                    <BzsToggle Id="profile-notifications"
+                               @bind-Value="ActiveProfile.ReceiveNotifications"
+                               Label="Receive approval notifications"
+                               Description="Use the compact switch for immediate binary settings."
+                               OnText="True"
+                               OffText="False" />
+                    <div class="demo-form-field-full">
+                        <BzsRadioGroup TValue="string"
+                                       Id="profile-workflow"
+                                       @bind-Value="ActiveProfile.Workflow"
+                                       Options="WorkflowOptions"
+                                       Label="Workflow view"
+                                       Description="Choose one mutually exclusive workspace view." />
+                    </div>
                     <div class="demo-form-field-full">
                         <BzsTextArea Id="profile-release-notes"
                                      @bind-Value="ActiveProfile.ReleaseNotes"
@@ -142,15 +160,27 @@
                 </div>
             </section>
         </EditForm>
+
+        <section class="demo-form-empty" aria-label="Empty state specimen">
+            <BzsEmptyState Title="No component versions match"
+                           Description="Adjust the search, release status, or sort order and try again." />
+        </section>
     </section>
 </BzsThemeProvider>
 
 @code {
     private static readonly IReadOnlyList<BzsSelectOption<string>> WorkspaceOptions =
     [
-        new("production", "Production"),
-        new("lighting", "Lighting"),
-        new("review", "Review"),
+        new("production", "Production") { Description = "Default delivery workspace", Icon = BzsIcons.Package },
+        new("lighting", "Lighting") { Description = "Lighting review and notes", Icon = BzsIcons.Info },
+        new("review", "Review") { Description = "Final approvals", Icon = BzsIcons.Success },
+    ];
+
+    private static readonly IReadOnlyList<BzsSelectOption<string>> WorkflowOptions =
+    [
+        new("catalog", "Catalog") { Icon = BzsIcons.Package },
+        new("audit", "Audit") { Icon = BzsIcons.Info },
+        new("trust", "Trust") { Icon = BzsIcons.Success },
     ];
 
     [SupplyParameterFromForm(FormName = "demo-profile")]
@@ -173,6 +203,8 @@
             SeatCount = 8,
             DeliveryDate = DateOnly.FromDateTime(DateTime.Today.AddDays(14)),
             Workspace = "production",
+            ReviewAreas = ["production", "review"],
+            Workflow = "catalog",
             ReceiveNotifications = true,
             ReleaseNotes = "Review lighting and publish notes before the scheduled handoff.",
             DisabledValue = "Animation sequence 042",
@@ -224,6 +256,10 @@
 
         [Required(ErrorMessage = "Choose a workspace.")]
         public string? Workspace { get; set; }
+
+        public IReadOnlyList<string> ReviewAreas { get; set; } = [];
+
+        public string Workflow { get; set; } = string.Empty;
 
         public bool ReceiveNotifications { get; set; }
 

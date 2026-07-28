@@ -75,7 +75,11 @@ public abstract class BzsInputBase<TValue> : InputBase<TValue>
 
     /// <summary>Formats a localized validation error for the current field.</summary>
     protected string FormatValidationError(string resourceKey) =>
-        Localizer[resourceKey, DisplayName ?? FieldIdentifier.FieldName].Value;
+        Localize(resourceKey, DisplayName ?? FieldIdentifier.FieldName);
+
+    /// <summary>Gets a localized library-owned string for a derived input.</summary>
+    protected string Localize(string resourceKey, params object[] arguments) =>
+        Localizer[resourceKey, arguments].Value;
 
     /// <summary>Builds attributes for the native form element.</summary>
     protected IReadOnlyDictionary<string, object> BuildInputAttributes(
