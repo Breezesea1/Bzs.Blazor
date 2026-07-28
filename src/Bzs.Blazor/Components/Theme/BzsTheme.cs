@@ -205,9 +205,9 @@ public static class BzsThemes
             OverlayShadow: "0 22px 52px rgb(0 0 0 / 0.6)",
             FocusShadow: "0 0 0 3px rgb(211 218 228 / 0.28)"),
         Shape: new BzsThemeShape(
-            ControlRadius: "0.5rem",
-            ContainerRadius: "0.5rem",
-            OverlayRadius: "0.5rem",
+            ControlRadius: "0.625rem",
+            ContainerRadius: "0.625rem",
+            OverlayRadius: "0.625rem",
             BorderWidth: "1px"),
         Typography: new BzsThemeTypography(
             FontFamily: "\"Segoe UI Variable\", \"Segoe UI\", ui-sans-serif, system-ui, sans-serif",

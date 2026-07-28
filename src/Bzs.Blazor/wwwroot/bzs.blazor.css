@@ -51,9 +51,9 @@
 
 :root,
 [data-bzs-theme] {
-    --bzs-radius-control: 0.5rem;
-    --bzs-radius-container: 0.5rem;
-    --bzs-radius-overlay: 0.5rem;
+    --bzs-radius-control: 0.625rem;
+    --bzs-radius-container: 0.625rem;
+    --bzs-radius-overlay: 0.625rem;
     --bzs-border-width: 1px;
     --bzs-font-family: "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
     --bzs-font-size: 0.875rem;
