@@ -263,9 +263,84 @@ public sealed class FormsTests
 
         Assert.Equal(min.Value.ToString("Y", CultureInfo.CurrentCulture), cut.Find("[role='grid']").GetAttribute("aria-label"));
         Assert.Equal(min.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), cut.Find("[tabindex='0']").GetAttribute("data-date"));
+        cut.Find("[data-bzs-date-picker-period='year']").Click();
+        var yearListbox = cut.Find("[role='listbox'][aria-label='Year']");
         Assert.Equal(
             Enumerable.Range(min.Value.Year, max.Value.Year - min.Value.Year + 1).Select(year => year.ToString(CultureInfo.InvariantCulture)),
-            cut.FindAll("select[aria-label='Year'] option").Select(option => option.GetAttribute("value")));
+            yearListbox.QuerySelectorAll("[role='option']").Select(option => option.TextContent.Trim()));
+    }
+
+    [Theory]
+    [InlineData("month")]
+    [InlineData("year")]
+    public void DateInputKeepsAnOpenPeriodMenuActiveDescendantInsideAChangedRange(string period)
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        DateOnly? min = null;
+        DateOnly? max = null;
+        var model = new FormModel { DueDate = new DateOnly(2026, 7, 18) };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+            builder,
+            0,
+            model.DueDate,
+            () => model.DueDate,
+            EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value),
+            (attributes, sequence) =>
+            {
+                attributes.AddAttribute(sequence, nameof(BzsDateInput<DateOnly>.Min), min);
+                attributes.AddAttribute(sequence + 1, nameof(BzsDateInput<DateOnly>.Max), max);
+            }));
+
+        cut.Find("input[role='combobox']").Click();
+        var accessibleName = period == "month" ? "Month" : "Year";
+        cut.Find($"[role='combobox'][aria-label='{accessibleName}']").Click();
+
+        min = new DateOnly(2030, 5, 10);
+        max = period == "month"
+            ? new DateOnly(2030, 6, 20)
+            : new DateOnly(2031, 6, 20);
+        cut.Render();
+
+        var trigger = cut.Find($"[role='combobox'][aria-label='{accessibleName}']");
+        var activeOptionId = trigger.GetAttribute("aria-activedescendant");
+        Assert.NotNull(activeOptionId);
+        var activeOption = cut.FindAll("[role='option']").Single(option => option.Id == activeOptionId);
+        Assert.Equal("option", activeOption.GetAttribute("role"));
+    }
+
+    [Fact]
+    public void DateInputPeriodMenusSupportLocalizedTypeahead()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var model = new FormModel { DueDate = new DateOnly(2220, 7, 18) };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+            builder,
+            0,
+            model.DueDate,
+            () => model.DueDate,
+            EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value)));
+
+        cut.Find("input[role='combobox']").Click();
+        var month = cut.Find("[role='combobox'][aria-label='Month']");
+        month.Click();
+
+        month.KeyDown("J");
+        Assert.Equal("January", GetActiveOptionText(cut, month));
+        month.KeyDown("J");
+        Assert.Equal("June", GetActiveOptionText(cut, month));
+
+        var year = cut.Find("[role='combobox'][aria-label='Year']");
+        year.Click();
+        foreach (var key in "2222")
+        {
+            year.KeyDown(key.ToString());
+        }
+
+        Assert.Equal("2222", GetActiveOptionText(cut, year));
     }
 
     [Fact]
@@ -477,9 +552,87 @@ public sealed class FormsTests
         Assert.Equal(
             changedDate.ToString("D", localizedGregorianCulture),
             cut.Find($"[data-date='{changedNativeDate}']").GetAttribute("aria-label"));
+        cut.Find("[data-bzs-date-picker-period='month']").Click();
         Assert.Equal(
             localizedGregorianCulture.DateTimeFormat.GetMonthName(changedDate.Month),
-            cut.Find($"select[aria-label='Month'] option[value='{changedDate.Month}']").TextContent);
+            cut.Find("[role='listbox'][aria-label='Month'] [role='option'][aria-selected='true']").TextContent.Trim());
+    }
+
+    [Fact]
+    public void DateInputUsesAnExplicitCultureForLanguageDirectionAndPickerText()
+    {
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUiCulture = CultureInfo.CurrentUICulture;
+        var componentCulture = CultureInfo.GetCultureInfo("zh-Hans");
+        using var context = CreateContext();
+        var model = new FormModel { OptionalDueDate = new DateOnly(2026, 7, 18) };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly?>, DateOnly?>(
+            builder,
+            0,
+            model.OptionalDueDate,
+            () => model.OptionalDueDate,
+            EventCallback.Factory.Create<DateOnly?>(model, value => model.OptionalDueDate = value),
+            (attributes, sequence) =>
+            {
+                attributes.AddAttribute(sequence, nameof(BzsDateInput<DateOnly?>.Culture), componentCulture);
+                attributes.AddAttribute(sequence + 1, nameof(BzsDateInput<DateOnly?>.Clearable), true);
+            }));
+
+        var input = cut.Find("input[role='combobox']");
+        Assert.Equal("zh-Hans", input.GetAttribute("lang"));
+        Assert.Equal("ltr", input.GetAttribute("dir"));
+        Assert.Equal(model.OptionalDueDate.Value.ToString("d", componentCulture), input.GetAttribute("value"));
+
+        cut.Find("button[aria-label='打开日历']").Click();
+
+        Assert.Equal("选择日期", cut.Find("[role='dialog']").GetAttribute("aria-label"));
+        var monthCombobox = cut.Find("[data-bzs-date-picker-period='month']");
+        Assert.Equal("月份", monthCombobox.GetAttribute("aria-label"));
+        Assert.Equal("七月", monthCombobox.TextContent.Trim());
+        Assert.Equal("年份", cut.Find("[data-bzs-date-picker-period='year']").GetAttribute("aria-label"));
+        Assert.Contains(cut.FindAll("button"), button => button.TextContent.Trim() == "今天");
+        Assert.Contains(cut.FindAll("button"), button => button.TextContent.Trim() == "清除");
+
+        monthCombobox.Click();
+        Assert.Equal(
+            "七月",
+            cut.Find("[role='listbox'][aria-label='月份'] [role='option'][aria-selected='true']").TextContent.Trim());
+        Assert.Same(originalCulture, CultureInfo.CurrentCulture);
+        Assert.Same(originalUiCulture, CultureInfo.CurrentUICulture);
+    }
+
+    [Fact]
+    public void DateInputWithAnExplicitCultureDoesNotAcceptAmbientCultureOnlyFormats()
+    {
+        using var culture = new CultureScope("en-GB");
+        using var context = CreateContext();
+        var componentCulture = CultureInfo.GetCultureInfo("en-US");
+        var model = new FormModel { DueDate = new DateOnly(2026, 7, 18) };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+            builder,
+            0,
+            model.DueDate,
+            () => model.DueDate,
+            EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value),
+            (attributes, sequence) =>
+                attributes.AddAttribute(sequence, nameof(BzsDateInput<DateOnly>.Culture), componentCulture)));
+
+        var input = cut.Find("input[role='combobox']");
+        input.Change("31/12/2026");
+
+        Assert.Equal(new DateOnly(2026, 7, 18), model.DueDate);
+        Assert.Equal("true", cut.Find("input[role='combobox']").GetAttribute("aria-invalid"));
+
+        cut.Find("input[role='combobox']").Change("12/31/2026");
+
+        Assert.Equal(new DateOnly(2026, 12, 31), model.DueDate);
+        Assert.Null(cut.Find("input[role='combobox']").GetAttribute("aria-invalid"));
+
+        cut.Find("input[role='combobox']").Change("2027-01-02");
+
+        Assert.Equal(new DateOnly(2027, 1, 2), model.DueDate);
     }
 
     [Fact]
@@ -1102,8 +1255,19 @@ public sealed class FormsTests
         dateModule.Setup<string>("initialize", _ => true).SetResult("2031-02-03");
         dateModule.SetupVoid("setOpen", _ => true);
         dateModule.SetupVoid("focusActiveDay", _ => true);
+        dateModule.SetupVoid("scrollActivePeriodOption", _ => true);
         dateModule.SetupVoid("dispose", _ => true);
         return context;
+    }
+
+    private static string GetActiveOptionText(IRenderedComponent<EditForm> cut, AngleSharp.Dom.IElement trigger)
+    {
+        var activeOptionId = trigger.GetAttribute("aria-activedescendant");
+        Assert.NotNull(activeOptionId);
+        return cut.FindAll("[role='option']")
+            .Single(option => option.Id == activeOptionId)
+            .TextContent
+            .Trim();
     }
 
     private static IRenderedComponent<EditForm> RenderForm(

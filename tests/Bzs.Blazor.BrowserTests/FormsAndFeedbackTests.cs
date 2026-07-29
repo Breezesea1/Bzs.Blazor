@@ -46,7 +46,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await Expect(panel).ToHaveCountAsync(0);
         await Expect(input).ToHaveAttributeAsync("aria-expanded", "false");
 
-        var openCalendar = Page.GetByRole(AriaRole.Button, new() { Name = "Open calendar" });
+        var openCalendar = Page.GetByRole(AriaRole.Button, new() { Name = "打开日历" });
         await openCalendar.ClickAsync();
         await Expect(panel).ToBeVisibleAsync();
         await Expect(openCalendar).ToBeFocusedAsync();
@@ -56,7 +56,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
 
         await input.ClickAsync(new() { Position = clickPosition });
         await Expect(panel).ToBeVisibleAsync();
-        var month = Page.GetByRole(AriaRole.Combobox, new() { Name = "Month" });
+        var month = Page.GetByRole(AriaRole.Combobox, new() { Name = "月份" });
         await month.FocusAsync();
         await month.PressAsync("Escape");
         await Expect(panel).ToHaveCountAsync(0);
@@ -113,47 +113,232 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
 
         await focusedDay.PressAsync("ArrowRight");
         await Expect(focusedDay).ToBeFocusedAsync();
-        var nextDate = ParseNativeDate(await focusedDay.GetAttributeAsync("data-date"));
-        Assert.Equal(initialDate.AddDays(1), nextDate);
+        var nextDate = initialDate.AddDays(1);
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(nextDate));
 
         await focusedDay.PressAsync("ArrowLeft");
         await Expect(focusedDay).ToBeFocusedAsync();
-        Assert.Equal(initialDate, ParseNativeDate(await focusedDay.GetAttributeAsync("data-date")));
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(initialDate));
 
         await focusedDay.PressAsync("ArrowUp");
         await Expect(focusedDay).ToBeFocusedAsync();
-        Assert.Equal(initialDate.AddDays(-7), ParseNativeDate(await focusedDay.GetAttributeAsync("data-date")));
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(initialDate.AddDays(-7)));
 
         await focusedDay.PressAsync("ArrowDown");
         await Expect(focusedDay).ToBeFocusedAsync();
-        Assert.Equal(initialDate, ParseNativeDate(await focusedDay.GetAttributeAsync("data-date")));
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(initialDate));
 
         await focusedDay.PressAsync("ArrowRight");
         await Expect(focusedDay).ToBeFocusedAsync();
-        Assert.Equal(nextDate, ParseNativeDate(await focusedDay.GetAttributeAsync("data-date")));
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(nextDate));
 
         await focusedDay.PressAsync("PageDown");
         await Expect(focusedDay).ToBeFocusedAsync();
-        Assert.Equal(nextDate.AddMonths(1), ParseNativeDate(await focusedDay.GetAttributeAsync("data-date")));
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(nextDate.AddMonths(1)));
 
         await focusedDay.PressAsync("PageUp");
         await Expect(focusedDay).ToBeFocusedAsync();
-        Assert.Equal(nextDate, ParseNativeDate(await focusedDay.GetAttributeAsync("data-date")));
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(nextDate));
 
+        var firstDayOfWeek = CultureInfo.GetCultureInfo("zh-Hans").DateTimeFormat.FirstDayOfWeek;
+        var daysSinceStartOfWeek = ((int)nextDate.DayOfWeek - (int)firstDayOfWeek + 7) % 7;
+        var expectedStartOfWeek = nextDate.AddDays(-daysSinceStartOfWeek);
         await focusedDay.PressAsync("Home");
         await Expect(focusedDay).ToBeFocusedAsync();
-        var startOfWeek = ParseNativeDate(await focusedDay.GetAttributeAsync("data-date"));
-        var firstDayOfWeek = CultureInfo.GetCultureInfo("en-US").DateTimeFormat.FirstDayOfWeek;
-        var daysSinceStartOfWeek = ((int)nextDate.DayOfWeek - (int)firstDayOfWeek + 7) % 7;
-        Assert.Equal(nextDate.AddDays(-daysSinceStartOfWeek), startOfWeek);
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(expectedStartOfWeek));
         await focusedDay.PressAsync("End");
         await Expect(focusedDay).ToBeFocusedAsync();
-        Assert.Equal(startOfWeek.AddDays(6), ParseNativeDate(await focusedDay.GetAttributeAsync("data-date")));
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(expectedStartOfWeek.AddDays(6)));
 
         await focusedDay.PressAsync("Enter");
         await Expect(panel).ToHaveCountAsync(0);
         await Expect(input).ToBeFocusedAsync();
         await Expect(input).Not.ToHaveValueAsync(initialInputValue);
+    }
+
+    [Fact]
+    public async Task DatePickerPeriodMenusUseAriaListboxesAndUpdateTheCalendar()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+
+        var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
+        await input.ClickAsync();
+
+        var panel = Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" });
+        var grid = panel.GetByRole(AriaRole.Grid);
+        await Expect(panel).ToBeVisibleAsync();
+
+        var month = panel.GetByRole(AriaRole.Combobox, new() { Name = "月份" });
+        var initialMonthLabel = await grid.GetAttributeAsync("aria-label");
+        Assert.NotNull(initialMonthLabel);
+        await month.ClickAsync();
+
+        var monthListbox = panel.GetByRole(AriaRole.Listbox, new() { Name = "月份" });
+        await Expect(monthListbox).ToBeVisibleAsync();
+        await Expect(month).ToHaveAttributeAsync("aria-expanded", "true");
+        var selectedMonth = monthListbox.GetByRole(AriaRole.Option, new() { Selected = true });
+        await Expect(selectedMonth).ToBeVisibleAsync();
+        await Expect(selectedMonth).ToHaveAttributeAsync("aria-selected", "true");
+
+        await monthListbox.GetByRole(AriaRole.Option, new() { Selected = false }).First.ClickAsync();
+
+        await Expect(monthListbox).ToHaveCountAsync(0);
+        await Expect(month).ToHaveAttributeAsync("aria-expanded", "false");
+        await Expect(grid).Not.ToHaveAttributeAsync("aria-label", initialMonthLabel);
+
+        var year = panel.GetByRole(AriaRole.Combobox, new() { Name = "年份" });
+        var initialYearLabel = await grid.GetAttributeAsync("aria-label");
+        Assert.NotNull(initialYearLabel);
+        await year.ClickAsync();
+
+        var yearListbox = panel.GetByRole(AriaRole.Listbox, new() { Name = "年份" });
+        await Expect(yearListbox).ToBeVisibleAsync();
+        await Expect(year).ToHaveAttributeAsync("aria-expanded", "true");
+        var selectedYear = yearListbox.GetByRole(AriaRole.Option, new() { Selected = true });
+        await Expect(selectedYear).ToBeVisibleAsync();
+        await Expect(selectedYear).ToHaveAttributeAsync("aria-selected", "true");
+
+        await yearListbox.GetByRole(AriaRole.Option, new() { Selected = false }).First.ClickAsync();
+
+        await Expect(yearListbox).ToHaveCountAsync(0);
+        await Expect(year).ToHaveAttributeAsync("aria-expanded", "false");
+        await Expect(grid).Not.ToHaveAttributeAsync("aria-label", initialYearLabel);
+    }
+
+    [Fact]
+    public async Task DatePickerPeriodMenusSupportKeyboardNavigationAndSelection()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+
+        var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
+        await input.ClickAsync();
+
+        var panel = Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" });
+        var grid = panel.GetByRole(AriaRole.Grid);
+        var month = panel.GetByRole(AriaRole.Combobox, new() { Name = "月份" });
+        await month.FocusAsync();
+        await month.PressAsync("ArrowDown");
+
+        var monthListbox = panel.GetByRole(AriaRole.Listbox, new() { Name = "月份" });
+        await Expect(monthListbox).ToBeVisibleAsync();
+        var initialActiveMonth = await month.GetAttributeAsync("aria-activedescendant");
+        Assert.NotNull(initialActiveMonth);
+
+        await month.PressAsync("ArrowDown");
+        var activeMonthAfterDown = await month.GetAttributeAsync("aria-activedescendant");
+        Assert.NotNull(activeMonthAfterDown);
+        await Expect(Page.Locator($"#{activeMonthAfterDown}")).ToBeVisibleAsync();
+
+        await month.PressAsync("ArrowUp");
+        var activeMonthAfterUp = await month.GetAttributeAsync("aria-activedescendant");
+        Assert.NotNull(activeMonthAfterUp);
+        await Expect(Page.Locator($"#{activeMonthAfterUp}")).ToBeVisibleAsync();
+
+        await month.PressAsync("Home");
+        var firstMonthId = await monthListbox.GetByRole(AriaRole.Option).First.GetAttributeAsync("id");
+        Assert.NotNull(firstMonthId);
+        await Expect(month).ToHaveAttributeAsync("aria-activedescendant", firstMonthId);
+
+        await month.PressAsync("End");
+        var lastMonthId = await monthListbox.GetByRole(AriaRole.Option).Last.GetAttributeAsync("id");
+        Assert.NotNull(lastMonthId);
+        await Expect(month).ToHaveAttributeAsync("aria-activedescendant", lastMonthId);
+
+        var selectedMonthId = await monthListbox.GetByRole(AriaRole.Option, new() { Selected = true })
+            .GetAttributeAsync("id");
+        Assert.NotNull(selectedMonthId);
+        if (selectedMonthId == lastMonthId)
+        {
+            await month.PressAsync("ArrowUp");
+        }
+
+        var monthLabelBeforeSelection = await grid.GetAttributeAsync("aria-label");
+        Assert.NotNull(monthLabelBeforeSelection);
+        await month.PressAsync("Enter");
+        await Expect(monthListbox).ToHaveCountAsync(0);
+        await Expect(month).ToHaveAttributeAsync("aria-expanded", "false");
+        await Expect(grid).Not.ToHaveAttributeAsync("aria-label", monthLabelBeforeSelection);
+
+        var year = panel.GetByRole(AriaRole.Combobox, new() { Name = "年份" });
+        await year.FocusAsync();
+        await year.PressAsync("Space");
+
+        var yearListbox = panel.GetByRole(AriaRole.Listbox, new() { Name = "年份" });
+        await Expect(yearListbox).ToBeVisibleAsync();
+        var selectedYearId = await yearListbox.GetByRole(AriaRole.Option, new() { Selected = true })
+            .GetAttributeAsync("id");
+        var lastYearId = await yearListbox.GetByRole(AriaRole.Option).Last.GetAttributeAsync("id");
+        Assert.NotNull(selectedYearId);
+        Assert.NotNull(lastYearId);
+        await year.PressAsync(selectedYearId == lastYearId ? "ArrowUp" : "ArrowDown");
+        await Expect(year).Not.ToHaveAttributeAsync("aria-activedescendant", selectedYearId);
+
+        var activeYearId = await year.GetAttributeAsync("aria-activedescendant");
+        Assert.NotNull(activeYearId);
+        await Expect(Page.Locator($"#{activeYearId}")).ToBeVisibleAsync();
+
+        var yearLabelBeforeSelection = await grid.GetAttributeAsync("aria-label");
+        Assert.NotNull(yearLabelBeforeSelection);
+        await year.PressAsync("Space");
+        await Expect(yearListbox).ToHaveCountAsync(0);
+        await Expect(year).ToHaveAttributeAsync("aria-expanded", "false");
+        await Expect(grid).Not.ToHaveAttributeAsync("aria-label", yearLabelBeforeSelection);
+
+        await year.FocusAsync();
+        await year.PressAsync("Space");
+        await Expect(yearListbox).ToBeVisibleAsync();
+        var pageActiveYearId = await year.GetAttributeAsync("aria-activedescendant");
+        var yearBeforePage = int.Parse(
+            await GetActivePeriodOptionTextAsync(year),
+            CultureInfo.InvariantCulture);
+        await year.PressAsync("PageDown");
+        await Expect(year).Not.ToHaveAttributeAsync("aria-activedescendant", pageActiveYearId!);
+        Assert.Equal(
+            yearBeforePage + 10,
+            int.Parse(await GetActivePeriodOptionTextAsync(year), CultureInfo.InvariantCulture));
+        pageActiveYearId = await year.GetAttributeAsync("aria-activedescendant");
+        await year.PressAsync("PageUp");
+        await Expect(year).Not.ToHaveAttributeAsync("aria-activedescendant", pageActiveYearId!);
+        Assert.Equal(
+            yearBeforePage,
+            int.Parse(await GetActivePeriodOptionTextAsync(year), CultureInfo.InvariantCulture));
+
+        var selectedYearText = (await yearListbox.GetByRole(AriaRole.Option, new() { Selected = true })
+            .TextContentAsync() ?? string.Empty).Trim();
+        var targetYear = yearListbox.GetByRole(AriaRole.Option, new() { Selected = false }).First;
+        var targetYearText = (await targetYear.TextContentAsync() ?? string.Empty).Trim();
+        var targetYearId = await targetYear.GetAttributeAsync("id");
+        Assert.NotEmpty(selectedYearText);
+        Assert.NotEmpty(targetYearText);
+        Assert.NotNull(targetYearId);
+        Assert.NotEqual(selectedYearText, targetYearText);
+        await year.FocusAsync();
+        await Page.Keyboard.TypeAsync(targetYearText);
+        await Expect(year).ToHaveAttributeAsync("aria-activedescendant", targetYearId);
+        Assert.Equal(targetYearText, await GetActivePeriodOptionTextAsync(year));
+
+        var yearLabelBeforeTab = await grid.GetAttributeAsync("aria-label");
+        Assert.NotNull(yearLabelBeforeTab);
+        await year.PressAsync("Tab");
+        await Expect(yearListbox).ToHaveCountAsync(0);
+        await Expect(grid).Not.ToHaveAttributeAsync("aria-label", yearLabelBeforeTab);
+        await Expect(year).Not.ToBeFocusedAsync();
+
+        await month.FocusAsync();
+        await month.PressAsync("ArrowDown");
+        await Expect(monthListbox).ToBeVisibleAsync();
+        await month.PressAsync("Escape");
+        await Expect(monthListbox).ToHaveCountAsync(0);
+        await Expect(month).ToHaveAttributeAsync("aria-expanded", "false");
+        await Expect(panel).ToBeVisibleAsync();
+
+        await month.PressAsync("Escape");
+        await Expect(panel).ToHaveCountAsync(0);
+        await Expect(input).ToBeFocusedAsync();
     }
 
     [Fact]
@@ -177,7 +362,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         Assert.True(await panel.EvaluateAsync<bool>(
             "element => element.scrollHeight > element.clientHeight && getComputedStyle(element).overflowY === 'auto'"));
 
-        var today = panel.GetByRole(AriaRole.Button, new() { Name = "Today" });
+        var today = panel.GetByRole(AriaRole.Button, new() { Name = "今天" });
         await today.ScrollIntoViewIfNeededAsync();
         await Expect(today).ToBeVisibleAsync();
         await today.ClickAsync();
@@ -217,7 +402,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
             var grid = panel.GetByRole(AriaRole.Grid);
             var initialMonth = await grid.GetAttributeAsync("aria-label");
             Assert.NotNull(initialMonth);
-            var nextMonth = panel.GetByRole(AriaRole.Button, new() { Name = "Next month" });
+            var nextMonth = panel.GetByRole(AriaRole.Button, new() { Name = "下个月" });
             Assert.True(await nextMonth.EvaluateAsync<bool>(
                 "element => { const rect = element.getBoundingClientRect(); const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2); return hit !== null && element.contains(hit); }"),
                 $"Expected the next-month button to receive pointer hits inside contain: {containment}.");
@@ -285,7 +470,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
             var grid = panel.GetByRole(AriaRole.Grid);
             var initialMonth = await grid.GetAttributeAsync("aria-label");
             Assert.NotNull(initialMonth);
-            var nextMonth = panel.GetByRole(AriaRole.Button, new() { Name = "Next month" });
+            var nextMonth = panel.GetByRole(AriaRole.Button, new() { Name = "下个月" });
             Assert.True(await nextMonth.EvaluateAsync<bool>(
                 "element => { const rect = element.getBoundingClientRect(); const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2); return hit !== null && element.contains(hit); }"),
                 $"Expected the fallback panel to receive pointer hits for {containingBlock.Property}: {containingBlock.Value}.");
@@ -534,4 +719,11 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         Assert.NotNull(value);
         return DateOnly.ParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture);
     }
+
+    private static string FormatNativeDate(DateOnly value) =>
+        value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private static Task<string> GetActivePeriodOptionTextAsync(ILocator trigger) =>
+        trigger.EvaluateAsync<string>(
+            "element => document.getElementById(element.getAttribute('aria-activedescendant'))?.textContent?.trim() ?? ''");
 }

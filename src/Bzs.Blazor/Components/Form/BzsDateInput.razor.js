@@ -28,11 +28,13 @@ async function safeInvoke(dotNetReference, method) {
 function handleKeyDown(event, instance) {
     const isInput = event.target.matches('[data-bzs-date-picker-input="true"]');
     const isDay = event.target.matches('[data-bzs-date-picker-day="true"]');
-    if (!isInput && !isDay) return;
+    const isPeriod = event.target.matches('[data-bzs-date-picker-period]');
+    if (!isInput && !isDay && !isPeriod) return;
 
     if ((isInput && event.key === 'ArrowDown')
         || (instance.open && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Escape'].includes(event.key))
-        || (isDay && ['Enter', ' '].includes(event.key))) {
+        || (isDay && ['Enter', ' '].includes(event.key))
+        || (isPeriod && ['Enter', ' '].includes(event.key))) {
         event.preventDefault();
     }
 }
@@ -97,6 +99,14 @@ export function focusActiveDay(instanceId) {
         instance.root
             .querySelector('[data-bzs-date-picker-day="true"][tabindex="0"]')
             ?.focus({ preventScroll: true });
+    });
+}
+
+export function scrollActivePeriodOption(menu) {
+    requestAnimationFrame(() => {
+        menu
+            ?.querySelector('.bzs-date-picker__period-option--active')
+            ?.scrollIntoView({ block: 'nearest' });
     });
 }
 

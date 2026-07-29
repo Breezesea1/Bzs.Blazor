@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Resources;
 using System.Runtime.ExceptionServices;
+using Bzs.Blazor.Localization;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace Bzs.Blazor;
@@ -14,6 +16,7 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 {
     private const string NativeDateFormat = "yyyy-MM-dd";
     private const int ImmediateOpenSyncAttemptLimit = 2;
+    private const int PeriodTypeaheadResetMilliseconds = 2_000;
     private static readonly DateOnly[] DateFormatValidationDates =
     [
         new(2000, 2, 29),
@@ -23,6 +26,13 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private static readonly bool IsSupportedDateType = ValueDateType == typeof(DateOnly)
         || ValueDateType == typeof(DateTime)
         || ValueDateType == typeof(DateTimeOffset);
+    private static readonly ResourceManager DatePickerResources = new(typeof(BzsBlazorResources));
+
+    /// <summary>
+    /// Gets or sets the culture used for date formatting and date-picker-owned text.
+    /// When omitted, the component follows the current culture and UI culture.
+    /// </summary>
+    [Parameter] public CultureInfo? Culture { get; set; }
 
     /// <summary>
     /// Gets or sets the culture-aware date format shown by the interactive text input.
@@ -45,6 +55,7 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private readonly string _instanceId = $"bzs-date-picker-{Guid.NewGuid():N}";
     private ElementReference _rootReference;
     private ElementReference _inputReference;
+    private ElementReference _periodMenuReference;
     private DotNetObjectReference<BzsDateInput<TValue>>? _dotNetReference;
     private BzsDateInputInterop? _interop;
     private Task<BzsDateInputInitialization>? _interopInitializationTask;
@@ -61,8 +72,14 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private bool _focusCalendarOnOpen;
     private bool _restoreInputFocusOnClose;
     private bool _focusDayPending;
+    private bool _scrollPeriodMenuPending;
     private double? _pointerX;
     private double? _pointerY;
+    private DatePeriodMenu? _openPeriodMenu;
+    private int _activeMonth;
+    private int _activeYear;
+    private string _periodTypeahead = string.Empty;
+    private long _periodTypeaheadTimestamp;
     private CultureInfo? _dateCultureSource;
     private CultureInfo? _dateCulture;
     private DateOnly _today = DateOnly.FromDateTime(DateTime.Today);
@@ -70,12 +87,24 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private DateOnly _focusedDate = DateOnly.FromDateTime(DateTime.Today);
 
     private string PanelId => $"{InputId}-calendar";
+    private string MonthListboxId => $"{InputId}-month-options";
+    private string YearListboxId => $"{InputId}-year-options";
+    private string? ActiveMonthOptionId => _openPeriodMenu == DatePeriodMenu.Month
+        ? GetMonthOptionId(_activeMonth)
+        : null;
+    private string? ActiveYearOptionId => _openPeriodMenu == DatePeriodMenu.Year
+        ? GetYearOptionId(_activeYear)
+        : null;
+    private string? ExplicitCultureName => Culture?.Name;
+    private string? ExplicitCultureDirection => Culture is null
+        ? null
+        : Culture.TextInfo.IsRightToLeft ? "rtl" : "ltr";
     private string EffectiveDateFormat => string.IsNullOrWhiteSpace(DateFormat) ? "d" : DateFormat.Trim();
     private CultureInfo DateCulture
     {
         get
         {
-            var source = CultureInfo.CurrentCulture;
+            var source = Culture ?? CultureInfo.CurrentCulture;
             if (!ReferenceEquals(_dateCultureSource, source))
             {
                 _dateCultureSource = source;
@@ -92,6 +121,8 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private string ViewMonthAccessibleLabel => _viewMonth.ToString("Y", DateCulture);
     private bool CanNavigatePreviousMonth => _viewMonth > FirstOfMonth(FirstAllowedDate);
     private bool CanNavigateNextMonth => _viewMonth < FirstOfMonth(LastAllowedDate);
+    private string IsMonthMenuOpen => _openPeriodMenu == DatePeriodMenu.Month ? "true" : "false";
+    private string IsYearMenuOpen => _openPeriodMenu == DatePeriodMenu.Year ? "true" : "false";
 
     private IReadOnlyDictionary<string, object> NativeInputAttributes
     {
@@ -101,6 +132,7 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
                 BuildInputAttributes("bzs-input bzs-date-input", "date"),
                 StringComparer.OrdinalIgnoreCase);
             AddRangeAttributes(attributes);
+            AddCultureAttributes(attributes);
             return attributes;
         }
     }
@@ -119,6 +151,7 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
                 ["aria-controls"] = PanelId,
                 ["autocomplete"] = "off",
             };
+            AddCultureAttributes(attributes);
             return attributes;
         }
     }
@@ -205,6 +238,7 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         {
             _focusedDate = ClampToAllowedRange(_focusedDate);
             _viewMonth = ClampMonthToAllowedRange(_viewMonth);
+            SynchronizeOpenPeriodMenu();
         }
     }
 
@@ -300,6 +334,12 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             _focusDayPending = false;
             await _interop.FocusActiveDayAsync(_instanceId);
         }
+
+        if (_scrollPeriodMenuPending && _openPeriodMenu is not null && _interop is not null)
+        {
+            _scrollPeriodMenuPending = false;
+            await _interop.ScrollActivePeriodOptionAsync(_periodMenuReference);
+        }
     }
 
     /// <inheritdoc />
@@ -335,11 +375,11 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
                 return true;
             }
 
-            validationErrorMessage = FormatValidationError("FormValidationDateRange");
+            validationErrorMessage = FormatDateValidationError("FormValidationDateRange");
             return false;
         }
 
-        validationErrorMessage = FormatValidationError("FormValidationDate");
+        validationErrorMessage = FormatDateValidationError("FormValidationDate");
         return false;
     }
 
@@ -407,11 +447,36 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         }
     }
 
+    private void AddCultureAttributes(IDictionary<string, object> attributes)
+    {
+        if (Culture is null)
+        {
+            return;
+        }
+
+        attributes["lang"] = Culture.Name;
+        attributes["dir"] = Culture.TextInfo.IsRightToLeft ? "rtl" : "ltr";
+    }
+
     private void SynchronizeCalendarWithValue()
     {
         var reference = TryGetDate(CurrentValue, out var selected) ? selected : Today;
         _focusedDate = ClampToAllowedRange(reference);
         _viewMonth = FirstOfMonth(_focusedDate);
+    }
+
+    private void SynchronizeOpenPeriodMenu()
+    {
+        if (_openPeriodMenu is not { } menu)
+        {
+            return;
+        }
+
+        if (!GetPeriodOptions(menu).Contains(GetActivePeriodOption(menu)))
+        {
+            SetActivePeriodOption(menu, GetViewPeriodOption(menu));
+        }
+        _scrollPeriodMenuPending = true;
     }
 
     private void OnNativeChanged(ChangeEventArgs args)
@@ -492,6 +557,8 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         _focusCalendarOnOpen = false;
         _restoreInputFocusOnClose = restoreInputFocus;
         _focusDayPending = false;
+        _scrollPeriodMenuPending = false;
+        _openPeriodMenu = null;
         RequestOpenSynchronization();
     }
 
@@ -595,6 +662,242 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private Task HandleDialogKeyDownAsync(KeyboardEventArgs args) =>
         args.Key == "Escape" ? CloseAsync(true) : Task.CompletedTask;
 
+    private void ActivatePeriodMenu(DatePeriodMenu menu, MouseEventArgs args)
+    {
+        if (_openPeriodMenu == menu && args.Detail == 0)
+        {
+            SelectActivePeriodOption(menu);
+            return;
+        }
+
+        if (_openPeriodMenu == menu)
+        {
+            _openPeriodMenu = null;
+            return;
+        }
+
+        OpenPeriodMenu(menu);
+    }
+
+    private async Task HandlePeriodKeyDownAsync(DatePeriodMenu menu, KeyboardEventArgs args)
+    {
+        var isOpen = _openPeriodMenu == menu;
+        switch (args.Key)
+        {
+            case "ArrowDown":
+                ResetPeriodTypeahead();
+                if (!isOpen)
+                {
+                    OpenPeriodMenu(menu);
+                }
+                else
+                {
+                    MoveActivePeriodOption(menu, 1);
+                }
+                break;
+            case "ArrowUp":
+                ResetPeriodTypeahead();
+                if (!isOpen)
+                {
+                    OpenPeriodMenu(menu);
+                }
+                else
+                {
+                    MoveActivePeriodOption(menu, -1);
+                }
+                break;
+            case "Home" when isOpen:
+                ResetPeriodTypeahead();
+                SetActivePeriodBoundary(menu, first: true);
+                break;
+            case "End" when isOpen:
+                ResetPeriodTypeahead();
+                SetActivePeriodBoundary(menu, first: false);
+                break;
+            case "PageUp" when isOpen:
+                ResetPeriodTypeahead();
+                MoveActivePeriodOption(menu, -GetPeriodPageSize(menu));
+                break;
+            case "PageDown" when isOpen:
+                ResetPeriodTypeahead();
+                MoveActivePeriodOption(menu, GetPeriodPageSize(menu));
+                break;
+            case "Enter":
+            case " ":
+                if (isOpen)
+                {
+                    SelectActivePeriodOption(menu);
+                }
+                else
+                {
+                    OpenPeriodMenu(menu);
+                }
+                break;
+            case "Escape":
+                if (isOpen)
+                {
+                    _openPeriodMenu = null;
+                }
+                else
+                {
+                    await CloseAsync(true);
+                }
+                break;
+            case "Tab":
+                if (isOpen)
+                {
+                    SelectActivePeriodOption(menu);
+                }
+                break;
+            default:
+                if (isOpen && IsPeriodTypeaheadKey(args))
+                {
+                    ActivatePeriodOptionByTypeahead(menu, args.Key);
+                }
+                break;
+        }
+    }
+
+    private void OpenPeriodMenu(DatePeriodMenu menu)
+    {
+        _openPeriodMenu = menu;
+        _activeMonth = _viewMonth.Month;
+        _activeYear = _viewMonth.Year;
+        ResetPeriodTypeahead();
+        _scrollPeriodMenuPending = true;
+    }
+
+    private void MoveActivePeriodOption(DatePeriodMenu menu, int offset)
+    {
+        var options = GetPeriodOptions(menu);
+        var index = GetPeriodOptionIndex(options, GetActivePeriodOption(menu));
+        var next = options[Math.Clamp(index + offset, 0, options.Count - 1)];
+        SetActivePeriodOption(menu, next);
+        _scrollPeriodMenuPending = true;
+    }
+
+    private void SetActivePeriodBoundary(DatePeriodMenu menu, bool first)
+    {
+        var options = GetPeriodOptions(menu);
+        var value = first ? options[0] : options[^1];
+        SetActivePeriodOption(menu, value);
+        _scrollPeriodMenuPending = true;
+    }
+
+    private void SelectActivePeriodOption(DatePeriodMenu menu)
+    {
+        var active = GetActivePeriodOption(menu);
+        if (menu == DatePeriodMenu.Month)
+        {
+            SelectMonth(active);
+        }
+        else
+        {
+            SelectYear(active);
+        }
+    }
+
+    private void ActivatePeriodOptionByTypeahead(DatePeriodMenu menu, string key)
+    {
+        var now = Environment.TickCount64;
+        if (now - _periodTypeaheadTimestamp > PeriodTypeaheadResetMilliseconds)
+        {
+            _periodTypeahead = string.Empty;
+        }
+
+        var compareInfo = DateCulture.CompareInfo;
+        var compareOptions = CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace;
+        var repeatedSingleCharacter = menu == DatePeriodMenu.Month
+            && _periodTypeahead.Length == 1
+            && compareInfo.Compare(_periodTypeahead, key, compareOptions) == 0;
+        _periodTypeahead = repeatedSingleCharacter ? key : _periodTypeahead + key;
+        _periodTypeaheadTimestamp = now;
+
+        if (!TryActivatePeriodOptionByPrefix(menu, _periodTypeahead))
+        {
+            _periodTypeahead = key;
+            TryActivatePeriodOptionByPrefix(menu, key);
+        }
+    }
+
+    private bool TryActivatePeriodOptionByPrefix(DatePeriodMenu menu, string prefix)
+    {
+        var options = GetPeriodOptions(menu);
+        var activeIndex = GetPeriodOptionIndex(options, GetActivePeriodOption(menu));
+        var startIndex = prefix.Length == 1 ? activeIndex + 1 : 0;
+        var compareInfo = DateCulture.CompareInfo;
+        var compareOptions = CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace;
+
+        for (var offset = 0; offset < options.Count; offset++)
+        {
+            var index = (startIndex + offset) % options.Count;
+            var option = options[index];
+            if (!compareInfo.IsPrefix(GetPeriodOptionText(menu, option), prefix, compareOptions))
+            {
+                continue;
+            }
+
+            SetActivePeriodOption(menu, option);
+            _scrollPeriodMenuPending = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    private IReadOnlyList<int> GetPeriodOptions(DatePeriodMenu menu) =>
+        menu == DatePeriodMenu.Month ? AvailableMonths : AvailableYears;
+
+    private int GetActivePeriodOption(DatePeriodMenu menu) =>
+        menu == DatePeriodMenu.Month ? _activeMonth : _activeYear;
+
+    private int GetViewPeriodOption(DatePeriodMenu menu) =>
+        menu == DatePeriodMenu.Month ? _viewMonth.Month : _viewMonth.Year;
+
+    private void SetActivePeriodOption(DatePeriodMenu menu, int value)
+    {
+        if (menu == DatePeriodMenu.Month)
+        {
+            _activeMonth = value;
+        }
+        else
+        {
+            _activeYear = value;
+        }
+    }
+
+    private string GetPeriodOptionText(DatePeriodMenu menu, int value) =>
+        menu == DatePeriodMenu.Month ? GetMonthName(value) : value.ToString(DateCulture);
+
+    private static int GetPeriodPageSize(DatePeriodMenu menu) =>
+        menu == DatePeriodMenu.Month ? 3 : 10;
+
+    private static int GetPeriodOptionIndex(IReadOnlyList<int> options, int active)
+    {
+        for (var index = 0; index < options.Count; index++)
+        {
+            if (options[index] == active)
+            {
+                return index;
+            }
+        }
+
+        return 0;
+    }
+
+    private static bool IsPeriodTypeaheadKey(KeyboardEventArgs args) =>
+        args.Key.Length == 1
+        && !char.IsControl(args.Key[0])
+        && !args.AltKey
+        && !args.CtrlKey
+        && !args.MetaKey;
+
+    private void ResetPeriodTypeahead()
+    {
+        _periodTypeahead = string.Empty;
+        _periodTypeaheadTimestamp = 0;
+    }
+
     private void MoveFocusedDate(int days)
     {
         var dayNumber = Math.Clamp(
@@ -622,6 +925,7 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 
     private void ShiftViewMonth(int months)
     {
+        _openPeriodMenu = null;
         var target = AddMonths(_viewMonth, months);
         _viewMonth = ClampMonthToAllowedRange(target);
         _focusedDate = ClampToAllowedRange(new DateOnly(
@@ -630,24 +934,17 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             Math.Min(_focusedDate.Day, DateTime.DaysInMonth(_viewMonth.Year, _viewMonth.Month))));
     }
 
-    private void ChangeMonth(ChangeEventArgs args)
-    {
-        if (int.TryParse(args.Value?.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out var month))
-        {
-            SetViewMonth(_viewMonth.Year, month);
-        }
-    }
+    private void SelectMonth(int month) => SetViewMonth(_viewMonth.Year, month);
 
-    private void ChangeYear(ChangeEventArgs args)
-    {
-        if (int.TryParse(args.Value?.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out var year))
-        {
-            SetViewMonth(year, _viewMonth.Month);
-        }
-    }
+    private void SelectYear(int year) => SetViewMonth(year, _viewMonth.Month);
+
+    private void ActivateMonth(int month) => _activeMonth = month;
+
+    private void ActivateYear(int year) => _activeYear = year;
 
     private void SetViewMonth(int year, int month)
     {
+        _openPeriodMenu = null;
         _viewMonth = ClampMonthToAllowedRange(new DateOnly(year, month, 1));
         _focusedDate = ClampToAllowedRange(new DateOnly(
             _viewMonth.Year,
@@ -684,10 +981,12 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     {
         var culture = DateCulture;
         var styles = DateTimeStyles.AllowWhiteSpaces;
-        if (DateOnly.TryParseExact(value, EffectiveDateFormat, culture, styles, out var date)
+        if (DateOnly.TryParseExact(value, NativeDateFormat, CultureInfo.InvariantCulture, styles, out var date)
+            || DateOnly.TryParseExact(value, EffectiveDateFormat, culture, styles, out date)
             || DateOnly.TryParse(value, culture, styles, out date)
-            || DateOnly.TryParse(value, CultureInfo.CurrentCulture, styles, out date)
-            || DateOnly.TryParse(value, CultureInfo.InvariantCulture, styles, out date))
+            || (Culture is null
+                && (DateOnly.TryParse(value, CultureInfo.CurrentCulture, styles, out date)
+                    || DateOnly.TryParse(value, CultureInfo.InvariantCulture, styles, out date))))
         {
             result = CreateValue(date);
             return true;
@@ -739,6 +1038,33 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     }
 
     private string GetMonthName(int month) => DateCulture.DateTimeFormat.GetMonthName(month);
+
+    private string GetMonthOptionId(int month) => $"{MonthListboxId}-{month}";
+
+    private string GetYearOptionId(int year) => $"{YearListboxId}-{year}";
+
+    private static string GetPeriodOptionClass(bool selected, bool active) => string.Join(" ", new[]
+    {
+        "bzs-date-picker__period-option",
+        selected ? "bzs-date-picker__period-option--selected" : null,
+        active ? "bzs-date-picker__period-option--active" : null,
+    }.Where(static value => value is not null));
+
+    private string FormatDateValidationError(string resourceKey) =>
+        Culture is null
+            ? FormatValidationError(resourceKey)
+            : LocalizeDatePicker(resourceKey, DisplayName ?? FieldIdentifier.FieldName);
+
+    private string LocalizeDatePicker(string resourceKey, params object[] arguments)
+    {
+        if (Culture is null)
+        {
+            return Localize(resourceKey, arguments);
+        }
+
+        var value = DatePickerResources.GetString(resourceKey, Culture) ?? resourceKey;
+        return arguments.Length == 0 ? value : string.Format(Culture, value, arguments);
+    }
 
     private string FormatAccessibleDate(DateOnly date) => date.ToString("D", DateCulture);
 
@@ -874,6 +1200,12 @@ public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     }
 
     private sealed record CalendarWeekday(string ShortName, string FullName);
+
+    private enum DatePeriodMenu
+    {
+        Month,
+        Year,
+    }
 
     private sealed record CalendarDay(
         DateOnly? Date,

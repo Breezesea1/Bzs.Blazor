@@ -71,9 +71,14 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
         await input.FocusAsync();
         await input.PressAsync("ArrowDown");
-        await Expect(Page.GetByRole(AriaRole.Dialog, new() { Name = "Choose a date" })).ToBeVisibleAsync();
+        var dialog = Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" });
+        await Expect(dialog).ToBeVisibleAsync();
 
-        await AssertNoCriticalOrSeriousAxeViolationsAsync("open date picker state");
+        var month = dialog.GetByRole(AriaRole.Combobox, new() { Name = "月份" });
+        await month.PressAsync("ArrowDown");
+        await Expect(dialog.GetByRole(AriaRole.Listbox, new() { Name = "月份" })).ToBeVisibleAsync();
+
+        await AssertNoCriticalOrSeriousAxeViolationsAsync("open date picker with month listbox state");
     }
 
     [Fact]

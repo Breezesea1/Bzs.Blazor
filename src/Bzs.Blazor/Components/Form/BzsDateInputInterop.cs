@@ -8,6 +8,7 @@ internal sealed class BzsDateInputInterop(IJSRuntime jsRuntime) : IAsyncDisposab
     internal const string InitializeMethod = "initialize";
     internal const string SetOpenMethod = "setOpen";
     internal const string FocusActiveDayMethod = "focusActiveDay";
+    internal const string ScrollActivePeriodOptionMethod = "scrollActivePeriodOption";
     internal const string DisposeMethod = "dispose";
 
     private IJSObjectReference? _module;
@@ -72,6 +73,18 @@ internal sealed class BzsDateInputInterop(IJSRuntime jsRuntime) : IAsyncDisposab
         {
             var module = await GetModuleAsync();
             await module.InvokeVoidAsync(FocusActiveDayMethod, instanceId);
+        }
+        catch (Exception exception) when (IsTransientInteropFailure(exception))
+        {
+        }
+    }
+
+    internal async ValueTask ScrollActivePeriodOptionAsync(ElementReference menu)
+    {
+        try
+        {
+            var module = await GetModuleAsync();
+            await module.InvokeVoidAsync(ScrollActivePeriodOptionMethod, menu);
         }
         catch (Exception exception) when (IsTransientInteropFailure(exception))
         {

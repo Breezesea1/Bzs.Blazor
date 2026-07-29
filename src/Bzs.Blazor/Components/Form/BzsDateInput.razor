@@ -11,7 +11,7 @@
     }
     else
     {
-        <div class="bzs-date-picker" @ref="_rootReference">
+        <div class="bzs-date-picker" lang="@ExplicitCultureName" dir="@ExplicitCultureDirection" @ref="_rootReference">
             <div class="bzs-date-picker__input-shell">
                 <input @attributes="TextInputAttributes"
                        @ref="_inputReference"
@@ -23,8 +23,8 @@
                        @onkeydown="HandleInputKeyDownAsync" />
                 <button type="button"
                         class="bzs-date-picker__open"
-                        aria-label="@Localize("DatePickerOpenCalendar")"
-                        title="@Localize("DatePickerOpenCalendar")"
+                        aria-label="@LocalizeDatePicker("DatePickerOpenCalendar")"
+                        title="@LocalizeDatePicker("DatePickerOpenCalendar")"
                         data-bzs-inline-overlay-for="@_instanceId"
                         disabled="@(Disabled || ReadOnly)"
                         tabindex="-1"
@@ -41,42 +41,118 @@
                      popover="manual"
                      role="dialog"
                      aria-modal="false"
-                     aria-label="@Localize("DatePickerCalendarLabel")"
+                     aria-label="@LocalizeDatePicker("DatePickerCalendarLabel")"
                      data-bzs-date-picker-panel="true"
                      @onkeydown="HandleDialogKeyDownAsync">
                     <header class="bzs-date-picker__header">
                         <button type="button"
                                 class="bzs-date-picker__nav"
-                                aria-label="@Localize("DatePickerPreviousMonth")"
-                                title="@Localize("DatePickerPreviousMonth")"
+                                aria-label="@LocalizeDatePicker("DatePickerPreviousMonth")"
+                                title="@LocalizeDatePicker("DatePickerPreviousMonth")"
                                 disabled="@(!CanNavigatePreviousMonth)"
                                 @onclick="() => ShiftViewMonth(-1)">
                             <BzsIcon Icon="BzsIcons.ChevronLeft" />
                         </button>
 
                         <div class="bzs-date-picker__period">
-                            <select value="@_viewMonth.Month"
-                                    aria-label="@Localize("DatePickerMonth")"
-                                    @onchange="ChangeMonth">
-                                @foreach (var month in AvailableMonths)
+                            <div class="bzs-date-picker__period-field">
+                                <button type="button"
+                                        class="bzs-date-picker__period-trigger"
+                                        role="combobox"
+                                        aria-label="@LocalizeDatePicker("DatePickerMonth")"
+                                        aria-haspopup="listbox"
+                                        aria-expanded="@IsMonthMenuOpen"
+                                        aria-controls="@MonthListboxId"
+                                        aria-activedescendant="@ActiveMonthOptionId"
+                                        data-bzs-date-picker-period="month"
+                                        @onclick="args => ActivatePeriodMenu(DatePeriodMenu.Month, args)"
+                                        @onkeydown="args => HandlePeriodKeyDownAsync(DatePeriodMenu.Month, args)"
+                                        @onkeydown:stopPropagation="true">
+                                    <span>@GetMonthName(_viewMonth.Month)</span>
+                                    <BzsIcon Icon="BzsIcons.ChevronDown" />
+                                </button>
+                                @if (_openPeriodMenu == DatePeriodMenu.Month)
                                 {
-                                    <option value="@month">@GetMonthName(month)</option>
+                                    <div id="@MonthListboxId"
+                                         class="bzs-date-picker__period-menu"
+                                         role="listbox"
+                                         aria-label="@LocalizeDatePicker("DatePickerMonth")"
+                                         @ref="_periodMenuReference">
+                                        @foreach (var month in AvailableMonths)
+                                        {
+                                            var selected = month == _viewMonth.Month;
+                                            <button id="@GetMonthOptionId(month)"
+                                                    @key="month"
+                                                    type="button"
+                                                    role="option"
+                                                    tabindex="-1"
+                                                    class="@GetPeriodOptionClass(selected, month == _activeMonth)"
+                                                    aria-selected="@(selected ? "true" : "false")"
+                                                    @onmousedown:preventDefault="true"
+                                                    @onmouseenter="() => ActivateMonth(month)"
+                                                    @onclick="() => SelectMonth(month)">
+                                                <span>@GetMonthName(month)</span>
+                                                @if (selected)
+                                                {
+                                                    <BzsIcon Icon="BzsIcons.Check" />
+                                                }
+                                            </button>
+                                        }
+                                    </div>
                                 }
-                            </select>
-                            <select value="@_viewMonth.Year"
-                                    aria-label="@Localize("DatePickerYear")"
-                                    @onchange="ChangeYear">
-                                @foreach (var year in AvailableYears)
+                            </div>
+                            <div class="bzs-date-picker__period-field">
+                                <button type="button"
+                                        class="bzs-date-picker__period-trigger"
+                                        role="combobox"
+                                        aria-label="@LocalizeDatePicker("DatePickerYear")"
+                                        aria-haspopup="listbox"
+                                        aria-expanded="@IsYearMenuOpen"
+                                        aria-controls="@YearListboxId"
+                                        aria-activedescendant="@ActiveYearOptionId"
+                                        data-bzs-date-picker-period="year"
+                                        @onclick="args => ActivatePeriodMenu(DatePeriodMenu.Year, args)"
+                                        @onkeydown="args => HandlePeriodKeyDownAsync(DatePeriodMenu.Year, args)"
+                                        @onkeydown:stopPropagation="true">
+                                    <span>@_viewMonth.Year</span>
+                                    <BzsIcon Icon="BzsIcons.ChevronDown" />
+                                </button>
+                                @if (_openPeriodMenu == DatePeriodMenu.Year)
                                 {
-                                    <option value="@year">@year</option>
+                                    <div id="@YearListboxId"
+                                         class="bzs-date-picker__period-menu bzs-date-picker__period-menu--year"
+                                         role="listbox"
+                                         aria-label="@LocalizeDatePicker("DatePickerYear")"
+                                         @ref="_periodMenuReference">
+                                        @foreach (var year in AvailableYears)
+                                        {
+                                            var selected = year == _viewMonth.Year;
+                                            <button id="@GetYearOptionId(year)"
+                                                    @key="year"
+                                                    type="button"
+                                                    role="option"
+                                                    tabindex="-1"
+                                                    class="@GetPeriodOptionClass(selected, year == _activeYear)"
+                                                    aria-selected="@(selected ? "true" : "false")"
+                                                    @onmousedown:preventDefault="true"
+                                                    @onmouseenter="() => ActivateYear(year)"
+                                                    @onclick="() => SelectYear(year)">
+                                                <span>@year</span>
+                                                @if (selected)
+                                                {
+                                                    <BzsIcon Icon="BzsIcons.Check" />
+                                                }
+                                            </button>
+                                        }
+                                    </div>
                                 }
-                            </select>
+                            </div>
                         </div>
 
                         <button type="button"
                                 class="bzs-date-picker__nav"
-                                aria-label="@Localize("DatePickerNextMonth")"
-                                title="@Localize("DatePickerNextMonth")"
+                                aria-label="@LocalizeDatePicker("DatePickerNextMonth")"
+                                title="@LocalizeDatePicker("DatePickerNextMonth")"
                                 disabled="@(!CanNavigateNextMonth)"
                                 @onclick="() => ShiftViewMonth(1)">
                             <BzsIcon Icon="BzsIcons.ChevronRight" />
@@ -139,14 +215,14 @@
                                 <button type="button"
                                         class="bzs-date-picker__action"
                                         disabled="@string.IsNullOrWhiteSpace(CurrentValueAsString)"
-                                        @onclick="ClearAsync">@Localize("DatePickerClear")</button>
+                                        @onclick="ClearAsync">@LocalizeDatePicker("DatePickerClear")</button>
                             }
                             @if (ShowToday)
                             {
                                 <button type="button"
                                         class="bzs-date-picker__action bzs-date-picker__action--primary"
                                         disabled="@(!IsDateAllowed(Today))"
-                                        @onclick="SelectTodayAsync">@Localize("DatePickerToday")</button>
+                                        @onclick="SelectTodayAsync">@LocalizeDatePicker("DatePickerToday")</button>
                             }
                         </footer>
                     }
