@@ -18,6 +18,9 @@
   <data name="FormValidationDate" xml:space="preserve">
     <value>{0} 字段必须是日期。</value>
   </data>
+  <data name="FormValidationDateRange" xml:space="preserve">
+    <value>{0} 字段超出了允许的日期范围。</value>
+  </data>
   <data name="FormValidationNumber" xml:space="preserve">
     <value>{0} 字段必须是数字。</value>
   </data>
@@ -70,6 +73,30 @@
     <value>反选</value>
   </data>
   <data name="MultiSelectClear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="DatePickerOpenCalendar" xml:space="preserve">
+    <value>打开日历</value>
+  </data>
+  <data name="DatePickerCalendarLabel" xml:space="preserve">
+    <value>选择日期</value>
+  </data>
+  <data name="DatePickerPreviousMonth" xml:space="preserve">
+    <value>上个月</value>
+  </data>
+  <data name="DatePickerNextMonth" xml:space="preserve">
+    <value>下个月</value>
+  </data>
+  <data name="DatePickerMonth" xml:space="preserve">
+    <value>月份</value>
+  </data>
+  <data name="DatePickerYear" xml:space="preserve">
+    <value>年份</value>
+  </data>
+  <data name="DatePickerToday" xml:space="preserve">
+    <value>今天</value>
+  </data>
+  <data name="DatePickerClear" xml:space="preserve">
     <value>清除</value>
   </data>
 </root>

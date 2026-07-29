@@ -93,6 +93,7 @@ public sealed class FormsTests
     [Fact]
     public void DateInputUpdatesTheControlledValue()
     {
+        using var culture = new CultureScope("en-US");
         using var context = CreateContext();
         var model = new FormModel { DueDate = new DateOnly(2026, 7, 17) };
         var editContext = new EditContext(model);
@@ -104,9 +105,628 @@ public sealed class FormsTests
             () => model.DueDate,
             EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value)));
 
-        cut.Find("input").Change("2026-07-18");
+        var input = cut.Find("input[role='combobox']");
+        input.Change("7/18/2026");
 
         Assert.Equal(new DateOnly(2026, 7, 18), model.DueDate);
+        Assert.Equal("7/18/2026", input.GetAttribute("value"));
+    }
+
+    [Fact]
+    public void DateInputOpensAnAccessibleCalendarAndSelectsADate()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var model = new FormModel { DueDate = new DateOnly(2026, 7, 17) };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+            builder,
+            0,
+            model.DueDate,
+            () => model.DueDate,
+            EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value)));
+
+        var input = cut.Find("input[role='combobox']");
+        Assert.Equal("false", input.GetAttribute("aria-expanded"));
+
+        input.Click();
+
+        input = cut.Find("input[role='combobox']");
+        var dialog = cut.Find("[role='dialog']");
+        Assert.Equal("true", input.GetAttribute("aria-expanded"));
+        Assert.Equal(dialog.Id, input.GetAttribute("aria-controls"));
+        Assert.Equal(
+            "true",
+            cut.FindAll("[role='gridcell']").Single(day =>
+                day.GetAttribute("aria-label") == new DateOnly(2026, 7, 17).ToString("D", CultureInfo.CurrentCulture))
+                .GetAttribute("aria-selected"));
+
+        cut.FindAll("[role='gridcell']").Single(day =>
+            day.GetAttribute("aria-label") == new DateOnly(2026, 7, 18).ToString("D", CultureInfo.CurrentCulture))
+            .Click();
+
+        Assert.Equal(new DateOnly(2026, 7, 18), model.DueDate);
+        Assert.Equal("7/18/2026", cut.Find("input[role='combobox']").GetAttribute("value"));
+        Assert.Equal("false", cut.Find("input[role='combobox']").GetAttribute("aria-expanded"));
+        Assert.Empty(cut.FindAll("[role='dialog']"));
+    }
+
+    [Theory]
+    [InlineData(17)]
+    [InlineData(18)]
+    public void DateInputCalendarSelectionClearsParsingErrors(int selectedDay)
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var originalDate = new DateOnly(2026, 7, 17);
+        var selectedDate = new DateOnly(2026, 7, selectedDay);
+        var model = new FormModel { DueDate = originalDate };
+        var editContext = new EditContext(model);
+        var field = editContext.Field(nameof(FormModel.DueDate));
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+            builder,
+            0,
+            model.DueDate,
+            () => model.DueDate,
+            EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value)));
+
+        var input = cut.Find("input[role='combobox']");
+        input.Change("not-a-date");
+
+        Assert.Equal(originalDate, model.DueDate);
+        Assert.NotEmpty(editContext.GetValidationMessages(field));
+        Assert.Equal("not-a-date", cut.Find("input[role='combobox']").GetAttribute("value"));
+        Assert.Equal("true", cut.Find("input[role='combobox']").GetAttribute("aria-invalid"));
+        Assert.Single(cut.FindAll("[role='alert']"));
+
+        cut.Find("input[role='combobox']").Click();
+        cut.Find($"[data-date='2026-07-{selectedDay:D2}']").Click();
+
+        input = cut.Find("input[role='combobox']");
+        Assert.Equal(selectedDate, model.DueDate);
+        Assert.Equal(selectedDate.ToString("d", CultureInfo.CurrentCulture), input.GetAttribute("value"));
+        Assert.Empty(editContext.GetValidationMessages(field));
+        Assert.Null(input.GetAttribute("aria-invalid"));
+        Assert.Empty(cut.FindAll("[role='alert']"));
+    }
+
+    [Fact]
+    public void DateInputDisablesOutOfRangeDaysAndRejectsOutOfRangeText()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var model = new FormModel { DueDate = new DateOnly(2026, 7, 18) };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+            builder,
+            0,
+            model.DueDate,
+            () => model.DueDate,
+            EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value),
+            (attributes, sequence) =>
+            {
+                attributes.AddAttribute(sequence, nameof(BzsDateInput<DateOnly>.Min), new DateOnly(2026, 7, 17));
+                attributes.AddAttribute(sequence + 1, nameof(BzsDateInput<DateOnly>.Max), new DateOnly(2026, 7, 19));
+            }));
+
+        var input = cut.Find("input[role='combobox']");
+        input.Click();
+
+        var days = cut.FindAll("[role='gridcell']");
+        Assert.True(days.Single(day =>
+            day.GetAttribute("aria-label") == new DateOnly(2026, 7, 16).ToString("D", CultureInfo.CurrentCulture))
+            .HasAttribute("disabled"));
+        Assert.False(days.Single(day =>
+            day.GetAttribute("aria-label") == new DateOnly(2026, 7, 17).ToString("D", CultureInfo.CurrentCulture))
+            .HasAttribute("disabled"));
+
+        input.Change("7/20/2026");
+
+        Assert.Equal(new DateOnly(2026, 7, 18), model.DueDate);
+        Assert.Equal("true", cut.Find("input[role='combobox']").GetAttribute("aria-invalid"));
+        Assert.NotEmpty(cut.Find("[role='alert']").TextContent);
+    }
+
+    [Theory]
+    [InlineData(2027, 5, 10, 2027, 6, 20)]
+    [InlineData(2100, 1, 1, 2101, 12, 31)]
+    public void DateInputClampsAnOpenCalendarWhenTheAllowedRangeChanges(
+        int minYear,
+        int minMonth,
+        int minDay,
+        int maxYear,
+        int maxMonth,
+        int maxDay)
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        DateOnly? min = null;
+        DateOnly? max = null;
+        var model = new FormModel { DueDate = new DateOnly(2026, 7, 18) };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+            builder,
+            0,
+            model.DueDate,
+            () => model.DueDate,
+            EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value),
+            (attributes, sequence) =>
+            {
+                attributes.AddAttribute(sequence, nameof(BzsDateInput<DateOnly>.Min), min);
+                attributes.AddAttribute(sequence + 1, nameof(BzsDateInput<DateOnly>.Max), max);
+            }));
+        cut.Find("input[role='combobox']").Click();
+
+        min = new DateOnly(minYear, minMonth, minDay);
+        max = new DateOnly(maxYear, maxMonth, maxDay);
+        cut.Render();
+
+        Assert.Equal(min.Value.ToString("Y", CultureInfo.CurrentCulture), cut.Find("[role='grid']").GetAttribute("aria-label"));
+        Assert.Equal(min.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), cut.Find("[tabindex='0']").GetAttribute("data-date"));
+        Assert.Equal(
+            Enumerable.Range(min.Value.Year, max.Value.Year - min.Value.Year + 1).Select(year => year.ToString(CultureInfo.InvariantCulture)),
+            cut.FindAll("select[aria-label='Year'] option").Select(option => option.GetAttribute("value")));
+    }
+
+    [Fact]
+    public void ClearableNullableDateInputClearsTheControlledValue()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var model = new FormModel { OptionalDueDate = new DateOnly(2026, 7, 18) };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly?>, DateOnly?>(
+            builder,
+            0,
+            model.OptionalDueDate,
+            () => model.OptionalDueDate,
+            EventCallback.Factory.Create<DateOnly?>(model, value => model.OptionalDueDate = value),
+            (attributes, sequence) => attributes.AddAttribute(sequence, nameof(BzsDateInput<DateOnly?>.Clearable), true)));
+
+        cut.Find("input[role='combobox']").Click();
+        cut.FindAll("button").Single(button => button.TextContent.Trim() == "Clear").Click();
+
+        Assert.Null(model.OptionalDueDate);
+        Assert.Null(cut.Find("input[role='combobox']").GetAttribute("value"));
+        Assert.Equal("false", cut.Find("input[role='combobox']").GetAttribute("aria-expanded"));
+        Assert.Empty(cut.FindAll("[role='dialog']"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ClearableNullableDateInputClearsParsingErrors(bool startsWithValue)
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        DateOnly? initialDate = startsWithValue ? new DateOnly(2026, 7, 18) : null;
+        var model = new FormModel { OptionalDueDate = initialDate };
+        var editContext = new EditContext(model);
+        var field = editContext.Field(nameof(FormModel.OptionalDueDate));
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly?>, DateOnly?>(
+            builder,
+            0,
+            model.OptionalDueDate,
+            () => model.OptionalDueDate,
+            EventCallback.Factory.Create<DateOnly?>(model, value => model.OptionalDueDate = value),
+            (attributes, sequence) => attributes.AddAttribute(sequence, nameof(BzsDateInput<DateOnly?>.Clearable), true)));
+
+        var input = cut.Find("input[role='combobox']");
+        input.Change("not-a-date");
+
+        Assert.Equal(initialDate, model.OptionalDueDate);
+        Assert.NotEmpty(editContext.GetValidationMessages(field));
+        Assert.Equal("not-a-date", cut.Find("input[role='combobox']").GetAttribute("value"));
+        Assert.Equal("true", cut.Find("input[role='combobox']").GetAttribute("aria-invalid"));
+        Assert.Single(cut.FindAll("[role='alert']"));
+
+        cut.Find("input[role='combobox']").Click();
+        var clear = cut.FindAll("button").Single(button => button.TextContent.Trim() == "Clear");
+        Assert.False(clear.HasAttribute("disabled"));
+        clear.Click();
+
+        input = cut.Find("input[role='combobox']");
+        Assert.Null(model.OptionalDueDate);
+        Assert.True(string.IsNullOrEmpty(input.GetAttribute("value")));
+        Assert.Empty(editContext.GetValidationMessages(field));
+        Assert.Null(input.GetAttribute("aria-invalid"));
+        Assert.Empty(cut.FindAll("[role='alert']"));
+        Assert.Equal("false", input.GetAttribute("aria-expanded"));
+        Assert.Empty(cut.FindAll("[role='dialog']"));
+    }
+
+    [Fact]
+    public void DateInputRejectsClearableForANonNullableValue()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var model = new FormModel { DueDate = new DateOnly(2026, 7, 18) };
+        var editContext = new EditContext(model);
+
+        var exception = Assert.Throws<InvalidOperationException>(() => RenderForm(
+            context,
+            editContext,
+            builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+                builder,
+                0,
+                model.DueDate,
+                () => model.DueDate,
+                EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value),
+                (attributes, sequence) => attributes.AddAttribute(
+                    sequence,
+                    nameof(BzsDateInput<DateOnly>.Clearable),
+                    true))));
+
+        Assert.Contains(nameof(BzsDateInput<DateOnly>.Clearable), exception.Message, StringComparison.Ordinal);
+        Assert.Contains("nullable TValue", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void DateInputRejectsAnInvalidDateFormatWithAnActionableException()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var model = new FormModel { DueDate = new DateOnly(2026, 7, 18) };
+        var editContext = new EditContext(model);
+
+        var exception = Assert.Throws<InvalidOperationException>(() => RenderForm(
+            context,
+            editContext,
+            builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+                builder,
+                0,
+                model.DueDate,
+                () => model.DueDate,
+                EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value),
+                (attributes, sequence) => attributes.AddAttribute(
+                    sequence,
+                    nameof(BzsDateInput<DateOnly>.DateFormat),
+                    "Q"))));
+
+        Assert.Contains(nameof(BzsDateInput<DateOnly>.DateFormat), exception.Message, StringComparison.Ordinal);
+        Assert.Contains("'Q'", exception.Message, StringComparison.Ordinal);
+        Assert.IsType<FormatException>(exception.InnerException);
+    }
+
+    [Theory]
+    [InlineData("yyyy")]
+    [InlineData("yyyy-MM")]
+    public void DateInputRejectsAFormatThatDoesNotPreserveTheCompleteDate(string dateFormat)
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var model = new FormModel { DueDate = new DateOnly(2026, 7, 18) };
+        var editContext = new EditContext(model);
+
+        var exception = Assert.Throws<InvalidOperationException>(() => RenderForm(
+            context,
+            editContext,
+            builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+                builder,
+                0,
+                model.DueDate,
+                () => model.DueDate,
+                EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value),
+                (attributes, sequence) => attributes.AddAttribute(
+                    sequence,
+                    nameof(BzsDateInput<DateOnly>.DateFormat),
+                    dateFormat))));
+
+        Assert.Contains(nameof(BzsDateInput<DateOnly>.DateFormat), exception.Message, StringComparison.Ordinal);
+        Assert.Contains(dateFormat, exception.Message, StringComparison.Ordinal);
+        Assert.Contains("year, month, and day", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void DateInputAcceptsACompleteCustomDateFormat()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var model = new FormModel { DueDate = new DateOnly(2026, 7, 18) };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+            builder,
+            0,
+            model.DueDate,
+            () => model.DueDate,
+            EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value),
+            (attributes, sequence) => attributes.AddAttribute(
+                sequence,
+                nameof(BzsDateInput<DateOnly>.DateFormat),
+                "yyyy/MM/dd")));
+
+        Assert.Equal("2026/07/18", cut.Find("input[role='combobox']").GetAttribute("value"));
+        cut.Find("input[role='combobox']").Click();
+        cut.Find("[data-date='2026-07-19']").Click();
+
+        Assert.Equal(new DateOnly(2026, 7, 19), model.DueDate);
+        Assert.Equal("2026/07/19", cut.Find("input[role='combobox']").GetAttribute("value"));
+    }
+
+    [Fact]
+    public void DateInputUsesLocalizedGregorianDatesForANonGregorianCulture()
+    {
+        using var culture = new CultureScope("ar-SA");
+        using var context = CreateContext();
+        var localizedGregorianCulture = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+        localizedGregorianCulture.DateTimeFormat.Calendar = CultureInfo.CurrentCulture.OptionalCalendars
+            .OfType<GregorianCalendar>()
+            .First();
+        var model = new FormModel { DueDate = new DateOnly(2026, 7, 18) };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+            builder,
+            0,
+            model.DueDate,
+            () => model.DueDate,
+            EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value)));
+
+        var input = cut.Find("input[role='combobox']");
+        Assert.NotEqual(model.DueDate.ToString("d", CultureInfo.CurrentCulture), input.GetAttribute("value"));
+        Assert.Equal(model.DueDate.ToString("d", localizedGregorianCulture), input.GetAttribute("value"));
+
+        var changedDate = new DateOnly(2026, 7, 19);
+        input.Change(changedDate.ToString("d", localizedGregorianCulture));
+        Assert.Equal(changedDate, model.DueDate);
+
+        cut.Find("input[role='combobox']").Click();
+        var changedNativeDate = changedDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        Assert.Equal(
+            changedDate.ToString("Y", localizedGregorianCulture),
+            cut.Find("[role='grid']").GetAttribute("aria-label"));
+        Assert.Equal(
+            changedDate.ToString("D", localizedGregorianCulture),
+            cut.Find($"[data-date='{changedNativeDate}']").GetAttribute("aria-label"));
+        Assert.Equal(
+            localizedGregorianCulture.DateTimeFormat.GetMonthName(changedDate.Month),
+            cut.Find($"select[aria-label='Month'] option[value='{changedDate.Month}']").TextContent);
+    }
+
+    [Fact]
+    public void DateInputUsesTheBrowserLocalDateForToday()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var model = new FormModel();
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly?>, DateOnly?>(
+            builder,
+            0,
+            model.OptionalDueDate,
+            () => model.OptionalDueDate,
+            EventCallback.Factory.Create<DateOnly?>(model, value => model.OptionalDueDate = value)));
+
+        cut.Find("input[role='combobox']").Click();
+
+        Assert.Equal("2031-02-03", cut.Find("[aria-current='date']").GetAttribute("data-date"));
+        cut.FindAll("button").Single(button => button.TextContent.Trim() == "Today").Click();
+        Assert.Equal(new DateOnly(2031, 2, 3), model.OptionalDueDate);
+    }
+
+    [Fact]
+    public void DateInputWaitsForTheBrowserDateBeforeOpeningAfterInitializationRecovers()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = new BunitContext();
+        context.Services.AddBzsBlazor();
+        var dateModule = context.JSInterop.SetupModule(
+            "./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js");
+        var initialization = dateModule
+            .Setup<string>("initialize", _ => true)
+            .SetException(new TaskCanceledException("Date module is still loading."));
+        dateModule.SetupVoid("setOpen", _ => true);
+        dateModule.SetupVoid("focusActiveDay", _ => true);
+        dateModule.SetupVoid("dispose", _ => true);
+        var model = new FormModel();
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly?>, DateOnly?>(
+            builder,
+            0,
+            model.OptionalDueDate,
+            () => model.OptionalDueDate,
+            EventCallback.Factory.Create<DateOnly?>(model, value => model.OptionalDueDate = value)));
+
+        initialization.SetResult("2031-02-03");
+        cut.Find("input[role='combobox']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("true", cut.Find("input[role='combobox']").GetAttribute("aria-expanded"));
+            Assert.Equal("2031-02-03", cut.Find("[aria-current='date']").GetAttribute("data-date"));
+        });
+    }
+
+    [Fact]
+    public void DateInputCancelsAPendingOpenRequestOnEscape()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = new BunitContext();
+        context.Services.AddBzsBlazor();
+        var dateModule = context.JSInterop.SetupModule(
+            "./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js");
+        var initialization = dateModule
+            .Setup<string>("initialize", _ => true)
+            .SetException(new TaskCanceledException("Date module is still loading."));
+        dateModule.SetupVoid("setOpen", _ => true);
+        dateModule.SetupVoid("focusActiveDay", _ => true);
+        dateModule.SetupVoid("dispose", _ => true);
+        var model = new FormModel();
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly?>, DateOnly?>(
+            builder,
+            0,
+            model.OptionalDueDate,
+            () => model.OptionalDueDate,
+            EventCallback.Factory.Create<DateOnly?>(model, value => model.OptionalDueDate = value)));
+
+        var input = cut.Find("input[role='combobox']");
+        input.Click();
+        input.KeyDown("Escape");
+        initialization.SetResult("2031-02-03");
+        cut.Render();
+
+        Assert.Equal("false", cut.Find("input[role='combobox']").GetAttribute("aria-expanded"));
+        Assert.Empty(cut.FindAll("[role='dialog']"));
+    }
+
+    [Fact]
+    public void DateInputRetriesTransientOpenSynchronizationAndRecoversOnALaterRender()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = new BunitContext();
+        context.Services.AddBzsBlazor();
+        var dateModule = context.JSInterop.SetupModule(
+            "./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js");
+        dateModule.Setup<string>("initialize", _ => true).SetResult("2031-02-03");
+        var setOpen = dateModule.SetupVoid("setOpen", _ => true)
+            .SetException(new TaskCanceledException("Date module call was interrupted."));
+        dateModule.SetupVoid("focusActiveDay", _ => true);
+        dateModule.SetupVoid("dispose", _ => true);
+        var model = new FormModel();
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly?>, DateOnly?>(
+            builder,
+            0,
+            model.OptionalDueDate,
+            () => model.OptionalDueDate,
+            EventCallback.Factory.Create<DateOnly?>(model, value => model.OptionalDueDate = value)));
+
+        cut.Find("input[role='combobox']").Click();
+
+        setOpen.VerifyInvoke("setOpen", 2);
+        setOpen.SetVoidResult();
+        cut.Render();
+        setOpen.VerifyInvoke("setOpen", 3);
+        cut.Render();
+        setOpen.VerifyInvoke("setOpen", 3);
+    }
+
+    [Fact]
+    public async Task DateInputDisposalWaitsForPendingInitializationBeforeCleaningUp()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = new BunitContext();
+        context.Services.AddBzsBlazor();
+        var dateModule = context.JSInterop.SetupModule(
+            "./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js");
+        var initialization = dateModule.Setup<string>("initialize", _ => true);
+        dateModule.SetupVoid("setOpen", _ => true);
+        dateModule.SetupVoid("focusActiveDay", _ => true);
+        var dispose = dateModule.SetupVoid("dispose", _ => true).SetVoidResult();
+        var model = new FormModel();
+        var expression = (Expression<Func<DateOnly?>>)(() => model.OptionalDueDate);
+        var cut = context.Render<BzsDateInput<DateOnly?>>(parameters => parameters
+            .Add(component => component.Value, model.OptionalDueDate)
+            .Add(component => component.ValueExpression, expression));
+
+        var disposal = cut.Instance.DisposeAsync().AsTask();
+
+        Assert.False(disposal.IsCompleted);
+        initialization.SetResult("2031-02-03");
+        await disposal;
+        dispose.VerifyInvoke("dispose");
+        dateModule.VerifyNotInvoke("setOpen");
+    }
+
+    [Fact]
+    public async Task DateInputDisposalClearsParsingMessagesFromTheEditContext()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var model = new FormModel { DueDate = new DateOnly(2026, 7, 18) };
+        var editContext = new EditContext(model);
+        var field = editContext.Field(nameof(FormModel.DueDate));
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateOnly>, DateOnly>(
+            builder,
+            0,
+            model.DueDate,
+            () => model.DueDate,
+            EventCallback.Factory.Create<DateOnly>(model, value => model.DueDate = value)));
+
+        cut.Find("input[role='combobox']").Change("not-a-date");
+        Assert.NotEmpty(editContext.GetValidationMessages(field));
+
+        await context.DisposeComponentsAsync();
+
+        Assert.Empty(editContext.GetValidationMessages(field));
+    }
+
+    [Fact]
+    public void DateTimeOffsetInputSupportsTheMinimumCalendarDate()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var model = new FormModel { OffsetDueDate = DateTimeOffset.MinValue };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateTimeOffset>, DateTimeOffset>(
+            builder,
+            0,
+            model.OffsetDueDate,
+            () => model.OffsetDueDate,
+            EventCallback.Factory.Create<DateTimeOffset>(model, value => model.OffsetDueDate = value),
+            (attributes, sequence) =>
+            {
+                attributes.AddAttribute(sequence, nameof(BzsDateInput<DateTimeOffset>.Min), DateOnly.MinValue);
+                attributes.AddAttribute(sequence + 1, nameof(BzsDateInput<DateTimeOffset>.Max), new DateOnly(1, 1, 2));
+            }));
+
+        cut.Find("input[role='combobox']").Click();
+        cut.Find("[data-date='0001-01-01']").Click();
+
+        Assert.Equal(1, model.OffsetDueDate.Year);
+        Assert.Equal(1, model.OffsetDueDate.Month);
+        Assert.Equal(1, model.OffsetDueDate.Day);
+        Assert.Equal(TimeSpan.Zero, model.OffsetDueDate.Offset);
+    }
+
+    [Fact]
+    public void DateTimeOffsetInputPreservesTheControlledValueOffset()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var expectedOffset = TimeSpan.FromHours(5.5);
+        var model = new FormModel
+        {
+            OffsetDueDate = new DateTimeOffset(2026, 7, 18, 15, 30, 0, expectedOffset),
+        };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateTimeOffset>, DateTimeOffset>(
+            builder,
+            0,
+            model.OffsetDueDate,
+            () => model.OffsetDueDate,
+            EventCallback.Factory.Create<DateTimeOffset>(model, value => model.OffsetDueDate = value)));
+
+        cut.Find("input[role='combobox']").Change("7/19/2026");
+        Assert.Equal(new DateOnly(2026, 7, 19), DateOnly.FromDateTime(model.OffsetDueDate.DateTime));
+        Assert.Equal(expectedOffset, model.OffsetDueDate.Offset);
+        Assert.Equal(TimeOnly.MinValue, TimeOnly.FromDateTime(model.OffsetDueDate.DateTime));
+
+        cut.Find("input[role='combobox']").Click();
+        cut.Find("[data-date='2026-07-20']").Click();
+        Assert.Equal(new DateOnly(2026, 7, 20), DateOnly.FromDateTime(model.OffsetDueDate.DateTime));
+        Assert.Equal(expectedOffset, model.OffsetDueDate.Offset);
+    }
+
+    [Fact]
+    public void NullableDateTimeOffsetInputUsesUtcWhenItHasNoExistingOffset()
+    {
+        using var culture = new CultureScope("en-US");
+        using var context = CreateContext();
+        var model = new FormModel();
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsDateInput<DateTimeOffset?>, DateTimeOffset?>(
+            builder,
+            0,
+            model.OptionalOffsetDueDate,
+            () => model.OptionalOffsetDueDate,
+            EventCallback.Factory.Create<DateTimeOffset?>(model, value => model.OptionalOffsetDueDate = value)));
+
+        cut.Find("input[role='combobox']").Change("7/19/2026");
+
+        Assert.NotNull(model.OptionalOffsetDueDate);
+        Assert.Equal(new DateOnly(2026, 7, 19), DateOnly.FromDateTime(model.OptionalOffsetDueDate.Value.DateTime));
+        Assert.Equal(TimeSpan.Zero, model.OptionalOffsetDueDate.Value.Offset);
     }
 
     [Fact]
@@ -416,7 +1036,9 @@ public sealed class FormsTests
         Assert.Equal("true", checkbox.GetAttribute("value"));
         Assert.True(checkbox.HasAttribute("checked"));
         Assert.Equal("7", cut.Find("input[name='profile.quantity']").GetAttribute("value"));
-        Assert.Equal("2026-07-18", cut.Find("input[name='profile.dueDate']").GetAttribute("value"));
+        Assert.Equal(
+            model.DueDate.ToString("d", CultureInfo.CurrentCulture),
+            cut.Find("input[type='text'][name='profile.dueDate']").GetAttribute("value"));
         Assert.Equal("published", cut.Find("input[type='hidden'][name='profile.choice']").GetAttribute("value"));
     }
 
@@ -476,6 +1098,11 @@ public sealed class FormsTests
         module.SetupVoid("initialize", _ => true);
         module.SetupVoid("setOpen", _ => true);
         module.SetupVoid("dispose", _ => true);
+        var dateModule = context.JSInterop.SetupModule("./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js");
+        dateModule.Setup<string>("initialize", _ => true).SetResult("2031-02-03");
+        dateModule.SetupVoid("setOpen", _ => true);
+        dateModule.SetupVoid("focusActiveDay", _ => true);
+        dateModule.SetupVoid("dispose", _ => true);
         return context;
     }
 
@@ -517,6 +1144,12 @@ public sealed class FormsTests
         public decimal Amount { get; set; }
 
         public DateOnly DueDate { get; set; }
+
+        public DateOnly? OptionalDueDate { get; set; }
+
+        public DateTimeOffset OffsetDueDate { get; set; }
+
+        public DateTimeOffset? OptionalOffsetDueDate { get; set; }
 
         public string? Choice { get; set; }
     }

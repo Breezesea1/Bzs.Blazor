@@ -62,6 +62,21 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     }
 
     [Fact]
+    public async Task OpenDatePickerStateHasNoCriticalOrSeriousAxeViolations()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+
+        var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
+        await input.FocusAsync();
+        await input.PressAsync("ArrowDown");
+        await Expect(Page.GetByRole(AriaRole.Dialog, new() { Name = "Choose a date" })).ToBeVisibleAsync();
+
+        await AssertNoCriticalOrSeriousAxeViolationsAsync("open date picker state");
+    }
+
+    [Fact]
     public async Task OpenDialogStateHasNoCriticalOrSeriousAxeViolations()
     {
         BeginBrowserGateTest();
@@ -259,11 +274,46 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
                     }));
 
                 const overlaps = [];
+                const isReservedInlineOverlay = (owner, overlay) => {
+                    const ownerId = owner.element.getAttribute('data-bzs-inline-overlay-owner');
+                    if (!ownerId || overlay.element.getAttribute('data-bzs-inline-overlay-for') !== ownerId) {
+                        return false;
+                    }
+
+                    if (owner.element.parentElement !== overlay.element.parentElement) {
+                        return false;
+                    }
+
+                    const ownerStyle = getComputedStyle(owner.element);
+                    const overlayStyle = getComputedStyle(overlay.element);
+                    if (overlayStyle.position !== 'absolute') {
+                        return false;
+                    }
+
+                    const reservedInlineEnd = parseFloat(ownerStyle.paddingInlineEnd) || 0;
+                    if (reservedInlineEnd + 1 < overlay.rect.width) {
+                        return false;
+                    }
+
+                    const fitsBlock = overlay.rect.top >= owner.rect.top - 1
+                        && overlay.rect.bottom <= owner.rect.bottom + 1;
+                    const fitsInlineEnd = ownerStyle.direction === 'rtl'
+                        ? overlay.rect.left >= owner.rect.left - 1
+                            && overlay.rect.right <= owner.rect.left + reservedInlineEnd + 1
+                        : overlay.rect.left >= owner.rect.right - reservedInlineEnd - 1
+                            && overlay.rect.right <= owner.rect.right + 1;
+                    return fitsBlock && fitsInlineEnd;
+                };
+
                 for (let first = 0; first < controls.length; first += 1) {
                     for (let second = first + 1; second < controls.length; second += 1) {
                         const a = controls[first];
                         const b = controls[second];
                         if (a.element.contains(b.element) || b.element.contains(a.element)) {
+                            continue;
+                        }
+
+                        if (isReservedInlineOverlay(a, b) || isReservedInlineOverlay(b, a)) {
                             continue;
                         }
 

@@ -59,11 +59,12 @@
                                     Description="Available seats for this profile."
                                     Required="true"
                                     Step="1" />
-                    <BzsDateInput TValue="DateOnly"
+                    <BzsDateInput TValue="DateOnly?"
                                   Id="profile-delivery-date"
                                   @bind-Value="ActiveProfile.DeliveryDate"
                                   Label="Delivery date"
                                   Description="The first planned review date."
+                                  Clearable="true"
                                   Required="true" />
                     <BzsSelect TValue="string"
                                Id="profile-workspace"
@@ -252,7 +253,8 @@
         [Range(1, 99, ErrorMessage = "Choose between 1 and 99 seats.")]
         public int SeatCount { get; set; }
 
-        public DateOnly DeliveryDate { get; set; }
+        [Required(ErrorMessage = "Choose a delivery date.")]
+        public DateOnly? DeliveryDate { get; set; }
 
         [Required(ErrorMessage = "Choose a workspace.")]
         public string? Workspace { get; set; }

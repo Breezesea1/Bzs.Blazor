@@ -1,7 +1,157 @@
 @namespace Bzs.Blazor
-@typeparam TValue where TValue : struct, System.IParsable<TValue>, System.IFormattable
+@typeparam TValue
 @inherits BzsInputBase<TValue>
+@implements IAsyncDisposable
+@inject IJSRuntime JsRuntime
 
 <BzsField InputId="@InputId" Label="@Label" Description="@Description" Error="@FieldError" Required="@Required">
-    <input @attributes="InputAttributes" value="@CurrentValueAsString" @onchange="OnChanged" />
+    @if (!_isInteractive)
+    {
+        <input @attributes="NativeInputAttributes" value="@NativeValueAsString" @onchange="OnNativeChanged" />
+    }
+    else
+    {
+        <div class="bzs-date-picker" @ref="_rootReference">
+            <div class="bzs-date-picker__input-shell">
+                <input @attributes="TextInputAttributes"
+                       @ref="_inputReference"
+                       data-bzs-date-picker-input="true"
+                       data-bzs-inline-overlay-owner="@_instanceId"
+                       value="@CurrentValueAsString"
+                       @onchange="OnTextChanged"
+                       @onclick="OpenAtPointer"
+                       @onkeydown="HandleInputKeyDownAsync" />
+                <button type="button"
+                        class="bzs-date-picker__open"
+                        aria-label="@Localize("DatePickerOpenCalendar")"
+                        title="@Localize("DatePickerOpenCalendar")"
+                        data-bzs-inline-overlay-for="@_instanceId"
+                        disabled="@(Disabled || ReadOnly)"
+                        tabindex="-1"
+                        @onclick="OpenAtPointer"
+                        @onkeydown="HandleInputKeyDownAsync">
+                    <BzsIcon Icon="BzsIcons.Calendar" />
+                </button>
+            </div>
+
+            @if (_isOpen)
+            {
+                <div id="@PanelId"
+                     class="bzs-date-picker__panel"
+                     popover="manual"
+                     role="dialog"
+                     aria-modal="false"
+                     aria-label="@Localize("DatePickerCalendarLabel")"
+                     data-bzs-date-picker-panel="true"
+                     @onkeydown="HandleDialogKeyDownAsync">
+                    <header class="bzs-date-picker__header">
+                        <button type="button"
+                                class="bzs-date-picker__nav"
+                                aria-label="@Localize("DatePickerPreviousMonth")"
+                                title="@Localize("DatePickerPreviousMonth")"
+                                disabled="@(!CanNavigatePreviousMonth)"
+                                @onclick="() => ShiftViewMonth(-1)">
+                            <BzsIcon Icon="BzsIcons.ChevronLeft" />
+                        </button>
+
+                        <div class="bzs-date-picker__period">
+                            <select value="@_viewMonth.Month"
+                                    aria-label="@Localize("DatePickerMonth")"
+                                    @onchange="ChangeMonth">
+                                @foreach (var month in AvailableMonths)
+                                {
+                                    <option value="@month">@GetMonthName(month)</option>
+                                }
+                            </select>
+                            <select value="@_viewMonth.Year"
+                                    aria-label="@Localize("DatePickerYear")"
+                                    @onchange="ChangeYear">
+                                @foreach (var year in AvailableYears)
+                                {
+                                    <option value="@year">@year</option>
+                                }
+                            </select>
+                        </div>
+
+                        <button type="button"
+                                class="bzs-date-picker__nav"
+                                aria-label="@Localize("DatePickerNextMonth")"
+                                title="@Localize("DatePickerNextMonth")"
+                                disabled="@(!CanNavigateNextMonth)"
+                                @onclick="() => ShiftViewMonth(1)">
+                            <BzsIcon Icon="BzsIcons.ChevronRight" />
+                        </button>
+                    </header>
+
+                    @{
+                        var calendarDays = CalendarDays;
+                    }
+                    <div class="bzs-date-picker__calendar"
+                         role="grid"
+                         aria-label="@ViewMonthAccessibleLabel"
+                         aria-rowcount="7"
+                         aria-colcount="7"
+                         @onkeydown="HandleCalendarKeyDownAsync">
+                        <div class="bzs-date-picker__weekdays" role="row">
+                            @foreach (var weekday in Weekdays)
+                            {
+                                <span role="columnheader" title="@weekday.FullName">@weekday.ShortName</span>
+                            }
+                        </div>
+                        @for (var week = 0; week < 6; week++)
+                        {
+                            <div class="bzs-date-picker__week" role="row">
+                            @for (var dayIndex = 0; dayIndex < 7; dayIndex++)
+                            {
+                                var day = calendarDays[week * 7 + dayIndex];
+                                if (day.Date is { } date)
+                                {
+                                    <button @key="date.DayNumber"
+                                            type="button"
+                                            role="gridcell"
+                                            class="@GetDayClass(day)"
+                                            aria-label="@FormatAccessibleDate(date)"
+                                            aria-selected="@(day.IsSelected ? "true" : "false")"
+                                            aria-current="@(day.IsToday ? "date" : null)"
+                                            tabindex="@(day.IsFocused ? "0" : "-1")"
+                                            disabled="@day.IsDisabled"
+                                            data-bzs-date-picker-day="true"
+                                            data-date="@FormatNativeDate(date)"
+                                            @onfocus="() => FocusDate(date)"
+                                            @onclick="() => SelectDateAsync(date)">@date.Day</button>
+                                }
+                                else
+                                {
+                                    <span role="gridcell"
+                                          class="bzs-date-picker__day bzs-date-picker__day--empty"
+                                          aria-hidden="true"></span>
+                                }
+                            }
+                            </div>
+                        }
+                    </div>
+
+                    @if (ShowToday || Clearable)
+                    {
+                        <footer class="bzs-date-picker__actions">
+                            @if (Clearable)
+                            {
+                                <button type="button"
+                                        class="bzs-date-picker__action"
+                                        disabled="@string.IsNullOrWhiteSpace(CurrentValueAsString)"
+                                        @onclick="ClearAsync">@Localize("DatePickerClear")</button>
+                            }
+                            @if (ShowToday)
+                            {
+                                <button type="button"
+                                        class="bzs-date-picker__action bzs-date-picker__action--primary"
+                                        disabled="@(!IsDateAllowed(Today))"
+                                        @onclick="SelectTodayAsync">@Localize("DatePickerToday")</button>
+                            }
+                        </footer>
+                    }
+                </div>
+            }
+        </div>
+    }
 </BzsField>
