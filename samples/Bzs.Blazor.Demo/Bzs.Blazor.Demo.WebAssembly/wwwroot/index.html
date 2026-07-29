@@ -17,7 +17,10 @@
     <div id="app">
         <p class="demo-loading">Loading Bzs.Blazor catalog...</p>
     </div>
-    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script>
+        Blazor.start({ applicationCulture: "zh-Hans" });
+    </script>
 </body>
 
 </html>
