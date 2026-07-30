@@ -9,11 +9,75 @@ namespace Bzs.Blazor.BrowserTests;
 public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGatePageTest
 {
     [Fact]
+    public async Task DatePickerFollowsTheHeaderLanguageSelection()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/forms?next=culture=zh-Hans");
+        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "English", Exact = true }))
+            .ToHaveAttributeAsync("aria-current", "page");
+
+        await Page.GotoAsync($"{server.BaseUrl}/forms?next=x");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "English", Exact = true }))
+            .ToHaveAttributeAsync("aria-current", "page");
+
+        var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
+        await input.ClickAsync();
+        var panel = Page.GetByRole(AriaRole.Dialog, new() { Name = "Choose a date" });
+        await Expect(panel).ToBeVisibleAsync();
+        await Expect(panel.GetByRole(AriaRole.Combobox, new() { Name = "Month" })).ToBeVisibleAsync();
+        await input.PressAsync("Escape");
+
+        await Page.GetByRole(AriaRole.Link, new() { Name = "中文", Exact = true }).ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?next=x&culture=zh-Hans");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "中文", Exact = true }))
+            .ToHaveAttributeAsync("aria-current", "page");
+
+        input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
+        await input.ClickAsync();
+        panel = Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" });
+        await Expect(panel).ToBeVisibleAsync();
+        await Expect(panel.GetByRole(AriaRole.Combobox, new() { Name = "月份" })).ToBeVisibleAsync();
+        await input.PressAsync("Escape");
+
+        var catalogNavigation = Page.GetByRole(
+            AriaRole.Navigation,
+            new() { Name = "Bzs.Blazor catalog", Exact = true });
+        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Feedback", Exact = true })
+            .ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/feedback?culture=zh-Hans");
+        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "中文", Exact = true }))
+            .ToHaveAttributeAsync("aria-current", "page");
+
+        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Forms", Exact = true })
+            .ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+        input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
+        await input.ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" })).ToBeVisibleAsync();
+        await input.PressAsync("Escape");
+
+        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Overview", Exact = true })
+            .ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/?culture=zh-Hans");
+        var componentGroups = Page.GetByRole(AriaRole.Region, new() { Name = "Component groups" });
+        await componentGroups.GetByRole(AriaRole.Link, new() { Name = "03 Forms", Exact = true })
+            .ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+        input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
+        await input.ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" })).ToBeVisibleAsync();
+    }
+
+    [Fact]
     public async Task DatePickerOpensAtThePointerAndClosesWithEscape()
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1280, 1200);
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync(ChineseFormsUrl);
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
@@ -67,7 +131,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task DatePickerSelectionClosesThePanelAndUpdatesTheInput()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync(ChineseFormsUrl);
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
@@ -97,7 +161,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task DatePickerSupportsCompleteKeyboardSelection()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync(ChineseFormsUrl);
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
@@ -160,7 +224,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task DatePickerPeriodMenusUseAriaListboxesAndUpdateTheCalendar()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync(ChineseFormsUrl);
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
@@ -211,7 +275,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task DatePickerPeriodMenusSupportKeyboardNavigationAndSelection()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync(ChineseFormsUrl);
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
@@ -346,7 +410,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(844, 320);
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync(ChineseFormsUrl);
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
@@ -375,7 +439,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1280, 1000);
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync(ChineseFormsUrl);
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
@@ -420,7 +484,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1280, 1000);
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync(ChineseFormsUrl);
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
@@ -488,7 +552,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(320, 640);
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync(ChineseFormsUrl);
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
@@ -722,6 +786,8 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
 
     private static string FormatNativeDate(DateOnly value) =>
         value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private string ChineseFormsUrl => $"{server.BaseUrl}/forms?culture=zh-Hans";
 
     private static Task<string> GetActivePeriodOptionTextAsync(ILocator trigger) =>
         trigger.EvaluateAsync<string>(

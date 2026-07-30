@@ -1,5 +1,7 @@
+@inject NavigationManager Navigation
+
 <nav class="demo-nav" aria-label="Bzs.Blazor catalog">
-    <a class="demo-brand" href="">
+    <a class="demo-brand" href="@RouteUrl("")">
         <span class="demo-brand-mark" aria-hidden="true">B</span>
         <span class="demo-brand-copy">
             <strong>Bzs.Blazor</strong>
@@ -9,20 +11,27 @@
 
     <div class="demo-nav-section">
         <p class="demo-nav-heading">Catalog</p>
-        <NavLink class="demo-nav-link" href="" Match="NavLinkMatch.All">Overview</NavLink>
-        <NavLink class="demo-nav-link" href="theme-foundation">Theme foundation</NavLink>
-        <NavLink class="demo-nav-link" href="foundation">Foundation components</NavLink>
-        <NavLink class="demo-nav-link" href="forms">Forms</NavLink>
-        <NavLink class="demo-nav-link" href="feedback">Feedback</NavLink>
-        <NavLink class="demo-nav-link" href="tabs">Tabs</NavLink>
-        <NavLink class="demo-nav-link" href="overlays">Overlays</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("")" Match="NavLinkMatch.All">Overview</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("theme-foundation")">Theme foundation</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("foundation")">Foundation components</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("forms")">Forms</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("feedback")">Feedback</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("tabs")">Tabs</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("overlays")">Overlays</NavLink>
     </div>
 
     <div class="demo-nav-section">
         <p class="demo-nav-heading">Render modes</p>
-        <NavLink class="demo-nav-link" href="render-modes/static">Static SSR</NavLink>
-        <NavLink class="demo-nav-link" href="render-modes/server">Interactive Server</NavLink>
-        <NavLink class="demo-nav-link" href="render-modes/webassembly">Interactive WebAssembly</NavLink>
-        <NavLink class="demo-nav-link" href="render-modes/auto">Interactive Auto</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("render-modes/static")">Static SSR</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("render-modes/server")">Interactive Server</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("render-modes/webassembly")">Interactive WebAssembly</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("render-modes/auto")">Interactive Auto</NavLink>
     </div>
 </nav>
+
+@code {
+    private string RouteUrl(string route) => DemoCulture.PreserveCulture(
+        new Uri(Navigation.Uri),
+        new Uri(Navigation.BaseUri),
+        route);
+}

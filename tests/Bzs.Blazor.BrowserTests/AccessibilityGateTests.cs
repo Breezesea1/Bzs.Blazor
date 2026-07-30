@@ -65,7 +65,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     public async Task OpenDatePickerStateHasNoCriticalOrSeriousAxeViolations()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });

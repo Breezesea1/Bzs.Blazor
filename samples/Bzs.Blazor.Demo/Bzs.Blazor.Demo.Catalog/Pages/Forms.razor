@@ -65,7 +65,7 @@
                                   @bind-Value="ActiveProfile.DeliveryDate"
                                   Label="Delivery date"
                                   Description="The first planned review date."
-                                  Culture="@SimplifiedChineseCulture"
+                                  Culture="@DatePickerCulture"
                                   Clearable="true"
                                   Required="true" />
                     <BzsSelect TValue="string"
@@ -172,7 +172,10 @@
 </BzsThemeProvider>
 
 @code {
-    private static readonly CultureInfo SimplifiedChineseCulture = CultureInfo.GetCultureInfo("zh-Hans");
+    [SupplyParameterFromQuery(Name = "culture")]
+    private string? CultureName { get; set; }
+
+    private CultureInfo DatePickerCulture => DemoCulture.Resolve(CultureName);
 
     private static readonly IReadOnlyList<BzsSelectOption<string>> WorkspaceOptions =
     [

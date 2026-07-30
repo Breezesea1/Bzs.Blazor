@@ -9,6 +9,61 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     : BrowserGatePageTest
 {
     [Fact]
+    public async Task DatePickerLanguageSwitchLoadsMatchingLocalizationResources()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "English", Exact = true }))
+            .ToHaveAttributeAsync("aria-current", "page");
+
+        var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
+        await input.ClickAsync();
+        var panel = Page.GetByRole(AriaRole.Dialog, new() { Name = "Choose a date" });
+        await Expect(panel.GetByRole(AriaRole.Combobox, new() { Name = "Month" })).ToBeVisibleAsync();
+        await input.PressAsync("Escape");
+
+        await Page.GetByRole(AriaRole.Link, new() { Name = "中文", Exact = true }).ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "中文", Exact = true }))
+            .ToHaveAttributeAsync("aria-current", "page");
+
+        input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
+        await input.ClickAsync();
+        panel = Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" });
+        await Expect(panel.GetByRole(AriaRole.Combobox, new() { Name = "月份" })).ToBeVisibleAsync();
+        await input.PressAsync("Escape");
+
+        var catalogNavigation = Page.GetByRole(
+            AriaRole.Navigation,
+            new() { Name = "Bzs.Blazor catalog", Exact = true });
+        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Feedback", Exact = true })
+            .ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/feedback?culture=zh-Hans");
+        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Forms", Exact = true })
+            .ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+        input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
+        await input.ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" })).ToBeVisibleAsync();
+        await input.PressAsync("Escape");
+
+        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Overview", Exact = true })
+            .ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/?culture=zh-Hans");
+        var componentGroups = Page.GetByRole(AriaRole.Region, new() { Name = "Component groups" });
+        await componentGroups.GetByRole(AriaRole.Link, new() { Name = "03 Forms", Exact = true })
+            .ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+        input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
+        await input.ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" })).ToBeVisibleAsync();
+    }
+
+    [Fact]
     public async Task OverlayHostSurvivesStandaloneWebAssemblyNavigation()
     {
         BeginBrowserGateTest();

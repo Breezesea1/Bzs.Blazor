@@ -19,7 +19,10 @@
     </div>
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>
     <script>
-        Blazor.start({ applicationCulture: "zh-Hans" });
+        const selectedCulture = new URLSearchParams(window.location.search).get("culture");
+        Blazor.start({
+            applicationCulture: selectedCulture?.toLowerCase() === "zh-hans" ? "zh-Hans" : "en-US"
+        });
     </script>
 </body>
 

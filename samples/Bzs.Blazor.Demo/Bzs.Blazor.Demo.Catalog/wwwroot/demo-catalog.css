@@ -147,6 +147,42 @@ button:focus-visible {
     text-align: right;
 }
 
+.demo-language-switch {
+    display: inline-grid;
+    grid-auto-flow: column;
+    gap: 0.25rem;
+    border-radius: var(--demo-radius-control);
+    padding: 0.25rem;
+    background: var(--demo-panel-inset);
+    box-shadow: var(--demo-shadow-inset);
+}
+
+.demo-language-switch a {
+    display: inline-flex;
+    min-width: 3.75rem;
+    min-height: 2rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: var(--demo-radius-compact);
+    padding-inline: 0.625rem;
+    color: var(--demo-text);
+    font-size: 0.75rem;
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.demo-language-switch a:hover {
+    color: var(--demo-text);
+}
+
+.demo-language-switch a.active {
+    border-color: rgb(255 255 255 / 0.76);
+    background: var(--demo-panel-raised);
+    box-shadow: 0.2rem 0.2rem 0.45rem rgb(163 170 181 / 0.42), -0.15rem -0.15rem 0.35rem rgb(255 255 255 / 0.76);
+    color: var(--demo-accent-strong);
+}
+
 .demo-status-dot {
     width: 0.4375rem;
     height: 0.4375rem;
@@ -618,6 +654,14 @@ button:focus-visible {
 
     .demo-header-status {
         text-align: start;
+    }
+
+    .demo-language-switch {
+        align-self: stretch;
+    }
+
+    .demo-language-switch a {
+        min-width: 0;
     }
 
     .demo-content {
