@@ -19,7 +19,16 @@
     </div>
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>
     <script>
-        const selectedCulture = new URLSearchParams(window.location.search).get("culture");
+        const parameters = new URLSearchParams(window.location.search);
+        const selectedCulture = parameters.get("culture");
+        const route = parameters.get("route");
+        if (route) {
+            const baseUrl = new URL(document.baseURI);
+            const targetUrl = new URL(route, baseUrl);
+            if (targetUrl.origin === window.location.origin && targetUrl.pathname.startsWith(baseUrl.pathname)) {
+                window.history.replaceState(null, "", `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`);
+            }
+        }
         Blazor.start({
             applicationCulture: selectedCulture?.toLowerCase() === "zh-hans" ? "zh-Hans" : "en-US"
         });

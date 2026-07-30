@@ -48,8 +48,17 @@
     private string LanguageUrl(string culture) =>
         DemoCulture.WithCulture(new Uri(Navigation.Uri), culture);
 
-    private void SwitchLanguage(string targetUrl) =>
-        Navigation.NavigateTo(targetUrl, forceLoad: true);
+    private void SwitchLanguage(string targetUrl)
+    {
+        var baseUri = new Uri(Navigation.BaseUri);
+        var targetUri = new Uri(baseUri, targetUrl);
+        var culture = DemoCulture.IsChinese(targetUri) ? "zh-Hans" : "en-US";
+        var reloadUrl = DemoCulture.WithCulture(baseUri, culture);
+        var route = Navigation.ToBaseRelativePath(targetUri.ToString());
+        Navigation.NavigateTo(
+            $"{reloadUrl}&route={Uri.EscapeDataString(route)}",
+            forceLoad: true);
+    }
 }
 
 <div id="blazor-error-ui" data-nosnippet>

@@ -12,6 +12,17 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     public async Task DatePickerLanguageSwitchLoadsMatchingLocalizationResources()
     {
         BeginBrowserGateTest();
+        var consoleErrors = new ConcurrentQueue<string>();
+        var pageErrors = new ConcurrentQueue<string>();
+        Page.Console += (_, message) =>
+        {
+            if (string.Equals(message.Type, "error", StringComparison.OrdinalIgnoreCase))
+            {
+                consoleErrors.Enqueue(message.Text);
+            }
+        };
+        Page.PageError += (_, error) => pageErrors.Enqueue(error);
+
         await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "English", Exact = true }))
@@ -61,6 +72,9 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
         await input.ClickAsync();
         await Expect(Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" })).ToBeVisibleAsync();
+
+        Assert.Empty(consoleErrors);
+        Assert.Empty(pageErrors);
     }
 
     [Fact]
