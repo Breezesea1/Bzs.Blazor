@@ -13,13 +13,16 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.GotoAsync($"{server.BaseUrl}/forms?next=culture=zh-Hans");
-        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "English", Exact = true }))
-            .ToHaveAttributeAsync("aria-current", "page");
+        var language = Page.GetByRole(
+            AriaRole.Radiogroup,
+            new() { Name = "Date picker language", Exact = true });
+        var english = language.GetByRole(AriaRole.Radio, new() { Name = "English", Exact = true });
+        var chinese = language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true });
+        await Expect(english).ToBeCheckedAsync();
 
         await Page.GotoAsync($"{server.BaseUrl}/forms?next=x");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
-        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "English", Exact = true }))
-            .ToHaveAttributeAsync("aria-current", "page");
+        await Expect(english).ToBeCheckedAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
         await input.ClickAsync();
@@ -28,11 +31,10 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await Expect(panel.GetByRole(AriaRole.Combobox, new() { Name = "Month" })).ToBeVisibleAsync();
         await input.PressAsync("Escape");
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "中文", Exact = true }).ClickAsync();
+        await language.GetByText("中文", new() { Exact = true }).ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?next=x&culture=zh-Hans");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
-        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "中文", Exact = true }))
-            .ToHaveAttributeAsync("aria-current", "page");
+        await Expect(chinese).ToBeCheckedAsync();
 
         input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
         await input.ClickAsync();
@@ -47,8 +49,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Feedback", Exact = true })
             .ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/feedback?culture=zh-Hans");
-        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "中文", Exact = true }))
-            .ToHaveAttributeAsync("aria-current", "page");
+        await Expect(chinese).ToBeCheckedAsync();
 
         await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Forms", Exact = true })
             .ClickAsync();

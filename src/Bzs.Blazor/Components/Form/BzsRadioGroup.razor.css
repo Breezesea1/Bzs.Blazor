@@ -1,7 +1,9 @@
 .bzs-radio-group {
     display: inline-flex;
     box-sizing: border-box;
+    gap: 0.125rem;
     max-inline-size: 100%;
+    padding: 0.25rem;
     overflow-x: auto;
     border: 0;
     border-radius: var(--bzs-radius-control);
@@ -20,10 +22,6 @@
     cursor: pointer;
 }
 
-.bzs-radio-group__option + .bzs-radio-group__option {
-    border-inline-start: var(--bzs-border-width) solid var(--bzs-border);
-}
-
 .bzs-radio-group__input {
     position: absolute;
     inline-size: 1px;
@@ -40,8 +38,9 @@
     align-items: center;
     justify-content: center;
     gap: 0.375rem;
-    min-block-size: var(--bzs-control-height);
-    padding: 0.5rem var(--bzs-control-padding-inline);
+    min-block-size: calc(var(--bzs-control-height) - 0.5rem);
+    padding: 0.375rem var(--bzs-control-padding-inline);
+    border-radius: calc(var(--bzs-radius-control) - 0.25rem);
     overflow-wrap: anywhere;
     color: var(--bzs-text-muted);
     font-weight: var(--bzs-font-weight-medium);
@@ -54,6 +53,11 @@
 .bzs-radio-group__label ::deep .bzs-radio-group__icon {
     inline-size: 1rem;
     block-size: 1rem;
+}
+
+.bzs-radio-group__input:not(:checked):not(:disabled) + .bzs-radio-group__label:hover {
+    background-color: var(--bzs-surface);
+    color: var(--bzs-primary);
 }
 
 .bzs-radio-group__input:checked + .bzs-radio-group__label {
@@ -69,10 +73,21 @@
 }
 
 .bzs-radio-group__input:disabled + .bzs-radio-group__label {
-    background-color: var(--bzs-disabled-surface);
-    box-shadow: none;
     color: var(--bzs-disabled-text);
     cursor: not-allowed;
+}
+
+.bzs-radio-group__input:disabled:checked + .bzs-radio-group__label {
+    background-color: var(--bzs-disabled-surface);
+    box-shadow: none;
+}
+
+.bzs-radio-group--segmented {
+    gap: 0.25rem;
+}
+
+.bzs-radio-group--segmented .bzs-radio-group__label {
+    min-inline-size: 3.75rem;
 }
 
 @media (max-width: 30rem) {
@@ -93,8 +108,18 @@
 }
 
 @media (forced-colors: active) {
-    .bzs-radio-group,
-    .bzs-radio-group__input:checked + .bzs-radio-group__label {
+    .bzs-radio-group {
+        border: var(--bzs-border-width) solid CanvasText;
         box-shadow: none;
+    }
+
+    .bzs-radio-group__input:checked + .bzs-radio-group__label {
+        background-color: Highlight;
+        box-shadow: none;
+        color: HighlightText;
+    }
+
+    .bzs-radio-group__input:focus-visible + .bzs-radio-group__label {
+        outline-color: Highlight;
     }
 }

@@ -26,6 +26,9 @@ public sealed class RenderModeCatalogTests(DemoServerFixture server) : BrowserGa
         Assert.Contains("value=\"review\"", html, StringComparison.Ordinal);
         Assert.Contains("Controlled dialog is closed.", html, StringComparison.Ordinal);
         Assert.Contains("Interaction unavailable", html, StringComparison.Ordinal);
+        Assert.Contains("demo-language-fallback", html, StringComparison.Ordinal);
+        Assert.Contains("href=\"/render-modes/static?culture=zh-Hans\"", html, StringComparison.Ordinal);
+        Assert.Contains("data-enhance-nav=\"false\"", html, StringComparison.Ordinal);
     }
 
     [Theory]

@@ -156,6 +156,36 @@ public sealed class EmptyStateAndChoiceTests
     }
 
     [Fact]
+    public void RadioGroupReportsItsSegmentedVariantAndRejectsUnknownVariants()
+    {
+        using var context = CreateContext();
+        var model = new ChoiceModel { Choice = "draft" };
+        var expression = (Expression<Func<string?>>)(() => model.Choice);
+        IReadOnlyList<BzsSelectOption<string?>> options =
+        [
+            new("draft", "Draft"),
+            new("published", "Published"),
+        ];
+
+        var cut = context.Render<BzsRadioGroup<string?>>(parameters => parameters
+            .Add(component => component.Value, model.Choice)
+            .Add(component => component.ValueExpression, expression)
+            .Add(component => component.Options, options)
+            .Add(component => component.Variant, BzsRadioGroupVariant.Segmented));
+
+        var group = cut.Find("[role='radiogroup']");
+        Assert.Equal("segmented", group.GetAttribute("data-bzs-variant"));
+
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            context.Render<BzsRadioGroup<string?>>(parameters => parameters
+                .Add(component => component.Value, model.Choice)
+                .Add(component => component.ValueExpression, expression)
+                .Add(component => component.Options, options)
+                .Add(component => component.Variant, (BzsRadioGroupVariant)99)));
+        Assert.Equal("Variant", exception.ParamName);
+    }
+
+    [Fact]
     public void ReadOnlyRadioGroupSuppressesInteractionAndPreservesPostValue()
     {
         using var context = CreateContext();

@@ -7,14 +7,14 @@
     <RootNamespace>Bzs.Blazor</RootNamespace>
     <AssemblyName>Bzs.Blazor</AssemblyName>
     <PackageId>Bzs.Blazor</PackageId>
-    <Version>0.1.7</Version>
+    <Version>0.1.8</Version>
     <Authors>tongyu</Authors>
     <Description>A compact, accessible Blazor component library with restrained neumorphic light and dark themes.</Description>
     <PackageTags>blazor;components;ui;neumorphism;wasm</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageCopyright>Copyright (c) 2026 tongyu</PackageCopyright>
-    <PackageReleaseNotes>Refine the custom date picker with explicit Chinese localization, neumorphic month and year listboxes, and complete keyboard navigation. See docs/releases/0.1.7.md in the repository.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add a reusable segmented radio-group appearance and use it for reliable English and Simplified Chinese switching in the Demo. See docs/releases/0.1.8.md in the repository.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

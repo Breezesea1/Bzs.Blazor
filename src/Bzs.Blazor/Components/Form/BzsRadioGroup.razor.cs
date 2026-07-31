@@ -10,7 +10,20 @@ public partial class BzsRadioGroup<TValue> : BzsInputBase<TValue>
     [Parameter, EditorRequired]
     public IReadOnlyList<BzsSelectOption<TValue>> Options { get; set; } = [];
 
+    /// <summary>Gets or sets the visual treatment of the group.</summary>
+    [Parameter]
+    public BzsRadioGroupVariant Variant { get; set; } = BzsRadioGroupVariant.Standard;
+
     private string FieldLabelId => $"{InputId}-label";
+    private string VariantName => Variant switch
+    {
+        BzsRadioGroupVariant.Standard => "standard",
+        BzsRadioGroupVariant.Segmented => "segmented",
+        _ => throw new ArgumentOutOfRangeException(
+            nameof(Variant),
+            Variant,
+            "The radio group variant is not supported."),
+    };
     private int FirstEnabledOptionIndex => Options.ToList().FindIndex(option => !IsOptionDisabled(option));
     private int SelectedEnabledOptionIndex => Options.ToList().FindIndex(option =>
         IsSelected(option.Value) && !IsOptionDisabled(option));
@@ -26,10 +39,13 @@ public partial class BzsRadioGroup<TValue> : BzsInputBase<TValue>
         get
         {
             var attributes = new Dictionary<string, object>(
-                BuildInputAttributes("bzs-radio-group", supportsReadOnly: false),
+                BuildInputAttributes(
+                    $"bzs-radio-group bzs-radio-group--{VariantName}",
+                    supportsReadOnly: false),
                 StringComparer.OrdinalIgnoreCase)
             {
                 ["role"] = "radiogroup",
+                ["data-bzs-variant"] = VariantName,
             };
 
             attributes.Remove("name");
@@ -113,6 +129,14 @@ public partial class BzsRadioGroup<TValue> : BzsInputBase<TValue>
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+        if (!Enum.IsDefined(Variant))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(Variant),
+                Variant,
+                "The radio group variant is not supported.");
+        }
+
         if (Options is null)
         {
             throw new InvalidOperationException("BzsRadioGroup requires an Options collection.");

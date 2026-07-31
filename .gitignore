@@ -29,6 +29,7 @@ artifacts/
 **/node_modules/
 .packages/
 .playwright-mcp/
+.playwright-cli/
 
 # Machine-local configuration and temporary files
 .env

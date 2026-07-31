@@ -1,5 +1,4 @@
 @inherits LayoutComponentBase
-@inject NavigationManager Navigation
 
 <div class="demo-shell">
     <aside class="demo-sidebar">
@@ -17,49 +16,13 @@
                 <span class="demo-status-dot" aria-hidden="true"></span>
                 Static WebAssembly host
             </p>
-            <nav class="demo-language-switch" aria-label="Date picker language">
-                <a href="@EnglishUrl"
-                   class="@(IsChinese ? null : "active")"
-                   aria-current="@(IsChinese ? null : "page")"
-                   @onclick="() => SwitchLanguage(EnglishUrl)"
-                   @onclick:preventDefault="true"
-                   data-enhance-nav="false">English</a>
-                <a href="@ChineseUrl"
-                   class="@(IsChinese ? "active" : null)"
-                   aria-current="@(IsChinese ? "page" : null)"
-                   @onclick="() => SwitchLanguage(ChineseUrl)"
-                   @onclick:preventDefault="true"
-                   data-enhance-nav="false">中文</a>
-            </nav>
+            <DemoLanguageSwitcher UseStaticHostRootReload="true" />
         </header>
         <article class="demo-content">
             @Body
         </article>
     </main>
 </div>
-
-@code {
-    private bool IsChinese => DemoCulture.IsChinese(new Uri(Navigation.Uri));
-
-    private string EnglishUrl => LanguageUrl("en-US");
-
-    private string ChineseUrl => LanguageUrl("zh-Hans");
-
-    private string LanguageUrl(string culture) =>
-        DemoCulture.WithCulture(new Uri(Navigation.Uri), culture);
-
-    private void SwitchLanguage(string targetUrl)
-    {
-        var baseUri = new Uri(Navigation.BaseUri);
-        var targetUri = new Uri(baseUri, targetUrl);
-        var culture = DemoCulture.IsChinese(targetUri) ? "zh-Hans" : "en-US";
-        var reloadUrl = DemoCulture.WithCulture(baseUri, culture);
-        var route = Navigation.ToBaseRelativePath(targetUri.ToString());
-        Navigation.NavigateTo(
-            $"{reloadUrl}&route={Uri.EscapeDataString(route)}",
-            forceLoad: true);
-    }
-}
 
 <div id="blazor-error-ui" data-nosnippet>
     The catalog could not complete this interaction.

@@ -1,5 +1,4 @@
 @inherits LayoutComponentBase
-@inject NavigationManager Navigation
 
 <div class="demo-shell">
     <aside class="demo-sidebar">
@@ -17,33 +16,13 @@
                 <span class="demo-status-dot" aria-hidden="true"></span>
                 Aspire demo host
             </p>
-            <nav class="demo-language-switch" aria-label="Date picker language">
-                <a href="@EnglishUrl"
-                   class="@(IsChinese ? null : "active")"
-                   aria-current="@(IsChinese ? null : "page")"
-                   data-enhance-nav="false">English</a>
-                <a href="@ChineseUrl"
-                   class="@(IsChinese ? "active" : null)"
-                   aria-current="@(IsChinese ? "page" : null)"
-                   data-enhance-nav="false">中文</a>
-            </nav>
+            <DemoLanguageSwitcher @rendermode="InteractiveAuto" />
         </header>
         <article class="demo-content">
             @Body
         </article>
     </main>
 </div>
-
-@code {
-    private bool IsChinese => DemoCulture.IsChinese(new Uri(Navigation.Uri));
-
-    private string EnglishUrl => LanguageUrl("en-US");
-
-    private string ChineseUrl => LanguageUrl("zh-Hans");
-
-    private string LanguageUrl(string culture) =>
-        DemoCulture.WithCulture(new Uri(Navigation.Uri), culture);
-}
 
 <div id="blazor-error-ui" data-nosnippet>
     The catalog could not complete this interaction.

@@ -66,6 +66,9 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
 
     private async Task AssertMatchesBaselineAsync(string fileName)
     {
+        await Expect(Page.GetByRole(
+            AriaRole.Radiogroup,
+            new() { Name = "Date picker language", Exact = true })).ToBeVisibleAsync();
         await Page.EvaluateAsync("() => document.activeElement instanceof HTMLElement && document.activeElement.blur()");
         var repositoryRoot = FindRepositoryRoot();
         var baselineDirectory = Path.Combine(

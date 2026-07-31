@@ -1,0 +1,23 @@
+@if (_isInteractive)
+{
+    <div class="demo-header-language">
+        <BzsRadioGroup TValue="string"
+                       Value="@SelectedCulture"
+                       ValueChanged="ChangeCulture"
+                       ValueExpression="@(() => SelectedCulture)"
+                       Options="LanguageOptions"
+                       Variant="BzsRadioGroupVariant.Segmented"
+                       aria-label="Date picker language" />
+    </div>
+}
+else
+{
+    <nav class="demo-header-language demo-language-fallback" aria-label="Date picker language">
+        <a href="@GetCultureUrl(EnglishCulture)"
+           aria-current="@(SelectedCulture == EnglishCulture ? "page" : null)"
+           data-enhance-nav="false">English</a>
+        <a href="@GetCultureUrl(ChineseCulture)"
+           aria-current="@(SelectedCulture == ChineseCulture ? "page" : null)"
+           data-enhance-nav="false">中文</a>
+    </nav>
+}
