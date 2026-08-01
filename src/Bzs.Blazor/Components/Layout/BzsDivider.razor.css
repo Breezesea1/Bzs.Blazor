@@ -1,0 +1,59 @@
+.bzs-divider {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    border: 0 solid var(--bzs-border);
+    opacity: 1;
+}
+
+.bzs-divider--horizontal {
+    inline-size: 100%;
+    border-block-start-width: var(--bzs-border-width);
+}
+
+.bzs-divider--vertical {
+    min-block-size: 1.5rem;
+    border-inline-start-width: var(--bzs-border-width);
+}
+
+.bzs-divider--horizontal.bzs-divider--inset-start { margin-inline-start: 4.5rem; inline-size: calc(100% - 4.5rem); }
+.bzs-divider--horizontal.bzs-divider--inset-both { margin-inline: 1rem; inline-size: calc(100% - 2rem); }
+.bzs-divider--vertical.bzs-divider--inset-start { margin-block-start: 1rem; min-block-size: calc(100% - 1rem); }
+.bzs-divider--vertical.bzs-divider--inset-both { margin-block: 1rem; min-block-size: calc(100% - 2rem); }
+
+.bzs-divider--flex-item {
+    align-self: stretch;
+}
+
+.bzs-divider--subtle {
+    opacity: 0.55;
+}
+
+.bzs-divider--absolute.bzs-divider--horizontal {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-start: 0;
+}
+
+.bzs-divider--absolute.bzs-divider--vertical {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    min-block-size: 0;
+}
+
+.bzs-divider--absolute.bzs-divider--vertical.bzs-divider--inset-start {
+    inset-block-start: 1rem;
+    margin-block-start: 0;
+}
+
+.bzs-divider--absolute.bzs-divider--vertical.bzs-divider--inset-both {
+    inset-block: 1rem;
+    margin-block: 0;
+}
+
+@media (forced-colors: active) {
+    .bzs-divider {
+        border-color: CanvasText;
+        opacity: 1;
+    }
+}

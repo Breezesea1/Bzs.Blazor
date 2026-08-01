@@ -292,6 +292,11 @@ public sealed class ThemeTests
             ("motion-normal", theme.Motion.NormalDuration),
             ("motion-slow", theme.Motion.SlowDuration),
             ("motion-easing", theme.Motion.Easing),
+            ("layout-spacing-extra-small", "0.25rem"),
+            ("layout-spacing-small", "0.5rem"),
+            ("layout-spacing-medium", "0.75rem"),
+            ("layout-spacing-large", "1rem"),
+            ("layout-spacing-extra-large", "1.5rem"),
         };
 
         foreach (var (name, value) in tokens)

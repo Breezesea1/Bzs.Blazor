@@ -1,0 +1,31 @@
+::deep .demo-layout-container,
+::deep .demo-layout-stack,
+::deep .demo-layout-tile {
+    border: 1px solid var(--demo-border);
+    border-radius: var(--bzs-radius-container);
+    background: var(--demo-panel-muted);
+}
+
+::deep .demo-layout-container,
+::deep .demo-layout-stack {
+    padding: 0.875rem;
+}
+
+::deep .demo-layout-tile {
+    min-height: 4rem;
+    padding: 1rem;
+}
+
+::deep .demo-layout-stack--tall {
+    min-block-size: 5rem;
+}
+
+.demo-layout-absolute-boundary {
+    position: relative;
+    min-block-size: 5rem;
+    margin-block-start: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--demo-border);
+    border-radius: var(--bzs-radius-container);
+    background: var(--demo-panel-muted);
+}

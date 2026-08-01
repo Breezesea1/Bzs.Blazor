@@ -29,6 +29,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     [InlineData("04 Feedback", "feedback", "Status and notifications")]
     [InlineData("05 Tabs", "tabs", "Tabs, language, and direction")]
     [InlineData("06 Overlays", "overlays", "Dialog, Drawer, and Host")]
+    [InlineData("07 Layout", "layout", "Container, Grid, and Stack")]
     public async Task CatalogComponentGroupLinksNavigateToTheirSamples(
         string linkName,
         string route,
@@ -114,5 +115,85 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
             .ToBeDisabledAsync();
         await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Close example" }))
             .ToBeVisibleAsync();
+    }
+
+    [Fact]
+    public async Task LayoutPrimitivesRespondAcrossViewports()
+    {
+        BeginBrowserGateTest();
+        await Page.SetViewportSizeAsync(390, 844);
+        await Page.GotoAsync($"{server.BaseUrl}/layout");
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Container, Grid, and Stack" }))
+            .ToBeVisibleAsync();
+
+        var grid = Page.Locator("#layout-responsive-grid");
+        var production = Page.Locator("#layout-production");
+        var review = Page.Locator("#layout-review");
+        var archive = Page.Locator("#layout-archive");
+        await Expect(production).ToBeVisibleAsync();
+        await Expect(review).ToBeVisibleAsync();
+        await Expect(archive).ToBeVisibleAsync();
+        var productionMobile = await GetVisibleBoxAsync(production);
+        var reviewMobile = await GetVisibleBoxAsync(review);
+        var archiveMobile = await GetVisibleBoxAsync(archive);
+
+        Assert.True(reviewMobile.Y > productionMobile.Y);
+        Assert.True(archiveMobile.Y > reviewMobile.Y);
+        Assert.InRange(Math.Abs(productionMobile.Width - reviewMobile.Width), 0, 1);
+
+        await Page.SetViewportSizeAsync(1280, 900);
+        var productionDesktop = await GetVisibleBoxAsync(production);
+        var reviewDesktop = await GetVisibleBoxAsync(review);
+        var archiveDesktop = await GetVisibleBoxAsync(archive);
+
+        Assert.InRange(Math.Abs(productionDesktop.Y - reviewDesktop.Y), 0, 1);
+        Assert.InRange(Math.Abs(reviewDesktop.Y - archiveDesktop.Y), 0, 1);
+        Assert.InRange(Math.Abs(productionDesktop.Width - reviewDesktop.Width), 0, 1);
+        Assert.True(productionDesktop.Width < productionMobile.Width);
+        Assert.Equal("12px", await grid.EvaluateAsync<string>("element => getComputedStyle(element).gap"));
+
+        var queueStack = Page.Locator("#layout-queue-stack");
+        var queue = await GetVisibleBoxAsync(queueStack.GetByText("Queue", new() { Exact = true }));
+        var itemCount = await GetVisibleBoxAsync(queueStack.GetByText("12 items", new() { Exact = true }));
+        Assert.True(itemCount.X - (queue.X + queue.Width) > 100);
+
+        var flexDivider = Page.Locator("#layout-flex-divider");
+        var naturalDivider = Page.Locator("#layout-natural-divider");
+        Assert.Equal(
+            "stretch",
+            await flexDivider.EvaluateAsync<string>("element => getComputedStyle(element).alignSelf"));
+        Assert.NotEqual(
+            "stretch",
+            await naturalDivider.EvaluateAsync<string>("element => getComputedStyle(element).alignSelf"));
+        var flexDividerBox = await GetVisibleBoxAsync(flexDivider);
+        var naturalDividerBox = await GetVisibleBoxAsync(naturalDivider);
+        Assert.True(flexDividerBox.Height > naturalDividerBox.Height + 8);
+
+        var absoluteBoundary = await GetVisibleBoxAsync(Page.Locator("#layout-absolute-boundary"));
+        var absoluteDivider = await GetVisibleBoxAsync(Page.Locator("#layout-absolute-divider"));
+        var blockStartInset = absoluteDivider.Y - absoluteBoundary.Y;
+        var blockEndInset = absoluteBoundary.Y + absoluteBoundary.Height
+            - absoluteDivider.Y - absoluteDivider.Height;
+        Assert.True(blockStartInset > 0);
+        Assert.True(blockEndInset > 0);
+        Assert.InRange(Math.Abs(blockStartInset - blockEndInset), 0, 1);
+    }
+
+    private async Task<(double X, double Y, double Width, double Height)> GetVisibleBoxAsync(
+        ILocator locator)
+    {
+        for (var attempt = 0; attempt < 4; attempt++)
+        {
+            await Expect(locator).ToBeVisibleAsync();
+            var box = await locator.BoundingBoxAsync();
+            if (box is not null)
+            {
+                return (box.X, box.Y, box.Width, box.Height);
+            }
+
+            await Task.Delay(25);
+        }
+
+        throw new InvalidOperationException("The visible element did not expose a bounding box.");
     }
 }

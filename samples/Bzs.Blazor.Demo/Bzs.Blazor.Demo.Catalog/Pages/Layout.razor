@@ -1,0 +1,45 @@
+<PageTitle>Layout - Bzs.Blazor</PageTitle>
+
+<section class="demo-page" aria-labelledby="layout-title">
+    <header class="demo-page-header">
+        <p class="demo-eyebrow">Layout</p>
+        <h1 id="layout-title">Container, Grid, and Stack</h1>
+    </header>
+
+    <section class="demo-panel" aria-labelledby="container-title">
+        <h2 id="container-title">Container</h2>
+        <BzsContainer Id="layout-container" Fixed="true" Class="demo-layout-container">
+            <span>Fixed content region</span>
+        </BzsContainer>
+    </section>
+
+    <section class="demo-panel" aria-labelledby="grid-title">
+        <h2 id="grid-title">Responsive grid</h2>
+        <BzsGrid Id="layout-responsive-grid" Spacing="BzsLayoutSpacing.Medium">
+            <BzsGridItem Id="layout-production" Xs="12" Md="6" Lg="4" Class="demo-layout-tile">Production</BzsGridItem>
+            <BzsGridItem Id="layout-review" Xs="12" Md="6" Lg="4" Class="demo-layout-tile">Review</BzsGridItem>
+            <BzsGridItem Id="layout-archive" Xs="12" Md="12" Lg="4" Class="demo-layout-tile">Archive</BzsGridItem>
+        </BzsGrid>
+    </section>
+
+    <section class="demo-panel" aria-labelledby="stack-title">
+        <h2 id="stack-title">Stack and spacer</h2>
+        <BzsStack Id="layout-queue-stack" Row="true" AlignItems="BzsAlignItems.Center" Class="demo-layout-stack">
+            <strong>Queue</strong>
+            <BzsSpacer Id="layout-queue-spacer" />
+            <span>12 items</span>
+        </BzsStack>
+        <BzsDivider Subtle="true" Inset="BzsDividerInset.Both" />
+        <BzsStack Row="true" AlignItems="BzsAlignItems.Center" Spacing="BzsLayoutSpacing.Medium" Class="demo-layout-stack demo-layout-stack--tall">
+            <span>Ready</span>
+            <BzsDivider Id="layout-flex-divider" Vertical="true" FlexItem="true" Subtle="true" />
+            <span>In progress</span>
+            <BzsDivider Id="layout-natural-divider" Vertical="true" Subtle="true" />
+            <span>Complete</span>
+        </BzsStack>
+        <div id="layout-absolute-boundary" class="demo-layout-absolute-boundary">
+            <span>Absolute boundary</span>
+            <BzsDivider Id="layout-absolute-divider" Vertical="true" Absolute="true" Subtle="true" Inset="BzsDividerInset.Both" />
+        </div>
+    </section>
+</section>

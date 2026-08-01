@@ -69,6 +69,11 @@
     --bzs-control-height: 2.25rem;
     --bzs-control-padding-inline: 0.75rem;
     --bzs-control-gap: 0.5rem;
+    --bzs-layout-spacing-extra-small: 0.25rem;
+    --bzs-layout-spacing-small: 0.5rem;
+    --bzs-layout-spacing-medium: 0.75rem;
+    --bzs-layout-spacing-large: 1rem;
+    --bzs-layout-spacing-extra-large: 1.5rem;
 }
 
 [data-bzs-density="comfortable"] {
