@@ -107,6 +107,93 @@ public sealed class LayoutTests
     }
 
     [Fact]
+    public void AppShellAndAppBarRenderConsumerContentAndSemanticAttributes()
+    {
+        using var context = new BunitContext();
+        var cut = context.Render<BzsAppShell>(parameters => parameters
+            .Add(component => component.Id, "application-shell")
+            .Add(component => component.ChildContent, shellBuilder =>
+            {
+                shellBuilder.OpenComponent<BzsAppBar>(0);
+                shellBuilder.AddAttribute(1, nameof(BzsAppBar.Id), "application-bar");
+                shellBuilder.AddAttribute(2, nameof(BzsAppBar.Dense), true);
+                shellBuilder.AddAttribute(3, nameof(BzsAppBar.Color), BzsAppBarColor.Info);
+                shellBuilder.AddAttribute(4, nameof(BzsAppBar.ChildContent),
+                    (Microsoft.AspNetCore.Components.RenderFragment)(contentBuilder =>
+                        contentBuilder.AddContent(0, "Workspace")));
+                shellBuilder.CloseComponent();
+            }));
+
+        var shell = cut.Find("#application-shell");
+        Assert.Equal("true", shell.GetAttribute("data-bzs-app-shell"));
+        Assert.Null(shell.GetAttribute("style"));
+
+        var appBar = cut.Find("#application-bar");
+        Assert.Equal("HEADER", appBar.TagName);
+        Assert.Equal("info", appBar.GetAttribute("data-bzs-app-bar"));
+        Assert.Equal("dense", appBar.GetAttribute("data-bzs-app-bar-density"));
+        Assert.Equal("Workspace", appBar.TextContent.Trim());
+    }
+
+    [Fact]
+    public void NavigationDrawerRequestsCloseWithoutMutatingControlledState()
+    {
+        using var context = new BunitContext();
+        bool? requestedOpen = null;
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Id, "workspace-navigation")
+            .Add(component => component.AccessibleName, "Workspace navigation")
+            .Add(component => component.Open, true)
+            .Add(component => component.OpenChanged, open => requestedOpen = open)
+            .Add(component => component.Variant, BzsNavigationDrawerVariant.Temporary)
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        var navigation = cut.Find("#workspace-navigation");
+        Assert.Equal("NAV", navigation.TagName);
+        Assert.Equal("Workspace navigation", navigation.GetAttribute("aria-label"));
+        Assert.Null(navigation.GetAttribute("aria-hidden"));
+
+        cut.Find("button").Click();
+
+        Assert.False(requestedOpen);
+        Assert.Equal("true", navigation.GetAttribute("data-bzs-open"));
+    }
+
+    [Fact]
+    public void ClosedNavigationDrawerIsRemovedFromKeyboardAndAccessibilityNavigation()
+    {
+        using var context = new BunitContext();
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Id, "closed-navigation")
+            .Add(component => component.Open, false)
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        var navigation = cut.Find("#closed-navigation");
+        Assert.Equal("true", navigation.GetAttribute("aria-hidden"));
+        Assert.True(navigation.HasAttribute("inert"));
+    }
+
+    [Theory]
+    [InlineData(true, "MAIN", "landmark")]
+    [InlineData(false, "DIV", "container")]
+    public void MainContentSupportsTopLevelAndNestedComposition(
+        bool landmark,
+        string expectedTag,
+        string expectedMode)
+    {
+        using var context = new BunitContext();
+        var cut = context.Render<BzsMainContent>(parameters => parameters
+            .Add(component => component.Id, "application-content")
+            .Add(component => component.Landmark, landmark)
+            .Add(component => component.ChildContent, "Main content"));
+
+        var content = cut.Find("#application-content");
+        Assert.Equal(expectedTag, content.TagName);
+        Assert.Equal(expectedMode, content.GetAttribute("data-bzs-main-content"));
+        Assert.Equal("Main content", content.TextContent.Trim());
+    }
+
+    [Fact]
     public void LayoutComponentsRejectUnsupportedEnums()
     {
         using var context = new BunitContext();
@@ -117,5 +204,14 @@ public sealed class LayoutTests
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             context.Render<BzsDivider>(parameters => parameters
                 .Add(component => component.Inset, (BzsDividerInset)999)));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            context.Render<BzsAppBar>(parameters => parameters
+                .Add(component => component.Color, (BzsAppBarColor)999)));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            context.Render<BzsNavigationDrawer>(parameters => parameters
+                .Add(component => component.Variant, (BzsNavigationDrawerVariant)999)));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            context.Render<BzsNavigationDrawer>(parameters => parameters
+                .Add(component => component.Position, (BzsNavigationDrawerPosition)999)));
     }
 }

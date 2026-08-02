@@ -1,0 +1,17 @@
+.bzs-main-content {
+    box-sizing: border-box;
+    min-inline-size: 0;
+    min-block-size: 0;
+    overflow: auto;
+    background: var(--bzs-surface);
+    color: var(--bzs-text);
+    transition:
+        margin-inline-start var(--bzs-motion-normal) var(--bzs-motion-easing),
+        margin-inline-end var(--bzs-motion-normal) var(--bzs-motion-easing);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bzs-main-content {
+        transition: none;
+    }
+}

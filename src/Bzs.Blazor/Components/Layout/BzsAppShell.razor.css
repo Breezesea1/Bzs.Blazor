@@ -1,0 +1,50 @@
+.bzs-app-shell {
+    box-sizing: border-box;
+    display: grid;
+    position: relative;
+    isolation: isolate;
+    grid-template-areas:
+        "app-bar"
+        "body";
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+    min-inline-size: 0;
+    min-block-size: var(--bzs-app-shell-min-block-size, 100dvh);
+    background: var(--bzs-canvas);
+    color: var(--bzs-text);
+}
+
+.bzs-app-shell ::deep > .bzs-app-bar {
+    grid-area: app-bar;
+}
+
+.bzs-app-shell ::deep > .bzs-main-content {
+    grid-area: body;
+}
+
+.bzs-app-shell ::deep > .bzs-navigation-drawer {
+    grid-column: 1;
+    grid-row: 1 / -1;
+}
+
+.bzs-app-shell ::deep > .bzs-navigation-drawer[data-bzs-open="true"][data-bzs-navigation-drawer-variant="persistent"][data-bzs-navigation-drawer-position="start"] ~ .bzs-app-bar,
+.bzs-app-shell ::deep > .bzs-navigation-drawer[data-bzs-open="true"][data-bzs-navigation-drawer-variant="persistent"][data-bzs-navigation-drawer-position="start"] ~ .bzs-main-content {
+    margin-inline-start: var(--bzs-navigation-drawer-width, 16rem);
+}
+
+.bzs-app-shell ::deep > .bzs-navigation-drawer[data-bzs-open="true"][data-bzs-navigation-drawer-variant="persistent"][data-bzs-navigation-drawer-position="end"] ~ .bzs-app-bar,
+.bzs-app-shell ::deep > .bzs-navigation-drawer[data-bzs-open="true"][data-bzs-navigation-drawer-variant="persistent"][data-bzs-navigation-drawer-position="end"] ~ .bzs-main-content {
+    margin-inline-end: var(--bzs-navigation-drawer-width, 16rem);
+}
+
+@media (min-width: 48rem) {
+    .bzs-app-shell ::deep > .bzs-navigation-drawer[data-bzs-open="true"][data-bzs-navigation-drawer-variant="responsive"][data-bzs-navigation-drawer-position="start"] ~ .bzs-app-bar,
+    .bzs-app-shell ::deep > .bzs-navigation-drawer[data-bzs-open="true"][data-bzs-navigation-drawer-variant="responsive"][data-bzs-navigation-drawer-position="start"] ~ .bzs-main-content {
+        margin-inline-start: var(--bzs-navigation-drawer-width, 16rem);
+    }
+
+    .bzs-app-shell ::deep > .bzs-navigation-drawer[data-bzs-open="true"][data-bzs-navigation-drawer-variant="responsive"][data-bzs-navigation-drawer-position="end"] ~ .bzs-app-bar,
+    .bzs-app-shell ::deep > .bzs-navigation-drawer[data-bzs-open="true"][data-bzs-navigation-drawer-variant="responsive"][data-bzs-navigation-drawer-position="end"] ~ .bzs-main-content {
+        margin-inline-end: var(--bzs-navigation-drawer-width, 16rem);
+    }
+}

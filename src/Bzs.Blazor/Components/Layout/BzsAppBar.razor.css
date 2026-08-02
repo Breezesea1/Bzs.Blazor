@@ -1,0 +1,82 @@
+.bzs-app-bar {
+    box-sizing: border-box;
+    display: flex;
+    z-index: 30;
+    min-inline-size: 0;
+    min-block-size: var(--bzs-app-bar-height, 4rem);
+    align-items: center;
+    gap: var(--bzs-control-gap);
+    border: 0;
+    padding-inline: var(--bzs-app-bar-gutter, 1rem);
+    background: var(--bzs-surface);
+    color: var(--bzs-text);
+    transition:
+        margin-inline-start var(--bzs-motion-normal) var(--bzs-motion-easing),
+        margin-inline-end var(--bzs-motion-normal) var(--bzs-motion-easing);
+}
+
+.bzs-app-bar--fixed {
+    position: sticky;
+    inset-block-start: 0;
+}
+
+.bzs-app-bar--dense {
+    --bzs-app-bar-height: 3rem;
+}
+
+.bzs-app-bar--no-gutters {
+    --bzs-app-bar-gutter: 0;
+}
+
+.bzs-app-bar--level-raised {
+    background: var(--bzs-surface-raised);
+    box-shadow: var(--bzs-app-bar-shadow, 0 0.35rem 1rem rgb(38 45 56 / 0.1));
+}
+
+.bzs-app-bar--level-inset {
+    background: var(--bzs-surface-inset);
+    box-shadow: var(--bzs-shadow-inset);
+}
+
+.bzs-app-bar--level-overlay {
+    background: var(--bzs-surface-overlay);
+    box-shadow: var(--bzs-shadow-overlay);
+}
+
+.bzs-app-bar--primary {
+    background: var(--bzs-primary);
+    color: var(--bzs-on-primary);
+}
+
+.bzs-app-bar--info {
+    background: color-mix(in srgb, var(--bzs-info) 15%, var(--bzs-surface-raised));
+}
+
+.bzs-app-bar--success {
+    background: color-mix(in srgb, var(--bzs-success) 15%, var(--bzs-surface-raised));
+}
+
+.bzs-app-bar--warning {
+    background: color-mix(in srgb, var(--bzs-warning) 15%, var(--bzs-surface-raised));
+}
+
+.bzs-app-bar--error {
+    background: color-mix(in srgb, var(--bzs-error) 15%, var(--bzs-surface-raised));
+}
+
+@media (forced-colors: active) {
+    .bzs-app-bar {
+        background: Canvas;
+        box-shadow: none;
+        color: CanvasText;
+        outline: 1px solid CanvasText;
+        outline-offset: -1px;
+        transition: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bzs-app-bar {
+        transition: none;
+    }
+}

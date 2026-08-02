@@ -1,0 +1,13 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+<nav @attributes="RootAttributes">
+    <button type="button"
+            class="bzs-navigation-drawer__backdrop"
+            tabindex="-1"
+            aria-hidden="true"
+            @onclick="HandleBackdropClickAsync"></button>
+    <div class="bzs-navigation-drawer__panel">
+        @ChildContent
+    </div>
+</nav>

@@ -113,6 +113,27 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     }
 
     [Fact]
+    public async Task ResponsiveNavigationDrawerStatesHaveNoCriticalOrSeriousAxeViolations()
+    {
+        BeginBrowserGateTest();
+        await Page.SetViewportSizeAsync(390, 844);
+        await Page.GotoAsync($"{server.BaseUrl}/layout");
+
+        var drawer = Page.Locator("#layout-navigation-drawer");
+        var close = Page.GetByRole(AriaRole.Button, new() { Name = "Close navigation" });
+        await Expect(close).ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Navigation, new() { Name = "Workspace navigation" }))
+            .ToBeVisibleAsync();
+        await AssertNoCriticalOrSeriousAxeViolationsAsync("open responsive navigation drawer");
+
+        await close.ClickAsync();
+        var toggle = Page.Locator("#layout-drawer-toggle");
+        await Expect(toggle).ToHaveAttributeAsync("aria-expanded", "false");
+        await Expect(drawer).ToHaveAttributeAsync("aria-hidden", "true");
+        await AssertNoCriticalOrSeriousAxeViolationsAsync("closed responsive navigation drawer");
+    }
+
+    [Fact]
     public async Task ForcedColorsPreservesFocusBordersAndPageWidth()
     {
         BeginBrowserGateTest();
@@ -151,6 +172,8 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     public async Task TwoHundredPercentReflowEquivalentAvoidsOverflowAndInteractiveControlOverlap()
     {
         BeginBrowserGateTest();
+        await Page.AddInitScriptAsync(
+            "localStorage.setItem('bzs-demo-sidebar-collapsed', '1')");
         await SetTwoHundredPercentReflowEquivalentViewportAsync(Page);
 
         await Page.GotoAsync($"{server.BaseUrl}/forms");
@@ -266,6 +289,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
                         const rect = element.getBoundingClientRect();
                         return style.display !== 'none'
                             && style.visibility !== 'hidden'
+                            && !element.closest('[inert]')
                             && rect.width > 0
                             && rect.height > 0;
                     })

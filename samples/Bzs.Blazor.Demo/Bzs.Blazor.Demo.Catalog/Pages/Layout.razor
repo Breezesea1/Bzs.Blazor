@@ -1,45 +1,350 @@
 <PageTitle>Layout - Bzs.Blazor</PageTitle>
 
-<section class="demo-page" aria-labelledby="layout-title">
-    <header class="demo-page-header">
+<section id="layout-workbench" class="demo-page demo-layout-page" aria-labelledby="layout-title">
+    <header class="demo-page-header demo-layout-page-header">
         <p class="demo-eyebrow">Layout</p>
-        <h1 id="layout-title">Container, Grid, and Stack</h1>
+        <h1 id="layout-title">App Shell, Grid, and Stack</h1>
+        <p id="layout-intro" class="demo-page-summary">
+            Compose an application frame, responsive navigation, page width, flexible rows, and separators without JavaScript.
+            Each live preview is paired with the Razor that produces it.
+        </p>
     </header>
 
-    <section class="demo-panel" aria-labelledby="container-title">
-        <h2 id="container-title">Container</h2>
-        <BzsContainer Id="layout-container" Fixed="true" Class="demo-layout-container">
-            <span>Fixed content region</span>
-        </BzsContainer>
+    <ul id="layout-theme-palette" class="demo-layout-palette" aria-label="Layout theme colors">
+        <li id="layout-tone-primary" class="demo-layout-palette-item demo-layout-palette-item--primary">
+            <span class="demo-layout-swatch" aria-hidden="true"></span>
+            <span><strong>Primary</strong><code>--bzs-primary</code></span>
+        </li>
+        <li id="layout-tone-info" class="demo-layout-palette-item demo-layout-palette-item--info">
+            <span class="demo-layout-swatch" aria-hidden="true"></span>
+            <span><strong>Info</strong><code>--bzs-info</code></span>
+        </li>
+        <li id="layout-tone-success" class="demo-layout-palette-item demo-layout-palette-item--success">
+            <span class="demo-layout-swatch" aria-hidden="true"></span>
+            <span><strong>Success</strong><code>--bzs-success</code></span>
+        </li>
+        <li id="layout-tone-warning" class="demo-layout-palette-item demo-layout-palette-item--warning">
+            <span class="demo-layout-swatch" aria-hidden="true"></span>
+            <span><strong>Warning</strong><code>--bzs-warning</code></span>
+        </li>
+        <li id="layout-tone-error" class="demo-layout-palette-item demo-layout-palette-item--error">
+            <span class="demo-layout-swatch" aria-hidden="true"></span>
+            <span><strong>Error</strong><code>--bzs-error</code></span>
+        </li>
+    </ul>
+
+    <section class="demo-panel demo-layout-panel demo-layout-panel--primary" aria-labelledby="app-shell-title">
+        <header class="demo-layout-section-header">
+            <h2 id="app-shell-title">App bar and navigation drawer</h2>
+            <p>
+                Compose the shell in document order: navigation drawer, app bar, then main content.
+                The responsive drawer reserves space on wider screens and becomes an overlay below <code>48rem</code>.
+            </p>
+        </header>
+
+        <div class="demo-layout-example demo-layout-example--shell">
+            <div class="demo-layout-preview">
+                <p class="demo-layout-example-label">Interactive preview</p>
+                <BzsAppShell Id="layout-app-shell" Class="demo-app-shell">
+                    <BzsNavigationDrawer Id="layout-navigation-drawer"
+                                         Class="demo-app-shell-drawer"
+                                         AccessibleName="Workspace navigation"
+                                         Open="_shellNavigationOpen"
+                                         OpenChanged="OnShellNavigationChanged"
+                                         Variant="BzsNavigationDrawerVariant.Responsive"
+                                         Position="BzsNavigationDrawerPosition.Start">
+                        <div class="demo-app-shell-drawer-content">
+                            <div class="demo-app-shell-brand">
+                                <a class="demo-app-shell-brand-link" href="#layout-app-shell">
+                                    <span class="demo-app-shell-brand-mark" aria-hidden="true">B</span>
+                                    <span class="demo-app-shell-brand-copy">
+                                        <strong>Bzs.Blazor</strong>
+                                        <small>Component lab</small>
+                                    </span>
+                                </a>
+                                <BzsButton Id="layout-drawer-close"
+                                           Class="demo-app-shell-drawer-toggle"
+                                           Variant="BzsButtonVariant.Ghost"
+                                           Size="BzsButtonSize.Small"
+                                           StartIcon="@BzsIcons.ChevronLeft"
+                                           AccessibleName="Close navigation"
+                                           Click="@(_ => ToggleShellNavigation())" />
+                            </div>
+
+                            <div class="demo-app-shell-nav-section">
+                                <p class="demo-app-shell-nav-heading">Catalog</p>
+                                <a class="demo-app-shell-nav-link demo-app-shell-nav-link--active" href="#layout-app-shell">
+                                    <BzsIcon Icon="DemoNavIcons.Overview" />
+                                    <span>Overview</span>
+                                </a>
+                                <a class="demo-app-shell-nav-link" href="#container-title">
+                                    <BzsIcon Icon="DemoNavIcons.ThemeFoundation" />
+                                    <span>Theme foundation</span>
+                                </a>
+                                <a class="demo-app-shell-nav-link" href="#grid-title">
+                                    <BzsIcon Icon="DemoNavIcons.Foundation" />
+                                    <span>Foundation components</span>
+                                </a>
+                                <a class="demo-app-shell-nav-link" href="#divider-title">
+                                    <BzsIcon Icon="DemoNavIcons.Overlays" />
+                                    <span>Overlays</span>
+                                </a>
+                                <a class="demo-app-shell-nav-link" href="#layout-workbench">
+                                    <BzsIcon Icon="DemoNavIcons.Layout" />
+                                    <span>Layout</span>
+                                </a>
+                            </div>
+
+                            <div class="demo-app-shell-nav-section">
+                                <p class="demo-app-shell-nav-heading">Render modes</p>
+                                <a class="demo-app-shell-nav-link" href="#layout-app-shell">
+                                    <BzsIcon Icon="DemoNavIcons.StaticRender" />
+                                    <span>Static SSR</span>
+                                </a>
+                                <a class="demo-app-shell-nav-link" href="#layout-app-shell">
+                                    <BzsIcon Icon="DemoNavIcons.AutoRender" />
+                                    <span>Interactive Auto</span>
+                                </a>
+                            </div>
+
+                            <div class="demo-app-shell-user">
+                                <span class="demo-app-shell-user-avatar" aria-hidden="true">D</span>
+                                <span class="demo-app-shell-user-copy">
+                                    <strong>Demo User</strong>
+                                    <small>Administrator</small>
+                                </span>
+                                <a class="demo-app-shell-user-action" href="#layout-app-shell" aria-label="Return to overview">
+                                    <BzsIcon Icon="DemoNavIcons.LogOut" />
+                                    <span>Exit</span>
+                                </a>
+                            </div>
+                        </div>
+                    </BzsNavigationDrawer>
+
+                    <BzsAppBar Id="layout-app-bar"
+                               Dense="true"
+                               Color="BzsAppBarColor.Surface">
+                        @if (!_shellNavigationOpen)
+                        {
+                            <BzsButton Id="layout-drawer-toggle"
+                                       Class="demo-app-shell-toggle"
+                                       Variant="BzsButtonVariant.Secondary"
+                                       Size="BzsButtonSize.Small"
+                                       StartIcon="@BzsIcons.Menu"
+                                       AccessibleName="Open navigation"
+                                       aria-controls="layout-navigation-drawer"
+                                       aria-expanded="false"
+                                       Click="@(_ => ToggleShellNavigation())" />
+                        }
+                        <p class="demo-app-shell-context">
+                            <span>Bzs.Blazor</span>
+                            <span class="demo-app-shell-separator" aria-hidden="true">/</span>
+                            <strong>Component workbench</strong>
+                        </p>
+                        <p class="demo-app-shell-status">
+                            <span class="demo-app-shell-status-dot" aria-hidden="true"></span>
+                            Aspire demo host
+                        </p>
+                        <span class="demo-app-shell-language" aria-label="Language">
+                            <span class="demo-app-shell-language--active">English</span>
+                            <span>中文</span>
+                        </span>
+                    </BzsAppBar>
+
+                    <BzsMainContent Id="layout-main-content" Landmark="false">
+                        <section class="demo-app-shell-content" aria-labelledby="app-shell-preview-title">
+                            <p class="demo-app-shell-kicker">Today</p>
+                            <h3 id="app-shell-preview-title">Review operations</h3>
+                            <div class="demo-app-shell-metrics">
+                                <article><strong>24</strong><span>Ready</span></article>
+                                <article><strong>07</strong><span>In review</span></article>
+                                <article><strong>03</strong><span>Blocked</span></article>
+                            </div>
+                        </section>
+                    </BzsMainContent>
+                </BzsAppShell>
+            </div>
+
+            <figure class="demo-layout-code">
+                <figcaption>
+                    <span>Razor</span>
+                    <span>Controlled navigation</span>
+                </figcaption>
+                <pre id="layout-app-shell-code"><code>&lt;BzsAppShell Class="app-shell"&gt;
+    &lt;BzsNavigationDrawer Open="navigationOpen"
+                         OpenChanged="OnNavigationChanged"
+                         Variant="BzsNavigationDrawerVariant.Responsive"
+                         AccessibleName="Workspace navigation"&gt;
+        &lt;BrandAndNavigation /&gt;
+    &lt;/BzsNavigationDrawer&gt;
+
+    &lt;BzsAppBar Dense="true"&gt;
+        &lt;Breadcrumbs /&gt;
+        &lt;Status /&gt;
+    &lt;/BzsAppBar&gt;
+
+    &lt;BzsMainContent&gt;...&lt;/BzsMainContent&gt;
+&lt;/BzsAppShell&gt;</code></pre>
+                <p class="demo-layout-code-file">Layout.razor.css</p>
+                <pre id="layout-app-shell-css-code"><code>.app-shell {
+    --bzs-app-shell-min-block-size: 30rem;
+    --bzs-navigation-drawer-width: 13rem;
+}</code></pre>
+            </figure>
+        </div>
     </section>
 
-    <section class="demo-panel" aria-labelledby="grid-title">
-        <h2 id="grid-title">Responsive grid</h2>
-        <BzsGrid Id="layout-responsive-grid" Spacing="BzsLayoutSpacing.Medium">
-            <BzsGridItem Id="layout-production" Xs="12" Md="6" Lg="4" Class="demo-layout-tile">Production</BzsGridItem>
-            <BzsGridItem Id="layout-review" Xs="12" Md="6" Lg="4" Class="demo-layout-tile">Review</BzsGridItem>
-            <BzsGridItem Id="layout-archive" Xs="12" Md="12" Lg="4" Class="demo-layout-tile">Archive</BzsGridItem>
-        </BzsGrid>
+    <section class="demo-panel demo-layout-panel demo-layout-panel--primary" aria-labelledby="container-title">
+        <header class="demo-layout-section-header">
+            <h2 id="container-title">Container</h2>
+            <p>
+                Use <code>Fixed</code> for stepped viewport widths, or set <code>MaxWidth</code> for one responsive maximum.
+                Gutters are included by default.
+            </p>
+        </header>
+
+        <div class="demo-layout-example">
+            <div class="demo-layout-preview">
+                <p class="demo-layout-example-label">Live preview</p>
+                <BzsContainer Id="layout-container" Fixed="true" Class="demo-layout-container">
+                    <span>Fixed content region</span>
+                </BzsContainer>
+            </div>
+
+            <figure class="demo-layout-code">
+                <figcaption>
+                    <span>Razor</span>
+                    <span>Fixed breakpoints</span>
+                </figcaption>
+                <pre id="layout-container-code"><code>&lt;BzsContainer Fixed="true"&gt;
+    &lt;main&gt;Page content&lt;/main&gt;
+&lt;/BzsContainer&gt;</code></pre>
+            </figure>
+        </div>
     </section>
 
-    <section class="demo-panel" aria-labelledby="stack-title">
-        <h2 id="stack-title">Stack and spacer</h2>
-        <BzsStack Id="layout-queue-stack" Row="true" AlignItems="BzsAlignItems.Center" Class="demo-layout-stack">
-            <strong>Queue</strong>
-            <BzsSpacer Id="layout-queue-spacer" />
-            <span>12 items</span>
-        </BzsStack>
-        <BzsDivider Subtle="true" Inset="BzsDividerInset.Both" />
-        <BzsStack Row="true" AlignItems="BzsAlignItems.Center" Spacing="BzsLayoutSpacing.Medium" Class="demo-layout-stack demo-layout-stack--tall">
-            <span>Ready</span>
-            <BzsDivider Id="layout-flex-divider" Vertical="true" FlexItem="true" Subtle="true" />
-            <span>In progress</span>
-            <BzsDivider Id="layout-natural-divider" Vertical="true" Subtle="true" />
-            <span>Complete</span>
-        </BzsStack>
-        <div id="layout-absolute-boundary" class="demo-layout-absolute-boundary">
-            <span>Absolute boundary</span>
-            <BzsDivider Id="layout-absolute-divider" Vertical="true" Absolute="true" Subtle="true" Inset="BzsDividerInset.Both" />
+    <section class="demo-panel demo-layout-panel demo-layout-panel--info" aria-labelledby="grid-title">
+        <header class="demo-layout-section-header">
+            <h2 id="grid-title">Responsive grid</h2>
+            <p>
+                Grid items span 1-12 columns. These items are full width on small screens, split at
+                <code>Md</code>, and form three equal columns at <code>Lg</code>.
+            </p>
+        </header>
+
+        <div class="demo-layout-example">
+            <div class="demo-layout-preview">
+                <p class="demo-layout-example-label">Live preview</p>
+                <BzsGrid Id="layout-responsive-grid" Spacing="BzsLayoutSpacing.Medium">
+                    <BzsGridItem Id="layout-production" Xs="12" Md="6" Lg="4" Class="demo-layout-tile demo-layout-tile--success">Production</BzsGridItem>
+                    <BzsGridItem Id="layout-review" Xs="12" Md="6" Lg="4" Class="demo-layout-tile demo-layout-tile--primary">Review</BzsGridItem>
+                    <BzsGridItem Id="layout-archive" Xs="12" Md="12" Lg="4" Class="demo-layout-tile demo-layout-tile--warning">Archive</BzsGridItem>
+                </BzsGrid>
+            </div>
+
+            <figure class="demo-layout-code">
+                <figcaption>
+                    <span>Razor</span>
+                    <span>12-column grid</span>
+                </figcaption>
+                <pre id="layout-grid-code"><code>&lt;BzsGrid Spacing="BzsLayoutSpacing.Medium"&gt;
+    &lt;BzsGridItem Xs="12" Md="6" Lg="4"&gt;Production&lt;/BzsGridItem&gt;
+    &lt;BzsGridItem Xs="12" Md="6" Lg="4"&gt;Review&lt;/BzsGridItem&gt;
+    &lt;BzsGridItem Xs="12" Md="12" Lg="4"&gt;Archive&lt;/BzsGridItem&gt;
+&lt;/BzsGrid&gt;</code></pre>
+            </figure>
+        </div>
+    </section>
+
+    <section class="demo-panel demo-layout-panel demo-layout-panel--success" aria-labelledby="stack-title">
+        <header class="demo-layout-section-header">
+            <h2 id="stack-title">Stack and spacer</h2>
+            <p>
+                Set <code>Row</code> for horizontal toolbars. A <code>BzsSpacer</code> consumes the remaining
+                main-axis space and pushes the following content to the far edge.
+            </p>
+        </header>
+
+        <div class="demo-layout-example">
+            <div class="demo-layout-preview">
+                <p class="demo-layout-example-label">Live preview</p>
+                <BzsStack Id="layout-queue-stack" Row="true" AlignItems="BzsAlignItems.Center" Class="demo-layout-stack">
+                    <strong>Queue</strong>
+                    <BzsSpacer Id="layout-queue-spacer" />
+                    <span class="demo-layout-count">12 items</span>
+                </BzsStack>
+            </div>
+
+            <figure class="demo-layout-code">
+                <figcaption>
+                    <span>Razor</span>
+                    <span>Toolbar alignment</span>
+                </figcaption>
+                <pre id="layout-stack-code"><code>&lt;BzsStack Row="true" AlignItems="BzsAlignItems.Center"&gt;
+    &lt;strong&gt;Queue&lt;/strong&gt;
+    &lt;BzsSpacer /&gt;
+    &lt;span&gt;12 items&lt;/span&gt;
+&lt;/BzsStack&gt;</code></pre>
+            </figure>
+        </div>
+    </section>
+
+    <section class="demo-panel demo-layout-panel demo-layout-panel--warning" aria-labelledby="divider-title">
+        <header class="demo-layout-section-header">
+            <h2 id="divider-title">Dividers</h2>
+            <p>
+                Dividers can be horizontal, vertical, stretched by a flex row, or pinned inside a positioned parent.
+                Use <code>Inset</code> to keep the line away from surrounding edges.
+            </p>
+        </header>
+
+        <div class="demo-layout-example">
+            <div class="demo-layout-preview">
+                <p class="demo-layout-example-label">Live preview</p>
+                <BzsDivider Class="demo-layout-divider" Subtle="true" Inset="BzsDividerInset.Both" />
+                <BzsStack Row="true" AlignItems="BzsAlignItems.Center" Spacing="BzsLayoutSpacing.Medium" Class="demo-layout-stack demo-layout-stack--tall">
+                    <span>Ready</span>
+                    <BzsDivider Id="layout-flex-divider" Class="demo-layout-divider" Vertical="true" FlexItem="true" Subtle="true" />
+                    <span>In progress</span>
+                    <BzsDivider Id="layout-natural-divider" Class="demo-layout-divider" Vertical="true" Subtle="true" />
+                    <span>Complete</span>
+                </BzsStack>
+                <div id="layout-absolute-boundary" class="demo-layout-absolute-boundary">
+                    <span>Absolute boundary</span>
+                    <BzsDivider Id="layout-absolute-divider" Class="demo-layout-divider" Vertical="true" Absolute="true" Subtle="true" Inset="BzsDividerInset.Both" />
+                </div>
+            </div>
+
+            <figure class="demo-layout-code">
+                <figcaption>
+                    <span>Razor + CSS</span>
+                    <span>Separator variants</span>
+                </figcaption>
+                <pre id="layout-divider-code"><code>&lt;BzsDivider Subtle="true" Inset="BzsDividerInset.Both" /&gt;
+
+&lt;BzsStack Row="true" AlignItems="BzsAlignItems.Center"&gt;
+    &lt;span&gt;Ready&lt;/span&gt;
+    &lt;BzsDivider Vertical="true" FlexItem="true" /&gt;
+    &lt;span&gt;In progress&lt;/span&gt;
+&lt;/BzsStack&gt;
+
+&lt;div class="positioned-boundary"&gt;
+    &lt;BzsDivider Vertical="true" Absolute="true" Inset="BzsDividerInset.Both" /&gt;
+&lt;/div&gt;</code></pre>
+                <p class="demo-layout-code-file">Layout.razor.css</p>
+                <pre id="layout-divider-css-code"><code>.positioned-boundary {
+    position: relative;
+    min-block-size: 5rem;
+}</code></pre>
+            </figure>
         </div>
     </section>
 </section>
+
+@code {
+    private bool _shellNavigationOpen = true;
+
+    private void ToggleShellNavigation() => _shellNavigationOpen = !_shellNavigationOpen;
+
+    private void OnShellNavigationChanged(bool open) => _shellNavigationOpen = open;
+}

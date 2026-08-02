@@ -1,31 +1,81 @@
 @inject NavigationManager Navigation
 
-<nav class="demo-nav" aria-label="Bzs.Blazor catalog">
-    <a class="demo-brand" href="@RouteUrl("")">
-        <span class="demo-brand-mark" aria-hidden="true">B</span>
-        <span class="demo-brand-copy">
-            <strong>Bzs.Blazor</strong>
-            <small>Component lab</small>
-        </span>
-    </a>
+<div class="demo-nav">
+    <div class="demo-brand">
+        <a class="demo-brand-link" href="@RouteUrl("")">
+            <span class="demo-brand-mark" aria-hidden="true">B</span>
+            <span class="demo-brand-copy">
+                <strong>Bzs.Blazor</strong>
+                <small>Component lab</small>
+            </span>
+        </a>
+        <BzsButton Class="demo-navigation-toggle demo-navigation-toggle--close"
+                   Variant="BzsButtonVariant.Secondary"
+                   Size="BzsButtonSize.Small"
+                   StartIcon="@BzsIcons.ChevronLeft"
+                   AccessibleName="Close navigation"
+                   data-demo-navigation-toggle="true"
+                   data-demo-navigation-toggle-mode="close"
+                   aria-controls="demo-navigation-drawer"
+                   aria-expanded="true" />
+    </div>
 
     <div class="demo-nav-section">
         <p class="demo-nav-heading">Catalog</p>
-        <NavLink class="demo-nav-link" href="@RouteUrl("")" Match="NavLinkMatch.All">Overview</NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("theme-foundation")">Theme foundation</NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("foundation")">Foundation components</NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("forms")">Forms</NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("feedback")">Feedback</NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("tabs")">Tabs</NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("overlays")">Overlays</NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("layout")">Layout</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("")" Match="NavLinkMatch.All">
+            <BzsIcon Icon="DemoNavIcons.Overview" />
+            <span class="demo-nav-link-label">Overview</span>
+        </NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("theme-foundation")">
+            <BzsIcon Icon="DemoNavIcons.ThemeFoundation" />
+            <span class="demo-nav-link-label">Theme foundation</span>
+        </NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("foundation")">
+            <BzsIcon Icon="DemoNavIcons.Foundation" />
+            <span class="demo-nav-link-label">Foundation components</span>
+        </NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("forms")">
+            <BzsIcon Icon="DemoNavIcons.Forms" />
+            <span class="demo-nav-link-label">Forms</span>
+        </NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("feedback")">
+            <BzsIcon Icon="DemoNavIcons.Feedback" />
+            <span class="demo-nav-link-label">Feedback</span>
+        </NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("tabs")">
+            <BzsIcon Icon="DemoNavIcons.Tabs" />
+            <span class="demo-nav-link-label">Tabs</span>
+        </NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("overlays")">
+            <BzsIcon Icon="DemoNavIcons.Overlays" />
+            <span class="demo-nav-link-label">Overlays</span>
+        </NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("layout")">
+            <BzsIcon Icon="DemoNavIcons.Layout" />
+            <span class="demo-nav-link-label">Layout</span>
+        </NavLink>
     </div>
 
     <div class="demo-nav-section">
         <p class="demo-nav-heading">Runtime</p>
-        <NavLink class="demo-nav-link" href="@RouteUrl("render-modes/webassembly")">Interactive WebAssembly</NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("render-modes/webassembly")">
+            <BzsIcon Icon="DemoNavIcons.WebAssemblyRender" />
+            <span class="demo-nav-link-label">Interactive WebAssembly</span>
+        </NavLink>
     </div>
-</nav>
+
+    <div class="demo-user">
+        <span class="demo-user-avatar" aria-hidden="true">D</span>
+        <span class="demo-user-copy">
+            <strong>Demo User</strong>
+            <small>Administrator</small>
+        </span>
+        <a class="demo-user-action" href="@RouteUrl("")" aria-label="Demo sign-out action, returns to overview">
+            <BzsIcon Icon="DemoNavIcons.LogOut" />
+            <span class="demo-user-action-label">Exit</span>
+        </a>
+    </div>
+</div>
 
 @code {
     private string RouteUrl(string route) => DemoCulture.PreserveCulture(

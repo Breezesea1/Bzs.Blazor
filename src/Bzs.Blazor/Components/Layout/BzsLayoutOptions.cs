@@ -101,3 +101,46 @@ public enum BzsDividerInset
     /// <summary>Adds equal space at both logical edges.</summary>
     Both,
 }
+
+/// <summary>
+/// Defines the semantic color treatment of a <see cref="BzsAppBar" />.
+/// </summary>
+public enum BzsAppBarColor
+{
+    /// <summary>Uses the active theme surface.</summary>
+    Surface,
+    /// <summary>Uses the primary theme color.</summary>
+    Primary,
+    /// <summary>Uses an informational accent.</summary>
+    Info,
+    /// <summary>Uses a success accent.</summary>
+    Success,
+    /// <summary>Uses a warning accent.</summary>
+    Warning,
+    /// <summary>Uses an error accent.</summary>
+    Error,
+}
+
+/// <summary>
+/// Defines how a <see cref="BzsNavigationDrawer" /> participates in an app shell.
+/// </summary>
+public enum BzsNavigationDrawerVariant
+{
+    /// <summary>Reserves space for open navigation at every viewport size.</summary>
+    Persistent,
+    /// <summary>Overlays main content at every viewport size.</summary>
+    Temporary,
+    /// <summary>Reserves space from 48rem and overlays content below that width.</summary>
+    Responsive,
+}
+
+/// <summary>
+/// Defines the logical edge of a <see cref="BzsNavigationDrawer" />.
+/// </summary>
+public enum BzsNavigationDrawerPosition
+{
+    /// <summary>Anchors navigation to the logical start edge.</summary>
+    Start,
+    /// <summary>Anchors navigation to the logical end edge.</summary>
+    End,
+}

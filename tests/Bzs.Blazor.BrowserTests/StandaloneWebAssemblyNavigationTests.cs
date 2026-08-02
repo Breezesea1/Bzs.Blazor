@@ -9,6 +9,50 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     : BrowserGatePageTest
 {
     [Fact]
+    public async Task HostShellUsesBzsLayoutAndControlledNavigation()
+    {
+        BeginBrowserGateTest();
+        await Page.AddInitScriptAsync(
+            "localStorage.removeItem('bzs-demo-sidebar-collapsed')");
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Page.GotoAsync(server.BaseUrl);
+
+        var shell = Page.Locator("#demo-app-shell");
+        var drawer = Page.Locator("#demo-navigation-drawer");
+        var appBar = Page.Locator("#demo-app-bar");
+        var mainContent = Page.Locator("#main-content");
+        await Expect(shell).ToHaveAttributeAsync("data-bzs-app-shell", "true");
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await Expect(appBar).ToHaveAttributeAsync("data-bzs-app-bar", "surface");
+        await Expect(mainContent).ToHaveAttributeAsync("data-bzs-main-content", "landmark");
+        await Expect(Page.GetByRole(
+            AriaRole.Navigation,
+            new() { Name = "Bzs.Blazor catalog", Exact = true }))
+            .ToBeVisibleAsync();
+
+        await Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Close navigation", Exact = true })
+            .ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+        var openNavigation = Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Open navigation", Exact = true });
+        await Expect(openNavigation).ToBeFocusedAsync();
+        await openNavigation.ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+
+        await Page.SetViewportSizeAsync(390, 844);
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+        await openNavigation.ClickAsync();
+        await Expect(appBar).ToHaveAttributeAsync("inert", "");
+        await Expect(mainContent).ToHaveAttributeAsync("inert", "");
+        await Page.Keyboard.PressAsync("Escape");
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+        await Expect(openNavigation).ToBeFocusedAsync();
+    }
+
+    [Fact]
     public async Task DatePickerLanguageSwitchLoadsMatchingLocalizationResources()
     {
         BeginBrowserGateTest();

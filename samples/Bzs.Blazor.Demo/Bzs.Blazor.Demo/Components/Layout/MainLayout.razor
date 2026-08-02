@@ -1,28 +1,44 @@
 @inherits LayoutComponentBase
 
-<div class="demo-shell">
-    <aside class="demo-sidebar">
+<BzsAppShell Id="demo-app-shell" Class="demo-shell">
+    <BzsNavigationDrawer Id="demo-navigation-drawer"
+                         Class="demo-sidebar"
+                         Open="true"
+                         Variant="BzsNavigationDrawerVariant.Responsive"
+                         Position="BzsNavigationDrawerPosition.Start"
+                         AccessibleName="Bzs.Blazor catalog">
         <NavMenu />
-    </aside>
+    </BzsNavigationDrawer>
 
-    <main id="main-content" class="demo-main">
-        <header class="demo-header">
-            <p class="demo-header-context">
-                <span>Bzs.Blazor</span>
-                <span class="demo-header-separator" aria-hidden="true">/</span>
-                <strong>Component workbench</strong>
-            </p>
-            <p class="demo-header-status">
-                <span class="demo-status-dot" aria-hidden="true"></span>
-                Aspire demo host
-            </p>
-            <DemoLanguageSwitcher @rendermode="InteractiveAuto" />
-        </header>
+    <BzsAppBar Id="demo-app-bar" Class="demo-header" Dense="true" Color="BzsAppBarColor.Surface">
+        <BzsButton Id="demo-navigation-open"
+                   Class="demo-navigation-toggle demo-navigation-toggle--open"
+                   Variant="BzsButtonVariant.Secondary"
+                   Size="BzsButtonSize.Small"
+                   StartIcon="@BzsIcons.Menu"
+                   AccessibleName="Open navigation"
+                   data-demo-navigation-toggle="true"
+                   data-demo-navigation-toggle-mode="open"
+                   aria-controls="demo-navigation-drawer"
+                   aria-expanded="true" />
+        <p class="demo-header-context">
+            <span>Bzs.Blazor</span>
+            <span class="demo-header-separator" aria-hidden="true">/</span>
+            <strong>Component workbench</strong>
+        </p>
+        <p class="demo-header-status">
+            <span class="demo-status-dot" aria-hidden="true"></span>
+            Aspire demo host
+        </p>
+        <DemoLanguageSwitcher @rendermode="InteractiveAuto" />
+    </BzsAppBar>
+
+    <BzsMainContent Id="main-content" Class="demo-main">
         <article class="demo-content">
             @Body
         </article>
-    </main>
-</div>
+    </BzsMainContent>
+</BzsAppShell>
 
 <div id="blazor-error-ui" data-nosnippet>
     The catalog could not complete this interaction.

@@ -1,0 +1,15 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+@if (Landmark)
+{
+    <main @attributes="RootAttributes">
+        @ChildContent
+    </main>
+}
+else
+{
+    <div @attributes="RootAttributes">
+        @ChildContent
+    </div>
+}
