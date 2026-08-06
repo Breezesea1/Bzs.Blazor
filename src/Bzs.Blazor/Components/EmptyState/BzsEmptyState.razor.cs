@@ -1,7 +1,7 @@
 namespace Bzs.Blazor;
 
 /// <summary>Renders a lightweight empty state with optional supporting content and action.</summary>
-public partial class BzsEmptyState : BzsComponentBase
+public sealed partial class BzsEmptyState : BzsComponentBase
 {
     /// <summary>Gets or sets the required empty-state heading.</summary>
     [Parameter, EditorRequired]

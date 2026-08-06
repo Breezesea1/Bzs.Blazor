@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Bzs.Blazor;
 
 /// <summary>Renders a compact switch backed by a native checkbox and integrated with EditContext.</summary>
-public partial class BzsToggle : BzsInputBase<bool>
+public sealed partial class BzsToggle : BzsInputBase<bool>
 {
     /// <summary>Gets or sets optional text displayed inside the switch when enabled.</summary>
     [Parameter]

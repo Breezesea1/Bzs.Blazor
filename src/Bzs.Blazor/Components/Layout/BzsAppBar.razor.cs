@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Renders the primary command and context bar within a <see cref="BzsAppShell" />.
 /// </summary>
-public partial class BzsAppBar : BzsComponentBase
+public sealed partial class BzsAppBar : BzsComponentBase
 {
     /// <summary>
     /// Gets or sets whether the app bar remains pinned to the block-start edge while its shell scrolls.

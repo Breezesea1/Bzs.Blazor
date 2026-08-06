@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Web;
 namespace Bzs.Blazor;
 
 /// <summary>Renders a searchable, strongly typed combobox integrated with EditContext.</summary>
-public partial class BzsSelect<TValue> : BzsInputBase<TValue>
+public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
 {
     /// <summary>Gets or sets the read-only option collection.</summary>
     [Parameter, EditorRequired] public IReadOnlyList<BzsSelectOption<TValue>> Options { get; set; } = [];

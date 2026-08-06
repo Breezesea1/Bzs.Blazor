@@ -12,6 +12,10 @@ namespace Bzs.Blazor;
 /// </remarks>
 public abstract class BzsComponentBase : ComponentBase
 {
+    internal BzsComponentBase()
+    {
+    }
+
     /// <summary>
     /// Gets or sets the element identifier for the component root.
     /// </summary>

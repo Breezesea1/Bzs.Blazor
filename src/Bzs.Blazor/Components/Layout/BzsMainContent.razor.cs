@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Renders the primary content region coordinated by a <see cref="BzsAppShell" />.
 /// </summary>
-public partial class BzsMainContent : BzsComponentBase
+public sealed partial class BzsMainContent : BzsComponentBase
 {
     /// <summary>
     /// Gets or sets whether the component renders a main landmark. Disable this for nested demonstrations.

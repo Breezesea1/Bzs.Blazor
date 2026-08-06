@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Arranges child content along one flexible row or column.
 /// </summary>
-public partial class BzsStack : BzsComponentBase
+public sealed partial class BzsStack : BzsComponentBase
 {
     /// <summary>
     /// Gets or sets whether children are arranged horizontally.

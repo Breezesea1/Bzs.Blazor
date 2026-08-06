@@ -16,12 +16,19 @@
                         @bind-Value="_model.ReviewerCount"
                         Label="Reviewer count"
                         data-testid="@($"{Runtime}-number")" />
+        <BzsDateInput TValue="DateOnly"
+                      @bind-Value="_model.ReleaseDate"
+                      Label="Release date"
+                      data-testid="@($"{Runtime}-date")" />
         <BzsSelect TValue="string"
                    @bind-Value="_model.Stage"
                    Options="StageOptions"
                    Label="Stage"
                    data-testid="@($"{Runtime}-select")" />
     </EditForm>
+    <p data-testid="@($"{Runtime}-date-value")">
+        @_model.ReleaseDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+    </p>
 
     <BzsTabs AccessibleName="Package tabs" data-testid="@($"{Runtime}-tabs")">
         <BzsTabItem Value="summary" Title="Summary">Summary package content.</BzsTabItem>
@@ -88,6 +95,8 @@
     private sealed class SmokeModel
     {
         public int ReviewerCount { get; set; } = 2;
+
+        public DateOnly ReleaseDate { get; set; } = new(2026, 7, 17);
 
         public string Stage { get; set; } = "layout";
     }

@@ -4,7 +4,7 @@ namespace Bzs.Blazor;
 
 /// <summary>Renders a strongly typed segmented radio group integrated with EditContext.</summary>
 /// <typeparam name="TValue">The strongly typed option value.</typeparam>
-public partial class BzsRadioGroup<TValue> : BzsInputBase<TValue>
+public sealed partial class BzsRadioGroup<TValue> : BzsInputBase<TValue>
 {
     /// <summary>Gets or sets the read-only option collection.</summary>
     [Parameter, EditorRequired]

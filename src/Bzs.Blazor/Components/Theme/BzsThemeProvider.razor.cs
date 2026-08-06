@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Cascades semantic theme state and applies built-in or nonce-protected custom tokens.
 /// </summary>
-public partial class BzsThemeProvider : BzsComponentBase, IAsyncDisposable
+public sealed partial class BzsThemeProvider : BzsComponentBase, IAsyncDisposable
 {
     private readonly string _scopeId = Guid.NewGuid().ToString("N");
     private BzsThemeContext _context = BzsThemeContext.Default;

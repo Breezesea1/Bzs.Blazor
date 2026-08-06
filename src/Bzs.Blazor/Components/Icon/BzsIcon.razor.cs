@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Renders an SVG icon from strongly typed <see cref="BzsIconData" />.
 /// </summary>
-public partial class BzsIcon : BzsComponentBase
+public sealed partial class BzsIcon : BzsComponentBase
 {
     /// <summary>
     /// Gets or sets the icon geometry to render.

@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Centers content and constrains its responsive maximum inline size.
 /// </summary>
-public partial class BzsContainer : BzsComponentBase
+public sealed partial class BzsContainer : BzsComponentBase
 {
     /// <summary>
     /// Gets or sets whether the container follows stepped viewport breakpoints.

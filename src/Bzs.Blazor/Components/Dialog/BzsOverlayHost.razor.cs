@@ -6,7 +6,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Renders the scoped command-dialog and toast snapshots for one application root.
 /// </summary>
-public partial class BzsOverlayHost : BzsComponentBase, IAsyncDisposable
+public sealed partial class BzsOverlayHost : BzsComponentBase, IAsyncDisposable
 {
     private IReadOnlyList<BzsOverlayDialogSnapshot> _dialogs = [];
     private IReadOnlyList<BzsToastSnapshot> _toasts = [];

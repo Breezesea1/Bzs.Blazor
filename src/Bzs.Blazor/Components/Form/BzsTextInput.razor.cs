@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Bzs.Blazor;
 
 /// <summary>Renders a native text input integrated with EditContext.</summary>
-public partial class BzsTextInput : BzsInputBase<string?>
+public sealed partial class BzsTextInput : BzsInputBase<string?>
 {
     private IReadOnlyDictionary<string, object> InputAttributes => BuildInputAttributes("bzs-input bzs-text-input", "text");
 

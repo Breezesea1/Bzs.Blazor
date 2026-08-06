@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Bzs.Blazor;
 
 /// <summary>Renders a native multiline text input integrated with EditContext.</summary>
-public partial class BzsTextArea : BzsInputBase<string?>
+public sealed partial class BzsTextArea : BzsInputBase<string?>
 {
     /// <summary>Gets or sets the visible row count.</summary>
     [Parameter] public int Rows { get; set; } = 4;

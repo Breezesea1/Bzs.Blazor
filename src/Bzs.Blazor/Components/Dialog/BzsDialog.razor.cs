@@ -7,7 +7,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Renders a controlled dialog with semantic, keyboard, and dismissal behavior.
 /// </summary>
-public partial class BzsDialog : BzsComponentBase, IAsyncDisposable
+public sealed partial class BzsDialog : BzsComponentBase, IAsyncDisposable
 {
     private readonly string _overlayId = $"bzs-dialog-{Guid.NewGuid():N}";
     private readonly string _titleId = $"bzs-dialog-title-{Guid.NewGuid():N}";

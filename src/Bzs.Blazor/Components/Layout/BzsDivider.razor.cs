@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Separates adjacent content along a horizontal or vertical axis.
 /// </summary>
-public partial class BzsDivider : BzsComponentBase
+public sealed partial class BzsDivider : BzsComponentBase
 {
     /// <summary>
     /// Gets or sets whether the divider is vertical.

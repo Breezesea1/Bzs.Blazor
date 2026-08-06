@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Renders a semantic container with a token-driven depth treatment.
 /// </summary>
-public partial class BzsSurface : BzsComponentBase
+public sealed partial class BzsSurface : BzsComponentBase
 {
     /// <summary>
     /// Gets or sets the semantic depth treatment applied to the surface.

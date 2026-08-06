@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Consumes available space along the main axis of a flexible layout.
 /// </summary>
-public partial class BzsSpacer : BzsComponentBase
+public sealed partial class BzsSpacer : BzsComponentBase
 {
     private IReadOnlyDictionary<string, object> RootAttributes
     {

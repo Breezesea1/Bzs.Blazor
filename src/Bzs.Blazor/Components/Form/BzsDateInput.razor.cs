@@ -12,7 +12,7 @@ namespace Bzs.Blazor;
 /// Calendar dates use the Gregorian calendar localized by the current culture.
 /// DateTimeOffset values preserve an existing offset and use UTC when no value exists.
 /// </summary>
-public partial class BzsDateInput<TValue> : BzsInputBase<TValue>
+public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 {
     private const string NativeDateFormat = "yyyy-MM-dd";
     private const int ImmediateOpenSyncAttemptLimit = 2;

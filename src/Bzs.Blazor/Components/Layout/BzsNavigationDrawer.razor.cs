@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Renders controlled application navigation that can be docked or overlaid by CSS.
 /// </summary>
-public partial class BzsNavigationDrawer : BzsComponentBase
+public sealed partial class BzsNavigationDrawer : BzsComponentBase
 {
     /// <summary>
     /// Gets or sets whether the navigation drawer is open.

@@ -5,7 +5,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Renders a token-driven native button with controlled click behavior.
 /// </summary>
-public partial class BzsButton : BzsComponentBase
+public sealed partial class BzsButton : BzsComponentBase
 {
     /// <summary>
     /// Gets or sets the semantic visual treatment of the button.
