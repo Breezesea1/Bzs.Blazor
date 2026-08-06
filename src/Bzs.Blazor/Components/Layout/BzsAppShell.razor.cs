@@ -7,7 +7,7 @@ namespace Bzs.Blazor;
 /// Set <c>--bzs-app-shell-min-block-size</c> and <c>--bzs-navigation-drawer-width</c>
 /// in a stylesheet to customize the frame without requiring inline styles.
 /// </remarks>
-public partial class BzsAppShell : BzsComponentBase
+public sealed partial class BzsAppShell : BzsComponentBase
 {
     /// <summary>
     /// Gets or sets the navigation drawer, app bar, and main content composition.

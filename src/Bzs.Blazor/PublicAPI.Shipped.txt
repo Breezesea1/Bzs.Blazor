@@ -1,0 +1,910 @@
+Bzs.Blazor.BzsAlignItems
+Bzs.Blazor.BzsAlignItems.Baseline = 4 -> Bzs.Blazor.BzsAlignItems
+Bzs.Blazor.BzsAlignItems.Center = 1 -> Bzs.Blazor.BzsAlignItems
+Bzs.Blazor.BzsAlignItems.End = 2 -> Bzs.Blazor.BzsAlignItems
+Bzs.Blazor.BzsAlignItems.Start = 0 -> Bzs.Blazor.BzsAlignItems
+Bzs.Blazor.BzsAlignItems.Stretch = 3 -> Bzs.Blazor.BzsAlignItems
+Bzs.Blazor.BzsAppBar
+Bzs.Blazor.BzsAppBar.BzsAppBar() -> void
+Bzs.Blazor.BzsAppBar.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsAppBar.ChildContent.set -> void
+Bzs.Blazor.BzsAppBar.Color.get -> Bzs.Blazor.BzsAppBarColor
+Bzs.Blazor.BzsAppBar.Color.set -> void
+Bzs.Blazor.BzsAppBar.Dense.get -> bool
+Bzs.Blazor.BzsAppBar.Dense.set -> void
+Bzs.Blazor.BzsAppBar.Fixed.get -> bool
+Bzs.Blazor.BzsAppBar.Fixed.set -> void
+Bzs.Blazor.BzsAppBar.Gutters.get -> bool
+Bzs.Blazor.BzsAppBar.Gutters.set -> void
+Bzs.Blazor.BzsAppBar.Level.get -> Bzs.Blazor.BzsSurfaceLevel
+Bzs.Blazor.BzsAppBar.Level.set -> void
+Bzs.Blazor.BzsAppBarColor
+Bzs.Blazor.BzsAppBarColor.Error = 5 -> Bzs.Blazor.BzsAppBarColor
+Bzs.Blazor.BzsAppBarColor.Info = 2 -> Bzs.Blazor.BzsAppBarColor
+Bzs.Blazor.BzsAppBarColor.Primary = 1 -> Bzs.Blazor.BzsAppBarColor
+Bzs.Blazor.BzsAppBarColor.Success = 3 -> Bzs.Blazor.BzsAppBarColor
+Bzs.Blazor.BzsAppBarColor.Surface = 0 -> Bzs.Blazor.BzsAppBarColor
+Bzs.Blazor.BzsAppBarColor.Warning = 4 -> Bzs.Blazor.BzsAppBarColor
+Bzs.Blazor.BzsAppShell
+Bzs.Blazor.BzsAppShell.BzsAppShell() -> void
+Bzs.Blazor.BzsAppShell.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsAppShell.ChildContent.set -> void
+Bzs.Blazor.BzsBlazorServiceCollectionExtensions
+Bzs.Blazor.BzsButton
+Bzs.Blazor.BzsButton.AccessibleName.get -> string?
+Bzs.Blazor.BzsButton.AccessibleName.set -> void
+Bzs.Blazor.BzsButton.BzsButton() -> void
+Bzs.Blazor.BzsButton.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsButton.ChildContent.set -> void
+Bzs.Blazor.BzsButton.Click.get -> Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Web.MouseEventArgs!>
+Bzs.Blazor.BzsButton.Click.set -> void
+Bzs.Blazor.BzsButton.Disabled.get -> bool
+Bzs.Blazor.BzsButton.Disabled.set -> void
+Bzs.Blazor.BzsButton.EndIcon.get -> Bzs.Blazor.BzsIconData?
+Bzs.Blazor.BzsButton.EndIcon.set -> void
+Bzs.Blazor.BzsButton.Loading.get -> bool
+Bzs.Blazor.BzsButton.Loading.set -> void
+Bzs.Blazor.BzsButton.Size.get -> Bzs.Blazor.BzsButtonSize
+Bzs.Blazor.BzsButton.Size.set -> void
+Bzs.Blazor.BzsButton.StartIcon.get -> Bzs.Blazor.BzsIconData?
+Bzs.Blazor.BzsButton.StartIcon.set -> void
+Bzs.Blazor.BzsButton.Type.get -> Bzs.Blazor.BzsButtonType
+Bzs.Blazor.BzsButton.Type.set -> void
+Bzs.Blazor.BzsButton.Variant.get -> Bzs.Blazor.BzsButtonVariant
+Bzs.Blazor.BzsButton.Variant.set -> void
+Bzs.Blazor.BzsButtonSize
+Bzs.Blazor.BzsButtonSize.Large = 2 -> Bzs.Blazor.BzsButtonSize
+Bzs.Blazor.BzsButtonSize.Medium = 1 -> Bzs.Blazor.BzsButtonSize
+Bzs.Blazor.BzsButtonSize.Small = 0 -> Bzs.Blazor.BzsButtonSize
+Bzs.Blazor.BzsButtonType
+Bzs.Blazor.BzsButtonType.Button = 0 -> Bzs.Blazor.BzsButtonType
+Bzs.Blazor.BzsButtonType.Reset = 2 -> Bzs.Blazor.BzsButtonType
+Bzs.Blazor.BzsButtonType.Submit = 1 -> Bzs.Blazor.BzsButtonType
+Bzs.Blazor.BzsButtonVariant
+Bzs.Blazor.BzsButtonVariant.Danger = 4 -> Bzs.Blazor.BzsButtonVariant
+Bzs.Blazor.BzsButtonVariant.Ghost = 3 -> Bzs.Blazor.BzsButtonVariant
+Bzs.Blazor.BzsButtonVariant.Outline = 2 -> Bzs.Blazor.BzsButtonVariant
+Bzs.Blazor.BzsButtonVariant.Primary = 0 -> Bzs.Blazor.BzsButtonVariant
+Bzs.Blazor.BzsButtonVariant.Secondary = 1 -> Bzs.Blazor.BzsButtonVariant
+Bzs.Blazor.BzsCheckbox
+Bzs.Blazor.BzsCheckbox.BzsCheckbox() -> void
+Bzs.Blazor.BzsComponentBase
+Bzs.Blazor.BzsComponentBase.AdditionalAttributes.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object!>?
+Bzs.Blazor.BzsComponentBase.AdditionalAttributes.set -> void
+Bzs.Blazor.BzsComponentBase.Class.get -> string?
+Bzs.Blazor.BzsComponentBase.Class.set -> void
+Bzs.Blazor.BzsComponentBase.Id.get -> string?
+Bzs.Blazor.BzsComponentBase.Id.set -> void
+Bzs.Blazor.BzsComponentBase.Style.get -> string?
+Bzs.Blazor.BzsComponentBase.Style.set -> void
+Bzs.Blazor.BzsContainer
+Bzs.Blazor.BzsContainer.BzsContainer() -> void
+Bzs.Blazor.BzsContainer.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsContainer.ChildContent.set -> void
+Bzs.Blazor.BzsContainer.Fixed.get -> bool
+Bzs.Blazor.BzsContainer.Fixed.set -> void
+Bzs.Blazor.BzsContainer.Gutters.get -> bool
+Bzs.Blazor.BzsContainer.Gutters.set -> void
+Bzs.Blazor.BzsContainer.MaxWidth.get -> Bzs.Blazor.BzsContainerMaxWidth
+Bzs.Blazor.BzsContainer.MaxWidth.set -> void
+Bzs.Blazor.BzsContainerMaxWidth
+Bzs.Blazor.BzsContainerMaxWidth.ExtraExtraLarge = 5 -> Bzs.Blazor.BzsContainerMaxWidth
+Bzs.Blazor.BzsContainerMaxWidth.ExtraLarge = 4 -> Bzs.Blazor.BzsContainerMaxWidth
+Bzs.Blazor.BzsContainerMaxWidth.ExtraSmall = 0 -> Bzs.Blazor.BzsContainerMaxWidth
+Bzs.Blazor.BzsContainerMaxWidth.Large = 3 -> Bzs.Blazor.BzsContainerMaxWidth
+Bzs.Blazor.BzsContainerMaxWidth.Medium = 2 -> Bzs.Blazor.BzsContainerMaxWidth
+Bzs.Blazor.BzsContainerMaxWidth.None = 6 -> Bzs.Blazor.BzsContainerMaxWidth
+Bzs.Blazor.BzsContainerMaxWidth.Small = 1 -> Bzs.Blazor.BzsContainerMaxWidth
+Bzs.Blazor.BzsDateInput<TValue>
+Bzs.Blazor.BzsDateInput<TValue>.BzsDateInput() -> void
+Bzs.Blazor.BzsDateInput<TValue>.Clearable.get -> bool
+Bzs.Blazor.BzsDateInput<TValue>.Clearable.set -> void
+Bzs.Blazor.BzsDateInput<TValue>.CloseFromBrowserAsync() -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsDateInput<TValue>.Culture.get -> System.Globalization.CultureInfo?
+Bzs.Blazor.BzsDateInput<TValue>.Culture.set -> void
+Bzs.Blazor.BzsDateInput<TValue>.DateFormat.get -> string?
+Bzs.Blazor.BzsDateInput<TValue>.DateFormat.set -> void
+Bzs.Blazor.BzsDateInput<TValue>.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsDateInput<TValue>.Max.get -> System.DateOnly?
+Bzs.Blazor.BzsDateInput<TValue>.Max.set -> void
+Bzs.Blazor.BzsDateInput<TValue>.Min.get -> System.DateOnly?
+Bzs.Blazor.BzsDateInput<TValue>.Min.set -> void
+Bzs.Blazor.BzsDateInput<TValue>.ShowToday.get -> bool
+Bzs.Blazor.BzsDateInput<TValue>.ShowToday.set -> void
+Bzs.Blazor.BzsDensity
+Bzs.Blazor.BzsDensity.Comfortable = 1 -> Bzs.Blazor.BzsDensity
+Bzs.Blazor.BzsDensity.Compact = 0 -> Bzs.Blazor.BzsDensity
+Bzs.Blazor.BzsDialog
+Bzs.Blazor.BzsDialog.AccessibleName.get -> string?
+Bzs.Blazor.BzsDialog.AccessibleName.set -> void
+Bzs.Blazor.BzsDialog.BzsDialog() -> void
+Bzs.Blazor.BzsDialog.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsDialog.ChildContent.set -> void
+Bzs.Blazor.BzsDialog.CloseOnBackdropClick.get -> bool
+Bzs.Blazor.BzsDialog.CloseOnBackdropClick.set -> void
+Bzs.Blazor.BzsDialog.CloseOnEscape.get -> bool
+Bzs.Blazor.BzsDialog.CloseOnEscape.set -> void
+Bzs.Blazor.BzsDialog.Dismissed.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsDialogDismissReason>
+Bzs.Blazor.BzsDialog.Dismissed.set -> void
+Bzs.Blazor.BzsDialog.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsDialog.FooterContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsDialog.FooterContent.set -> void
+Bzs.Blazor.BzsDialog.InitialFocusSelector.get -> string?
+Bzs.Blazor.BzsDialog.InitialFocusSelector.set -> void
+Bzs.Blazor.BzsDialog.Modal.get -> bool
+Bzs.Blazor.BzsDialog.Modal.set -> void
+Bzs.Blazor.BzsDialog.Open.get -> bool
+Bzs.Blazor.BzsDialog.Open.set -> void
+Bzs.Blazor.BzsDialog.OpenChanged.get -> Microsoft.AspNetCore.Components.EventCallback<bool>
+Bzs.Blazor.BzsDialog.OpenChanged.set -> void
+Bzs.Blazor.BzsDialog.ShowCloseButton.get -> bool
+Bzs.Blazor.BzsDialog.ShowCloseButton.set -> void
+Bzs.Blazor.BzsDialog.Title.get -> string?
+Bzs.Blazor.BzsDialog.Title.set -> void
+Bzs.Blazor.BzsDialogContext<TResult>
+Bzs.Blazor.BzsDialogContext<TResult>.Cancel() -> bool
+Bzs.Blazor.BzsDialogContext<TResult>.Complete(TResult result) -> bool
+Bzs.Blazor.BzsDialogContext<TResult>.Dismiss(Bzs.Blazor.BzsDialogDismissReason reason = Bzs.Blazor.BzsDialogDismissReason.Programmatic) -> bool
+Bzs.Blazor.BzsDialogDismissReason
+Bzs.Blazor.BzsDialogDismissReason.Backdrop = 1 -> Bzs.Blazor.BzsDialogDismissReason
+Bzs.Blazor.BzsDialogDismissReason.CloseButton = 0 -> Bzs.Blazor.BzsDialogDismissReason
+Bzs.Blazor.BzsDialogDismissReason.Escape = 2 -> Bzs.Blazor.BzsDialogDismissReason
+Bzs.Blazor.BzsDialogDismissReason.Programmatic = 3 -> Bzs.Blazor.BzsDialogDismissReason
+Bzs.Blazor.BzsDialogOptions
+Bzs.Blazor.BzsDialogOptions.<Clone>$() -> Bzs.Blazor.BzsDialogOptions!
+Bzs.Blazor.BzsDialogOptions.AccessibleName.get -> string?
+Bzs.Blazor.BzsDialogOptions.AccessibleName.init -> void
+Bzs.Blazor.BzsDialogOptions.BzsDialogOptions() -> void
+Bzs.Blazor.BzsDialogOptions.CloseOnBackdropClick.get -> bool
+Bzs.Blazor.BzsDialogOptions.CloseOnBackdropClick.init -> void
+Bzs.Blazor.BzsDialogOptions.CloseOnEscape.get -> bool
+Bzs.Blazor.BzsDialogOptions.CloseOnEscape.init -> void
+Bzs.Blazor.BzsDialogOptions.Equals(Bzs.Blazor.BzsDialogOptions? other) -> bool
+Bzs.Blazor.BzsDialogOptions.InitialFocusSelector.get -> string?
+Bzs.Blazor.BzsDialogOptions.InitialFocusSelector.init -> void
+Bzs.Blazor.BzsDialogOptions.Modal.get -> bool
+Bzs.Blazor.BzsDialogOptions.Modal.init -> void
+Bzs.Blazor.BzsDialogOptions.ShowCloseButton.get -> bool
+Bzs.Blazor.BzsDialogOptions.ShowCloseButton.init -> void
+Bzs.Blazor.BzsDialogOptions.Title.get -> string?
+Bzs.Blazor.BzsDialogOptions.Title.init -> void
+Bzs.Blazor.BzsDialogParameterBuilder<TComponent>
+Bzs.Blazor.BzsDialogParameterBuilder<TComponent>.Add<TValue>(System.Linq.Expressions.Expression<System.Func<TComponent, TValue>!>! property, TValue value) -> Bzs.Blazor.BzsDialogParameterBuilder<TComponent>!
+Bzs.Blazor.BzsDialogParameterBuilder<TComponent>.BzsDialogParameterBuilder() -> void
+Bzs.Blazor.BzsDialogResult<TResult>
+Bzs.Blazor.BzsDialogResult<TResult>.<Clone>$() -> Bzs.Blazor.BzsDialogResult<TResult>!
+Bzs.Blazor.BzsDialogResult<TResult>.DismissReason.get -> Bzs.Blazor.BzsDialogDismissReason?
+Bzs.Blazor.BzsDialogResult<TResult>.Equals(Bzs.Blazor.BzsDialogResult<TResult>? other) -> bool
+Bzs.Blazor.BzsDialogResult<TResult>.IsCancelled.get -> bool
+Bzs.Blazor.BzsDialogResult<TResult>.IsCompleted.get -> bool
+Bzs.Blazor.BzsDialogResult<TResult>.IsDismissed.get -> bool
+Bzs.Blazor.BzsDialogResult<TResult>.IsHostDisposed.get -> bool
+Bzs.Blazor.BzsDialogResult<TResult>.IsUnavailable.get -> bool
+Bzs.Blazor.BzsDialogResult<TResult>.Kind.get -> Bzs.Blazor.BzsDialogResultKind
+Bzs.Blazor.BzsDialogResult<TResult>.Result.get -> TResult?
+Bzs.Blazor.BzsDialogResult<TResult>.Status.get -> Bzs.Blazor.BzsDialogResultKind
+Bzs.Blazor.BzsDialogResult<TResult>.Value.get -> TResult?
+Bzs.Blazor.BzsDialogResultKind
+Bzs.Blazor.BzsDialogResultKind.Cancelled = 1 -> Bzs.Blazor.BzsDialogResultKind
+Bzs.Blazor.BzsDialogResultKind.Completed = 0 -> Bzs.Blazor.BzsDialogResultKind
+Bzs.Blazor.BzsDialogResultKind.Dismissed = 2 -> Bzs.Blazor.BzsDialogResultKind
+Bzs.Blazor.BzsDialogResultKind.HostDisposed = 4 -> Bzs.Blazor.BzsDialogResultKind
+Bzs.Blazor.BzsDialogResultKind.Unavailable = 3 -> Bzs.Blazor.BzsDialogResultKind
+Bzs.Blazor.BzsDialogService
+Bzs.Blazor.BzsDialogService.ShowAsync<TComponent, TResult>(System.Action<Bzs.Blazor.BzsDialogParameterBuilder<TComponent>!>? parameters = null, Bzs.Blazor.BzsDialogOptions? options = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Bzs.Blazor.BzsDialogResult<TResult>!>!
+Bzs.Blazor.BzsDivider
+Bzs.Blazor.BzsDivider.Absolute.get -> bool
+Bzs.Blazor.BzsDivider.Absolute.set -> void
+Bzs.Blazor.BzsDivider.BzsDivider() -> void
+Bzs.Blazor.BzsDivider.FlexItem.get -> bool
+Bzs.Blazor.BzsDivider.FlexItem.set -> void
+Bzs.Blazor.BzsDivider.Inset.get -> Bzs.Blazor.BzsDividerInset
+Bzs.Blazor.BzsDivider.Inset.set -> void
+Bzs.Blazor.BzsDivider.Subtle.get -> bool
+Bzs.Blazor.BzsDivider.Subtle.set -> void
+Bzs.Blazor.BzsDivider.Vertical.get -> bool
+Bzs.Blazor.BzsDivider.Vertical.set -> void
+Bzs.Blazor.BzsDividerInset
+Bzs.Blazor.BzsDividerInset.Both = 2 -> Bzs.Blazor.BzsDividerInset
+Bzs.Blazor.BzsDividerInset.None = 0 -> Bzs.Blazor.BzsDividerInset
+Bzs.Blazor.BzsDividerInset.Start = 1 -> Bzs.Blazor.BzsDividerInset
+Bzs.Blazor.BzsDrawer
+Bzs.Blazor.BzsDrawer.AccessibleName.get -> string?
+Bzs.Blazor.BzsDrawer.AccessibleName.set -> void
+Bzs.Blazor.BzsDrawer.BzsDrawer() -> void
+Bzs.Blazor.BzsDrawer.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsDrawer.ChildContent.set -> void
+Bzs.Blazor.BzsDrawer.CloseOnBackdropClick.get -> bool
+Bzs.Blazor.BzsDrawer.CloseOnBackdropClick.set -> void
+Bzs.Blazor.BzsDrawer.CloseOnEscape.get -> bool
+Bzs.Blazor.BzsDrawer.CloseOnEscape.set -> void
+Bzs.Blazor.BzsDrawer.Dismissed.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsDialogDismissReason>
+Bzs.Blazor.BzsDrawer.Dismissed.set -> void
+Bzs.Blazor.BzsDrawer.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsDrawer.FooterContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsDrawer.FooterContent.set -> void
+Bzs.Blazor.BzsDrawer.InitialFocusSelector.get -> string?
+Bzs.Blazor.BzsDrawer.InitialFocusSelector.set -> void
+Bzs.Blazor.BzsDrawer.Modal.get -> bool
+Bzs.Blazor.BzsDrawer.Modal.set -> void
+Bzs.Blazor.BzsDrawer.Open.get -> bool
+Bzs.Blazor.BzsDrawer.Open.set -> void
+Bzs.Blazor.BzsDrawer.OpenChanged.get -> Microsoft.AspNetCore.Components.EventCallback<bool>
+Bzs.Blazor.BzsDrawer.OpenChanged.set -> void
+Bzs.Blazor.BzsDrawer.Placement.get -> Bzs.Blazor.BzsDrawerPlacement
+Bzs.Blazor.BzsDrawer.Placement.set -> void
+Bzs.Blazor.BzsDrawer.ShowCloseButton.get -> bool
+Bzs.Blazor.BzsDrawer.ShowCloseButton.set -> void
+Bzs.Blazor.BzsDrawer.Title.get -> string?
+Bzs.Blazor.BzsDrawer.Title.set -> void
+Bzs.Blazor.BzsDrawerPlacement
+Bzs.Blazor.BzsDrawerPlacement.Bottom = 3 -> Bzs.Blazor.BzsDrawerPlacement
+Bzs.Blazor.BzsDrawerPlacement.End = 1 -> Bzs.Blazor.BzsDrawerPlacement
+Bzs.Blazor.BzsDrawerPlacement.Start = 0 -> Bzs.Blazor.BzsDrawerPlacement
+Bzs.Blazor.BzsDrawerPlacement.Top = 2 -> Bzs.Blazor.BzsDrawerPlacement
+Bzs.Blazor.BzsEmptyState
+Bzs.Blazor.BzsEmptyState.ActionContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsEmptyState.ActionContent.set -> void
+Bzs.Blazor.BzsEmptyState.BzsEmptyState() -> void
+Bzs.Blazor.BzsEmptyState.Description.get -> string?
+Bzs.Blazor.BzsEmptyState.Description.set -> void
+Bzs.Blazor.BzsEmptyState.Icon.get -> Bzs.Blazor.BzsIconData?
+Bzs.Blazor.BzsEmptyState.Icon.set -> void
+Bzs.Blazor.BzsEmptyState.Title.get -> string?
+Bzs.Blazor.BzsEmptyState.Title.set -> void
+Bzs.Blazor.BzsField
+Bzs.Blazor.BzsField.BzsField() -> void
+Bzs.Blazor.BzsField.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsField.ChildContent.set -> void
+Bzs.Blazor.BzsField.Description.get -> string?
+Bzs.Blazor.BzsField.Description.set -> void
+Bzs.Blazor.BzsField.Error.get -> string?
+Bzs.Blazor.BzsField.Error.set -> void
+Bzs.Blazor.BzsField.InputId.get -> string?
+Bzs.Blazor.BzsField.InputId.set -> void
+Bzs.Blazor.BzsField.Label.get -> string?
+Bzs.Blazor.BzsField.Label.set -> void
+Bzs.Blazor.BzsField.LabelFor.get -> string?
+Bzs.Blazor.BzsField.LabelFor.set -> void
+Bzs.Blazor.BzsField.LabelId.get -> string?
+Bzs.Blazor.BzsField.LabelId.set -> void
+Bzs.Blazor.BzsField.Required.get -> bool
+Bzs.Blazor.BzsField.Required.set -> void
+Bzs.Blazor.BzsGrid
+Bzs.Blazor.BzsGrid.AlignItems.get -> Bzs.Blazor.BzsAlignItems
+Bzs.Blazor.BzsGrid.AlignItems.set -> void
+Bzs.Blazor.BzsGrid.BzsGrid() -> void
+Bzs.Blazor.BzsGrid.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsGrid.ChildContent.set -> void
+Bzs.Blazor.BzsGrid.Spacing.get -> Bzs.Blazor.BzsLayoutSpacing
+Bzs.Blazor.BzsGrid.Spacing.set -> void
+Bzs.Blazor.BzsGridItem
+Bzs.Blazor.BzsGridItem.BzsGridItem() -> void
+Bzs.Blazor.BzsGridItem.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsGridItem.ChildContent.set -> void
+Bzs.Blazor.BzsGridItem.Lg.get -> int?
+Bzs.Blazor.BzsGridItem.Lg.set -> void
+Bzs.Blazor.BzsGridItem.Md.get -> int?
+Bzs.Blazor.BzsGridItem.Md.set -> void
+Bzs.Blazor.BzsGridItem.Sm.get -> int?
+Bzs.Blazor.BzsGridItem.Sm.set -> void
+Bzs.Blazor.BzsGridItem.Xl.get -> int?
+Bzs.Blazor.BzsGridItem.Xl.set -> void
+Bzs.Blazor.BzsGridItem.Xs.get -> int?
+Bzs.Blazor.BzsGridItem.Xs.set -> void
+Bzs.Blazor.BzsGridItem.Xxl.get -> int?
+Bzs.Blazor.BzsGridItem.Xxl.set -> void
+Bzs.Blazor.BzsIcon
+Bzs.Blazor.BzsIcon.AccessibleName.get -> string?
+Bzs.Blazor.BzsIcon.AccessibleName.set -> void
+Bzs.Blazor.BzsIcon.BzsIcon() -> void
+Bzs.Blazor.BzsIcon.Icon.get -> Bzs.Blazor.BzsIconData?
+Bzs.Blazor.BzsIcon.Icon.set -> void
+Bzs.Blazor.BzsIconData
+Bzs.Blazor.BzsIconData.<Clone>$() -> Bzs.Blazor.BzsIconData!
+Bzs.Blazor.BzsIconData.BzsIconData(string! pathData, string! viewBox = "0 0 24 24") -> void
+Bzs.Blazor.BzsIconData.Equals(Bzs.Blazor.BzsIconData? other) -> bool
+Bzs.Blazor.BzsIconData.PathData.get -> string!
+Bzs.Blazor.BzsIconData.ViewBox.get -> string!
+Bzs.Blazor.BzsIcons
+Bzs.Blazor.BzsInputBase<TValue>
+Bzs.Blazor.BzsInputBase<TValue>.Class.get -> string?
+Bzs.Blazor.BzsInputBase<TValue>.Class.set -> void
+Bzs.Blazor.BzsInputBase<TValue>.Description.get -> string?
+Bzs.Blazor.BzsInputBase<TValue>.Description.set -> void
+Bzs.Blazor.BzsInputBase<TValue>.Disabled.get -> bool
+Bzs.Blazor.BzsInputBase<TValue>.Disabled.set -> void
+Bzs.Blazor.BzsInputBase<TValue>.Id.get -> string?
+Bzs.Blazor.BzsInputBase<TValue>.Id.set -> void
+Bzs.Blazor.BzsInputBase<TValue>.Label.get -> string?
+Bzs.Blazor.BzsInputBase<TValue>.Label.set -> void
+Bzs.Blazor.BzsInputBase<TValue>.Name.get -> string?
+Bzs.Blazor.BzsInputBase<TValue>.Name.set -> void
+Bzs.Blazor.BzsInputBase<TValue>.Placeholder.get -> string?
+Bzs.Blazor.BzsInputBase<TValue>.Placeholder.set -> void
+Bzs.Blazor.BzsInputBase<TValue>.ReadOnly.get -> bool
+Bzs.Blazor.BzsInputBase<TValue>.ReadOnly.set -> void
+Bzs.Blazor.BzsInputBase<TValue>.Required.get -> bool
+Bzs.Blazor.BzsInputBase<TValue>.Required.set -> void
+Bzs.Blazor.BzsInputBase<TValue>.Style.get -> string?
+Bzs.Blazor.BzsInputBase<TValue>.Style.set -> void
+Bzs.Blazor.BzsJustify
+Bzs.Blazor.BzsJustify.Center = 1 -> Bzs.Blazor.BzsJustify
+Bzs.Blazor.BzsJustify.End = 2 -> Bzs.Blazor.BzsJustify
+Bzs.Blazor.BzsJustify.SpaceAround = 4 -> Bzs.Blazor.BzsJustify
+Bzs.Blazor.BzsJustify.SpaceBetween = 3 -> Bzs.Blazor.BzsJustify
+Bzs.Blazor.BzsJustify.SpaceEvenly = 5 -> Bzs.Blazor.BzsJustify
+Bzs.Blazor.BzsJustify.Start = 0 -> Bzs.Blazor.BzsJustify
+Bzs.Blazor.BzsLayoutSpacing
+Bzs.Blazor.BzsLayoutSpacing.ExtraLarge = 5 -> Bzs.Blazor.BzsLayoutSpacing
+Bzs.Blazor.BzsLayoutSpacing.ExtraSmall = 1 -> Bzs.Blazor.BzsLayoutSpacing
+Bzs.Blazor.BzsLayoutSpacing.Large = 4 -> Bzs.Blazor.BzsLayoutSpacing
+Bzs.Blazor.BzsLayoutSpacing.Medium = 3 -> Bzs.Blazor.BzsLayoutSpacing
+Bzs.Blazor.BzsLayoutSpacing.None = 0 -> Bzs.Blazor.BzsLayoutSpacing
+Bzs.Blazor.BzsLayoutSpacing.Small = 2 -> Bzs.Blazor.BzsLayoutSpacing
+Bzs.Blazor.BzsMainContent
+Bzs.Blazor.BzsMainContent.BzsMainContent() -> void
+Bzs.Blazor.BzsMainContent.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsMainContent.ChildContent.set -> void
+Bzs.Blazor.BzsMainContent.Landmark.get -> bool
+Bzs.Blazor.BzsMainContent.Landmark.set -> void
+Bzs.Blazor.BzsMessage
+Bzs.Blazor.BzsMessage.BzsMessage() -> void
+Bzs.Blazor.BzsMessage.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsMessage.ChildContent.set -> void
+Bzs.Blazor.BzsMessage.Severity.get -> Bzs.Blazor.BzsMessageSeverity
+Bzs.Blazor.BzsMessage.Severity.set -> void
+Bzs.Blazor.BzsMessage.Title.get -> string?
+Bzs.Blazor.BzsMessage.Title.set -> void
+Bzs.Blazor.BzsMessageSeverity
+Bzs.Blazor.BzsMessageSeverity.Error = 3 -> Bzs.Blazor.BzsMessageSeverity
+Bzs.Blazor.BzsMessageSeverity.Information = 0 -> Bzs.Blazor.BzsMessageSeverity
+Bzs.Blazor.BzsMessageSeverity.Success = 1 -> Bzs.Blazor.BzsMessageSeverity
+Bzs.Blazor.BzsMessageSeverity.Warning = 2 -> Bzs.Blazor.BzsMessageSeverity
+Bzs.Blazor.BzsMultiSelect<TValue>
+Bzs.Blazor.BzsMultiSelect<TValue>.BzsMultiSelect() -> void
+Bzs.Blazor.BzsMultiSelect<TValue>.ClearSelectionText.get -> string?
+Bzs.Blazor.BzsMultiSelect<TValue>.ClearSelectionText.set -> void
+Bzs.Blazor.BzsMultiSelect<TValue>.CloseFromBrowserAsync() -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsMultiSelect<TValue>.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsMultiSelect<TValue>.EmptyText.get -> string?
+Bzs.Blazor.BzsMultiSelect<TValue>.EmptyText.set -> void
+Bzs.Blazor.BzsMultiSelect<TValue>.InvertSelectionText.get -> string?
+Bzs.Blazor.BzsMultiSelect<TValue>.InvertSelectionText.set -> void
+Bzs.Blazor.BzsMultiSelect<TValue>.Options.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsSelectOption<TValue>!>!
+Bzs.Blazor.BzsMultiSelect<TValue>.Options.set -> void
+Bzs.Blazor.BzsMultiSelect<TValue>.PlaceholderOption.get -> string?
+Bzs.Blazor.BzsMultiSelect<TValue>.PlaceholderOption.set -> void
+Bzs.Blazor.BzsMultiSelect<TValue>.SearchEnabled.get -> bool
+Bzs.Blazor.BzsMultiSelect<TValue>.SearchEnabled.set -> void
+Bzs.Blazor.BzsMultiSelect<TValue>.SearchPlaceholder.get -> string?
+Bzs.Blazor.BzsMultiSelect<TValue>.SearchPlaceholder.set -> void
+Bzs.Blazor.BzsMultiSelect<TValue>.SelectAllText.get -> string?
+Bzs.Blazor.BzsMultiSelect<TValue>.SelectAllText.set -> void
+Bzs.Blazor.BzsMultiSelect<TValue>.SelectionSuffix.get -> string?
+Bzs.Blazor.BzsMultiSelect<TValue>.SelectionSuffix.set -> void
+Bzs.Blazor.BzsNavigationDrawer
+Bzs.Blazor.BzsNavigationDrawer.AccessibleName.get -> string?
+Bzs.Blazor.BzsNavigationDrawer.AccessibleName.set -> void
+Bzs.Blazor.BzsNavigationDrawer.BzsNavigationDrawer() -> void
+Bzs.Blazor.BzsNavigationDrawer.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsNavigationDrawer.ChildContent.set -> void
+Bzs.Blazor.BzsNavigationDrawer.CloseOnBackdropClick.get -> bool
+Bzs.Blazor.BzsNavigationDrawer.CloseOnBackdropClick.set -> void
+Bzs.Blazor.BzsNavigationDrawer.Open.get -> bool
+Bzs.Blazor.BzsNavigationDrawer.Open.set -> void
+Bzs.Blazor.BzsNavigationDrawer.OpenChanged.get -> Microsoft.AspNetCore.Components.EventCallback<bool>
+Bzs.Blazor.BzsNavigationDrawer.OpenChanged.set -> void
+Bzs.Blazor.BzsNavigationDrawer.Position.get -> Bzs.Blazor.BzsNavigationDrawerPosition
+Bzs.Blazor.BzsNavigationDrawer.Position.set -> void
+Bzs.Blazor.BzsNavigationDrawer.Variant.get -> Bzs.Blazor.BzsNavigationDrawerVariant
+Bzs.Blazor.BzsNavigationDrawer.Variant.set -> void
+Bzs.Blazor.BzsNavigationDrawerPosition
+Bzs.Blazor.BzsNavigationDrawerPosition.End = 1 -> Bzs.Blazor.BzsNavigationDrawerPosition
+Bzs.Blazor.BzsNavigationDrawerPosition.Start = 0 -> Bzs.Blazor.BzsNavigationDrawerPosition
+Bzs.Blazor.BzsNavigationDrawerVariant
+Bzs.Blazor.BzsNavigationDrawerVariant.Persistent = 0 -> Bzs.Blazor.BzsNavigationDrawerVariant
+Bzs.Blazor.BzsNavigationDrawerVariant.Responsive = 2 -> Bzs.Blazor.BzsNavigationDrawerVariant
+Bzs.Blazor.BzsNavigationDrawerVariant.Temporary = 1 -> Bzs.Blazor.BzsNavigationDrawerVariant
+Bzs.Blazor.BzsNumberInput<TValue>
+Bzs.Blazor.BzsNumberInput<TValue>.BzsNumberInput() -> void
+Bzs.Blazor.BzsNumberInput<TValue>.Step.get -> string!
+Bzs.Blazor.BzsNumberInput<TValue>.Step.set -> void
+Bzs.Blazor.BzsOverlayHost
+Bzs.Blazor.BzsOverlayHost.BzsOverlayHost() -> void
+Bzs.Blazor.BzsOverlayHost.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsProgress
+Bzs.Blazor.BzsProgress.BzsProgress() -> void
+Bzs.Blazor.BzsProgress.Label.get -> string?
+Bzs.Blazor.BzsProgress.Label.set -> void
+Bzs.Blazor.BzsProgress.Maximum.get -> double
+Bzs.Blazor.BzsProgress.Maximum.set -> void
+Bzs.Blazor.BzsProgress.Minimum.get -> double
+Bzs.Blazor.BzsProgress.Minimum.set -> void
+Bzs.Blazor.BzsProgress.ShowValue.get -> bool
+Bzs.Blazor.BzsProgress.ShowValue.set -> void
+Bzs.Blazor.BzsProgress.Value.get -> double?
+Bzs.Blazor.BzsProgress.Value.set -> void
+Bzs.Blazor.BzsRadioGroup<TValue>
+Bzs.Blazor.BzsRadioGroup<TValue>.BzsRadioGroup() -> void
+Bzs.Blazor.BzsRadioGroup<TValue>.Options.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsSelectOption<TValue>!>!
+Bzs.Blazor.BzsRadioGroup<TValue>.Options.set -> void
+Bzs.Blazor.BzsRadioGroup<TValue>.Variant.get -> Bzs.Blazor.BzsRadioGroupVariant
+Bzs.Blazor.BzsRadioGroup<TValue>.Variant.set -> void
+Bzs.Blazor.BzsRadioGroupVariant
+Bzs.Blazor.BzsRadioGroupVariant.Segmented = 1 -> Bzs.Blazor.BzsRadioGroupVariant
+Bzs.Blazor.BzsRadioGroupVariant.Standard = 0 -> Bzs.Blazor.BzsRadioGroupVariant
+Bzs.Blazor.BzsSelect<TValue>
+Bzs.Blazor.BzsSelect<TValue>.BzsSelect() -> void
+Bzs.Blazor.BzsSelect<TValue>.CloseFromBrowserAsync() -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsSelect<TValue>.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsSelect<TValue>.EmptyText.get -> string?
+Bzs.Blazor.BzsSelect<TValue>.EmptyText.set -> void
+Bzs.Blazor.BzsSelect<TValue>.Options.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsSelectOption<TValue>!>!
+Bzs.Blazor.BzsSelect<TValue>.Options.set -> void
+Bzs.Blazor.BzsSelect<TValue>.PlaceholderOption.get -> string?
+Bzs.Blazor.BzsSelect<TValue>.PlaceholderOption.set -> void
+Bzs.Blazor.BzsSelect<TValue>.SearchEnabled.get -> bool
+Bzs.Blazor.BzsSelect<TValue>.SearchEnabled.set -> void
+Bzs.Blazor.BzsSelect<TValue>.SearchPlaceholder.get -> string?
+Bzs.Blazor.BzsSelect<TValue>.SearchPlaceholder.set -> void
+Bzs.Blazor.BzsSelectOption<TValue>
+Bzs.Blazor.BzsSelectOption<TValue>.<Clone>$() -> Bzs.Blazor.BzsSelectOption<TValue>!
+Bzs.Blazor.BzsSelectOption<TValue>.BzsSelectOption(TValue value, string! label, bool disabled = false, string? valueText = null) -> void
+Bzs.Blazor.BzsSelectOption<TValue>.Description.get -> string?
+Bzs.Blazor.BzsSelectOption<TValue>.Description.init -> void
+Bzs.Blazor.BzsSelectOption<TValue>.Disabled.get -> bool
+Bzs.Blazor.BzsSelectOption<TValue>.Equals(Bzs.Blazor.BzsSelectOption<TValue>? other) -> bool
+Bzs.Blazor.BzsSelectOption<TValue>.Icon.get -> Bzs.Blazor.BzsIconData?
+Bzs.Blazor.BzsSelectOption<TValue>.Icon.init -> void
+Bzs.Blazor.BzsSelectOption<TValue>.Label.get -> string!
+Bzs.Blazor.BzsSelectOption<TValue>.Value.get -> TValue
+Bzs.Blazor.BzsSelectOption<TValue>.ValueText.get -> string!
+Bzs.Blazor.BzsSpacer
+Bzs.Blazor.BzsSpacer.BzsSpacer() -> void
+Bzs.Blazor.BzsStack
+Bzs.Blazor.BzsStack.AlignItems.get -> Bzs.Blazor.BzsAlignItems
+Bzs.Blazor.BzsStack.AlignItems.set -> void
+Bzs.Blazor.BzsStack.BzsStack() -> void
+Bzs.Blazor.BzsStack.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsStack.ChildContent.set -> void
+Bzs.Blazor.BzsStack.Justify.get -> Bzs.Blazor.BzsJustify
+Bzs.Blazor.BzsStack.Justify.set -> void
+Bzs.Blazor.BzsStack.Reverse.get -> bool
+Bzs.Blazor.BzsStack.Reverse.set -> void
+Bzs.Blazor.BzsStack.Row.get -> bool
+Bzs.Blazor.BzsStack.Row.set -> void
+Bzs.Blazor.BzsStack.Spacing.get -> Bzs.Blazor.BzsLayoutSpacing
+Bzs.Blazor.BzsStack.Spacing.set -> void
+Bzs.Blazor.BzsStack.Wrap.get -> Bzs.Blazor.BzsStackWrap
+Bzs.Blazor.BzsStack.Wrap.set -> void
+Bzs.Blazor.BzsStackWrap
+Bzs.Blazor.BzsStackWrap.NoWrap = 0 -> Bzs.Blazor.BzsStackWrap
+Bzs.Blazor.BzsStackWrap.Wrap = 1 -> Bzs.Blazor.BzsStackWrap
+Bzs.Blazor.BzsStackWrap.WrapReverse = 2 -> Bzs.Blazor.BzsStackWrap
+Bzs.Blazor.BzsSurface
+Bzs.Blazor.BzsSurface.BzsSurface() -> void
+Bzs.Blazor.BzsSurface.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsSurface.ChildContent.set -> void
+Bzs.Blazor.BzsSurface.Level.get -> Bzs.Blazor.BzsSurfaceLevel
+Bzs.Blazor.BzsSurface.Level.set -> void
+Bzs.Blazor.BzsSurfaceLevel
+Bzs.Blazor.BzsSurfaceLevel.Base = 0 -> Bzs.Blazor.BzsSurfaceLevel
+Bzs.Blazor.BzsSurfaceLevel.Inset = 2 -> Bzs.Blazor.BzsSurfaceLevel
+Bzs.Blazor.BzsSurfaceLevel.Overlay = 3 -> Bzs.Blazor.BzsSurfaceLevel
+Bzs.Blazor.BzsSurfaceLevel.Raised = 1 -> Bzs.Blazor.BzsSurfaceLevel
+Bzs.Blazor.BzsTabActivationMode
+Bzs.Blazor.BzsTabActivationMode.Automatic = 0 -> Bzs.Blazor.BzsTabActivationMode
+Bzs.Blazor.BzsTabActivationMode.Manual = 1 -> Bzs.Blazor.BzsTabActivationMode
+Bzs.Blazor.BzsTabItem
+Bzs.Blazor.BzsTabItem.BzsTabItem() -> void
+Bzs.Blazor.BzsTabItem.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsTabItem.ChildContent.set -> void
+Bzs.Blazor.BzsTabItem.Disabled.get -> bool
+Bzs.Blazor.BzsTabItem.Disabled.set -> void
+Bzs.Blazor.BzsTabItem.Dispose() -> void
+Bzs.Blazor.BzsTabItem.Tabs.get -> Bzs.Blazor.BzsTabs?
+Bzs.Blazor.BzsTabItem.Tabs.set -> void
+Bzs.Blazor.BzsTabItem.Title.get -> string?
+Bzs.Blazor.BzsTabItem.Title.set -> void
+Bzs.Blazor.BzsTabItem.Value.get -> string?
+Bzs.Blazor.BzsTabItem.Value.set -> void
+Bzs.Blazor.BzsTabs
+Bzs.Blazor.BzsTabs.AccessibleName.get -> string?
+Bzs.Blazor.BzsTabs.AccessibleName.set -> void
+Bzs.Blazor.BzsTabs.ActivationMode.get -> Bzs.Blazor.BzsTabActivationMode
+Bzs.Blazor.BzsTabs.ActivationMode.set -> void
+Bzs.Blazor.BzsTabs.ActiveValue.get -> string?
+Bzs.Blazor.BzsTabs.ActiveValue.set -> void
+Bzs.Blazor.BzsTabs.ActiveValueChanged.get -> Microsoft.AspNetCore.Components.EventCallback<string!>
+Bzs.Blazor.BzsTabs.ActiveValueChanged.set -> void
+Bzs.Blazor.BzsTabs.BzsTabs() -> void
+Bzs.Blazor.BzsTabs.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsTabs.ChildContent.set -> void
+Bzs.Blazor.BzsTabs.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsTabs.InitialActiveValue.get -> string?
+Bzs.Blazor.BzsTabs.InitialActiveValue.set -> void
+Bzs.Blazor.BzsTabs.LabelledBy.get -> string?
+Bzs.Blazor.BzsTabs.LabelledBy.set -> void
+Bzs.Blazor.BzsTabs.Orientation.get -> Bzs.Blazor.BzsTabsOrientation
+Bzs.Blazor.BzsTabs.Orientation.set -> void
+Bzs.Blazor.BzsTabsOrientation
+Bzs.Blazor.BzsTabsOrientation.Horizontal = 0 -> Bzs.Blazor.BzsTabsOrientation
+Bzs.Blazor.BzsTabsOrientation.Vertical = 1 -> Bzs.Blazor.BzsTabsOrientation
+Bzs.Blazor.BzsTextArea
+Bzs.Blazor.BzsTextArea.BzsTextArea() -> void
+Bzs.Blazor.BzsTextArea.Rows.get -> int
+Bzs.Blazor.BzsTextArea.Rows.set -> void
+Bzs.Blazor.BzsTextInput
+Bzs.Blazor.BzsTextInput.BzsTextInput() -> void
+Bzs.Blazor.BzsTheme
+Bzs.Blazor.BzsTheme.<Clone>$() -> Bzs.Blazor.BzsTheme!
+Bzs.Blazor.BzsTheme.BzsTheme(Bzs.Blazor.BzsThemeColors! LightColors, Bzs.Blazor.BzsThemeColors! DarkColors, Bzs.Blazor.BzsThemeDepth! LightDepth, Bzs.Blazor.BzsThemeDepth! DarkDepth, Bzs.Blazor.BzsThemeShape! Shape, Bzs.Blazor.BzsThemeTypography! Typography, Bzs.Blazor.BzsThemeMotion! Motion) -> void
+Bzs.Blazor.BzsTheme.DarkColors.get -> Bzs.Blazor.BzsThemeColors!
+Bzs.Blazor.BzsTheme.DarkColors.init -> void
+Bzs.Blazor.BzsTheme.DarkDepth.get -> Bzs.Blazor.BzsThemeDepth!
+Bzs.Blazor.BzsTheme.DarkDepth.init -> void
+Bzs.Blazor.BzsTheme.Deconstruct(out Bzs.Blazor.BzsThemeColors! LightColors, out Bzs.Blazor.BzsThemeColors! DarkColors, out Bzs.Blazor.BzsThemeDepth! LightDepth, out Bzs.Blazor.BzsThemeDepth! DarkDepth, out Bzs.Blazor.BzsThemeShape! Shape, out Bzs.Blazor.BzsThemeTypography! Typography, out Bzs.Blazor.BzsThemeMotion! Motion) -> void
+Bzs.Blazor.BzsTheme.Equals(Bzs.Blazor.BzsTheme? other) -> bool
+Bzs.Blazor.BzsTheme.GetColors(Bzs.Blazor.BzsThemeMode mode) -> Bzs.Blazor.BzsThemeColors!
+Bzs.Blazor.BzsTheme.GetDepth(Bzs.Blazor.BzsThemeMode mode) -> Bzs.Blazor.BzsThemeDepth!
+Bzs.Blazor.BzsTheme.LightColors.get -> Bzs.Blazor.BzsThemeColors!
+Bzs.Blazor.BzsTheme.LightColors.init -> void
+Bzs.Blazor.BzsTheme.LightDepth.get -> Bzs.Blazor.BzsThemeDepth!
+Bzs.Blazor.BzsTheme.LightDepth.init -> void
+Bzs.Blazor.BzsTheme.Motion.get -> Bzs.Blazor.BzsThemeMotion!
+Bzs.Blazor.BzsTheme.Motion.init -> void
+Bzs.Blazor.BzsTheme.Shape.get -> Bzs.Blazor.BzsThemeShape!
+Bzs.Blazor.BzsTheme.Shape.init -> void
+Bzs.Blazor.BzsTheme.Typography.get -> Bzs.Blazor.BzsThemeTypography!
+Bzs.Blazor.BzsTheme.Typography.init -> void
+Bzs.Blazor.BzsThemeColors
+Bzs.Blazor.BzsThemeColors.<Clone>$() -> Bzs.Blazor.BzsThemeColors!
+Bzs.Blazor.BzsThemeColors.Border.get -> string!
+Bzs.Blazor.BzsThemeColors.Border.init -> void
+Bzs.Blazor.BzsThemeColors.BzsThemeColors(string! Canvas, string! Surface, string! SurfaceRaised, string! SurfaceInset, string! SurfaceOverlay, string! Text, string! TextMuted, string! Border, string! FocusRing, string! Primary, string! OnPrimary, string! Success, string! Warning, string! Error, string! Info, string! DisabledSurface, string! DisabledText) -> void
+Bzs.Blazor.BzsThemeColors.Canvas.get -> string!
+Bzs.Blazor.BzsThemeColors.Canvas.init -> void
+Bzs.Blazor.BzsThemeColors.Deconstruct(out string! Canvas, out string! Surface, out string! SurfaceRaised, out string! SurfaceInset, out string! SurfaceOverlay, out string! Text, out string! TextMuted, out string! Border, out string! FocusRing, out string! Primary, out string! OnPrimary, out string! Success, out string! Warning, out string! Error, out string! Info, out string! DisabledSurface, out string! DisabledText) -> void
+Bzs.Blazor.BzsThemeColors.DisabledSurface.get -> string!
+Bzs.Blazor.BzsThemeColors.DisabledSurface.init -> void
+Bzs.Blazor.BzsThemeColors.DisabledText.get -> string!
+Bzs.Blazor.BzsThemeColors.DisabledText.init -> void
+Bzs.Blazor.BzsThemeColors.Equals(Bzs.Blazor.BzsThemeColors? other) -> bool
+Bzs.Blazor.BzsThemeColors.Error.get -> string!
+Bzs.Blazor.BzsThemeColors.Error.init -> void
+Bzs.Blazor.BzsThemeColors.FocusRing.get -> string!
+Bzs.Blazor.BzsThemeColors.FocusRing.init -> void
+Bzs.Blazor.BzsThemeColors.Info.get -> string!
+Bzs.Blazor.BzsThemeColors.Info.init -> void
+Bzs.Blazor.BzsThemeColors.OnPrimary.get -> string!
+Bzs.Blazor.BzsThemeColors.OnPrimary.init -> void
+Bzs.Blazor.BzsThemeColors.Primary.get -> string!
+Bzs.Blazor.BzsThemeColors.Primary.init -> void
+Bzs.Blazor.BzsThemeColors.Success.get -> string!
+Bzs.Blazor.BzsThemeColors.Success.init -> void
+Bzs.Blazor.BzsThemeColors.Surface.get -> string!
+Bzs.Blazor.BzsThemeColors.Surface.init -> void
+Bzs.Blazor.BzsThemeColors.SurfaceInset.get -> string!
+Bzs.Blazor.BzsThemeColors.SurfaceInset.init -> void
+Bzs.Blazor.BzsThemeColors.SurfaceOverlay.get -> string!
+Bzs.Blazor.BzsThemeColors.SurfaceOverlay.init -> void
+Bzs.Blazor.BzsThemeColors.SurfaceRaised.get -> string!
+Bzs.Blazor.BzsThemeColors.SurfaceRaised.init -> void
+Bzs.Blazor.BzsThemeColors.Text.get -> string!
+Bzs.Blazor.BzsThemeColors.Text.init -> void
+Bzs.Blazor.BzsThemeColors.TextMuted.get -> string!
+Bzs.Blazor.BzsThemeColors.TextMuted.init -> void
+Bzs.Blazor.BzsThemeColors.Warning.get -> string!
+Bzs.Blazor.BzsThemeColors.Warning.init -> void
+Bzs.Blazor.BzsThemeContext
+Bzs.Blazor.BzsThemeContext.<Clone>$() -> Bzs.Blazor.BzsThemeContext!
+Bzs.Blazor.BzsThemeContext.Density.get -> Bzs.Blazor.BzsDensity
+Bzs.Blazor.BzsThemeContext.EffectiveMode.get -> Bzs.Blazor.BzsThemeMode
+Bzs.Blazor.BzsThemeContext.Equals(Bzs.Blazor.BzsThemeContext? other) -> bool
+Bzs.Blazor.BzsThemeContext.IsCustomTheme.get -> bool
+Bzs.Blazor.BzsThemeContext.Mode.get -> Bzs.Blazor.BzsThemeMode
+Bzs.Blazor.BzsThemeContext.RequestDensityAsync(Bzs.Blazor.BzsDensity density) -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsThemeContext.RequestModeAsync(Bzs.Blazor.BzsThemeMode mode) -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsThemeContext.Theme.get -> Bzs.Blazor.BzsTheme!
+Bzs.Blazor.BzsThemeDepth
+Bzs.Blazor.BzsThemeDepth.<Clone>$() -> Bzs.Blazor.BzsThemeDepth!
+Bzs.Blazor.BzsThemeDepth.BzsThemeDepth(string! RaisedShadow, string! InsetShadow, string! OverlayShadow, string! FocusShadow) -> void
+Bzs.Blazor.BzsThemeDepth.Deconstruct(out string! RaisedShadow, out string! InsetShadow, out string! OverlayShadow, out string! FocusShadow) -> void
+Bzs.Blazor.BzsThemeDepth.Equals(Bzs.Blazor.BzsThemeDepth? other) -> bool
+Bzs.Blazor.BzsThemeDepth.FocusShadow.get -> string!
+Bzs.Blazor.BzsThemeDepth.FocusShadow.init -> void
+Bzs.Blazor.BzsThemeDepth.InsetShadow.get -> string!
+Bzs.Blazor.BzsThemeDepth.InsetShadow.init -> void
+Bzs.Blazor.BzsThemeDepth.OverlayShadow.get -> string!
+Bzs.Blazor.BzsThemeDepth.OverlayShadow.init -> void
+Bzs.Blazor.BzsThemeDepth.RaisedShadow.get -> string!
+Bzs.Blazor.BzsThemeDepth.RaisedShadow.init -> void
+Bzs.Blazor.BzsThemeMode
+Bzs.Blazor.BzsThemeMode.Dark = 1 -> Bzs.Blazor.BzsThemeMode
+Bzs.Blazor.BzsThemeMode.Light = 0 -> Bzs.Blazor.BzsThemeMode
+Bzs.Blazor.BzsThemeMode.System = 2 -> Bzs.Blazor.BzsThemeMode
+Bzs.Blazor.BzsThemeMotion
+Bzs.Blazor.BzsThemeMotion.<Clone>$() -> Bzs.Blazor.BzsThemeMotion!
+Bzs.Blazor.BzsThemeMotion.BzsThemeMotion(string! FastDuration, string! NormalDuration, string! SlowDuration, string! Easing) -> void
+Bzs.Blazor.BzsThemeMotion.Deconstruct(out string! FastDuration, out string! NormalDuration, out string! SlowDuration, out string! Easing) -> void
+Bzs.Blazor.BzsThemeMotion.Easing.get -> string!
+Bzs.Blazor.BzsThemeMotion.Easing.init -> void
+Bzs.Blazor.BzsThemeMotion.Equals(Bzs.Blazor.BzsThemeMotion? other) -> bool
+Bzs.Blazor.BzsThemeMotion.FastDuration.get -> string!
+Bzs.Blazor.BzsThemeMotion.FastDuration.init -> void
+Bzs.Blazor.BzsThemeMotion.NormalDuration.get -> string!
+Bzs.Blazor.BzsThemeMotion.NormalDuration.init -> void
+Bzs.Blazor.BzsThemeMotion.SlowDuration.get -> string!
+Bzs.Blazor.BzsThemeMotion.SlowDuration.init -> void
+Bzs.Blazor.BzsThemeProvider
+Bzs.Blazor.BzsThemeProvider.BzsThemeProvider() -> void
+Bzs.Blazor.BzsThemeProvider.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsThemeProvider.ChildContent.set -> void
+Bzs.Blazor.BzsThemeProvider.CspNonce.get -> string?
+Bzs.Blazor.BzsThemeProvider.CspNonce.set -> void
+Bzs.Blazor.BzsThemeProvider.Density.get -> Bzs.Blazor.BzsDensity
+Bzs.Blazor.BzsThemeProvider.Density.set -> void
+Bzs.Blazor.BzsThemeProvider.DensityChanged.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsDensity>
+Bzs.Blazor.BzsThemeProvider.DensityChanged.set -> void
+Bzs.Blazor.BzsThemeProvider.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsThemeProvider.Mode.get -> Bzs.Blazor.BzsThemeMode
+Bzs.Blazor.BzsThemeProvider.Mode.set -> void
+Bzs.Blazor.BzsThemeProvider.ModeChanged.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsThemeMode>
+Bzs.Blazor.BzsThemeProvider.ModeChanged.set -> void
+Bzs.Blazor.BzsThemeProvider.OnSystemPreferenceChanged(bool prefersDark) -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsThemeProvider.Theme.get -> Bzs.Blazor.BzsTheme!
+Bzs.Blazor.BzsThemeProvider.Theme.set -> void
+Bzs.Blazor.BzsThemes
+Bzs.Blazor.BzsThemeShape
+Bzs.Blazor.BzsThemeShape.<Clone>$() -> Bzs.Blazor.BzsThemeShape!
+Bzs.Blazor.BzsThemeShape.BorderWidth.get -> string!
+Bzs.Blazor.BzsThemeShape.BorderWidth.init -> void
+Bzs.Blazor.BzsThemeShape.BzsThemeShape(string! ControlRadius, string! ContainerRadius, string! OverlayRadius, string! BorderWidth) -> void
+Bzs.Blazor.BzsThemeShape.ContainerRadius.get -> string!
+Bzs.Blazor.BzsThemeShape.ContainerRadius.init -> void
+Bzs.Blazor.BzsThemeShape.ControlRadius.get -> string!
+Bzs.Blazor.BzsThemeShape.ControlRadius.init -> void
+Bzs.Blazor.BzsThemeShape.Deconstruct(out string! ControlRadius, out string! ContainerRadius, out string! OverlayRadius, out string! BorderWidth) -> void
+Bzs.Blazor.BzsThemeShape.Equals(Bzs.Blazor.BzsThemeShape? other) -> bool
+Bzs.Blazor.BzsThemeShape.OverlayRadius.get -> string!
+Bzs.Blazor.BzsThemeShape.OverlayRadius.init -> void
+Bzs.Blazor.BzsThemeTypography
+Bzs.Blazor.BzsThemeTypography.<Clone>$() -> Bzs.Blazor.BzsThemeTypography!
+Bzs.Blazor.BzsThemeTypography.BzsThemeTypography(string! FontFamily, string! FontSize, string! SmallFontSize, string! LineHeight, string! FontWeightRegular, string! FontWeightMedium, string! FontWeightBold) -> void
+Bzs.Blazor.BzsThemeTypography.Deconstruct(out string! FontFamily, out string! FontSize, out string! SmallFontSize, out string! LineHeight, out string! FontWeightRegular, out string! FontWeightMedium, out string! FontWeightBold) -> void
+Bzs.Blazor.BzsThemeTypography.Equals(Bzs.Blazor.BzsThemeTypography? other) -> bool
+Bzs.Blazor.BzsThemeTypography.FontFamily.get -> string!
+Bzs.Blazor.BzsThemeTypography.FontFamily.init -> void
+Bzs.Blazor.BzsThemeTypography.FontSize.get -> string!
+Bzs.Blazor.BzsThemeTypography.FontSize.init -> void
+Bzs.Blazor.BzsThemeTypography.FontWeightBold.get -> string!
+Bzs.Blazor.BzsThemeTypography.FontWeightBold.init -> void
+Bzs.Blazor.BzsThemeTypography.FontWeightMedium.get -> string!
+Bzs.Blazor.BzsThemeTypography.FontWeightMedium.init -> void
+Bzs.Blazor.BzsThemeTypography.FontWeightRegular.get -> string!
+Bzs.Blazor.BzsThemeTypography.FontWeightRegular.init -> void
+Bzs.Blazor.BzsThemeTypography.LineHeight.get -> string!
+Bzs.Blazor.BzsThemeTypography.LineHeight.init -> void
+Bzs.Blazor.BzsThemeTypography.SmallFontSize.get -> string!
+Bzs.Blazor.BzsThemeTypography.SmallFontSize.init -> void
+Bzs.Blazor.BzsToast
+Bzs.Blazor.BzsToast.BzsToast() -> void
+Bzs.Blazor.BzsToast.DismissLabel.get -> string?
+Bzs.Blazor.BzsToast.DismissLabel.set -> void
+Bzs.Blazor.BzsToast.DismissRequested.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsToastDismissReason>
+Bzs.Blazor.BzsToast.DismissRequested.set -> void
+Bzs.Blazor.BzsToast.PauseRequested.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsToastPauseReason>
+Bzs.Blazor.BzsToast.PauseRequested.set -> void
+Bzs.Blazor.BzsToast.ResumeRequested.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsToastPauseReason>
+Bzs.Blazor.BzsToast.ResumeRequested.set -> void
+Bzs.Blazor.BzsToast.Toast.get -> Bzs.Blazor.BzsToastSnapshot?
+Bzs.Blazor.BzsToast.Toast.set -> void
+Bzs.Blazor.BzsToastChangedEventArgs
+Bzs.Blazor.BzsToastChangedEventArgs.BzsToastChangedEventArgs(System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsToastSnapshot!>! snapshot) -> void
+Bzs.Blazor.BzsToastChangedEventArgs.Snapshot.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsToastSnapshot!>!
+Bzs.Blazor.BzsToastDismissedEventArgs
+Bzs.Blazor.BzsToastDismissedEventArgs.BzsToastDismissedEventArgs(Bzs.Blazor.BzsToastSnapshot! toast, Bzs.Blazor.BzsToastDismissReason reason) -> void
+Bzs.Blazor.BzsToastDismissedEventArgs.Reason.get -> Bzs.Blazor.BzsToastDismissReason
+Bzs.Blazor.BzsToastDismissedEventArgs.Toast.get -> Bzs.Blazor.BzsToastSnapshot!
+Bzs.Blazor.BzsToastDismissReason
+Bzs.Blazor.BzsToastDismissReason.Automatic = 1 -> Bzs.Blazor.BzsToastDismissReason
+Bzs.Blazor.BzsToastDismissReason.Faulted = 5 -> Bzs.Blazor.BzsToastDismissReason
+Bzs.Blazor.BzsToastDismissReason.Manual = 0 -> Bzs.Blazor.BzsToastDismissReason
+Bzs.Blazor.BzsToastDismissReason.Overflow = 3 -> Bzs.Blazor.BzsToastDismissReason
+Bzs.Blazor.BzsToastDismissReason.Replaced = 2 -> Bzs.Blazor.BzsToastDismissReason
+Bzs.Blazor.BzsToastDismissReason.ServiceDisposed = 4 -> Bzs.Blazor.BzsToastDismissReason
+Bzs.Blazor.BzsToastId
+Bzs.Blazor.BzsToastId.BzsToastId() -> void
+Bzs.Blazor.BzsToastId.BzsToastId(System.Guid Value) -> void
+Bzs.Blazor.BzsToastId.Deconstruct(out System.Guid Value) -> void
+Bzs.Blazor.BzsToastId.Equals(Bzs.Blazor.BzsToastId other) -> bool
+Bzs.Blazor.BzsToastId.Value.get -> System.Guid
+Bzs.Blazor.BzsToastId.Value.init -> void
+Bzs.Blazor.BzsToastOptions
+Bzs.Blazor.BzsToastOptions.<Clone>$() -> Bzs.Blazor.BzsToastOptions!
+Bzs.Blazor.BzsToastOptions.AccessibleName.get -> string?
+Bzs.Blazor.BzsToastOptions.AccessibleName.init -> void
+Bzs.Blazor.BzsToastOptions.BzsToastOptions() -> void
+Bzs.Blazor.BzsToastOptions.Dismissible.get -> bool
+Bzs.Blazor.BzsToastOptions.Dismissible.init -> void
+Bzs.Blazor.BzsToastOptions.DuplicateKey.get -> string?
+Bzs.Blazor.BzsToastOptions.DuplicateKey.init -> void
+Bzs.Blazor.BzsToastOptions.Duration.get -> System.TimeSpan?
+Bzs.Blazor.BzsToastOptions.Duration.init -> void
+Bzs.Blazor.BzsToastOptions.Equals(Bzs.Blazor.BzsToastOptions? other) -> bool
+Bzs.Blazor.BzsToastOptions.Group.get -> string?
+Bzs.Blazor.BzsToastOptions.Group.init -> void
+Bzs.Blazor.BzsToastOptions.Message.get -> string!
+Bzs.Blazor.BzsToastOptions.Message.init -> void
+Bzs.Blazor.BzsToastOptions.Severity.get -> Bzs.Blazor.BzsToastSeverity
+Bzs.Blazor.BzsToastOptions.Severity.init -> void
+Bzs.Blazor.BzsToastOptions.Title.get -> string?
+Bzs.Blazor.BzsToastOptions.Title.init -> void
+Bzs.Blazor.BzsToastPauseReason
+Bzs.Blazor.BzsToastPauseReason.Focus = 1 -> Bzs.Blazor.BzsToastPauseReason
+Bzs.Blazor.BzsToastPauseReason.Hover = 0 -> Bzs.Blazor.BzsToastPauseReason
+Bzs.Blazor.BzsToastService
+Bzs.Blazor.BzsToastService.BzsToastService(Bzs.Blazor.BzsToastServiceOptions? options = null, System.TimeProvider? timeProvider = null) -> void
+Bzs.Blazor.BzsToastService.Changed -> System.EventHandler<Bzs.Blazor.BzsToastChangedEventArgs!>?
+Bzs.Blazor.BzsToastService.Dismiss(Bzs.Blazor.BzsToastId id, Bzs.Blazor.BzsToastDismissReason reason = Bzs.Blazor.BzsToastDismissReason.Manual) -> bool
+Bzs.Blazor.BzsToastService.Dispose() -> void
+Bzs.Blazor.BzsToastService.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsToastService.Pause(Bzs.Blazor.BzsToastId id, Bzs.Blazor.BzsToastPauseReason reason) -> bool
+Bzs.Blazor.BzsToastService.Resume(Bzs.Blazor.BzsToastId id, Bzs.Blazor.BzsToastPauseReason reason) -> bool
+Bzs.Blazor.BzsToastService.Show(Bzs.Blazor.BzsToastOptions! options) -> Bzs.Blazor.BzsToastId
+Bzs.Blazor.BzsToastService.Snapshot.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsToastSnapshot!>!
+Bzs.Blazor.BzsToastService.ToastDismissed -> System.EventHandler<Bzs.Blazor.BzsToastDismissedEventArgs!>?
+Bzs.Blazor.BzsToastServiceOptions
+Bzs.Blazor.BzsToastServiceOptions.<Clone>$() -> Bzs.Blazor.BzsToastServiceOptions!
+Bzs.Blazor.BzsToastServiceOptions.BzsToastServiceOptions() -> void
+Bzs.Blazor.BzsToastServiceOptions.Equals(Bzs.Blazor.BzsToastServiceOptions? other) -> bool
+Bzs.Blazor.BzsToastServiceOptions.ErrorDuration.get -> System.TimeSpan
+Bzs.Blazor.BzsToastServiceOptions.ErrorDuration.init -> void
+Bzs.Blazor.BzsToastServiceOptions.InformationDuration.get -> System.TimeSpan
+Bzs.Blazor.BzsToastServiceOptions.InformationDuration.init -> void
+Bzs.Blazor.BzsToastServiceOptions.MaximumVisibleToasts.get -> int
+Bzs.Blazor.BzsToastServiceOptions.MaximumVisibleToasts.init -> void
+Bzs.Blazor.BzsToastServiceOptions.SuccessDuration.get -> System.TimeSpan
+Bzs.Blazor.BzsToastServiceOptions.SuccessDuration.init -> void
+Bzs.Blazor.BzsToastServiceOptions.WarningDuration.get -> System.TimeSpan
+Bzs.Blazor.BzsToastServiceOptions.WarningDuration.init -> void
+Bzs.Blazor.BzsToastSeverity
+Bzs.Blazor.BzsToastSeverity.Error = 3 -> Bzs.Blazor.BzsToastSeverity
+Bzs.Blazor.BzsToastSeverity.Information = 0 -> Bzs.Blazor.BzsToastSeverity
+Bzs.Blazor.BzsToastSeverity.Success = 1 -> Bzs.Blazor.BzsToastSeverity
+Bzs.Blazor.BzsToastSeverity.Warning = 2 -> Bzs.Blazor.BzsToastSeverity
+Bzs.Blazor.BzsToastSnapshot
+Bzs.Blazor.BzsToastSnapshot.<Clone>$() -> Bzs.Blazor.BzsToastSnapshot!
+Bzs.Blazor.BzsToastSnapshot.AccessibleName.get -> string?
+Bzs.Blazor.BzsToastSnapshot.BzsToastSnapshot(Bzs.Blazor.BzsToastId id, Bzs.Blazor.BzsToastSeverity severity, string! message, string? title, string? group, string? duplicateKey, System.TimeSpan? duration, bool dismissible, string? accessibleName = null) -> void
+Bzs.Blazor.BzsToastSnapshot.Dismissible.get -> bool
+Bzs.Blazor.BzsToastSnapshot.DuplicateKey.get -> string?
+Bzs.Blazor.BzsToastSnapshot.Duration.get -> System.TimeSpan?
+Bzs.Blazor.BzsToastSnapshot.Equals(Bzs.Blazor.BzsToastSnapshot? other) -> bool
+Bzs.Blazor.BzsToastSnapshot.Group.get -> string?
+Bzs.Blazor.BzsToastSnapshot.Id.get -> Bzs.Blazor.BzsToastId
+Bzs.Blazor.BzsToastSnapshot.Message.get -> string!
+Bzs.Blazor.BzsToastSnapshot.Severity.get -> Bzs.Blazor.BzsToastSeverity
+Bzs.Blazor.BzsToastSnapshot.Title.get -> string?
+Bzs.Blazor.BzsToggle
+Bzs.Blazor.BzsToggle.BzsToggle() -> void
+Bzs.Blazor.BzsToggle.OffText.get -> string?
+Bzs.Blazor.BzsToggle.OffText.set -> void
+Bzs.Blazor.BzsToggle.OnText.get -> string?
+Bzs.Blazor.BzsToggle.OnText.set -> void
+Bzs.Blazor.IBzsDialogService
+Bzs.Blazor.IBzsDialogService.ShowAsync<TComponent, TResult>(System.Action<Bzs.Blazor.BzsDialogParameterBuilder<TComponent>!>? parameters = null, Bzs.Blazor.BzsDialogOptions? options = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Bzs.Blazor.BzsDialogResult<TResult>!>!
+Bzs.Blazor.IBzsToastService
+Bzs.Blazor.IBzsToastService.Changed -> System.EventHandler<Bzs.Blazor.BzsToastChangedEventArgs!>?
+Bzs.Blazor.IBzsToastService.Dismiss(Bzs.Blazor.BzsToastId id, Bzs.Blazor.BzsToastDismissReason reason = Bzs.Blazor.BzsToastDismissReason.Manual) -> bool
+Bzs.Blazor.IBzsToastService.Pause(Bzs.Blazor.BzsToastId id, Bzs.Blazor.BzsToastPauseReason reason) -> bool
+Bzs.Blazor.IBzsToastService.Resume(Bzs.Blazor.BzsToastId id, Bzs.Blazor.BzsToastPauseReason reason) -> bool
+Bzs.Blazor.IBzsToastService.Show(Bzs.Blazor.BzsToastOptions! options) -> Bzs.Blazor.BzsToastId
+Bzs.Blazor.IBzsToastService.Snapshot.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsToastSnapshot!>!
+Bzs.Blazor.IBzsToastService.ToastDismissed -> System.EventHandler<Bzs.Blazor.BzsToastDismissedEventArgs!>?
+Bzs.Blazor._Imports
+Bzs.Blazor._Imports._Imports() -> void
+Bzs.Blazor._Imports.Execute() -> void
+const Bzs.Blazor.BzsIconData.DefaultViewBox = "0 0 24 24" -> string!
+override Bzs.Blazor.BzsDialogOptions.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsDialogOptions.GetHashCode() -> int
+override Bzs.Blazor.BzsDialogOptions.ToString() -> string!
+override Bzs.Blazor.BzsDialogResult<TResult>.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsDialogResult<TResult>.GetHashCode() -> int
+override Bzs.Blazor.BzsDialogResult<TResult>.ToString() -> string!
+override Bzs.Blazor.BzsIconData.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsIconData.GetHashCode() -> int
+override Bzs.Blazor.BzsIconData.ToString() -> string!
+override Bzs.Blazor.BzsSelectOption<TValue>.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsSelectOption<TValue>.GetHashCode() -> int
+override Bzs.Blazor.BzsSelectOption<TValue>.ToString() -> string!
+override Bzs.Blazor.BzsTabs.SetParametersAsync(Microsoft.AspNetCore.Components.ParameterView parameters) -> System.Threading.Tasks.Task!
+override Bzs.Blazor.BzsTheme.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsTheme.GetHashCode() -> int
+override Bzs.Blazor.BzsTheme.ToString() -> string!
+override Bzs.Blazor.BzsThemeColors.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsThemeColors.GetHashCode() -> int
+override Bzs.Blazor.BzsThemeColors.ToString() -> string!
+override Bzs.Blazor.BzsThemeContext.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsThemeContext.GetHashCode() -> int
+override Bzs.Blazor.BzsThemeContext.ToString() -> string!
+override Bzs.Blazor.BzsThemeDepth.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsThemeDepth.GetHashCode() -> int
+override Bzs.Blazor.BzsThemeDepth.ToString() -> string!
+override Bzs.Blazor.BzsThemeMotion.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsThemeMotion.GetHashCode() -> int
+override Bzs.Blazor.BzsThemeMotion.ToString() -> string!
+override Bzs.Blazor.BzsThemeShape.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsThemeShape.GetHashCode() -> int
+override Bzs.Blazor.BzsThemeShape.ToString() -> string!
+override Bzs.Blazor.BzsThemeTypography.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsThemeTypography.GetHashCode() -> int
+override Bzs.Blazor.BzsThemeTypography.ToString() -> string!
+override Bzs.Blazor.BzsToastId.GetHashCode() -> int
+override Bzs.Blazor.BzsToastOptions.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsToastOptions.GetHashCode() -> int
+override Bzs.Blazor.BzsToastOptions.ToString() -> string!
+override Bzs.Blazor.BzsToastServiceOptions.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsToastServiceOptions.GetHashCode() -> int
+override Bzs.Blazor.BzsToastServiceOptions.ToString() -> string!
+override Bzs.Blazor.BzsToastSnapshot.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsToastSnapshot.GetHashCode() -> int
+override Bzs.Blazor.BzsToastSnapshot.ToString() -> string!
+static Bzs.Blazor.BzsBlazorServiceCollectionExtensions.AddBzsBlazor(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Bzs.Blazor.BzsDialogOptions.operator !=(Bzs.Blazor.BzsDialogOptions? left, Bzs.Blazor.BzsDialogOptions? right) -> bool
+static Bzs.Blazor.BzsDialogOptions.operator ==(Bzs.Blazor.BzsDialogOptions? left, Bzs.Blazor.BzsDialogOptions? right) -> bool
+static Bzs.Blazor.BzsDialogResult<TResult>.Cancelled() -> Bzs.Blazor.BzsDialogResult<TResult>!
+static Bzs.Blazor.BzsDialogResult<TResult>.Completed(TResult value) -> Bzs.Blazor.BzsDialogResult<TResult>!
+static Bzs.Blazor.BzsDialogResult<TResult>.Dismissed(Bzs.Blazor.BzsDialogDismissReason reason = Bzs.Blazor.BzsDialogDismissReason.Programmatic) -> Bzs.Blazor.BzsDialogResult<TResult>!
+static Bzs.Blazor.BzsDialogResult<TResult>.HostDisposed() -> Bzs.Blazor.BzsDialogResult<TResult>!
+static Bzs.Blazor.BzsDialogResult<TResult>.operator !=(Bzs.Blazor.BzsDialogResult<TResult>? left, Bzs.Blazor.BzsDialogResult<TResult>? right) -> bool
+static Bzs.Blazor.BzsDialogResult<TResult>.operator ==(Bzs.Blazor.BzsDialogResult<TResult>? left, Bzs.Blazor.BzsDialogResult<TResult>? right) -> bool
+static Bzs.Blazor.BzsDialogResult<TResult>.Unavailable() -> Bzs.Blazor.BzsDialogResult<TResult>!
+static Bzs.Blazor.BzsIconData.operator !=(Bzs.Blazor.BzsIconData? left, Bzs.Blazor.BzsIconData? right) -> bool
+static Bzs.Blazor.BzsIconData.operator ==(Bzs.Blazor.BzsIconData? left, Bzs.Blazor.BzsIconData? right) -> bool
+static Bzs.Blazor.BzsIcons.Calendar.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Check.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.ChevronDown.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.ChevronLeft.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.ChevronRight.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.ChevronUp.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Close.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Error.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Info.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Loader.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Menu.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Package.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Search.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Success.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Warning.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsSelectOption<TValue>.operator !=(Bzs.Blazor.BzsSelectOption<TValue>? left, Bzs.Blazor.BzsSelectOption<TValue>? right) -> bool
+static Bzs.Blazor.BzsSelectOption<TValue>.operator ==(Bzs.Blazor.BzsSelectOption<TValue>? left, Bzs.Blazor.BzsSelectOption<TValue>? right) -> bool
+static Bzs.Blazor.BzsTheme.operator !=(Bzs.Blazor.BzsTheme? left, Bzs.Blazor.BzsTheme? right) -> bool
+static Bzs.Blazor.BzsTheme.operator ==(Bzs.Blazor.BzsTheme? left, Bzs.Blazor.BzsTheme? right) -> bool
+static Bzs.Blazor.BzsThemeColors.operator !=(Bzs.Blazor.BzsThemeColors? left, Bzs.Blazor.BzsThemeColors? right) -> bool
+static Bzs.Blazor.BzsThemeColors.operator ==(Bzs.Blazor.BzsThemeColors? left, Bzs.Blazor.BzsThemeColors? right) -> bool
+static Bzs.Blazor.BzsThemeContext.Default.get -> Bzs.Blazor.BzsThemeContext!
+static Bzs.Blazor.BzsThemeContext.operator !=(Bzs.Blazor.BzsThemeContext? left, Bzs.Blazor.BzsThemeContext? right) -> bool
+static Bzs.Blazor.BzsThemeContext.operator ==(Bzs.Blazor.BzsThemeContext? left, Bzs.Blazor.BzsThemeContext? right) -> bool
+static Bzs.Blazor.BzsThemeDepth.operator !=(Bzs.Blazor.BzsThemeDepth? left, Bzs.Blazor.BzsThemeDepth? right) -> bool
+static Bzs.Blazor.BzsThemeDepth.operator ==(Bzs.Blazor.BzsThemeDepth? left, Bzs.Blazor.BzsThemeDepth? right) -> bool
+static Bzs.Blazor.BzsThemeMotion.operator !=(Bzs.Blazor.BzsThemeMotion? left, Bzs.Blazor.BzsThemeMotion? right) -> bool
+static Bzs.Blazor.BzsThemeMotion.operator ==(Bzs.Blazor.BzsThemeMotion? left, Bzs.Blazor.BzsThemeMotion? right) -> bool
+static Bzs.Blazor.BzsThemes.Dark.get -> Bzs.Blazor.BzsThemeColors!
+static Bzs.Blazor.BzsThemes.Default.get -> Bzs.Blazor.BzsTheme!
+static Bzs.Blazor.BzsThemes.Light.get -> Bzs.Blazor.BzsThemeColors!
+static Bzs.Blazor.BzsThemeShape.operator !=(Bzs.Blazor.BzsThemeShape? left, Bzs.Blazor.BzsThemeShape? right) -> bool
+static Bzs.Blazor.BzsThemeShape.operator ==(Bzs.Blazor.BzsThemeShape? left, Bzs.Blazor.BzsThemeShape? right) -> bool
+static Bzs.Blazor.BzsThemeTypography.operator !=(Bzs.Blazor.BzsThemeTypography? left, Bzs.Blazor.BzsThemeTypography? right) -> bool
+static Bzs.Blazor.BzsThemeTypography.operator ==(Bzs.Blazor.BzsThemeTypography? left, Bzs.Blazor.BzsThemeTypography? right) -> bool
+static Bzs.Blazor.BzsToastId.operator !=(Bzs.Blazor.BzsToastId left, Bzs.Blazor.BzsToastId right) -> bool
+static Bzs.Blazor.BzsToastId.operator ==(Bzs.Blazor.BzsToastId left, Bzs.Blazor.BzsToastId right) -> bool
+static Bzs.Blazor.BzsToastOptions.operator !=(Bzs.Blazor.BzsToastOptions? left, Bzs.Blazor.BzsToastOptions? right) -> bool
+static Bzs.Blazor.BzsToastOptions.operator ==(Bzs.Blazor.BzsToastOptions? left, Bzs.Blazor.BzsToastOptions? right) -> bool
+static Bzs.Blazor.BzsToastServiceOptions.operator !=(Bzs.Blazor.BzsToastServiceOptions? left, Bzs.Blazor.BzsToastServiceOptions? right) -> bool
+static Bzs.Blazor.BzsToastServiceOptions.operator ==(Bzs.Blazor.BzsToastServiceOptions? left, Bzs.Blazor.BzsToastServiceOptions? right) -> bool
+static Bzs.Blazor.BzsToastSnapshot.operator !=(Bzs.Blazor.BzsToastSnapshot? left, Bzs.Blazor.BzsToastSnapshot? right) -> bool
+static Bzs.Blazor.BzsToastSnapshot.operator ==(Bzs.Blazor.BzsToastSnapshot? left, Bzs.Blazor.BzsToastSnapshot? right) -> bool
+~override Bzs.Blazor.BzsToastId.Equals(object obj) -> bool
+~override Bzs.Blazor.BzsToastId.ToString() -> string

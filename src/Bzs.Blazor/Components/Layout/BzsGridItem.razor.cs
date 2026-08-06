@@ -5,7 +5,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Occupies a responsive number of columns within a <see cref="BzsGrid"/>.
 /// </summary>
-public partial class BzsGridItem : BzsComponentBase
+public sealed partial class BzsGridItem : BzsComponentBase
 {
     /// <summary>Gets or sets the 1-12 column span at all viewport sizes.</summary>
     [Parameter]

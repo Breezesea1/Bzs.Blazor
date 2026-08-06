@@ -25,7 +25,7 @@ public enum BzsDrawerPlacement
 /// <summary>
 /// Renders a controlled, declarative drawer without command-service support.
 /// </summary>
-public partial class BzsDrawer : BzsComponentBase, IAsyncDisposable
+public sealed partial class BzsDrawer : BzsComponentBase, IAsyncDisposable
 {
     private readonly string _overlayId = $"bzs-drawer-{Guid.NewGuid():N}";
     private readonly string _titleId = $"bzs-drawer-title-{Guid.NewGuid():N}";

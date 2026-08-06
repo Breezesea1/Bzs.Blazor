@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Playwright;
 using static Microsoft.Playwright.Assertions;
 
@@ -147,6 +148,7 @@ public sealed class PackageConsumerSmokeTests
         "Components/Theme/BzsThemeProvider.razor.js",
         "Components/Tabs/BzsTabs.razor.js",
         "Components/Dialog/BzsDialog.razor.js",
+        "Components/Form/BzsDateInput.razor.js",
         "Components/Form/BzsSelect.razor.js",
     };
 
@@ -229,6 +231,23 @@ public sealed class PackageConsumerSmokeTests
 
         await page.GetByLabel("Reviewer count").FillAsync("4");
         await Expect(page.GetByLabel("Reviewer count")).ToHaveValueAsync("4");
+
+        var dateCulture = CultureInfo.GetCultureInfo(expectedCulture);
+        var selectedDate = new DateOnly(2026, 7, 18);
+        var releaseDate = page.GetByRole(
+            AriaRole.Combobox,
+            new() { Name = "Release date", Exact = true });
+        await Expect(releaseDate).ToHaveValueAsync(
+            new DateOnly(2026, 7, 17).ToString("d", dateCulture));
+        await releaseDate.ClickAsync();
+        await Expect(releaseDate).ToHaveAttributeAsync("aria-expanded", "true");
+        await page.GetByRole(
+                AriaRole.Gridcell,
+                new() { Name = selectedDate.ToString("D", dateCulture), Exact = true })
+            .ClickAsync();
+        await Expect(releaseDate).ToHaveValueAsync(selectedDate.ToString("d", dateCulture));
+        await Expect(page.GetByTestId($"{runtime}-date-value")).ToHaveTextAsync("2026-07-18");
+
         var stage = page.GetByRole(AriaRole.Combobox, new() { Name = "Stage" });
         await stage.ClickAsync();
         await page.GetByRole(AriaRole.Option, new() { Name = "Review" }).ClickAsync();

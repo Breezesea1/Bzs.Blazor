@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Bzs.Blazor;
 
 /// <summary>Renders a generic native number input integrated with EditContext.</summary>
-public partial class BzsNumberInput<TValue> : BzsInputBase<TValue>
+public sealed partial class BzsNumberInput<TValue> : BzsInputBase<TValue>
     where TValue : struct, INumber<TValue>
 {
     /// <summary>Gets or sets the native number step.</summary>

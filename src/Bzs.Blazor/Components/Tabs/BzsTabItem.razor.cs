@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Declares a tab title and panel for a containing <see cref="BzsTabs" /> component.
 /// </summary>
-public partial class BzsTabItem : BzsComponentBase, IDisposable
+public sealed partial class BzsTabItem : BzsComponentBase, IDisposable
 {
     private readonly string _generatedTabId = $"bzs-tab-{Guid.NewGuid():N}";
     private readonly string _generatedPanelId = $"bzs-tab-panel-{Guid.NewGuid():N}";

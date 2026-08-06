@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Arranges child items on a responsive twelve-column grid.
 /// </summary>
-public partial class BzsGrid : BzsComponentBase
+public sealed partial class BzsGrid : BzsComponentBase
 {
     /// <summary>
     /// Gets or sets the token-driven gap between rows and columns.

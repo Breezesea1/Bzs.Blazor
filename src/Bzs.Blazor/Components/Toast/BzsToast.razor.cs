@@ -5,7 +5,7 @@ using Microsoft.Extensions.Localization;
 namespace Bzs.Blazor;
 
 /// <summary>Renders one immutable toast snapshot.</summary>
-public partial class BzsToast : BzsComponentBase
+public sealed partial class BzsToast : BzsComponentBase
 {
     [Inject]
     private IStringLocalizer<BzsBlazorResources> Localizer { get; set; } = default!;

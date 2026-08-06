@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Bzs.Blazor;
 
 /// <summary>Renders a native checkbox integrated with EditContext.</summary>
-public partial class BzsCheckbox : BzsInputBase<bool>
+public sealed partial class BzsCheckbox : BzsInputBase<bool>
 {
     private IReadOnlyDictionary<string, object> InputAttributes =>
         BuildInputAttributes("bzs-input bzs-checkbox", "checkbox", supportsReadOnly: false);

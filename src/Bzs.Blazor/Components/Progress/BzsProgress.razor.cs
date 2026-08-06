@@ -7,7 +7,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Renders accessible determinate or indeterminate progress.
 /// </summary>
-public partial class BzsProgress : BzsComponentBase
+public sealed partial class BzsProgress : BzsComponentBase
 {
     [Inject]
     private IStringLocalizer<BzsBlazorResources> Localizer { get; set; } = default!;

@@ -3,7 +3,7 @@ namespace Bzs.Blazor;
 /// <summary>
 /// Renders inline, semantic feedback with composable content.
 /// </summary>
-public partial class BzsMessage : BzsComponentBase
+public sealed partial class BzsMessage : BzsComponentBase
 {
     /// <summary>
     /// Gets or sets the semantic severity of the message.

@@ -1,7 +1,7 @@
 namespace Bzs.Blazor;
 
 /// <summary>Connects a label, description, input, and validation message.</summary>
-public partial class BzsField : BzsComponentBase
+public sealed partial class BzsField : BzsComponentBase
 {
     /// <summary>Gets or sets the identifier of the native input.</summary>
     [Parameter, EditorRequired] public string? InputId { get; set; }

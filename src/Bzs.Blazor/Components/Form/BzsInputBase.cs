@@ -6,6 +6,10 @@ namespace Bzs.Blazor;
 /// <summary>Provides the shared native Blazor form contract for Bzs inputs.</summary>
 public abstract class BzsInputBase<TValue> : InputBase<TValue>
 {
+    internal BzsInputBase()
+    {
+    }
+
     private readonly string _fallbackId = $"bzs-input-{Guid.NewGuid():N}";
 
     [Inject]

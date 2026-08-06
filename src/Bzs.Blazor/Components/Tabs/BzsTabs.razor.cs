@@ -29,7 +29,7 @@ public enum BzsTabActivationMode
 /// <summary>
 /// Renders composed tab items with controlled or internally initialized selection.
 /// </summary>
-public partial class BzsTabs : BzsComponentBase, IAsyncDisposable
+public sealed partial class BzsTabs : BzsComponentBase, IAsyncDisposable
 {
     private readonly List<BzsTabItem> _items = [];
     private readonly Dictionary<BzsTabItem, TabItemState> _itemStates = [];
