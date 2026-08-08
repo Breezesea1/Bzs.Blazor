@@ -139,7 +139,7 @@ public sealed partial class BzsDialog : BzsComponentBase, IAsyncDisposable
         _interopSynchronizationPending = false;
         if (_isOpen)
         {
-            _interop ??= new BzsOverlayInterop(JS);
+            _interop ??= new BzsOverlayInterop(JS, LoggerFactory);
             await _interop.ActivateAsync(_overlayId, _panelElement, Modal, _lastInitialFocusSelector);
         }
         else if (_interop is not null)

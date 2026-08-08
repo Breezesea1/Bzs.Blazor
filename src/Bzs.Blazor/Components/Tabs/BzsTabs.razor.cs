@@ -40,7 +40,7 @@ public sealed partial class BzsTabs : BzsComponentBase, IAsyncDisposable
     private bool _initialValueResolved;
     private ElementReference _rootElement;
     private ElementReference _tabListElement;
-    private IJSObjectReference? _module;
+    private BzsTabsInterop? _interop;
     private bool _interopPending = true;
     private bool _disposed;
     private BzsTabsOrientation _lastOrientation;
@@ -242,14 +242,8 @@ public sealed partial class BzsTabs : BzsComponentBase, IAsyncDisposable
         }
 
         _interopPending = false;
-        try
-        {
-            var module = await GetModuleAsync();
-            await module.InvokeVoidAsync("attach", _tabListElement, OrientationName, ActivationName);
-        }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
-        {
-        }
+        _interop ??= new BzsTabsInterop(JS, LoggerFactory);
+        await _interop.AttachAsync(_tabListElement, OrientationName, ActivationName);
     }
 
     private bool IsSelected(BzsTabItem item) =>
@@ -513,29 +507,9 @@ public sealed partial class BzsTabs : BzsComponentBase, IAsyncDisposable
             return explicitDirection == "rtl";
         }
 
-        try
-        {
-            var module = await GetModuleAsync();
-            return string.Equals(
-                await module.InvokeAsync<string>("getDirection", _rootElement),
-                "rtl",
-                StringComparison.Ordinal);
-        }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
-        {
-            return false;
-        }
+        _interop ??= new BzsTabsInterop(JS, LoggerFactory);
+        return await _interop.IsRightToLeftAsync(_rootElement);
     }
-
-    private ValueTask<IJSObjectReference> GetModuleAsync() =>
-        _module is not null
-            ? ValueTask.FromResult(_module)
-            : LoadModuleAsync();
-
-    private async ValueTask<IJSObjectReference> LoadModuleAsync() =>
-        _module = await JS.InvokeAsync<IJSObjectReference>(
-            "import",
-            "./_content/Bzs.Blazor/Components/Tabs/BzsTabs.razor.js");
 
     private string? GetAdditionalAttribute(string name)
     {
@@ -562,9 +536,6 @@ public sealed partial class BzsTabs : BzsComponentBase, IAsyncDisposable
             ? primary.Trim()
             : string.IsNullOrWhiteSpace(fallback) ? null : fallback.Trim();
 
-    private static bool IsTransientInteropFailure(Exception exception) =>
-        exception is JSDisconnectedException or TaskCanceledException or InvalidOperationException;
-
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
@@ -574,19 +545,12 @@ public sealed partial class BzsTabs : BzsComponentBase, IAsyncDisposable
         }
 
         _disposed = true;
-        if (_module is null)
+        if (_interop is null)
         {
             return;
         }
 
-        try
-        {
-            await _module.InvokeVoidAsync("detach", _tabListElement);
-            await _module.DisposeAsync();
-        }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
-        {
-        }
+        await _interop.DisposeAsync(_tabListElement);
     }
 
     private sealed record TabItemState(

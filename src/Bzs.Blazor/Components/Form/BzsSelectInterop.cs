@@ -1,16 +1,24 @@
 namespace Bzs.Blazor;
 
-internal sealed class BzsSelectInterop(IJSRuntime jsRuntime) : IAsyncDisposable
+internal sealed class BzsSelectInterop : IAsyncDisposable
 {
     internal const string ModulePath = "./_content/Bzs.Blazor/Components/Form/BzsSelect.razor.js";
     internal const string InitializeMethod = "initialize";
     internal const string SetOpenMethod = "setOpen";
     internal const string DisposeMethod = "dispose";
 
-    private IJSObjectReference? _module;
+    private readonly BzsJsModule _module;
 
-    private async ValueTask<IJSObjectReference> GetModuleAsync() =>
-        _module ??= await jsRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
+    internal BzsSelectInterop(
+        IJSRuntime jsRuntime,
+        Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null)
+    {
+        _module = new BzsJsModule(
+            jsRuntime,
+            ModulePath,
+            loggerFactory,
+            new BzsJsModuleOptions(TreatObjectDisposedAsTransient: true));
+    }
 
     internal async ValueTask<bool> InitializeAsync<T>(
         string instanceId,
@@ -18,16 +26,11 @@ internal sealed class BzsSelectInterop(IJSRuntime jsRuntime) : IAsyncDisposable
         DotNetObjectReference<T> dotNetReference)
         where T : class
     {
-        try
-        {
-            var module = await GetModuleAsync();
-            await module.InvokeVoidAsync(InitializeMethod, instanceId, root, dotNetReference);
-            return true;
-        }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
-        {
-            return false;
-        }
+        return await _module.TryInvokeVoidAsync(
+            InitializeMethod,
+            instanceId,
+            root,
+            dotNetReference);
     }
 
     internal async ValueTask SetOpenAsync(
@@ -35,44 +38,16 @@ internal sealed class BzsSelectInterop(IJSRuntime jsRuntime) : IAsyncDisposable
         bool open,
         ElementReference? focusTarget = null)
     {
-        try
-        {
-            var module = await GetModuleAsync();
-            await module.InvokeVoidAsync(SetOpenMethod, instanceId, open, focusTarget);
-        }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
-        {
-        }
+        await _module.TryInvokeVoidAsync(SetOpenMethod, instanceId, open, focusTarget);
     }
 
     internal async ValueTask DisposeInstanceAsync(string instanceId)
     {
-        if (_module is not null)
+        if (_module.IsLoaded)
         {
-            try
-            {
-                await _module.InvokeVoidAsync(DisposeMethod, instanceId);
-            }
-            catch (Exception exception) when (IsTransientInteropFailure(exception))
-            {
-            }
+            await _module.TryInvokeVoidAsync(DisposeMethod, instanceId);
         }
     }
 
-    public async ValueTask DisposeAsync()
-    {
-        try
-        {
-            if (_module is not null)
-            {
-                await _module.DisposeAsync();
-            }
-        }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
-        {
-        }
-    }
-
-    private static bool IsTransientInteropFailure(Exception exception) =>
-        exception is JSDisconnectedException or TaskCanceledException or ObjectDisposedException;
+    public ValueTask DisposeAsync() => _module.DisposeAsync();
 }

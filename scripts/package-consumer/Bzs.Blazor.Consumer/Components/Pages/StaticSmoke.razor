@@ -1,4 +1,5 @@
 @page "/static-smoke"
+@using System.Globalization
 
 <BzsThemeProvider Mode="BzsThemeMode.Light" data-testid="static-theme">
     <h1>Static SSR package smoke</h1>
@@ -12,5 +13,127 @@
             <BzsTabItem Value="details" Title="Details">Static details content.</BzsTabItem>
         </BzsTabs>
     </BzsSurface>
+
+    <EditForm Model="FormModel"
+              FormName="@StaticFormName"
+              OnValidSubmit="HandleValidSubmit"
+              data-testid="static-post-form">
+        <DataAnnotationsValidator />
+        <ValidationSummary data-testid="static-validation" />
+        <BzsTextInput Value="@FormModel.ProjectName"
+                      ValueExpression="@(() => FormModel.ProjectName)"
+                      Name="Form.ProjectName"
+                      Label="Project name"
+                      Required="true"
+                      data-testid="static-project-name" />
+        <BzsNumberInput TValue="int"
+                        Value="FormModel.ReviewerCount"
+                        ValueExpression="@(() => FormModel.ReviewerCount)"
+                        Name="Form.ReviewerCount"
+                        Label="Reviewer count"
+                        Required="true"
+                        data-testid="static-reviewer-count" />
+        <BzsDateInput TValue="DateOnly"
+                      Value="FormModel.DueDate"
+                      ValueExpression="@(() => FormModel.DueDate)"
+                      Name="Form.DueDate"
+                      Label="Due date"
+                      Required="true"
+                      data-testid="static-due-date" />
+        <BzsCheckbox Value="FormModel.NotifyOwners"
+                     ValueExpression="@(() => FormModel.NotifyOwners)"
+                     Name="Form.NotifyOwners"
+                     Label="Notify owners"
+                     data-testid="static-notify-owners" />
+        <BzsRadioGroup TValue="string"
+                       Value="@FormModel.Priority"
+                       ValueExpression="@(() => FormModel.Priority)"
+                       Name="Form.Priority"
+                       Options="PriorityOptions"
+                       Label="Priority"
+                       data-testid="static-priority" />
+        <BzsSelect TValue="string"
+                   Value="@FormModel.Stage"
+                   ValueExpression="@(() => FormModel.Stage)"
+                   Name="Form.Stage"
+                   Options="StageOptions"
+                   Label="Stage"
+                   data-testid="static-stage" />
+        <BzsMultiSelect TValue="string"
+                        Value="FormModel.Targets"
+                        ValueExpression="@(() => FormModel.Targets)"
+                        Name="Form.Targets"
+                        Options="TargetOptions"
+                        Label="Targets"
+                        data-testid="static-targets" />
+        <BzsButton Type="BzsButtonType.Submit" data-testid="static-submit">
+            Submit static form
+        </BzsButton>
+        <p role="status" data-testid="static-post-result">@SubmissionResult</p>
+    </EditForm>
+
     <BzsOverlayHost data-testid="static-overlay-host" />
 </BzsThemeProvider>
+
+@code {
+    private const string StaticFormName = "static-package-form";
+
+    private static readonly IReadOnlyList<BzsSelectOption<string>> PriorityOptions =
+    [
+        new("normal", "Normal"),
+        new("high", "High"),
+    ];
+
+    private static readonly IReadOnlyList<BzsSelectOption<string>> StageOptions =
+    [
+        new("draft", "Draft"),
+        new("review", "Review"),
+    ];
+
+    private static readonly IReadOnlyList<BzsSelectOption<string>> TargetOptions =
+    [
+        new("accessibility", "Accessibility"),
+        new("aot", "AOT"),
+        new("package", "Package"),
+    ];
+
+    [SupplyParameterFromForm(FormName = StaticFormName)]
+    private StaticSmokeForm? Form { get; set; }
+
+    private StaticSmokeForm FormModel => Form ??= new();
+
+    private string SubmissionResult { get; set; } = "No static form submission.";
+
+    private void HandleValidSubmit()
+    {
+        SubmissionResult = string.Join(
+            " | ",
+            "Submitted",
+            FormModel.ProjectName,
+            FormModel.ReviewerCount.ToString(CultureInfo.InvariantCulture),
+            FormModel.DueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            FormModel.Priority,
+            FormModel.Stage,
+            string.Join(",", FormModel.Targets),
+            $"notify={FormModel.NotifyOwners.ToString().ToLowerInvariant()}");
+    }
+
+    private sealed class StaticSmokeForm
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Project name is required.")]
+        public string? ProjectName { get; set; } = "Foundation review";
+
+        [System.ComponentModel.DataAnnotations.Range(1, 20, ErrorMessage = "Reviewer count must be between 1 and 20.")]
+        public int ReviewerCount { get; set; } = 2;
+
+        public DateOnly DueDate { get; set; } = new(2026, 8, 6);
+
+        public bool NotifyOwners { get; set; } = true;
+
+        public string Priority { get; set; } = "normal";
+
+        public string Stage { get; set; } = "draft";
+
+        public string[] Targets { get; set; } = ["package"];
+    }
+}

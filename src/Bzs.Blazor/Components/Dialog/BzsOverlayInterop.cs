@@ -1,12 +1,17 @@
 namespace Bzs.Blazor;
 
-internal sealed class BzsOverlayInterop(IJSRuntime js)
+internal sealed class BzsOverlayInterop
 {
     internal const string ModulePath = "./_content/Bzs.Blazor/Components/Dialog/BzsDialog.razor.js";
     internal const string ActivateMethod = "activate";
     internal const string DeactivateMethod = "deactivate";
 
-    private IJSObjectReference? _module;
+    private readonly BzsJsModule _module;
+
+    internal BzsOverlayInterop(IJSRuntime js, Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null)
+    {
+        _module = new BzsJsModule(js, ModulePath, loggerFactory);
+    }
 
     public async ValueTask ActivateAsync(
         string overlayId,
@@ -14,48 +19,49 @@ internal sealed class BzsOverlayInterop(IJSRuntime js)
         bool modal,
         string? initialFocusSelector)
     {
-        try
-        {
-            var module = await GetModuleAsync();
-            await module.InvokeVoidAsync(ActivateMethod, overlayId, panel, modal, initialFocusSelector);
-        }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
-        {
-        }
+        await _module.TryInvokeVoidAsync(
+            ActivateMethod,
+            overlayId,
+            panel,
+            modal,
+            initialFocusSelector);
     }
 
     public async ValueTask DeactivateAsync(string overlayId)
     {
-        if (_module is not null)
+        if (_module.IsLoaded)
         {
-            try
-            {
-                await _module.InvokeVoidAsync(DeactivateMethod, overlayId);
-            }
-            catch (Exception exception) when (IsTransientInteropFailure(exception))
-            {
-            }
+            await _module.TryInvokeVoidAsync(DeactivateMethod, overlayId);
         }
     }
 
     public async ValueTask DisposeAsync(string overlayId)
     {
-        try
+        Exception? disposalException = null;
+        if (_module.IsLoaded)
         {
-            if (_module is not null)
+            try
             {
-                await _module.InvokeVoidAsync(DeactivateMethod, overlayId);
-                await _module.DisposeAsync();
+                await _module.TryInvokeVoidAsync(DeactivateMethod, overlayId);
+            }
+            catch (Exception exception)
+            {
+                disposalException = exception;
             }
         }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
+
+        try
         {
+            await _module.DisposeAsync();
+        }
+        catch (Exception exception)
+        {
+            disposalException ??= exception;
+        }
+
+        if (disposalException is not null)
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(disposalException).Throw();
         }
     }
-
-    private async ValueTask<IJSObjectReference> GetModuleAsync() =>
-        _module ??= await js.InvokeAsync<IJSObjectReference>("import", ModulePath);
-
-    private static bool IsTransientInteropFailure(Exception exception) =>
-        exception is JSDisconnectedException or TaskCanceledException;
 }

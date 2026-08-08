@@ -43,6 +43,9 @@ $consumerPackagesDirectory = Join-Path $releaseRoot "consumer-packages"
 $publishDirectory = Join-Path $releaseRoot "publish"
 $aotDirectory = Join-Path $releaseRoot "aot-client"
 $summaryPath = Join-Path $releaseRoot "verification-summary.md"
+$packageSizeBudgetBytes = 196608
+$symbolPackageSizeBudgetBytes = 131072
+$aotFrameworkSizeBudgetBytes = 41943040
 $versionPattern = '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$'
 
 [xml]$packageProjectXml = Get-Content -Raw -LiteralPath $packageProject
@@ -111,6 +114,37 @@ function Invoke-DotNet {
         throw "The publish emitted a prohibited trim or AOT warning."
     }
 
+}
+
+function Assert-FileSizeBudget {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][long]$MaximumBytes,
+        [Parameter(Mandatory = $true)][string]$Description
+    )
+
+    $file = Get-Item -LiteralPath $Path
+    if ($file.Length -gt $MaximumBytes) {
+        throw "$Description is $($file.Length) bytes; the release budget is $MaximumBytes bytes (over by $($file.Length - $MaximumBytes) bytes)."
+    }
+
+    return $file.Length
+}
+
+function Assert-DirectorySizeBudget {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][long]$MaximumBytes,
+        [Parameter(Mandatory = $true)][string]$Description
+    )
+
+    $measurement = Get-ChildItem -LiteralPath $Path -Recurse -File | Measure-Object -Property Length -Sum
+    $actualBytes = if ($null -eq $measurement.Sum) { 0L } else { [long]$measurement.Sum }
+    if ($actualBytes -gt $MaximumBytes) {
+        throw "$Description is $actualBytes bytes; the release budget is $MaximumBytes bytes (over by $($actualBytes - $MaximumBytes) bytes)."
+    }
+
+    return $actualBytes
 }
 
 function Write-CompletedProcessLines {
@@ -600,6 +634,15 @@ Invoke-DotNet @(
 $packagePath = Join-Path $packageDirectory "Bzs.Blazor.$Version.nupkg"
 $symbolPackagePath = Join-Path $packageDirectory "Bzs.Blazor.$Version.snupkg"
 Assert-PackageContents $packagePath $symbolPackagePath $Version
+$packageSizeBytes = Assert-FileSizeBudget `
+    -Path $packagePath `
+    -MaximumBytes $packageSizeBudgetBytes `
+    -Description "NuGet package"
+$symbolPackageSizeBytes = Assert-FileSizeBudget `
+    -Path $symbolPackagePath `
+    -MaximumBytes $symbolPackageSizeBudgetBytes `
+    -Description "NuGet symbol package"
+$aotFrameworkSizeBytes = $null
 
 Reset-Directory $consumerRoot | Out-Null
 Reset-Directory $consumerPackagesDirectory | Out-Null
@@ -686,6 +729,11 @@ if (-not $SkipAot) {
         throw "The published AOT consumer is missing the zh-Hans package satellite resource."
     }
 
+    $aotFrameworkSizeBytes = Assert-DirectorySizeBudget `
+        -Path $aotFrameworkRoot `
+        -MaximumBytes $aotFrameworkSizeBudgetBytes `
+        -Description "Published AOT _framework directory"
+
     Invoke-PackageConsumerSmoke `
         -ProcessArguments @("Bzs.Blazor.Consumer.dll") `
         -WorkingDirectory $publishDirectory `
@@ -709,7 +757,9 @@ else {
 
 - Configuration: $Configuration
 - Package: $packagePath
+- Package size: $packageSizeBytes / $packageSizeBudgetBytes bytes
 - Symbols: $symbolPackagePath
+- Symbol package size: $symbolPackageSizeBytes / $symbolPackageSizeBudgetBytes bytes
 - Package-only consumer: $consumerRoot
 - Isolated consumer packages: $consumerPackagesDirectory
 - Published consumer: $publishDirectory
@@ -718,6 +768,7 @@ else {
 - Visual regression skipped: $SkipVisualRegression
 - Browser matrix skipped: $SkipBrowserMatrix
 - WASM AOT publish skipped: $SkipAot
+- AOT framework size: $(if ($null -eq $aotFrameworkSizeBytes) { "skipped" } else { "$aotFrameworkSizeBytes / $aotFrameworkSizeBudgetBytes bytes" })
 "@ | Set-Content -Path $summaryPath -Encoding utf8
 
 Write-Host "Release verification passed."

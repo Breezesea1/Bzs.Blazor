@@ -3,6 +3,7 @@
 @inherits BzsInputBase<TValue>
 @implements IAsyncDisposable
 @inject IJSRuntime JsRuntime
+@inject Microsoft.Extensions.Logging.ILoggerFactory LoggerFactory
 
 <BzsField InputId="@InputId" Label="@Label" Description="@Description" Error="@FieldError" Required="@Required">
     @if (!_isInteractive)

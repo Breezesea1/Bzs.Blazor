@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace Bzs.Blazor;
 
-internal sealed class BzsDateInputInterop(IJSRuntime jsRuntime) : IAsyncDisposable
+internal sealed class BzsDateInputInterop : IAsyncDisposable
 {
     internal const string ModulePath = "./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js";
     internal const string InitializeMethod = "initialize";
@@ -11,10 +11,18 @@ internal sealed class BzsDateInputInterop(IJSRuntime jsRuntime) : IAsyncDisposab
     internal const string ScrollActivePeriodOptionMethod = "scrollActivePeriodOption";
     internal const string DisposeMethod = "dispose";
 
-    private IJSObjectReference? _module;
+    private readonly BzsJsModule _module;
 
-    private async ValueTask<IJSObjectReference> GetModuleAsync() =>
-        _module ??= await jsRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
+    internal BzsDateInputInterop(
+        IJSRuntime jsRuntime,
+        Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null)
+    {
+        _module = new BzsJsModule(
+            jsRuntime,
+            ModulePath,
+            loggerFactory,
+            new BzsJsModuleOptions(TreatObjectDisposedAsTransient: true));
+    }
 
     internal async ValueTask<BzsDateInputInitialization> InitializeAsync<T>(
         string instanceId,
@@ -22,22 +30,23 @@ internal sealed class BzsDateInputInterop(IJSRuntime jsRuntime) : IAsyncDisposab
         DotNetObjectReference<T> dotNetReference)
         where T : class
     {
-        try
-        {
-            var module = await GetModuleAsync();
-            var browserDate = await module.InvokeAsync<string>(InitializeMethod, instanceId, root, dotNetReference);
-            var parsed = DateOnly.TryParseExact(
-                browserDate,
-                "yyyy-MM-dd",
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.None,
-                out var today);
-            return new BzsDateInputInitialization(true, parsed ? today : null);
-        }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
+        var invocation = await _module.TryInvokeAsync<string>(
+            InitializeMethod,
+            instanceId,
+            root,
+            dotNetReference);
+        if (!invocation.Succeeded)
         {
             return default;
         }
+
+        var parsed = DateOnly.TryParseExact(
+            invocation.Result,
+            "yyyy-MM-dd",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out var today);
+        return new BzsDateInputInitialization(true, parsed ? today : null);
     }
 
     internal async ValueTask<bool> SetOpenAsync(
@@ -48,79 +57,35 @@ internal sealed class BzsDateInputInterop(IJSRuntime jsRuntime) : IAsyncDisposab
         bool focusCalendar,
         ElementReference? focusTarget = null)
     {
-        try
-        {
-            var module = await GetModuleAsync();
-            await module.InvokeVoidAsync(
-                SetOpenMethod,
-                instanceId,
-                open,
-                pointerX,
-                pointerY,
-                focusCalendar,
-                focusTarget);
-            return true;
-        }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
-        {
-            return false;
-        }
+        return await _module.TryInvokeVoidAsync(
+            SetOpenMethod,
+            instanceId,
+            open,
+            pointerX,
+            pointerY,
+            focusCalendar,
+            focusTarget);
     }
 
     internal async ValueTask FocusActiveDayAsync(string instanceId)
     {
-        try
-        {
-            var module = await GetModuleAsync();
-            await module.InvokeVoidAsync(FocusActiveDayMethod, instanceId);
-        }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
-        {
-        }
+        await _module.TryInvokeVoidAsync(FocusActiveDayMethod, instanceId);
     }
 
     internal async ValueTask ScrollActivePeriodOptionAsync(ElementReference menu)
     {
-        try
-        {
-            var module = await GetModuleAsync();
-            await module.InvokeVoidAsync(ScrollActivePeriodOptionMethod, menu);
-        }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
-        {
-        }
+        await _module.TryInvokeVoidAsync(ScrollActivePeriodOptionMethod, menu);
     }
 
     internal async ValueTask DisposeInstanceAsync(string instanceId)
     {
-        if (_module is not null)
+        if (_module.IsLoaded)
         {
-            try
-            {
-                await _module.InvokeVoidAsync(DisposeMethod, instanceId);
-            }
-            catch (Exception exception) when (IsTransientInteropFailure(exception))
-            {
-            }
+            await _module.TryInvokeVoidAsync(DisposeMethod, instanceId);
         }
     }
 
-    public async ValueTask DisposeAsync()
-    {
-        try
-        {
-            if (_module is not null)
-            {
-                await _module.DisposeAsync();
-            }
-        }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
-        {
-        }
-    }
-
-    private static bool IsTransientInteropFailure(Exception exception) =>
-        exception is JSDisconnectedException or TaskCanceledException or ObjectDisposedException;
+    public ValueTask DisposeAsync() => _module.DisposeAsync();
 }
 
 internal readonly record struct BzsDateInputInitialization(bool Initialized, DateOnly? BrowserToday);

@@ -81,7 +81,7 @@ public sealed partial class BzsThemeProvider : BzsComponentBase, IAsyncDisposabl
             return;
         }
 
-        _interop ??= new BzsThemeProviderInterop(JS);
+        _interop ??= new BzsThemeProviderInterop(JS, LoggerFactory);
         _dotNetReference ??= DotNetObjectReference.Create(this);
         if (_systemObserverEnabled != shouldObserveSystemMode || firstRender)
         {
@@ -97,7 +97,7 @@ public sealed partial class BzsThemeProvider : BzsComponentBase, IAsyncDisposabl
                     StateHasChanged();
                 }
             }
-            catch (Exception exception) when (IsTransientInteropFailure(exception))
+            catch (Exception exception) when (BzsJsModule.IsTransientFailure(exception))
             {
             }
         }
@@ -142,9 +142,6 @@ public sealed partial class BzsThemeProvider : BzsComponentBase, IAsyncDisposabl
             DensityChanged);
     }
 
-    private static bool IsTransientInteropFailure(Exception exception) =>
-        exception is JSDisconnectedException or TaskCanceledException;
-
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
@@ -154,11 +151,32 @@ public sealed partial class BzsThemeProvider : BzsComponentBase, IAsyncDisposabl
         }
 
         _disposed = true;
+        Exception? disposalException = null;
         if (_interop is not null)
         {
-            await _interop.DisposeAsync(_rootElement);
+            try
+            {
+                await _interop.DisposeAsync(_rootElement);
+            }
+            catch (Exception exception)
+            {
+                disposalException = exception;
+            }
         }
 
-        _dotNetReference?.Dispose();
+        try
+        {
+            _dotNetReference?.Dispose();
+        }
+        catch (Exception exception)
+        {
+            disposalException ??= exception;
+        }
+        _dotNetReference = null;
+
+        if (disposalException is not null)
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(disposalException).Throw();
+        }
     }
 }

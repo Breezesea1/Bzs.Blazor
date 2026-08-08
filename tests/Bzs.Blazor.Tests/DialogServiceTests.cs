@@ -40,6 +40,22 @@ public sealed class DialogServiceTests
     }
 
     [Fact]
+    public void StartupCallAfterHostRegistrationReturnsUnavailableBeforeInteractiveActivation()
+    {
+        using var context = new BunitContext();
+        context.JSInterop.Mode = JSRuntimeMode.Loose;
+        context.Services.AddBzsBlazor();
+
+        var rendered = context.Render<HostThenStartupDialogProbe>();
+        var probe = rendered.FindComponent<StartupDialogProbe>().Instance;
+        var coordinator = context.Services.GetRequiredService<BzsOverlayCoordinator>();
+
+        Assert.NotNull(probe.Result);
+        Assert.Equal(BzsDialogResultKind.Unavailable, probe.Result.Kind);
+        Assert.Empty(coordinator.Snapshot);
+    }
+
+    [Fact]
     public async Task ActiveHostEnqueuesARenderableRequestDeliversParametersAndCompletesThroughItsContext()
     {
         using var coordinator = new BzsOverlayCoordinator();
@@ -255,6 +271,30 @@ public sealed class DialogServiceTests
 
     private sealed class TestDialogContent : ComponentBase
     {
+    }
+
+    private sealed class HostThenStartupDialogProbe : ComponentBase
+    {
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenComponent<BzsOverlayHost>(0);
+            builder.CloseComponent();
+            builder.OpenComponent<StartupDialogProbe>(1);
+            builder.CloseComponent();
+        }
+    }
+
+    private sealed class StartupDialogProbe : ComponentBase
+    {
+        [Inject]
+        private IBzsDialogService Dialogs { get; set; } = default!;
+
+        internal BzsDialogResult<bool>? Result { get; private set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            Result = await Dialogs.ShowAsync<TestDialogContent, bool>();
+        }
     }
 
     private sealed class ParameterizedDialogContent : ComponentBase

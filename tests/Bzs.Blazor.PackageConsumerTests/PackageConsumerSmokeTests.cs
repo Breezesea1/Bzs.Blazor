@@ -36,6 +36,8 @@ public sealed class PackageConsumerSmokeTests
         Assert.Contains("data-bzs-surface=\"raised\"", staticHtml, StringComparison.Ordinal);
         Assert.Contains("role=\"tab\"", staticHtml, StringComparison.Ordinal);
         Assert.Contains("data-bzs-overlay-host=\"true\"", staticHtml, StringComparison.Ordinal);
+        Assert.Contains("name=\"Form.ProjectName\"", staticHtml, StringComparison.Ordinal);
+        Assert.Contains("name=\"Form.Targets\"", staticHtml, StringComparison.Ordinal);
 
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync();
@@ -76,10 +78,16 @@ public sealed class PackageConsumerSmokeTests
         var requestedRuntimes = GetRequestedRuntimes();
         try
         {
+            await ExerciseStaticPostAsync(page, baseUrl!);
             foreach (var runtime in requestedRuntimes)
             {
                 var route = runtime == "aot" ? "aot/index.html" : $"{runtime}-smoke";
                 await ExerciseRuntimeAsync(page, baseUrl!, runtime, route);
+            }
+
+            if (requestedRuntimes.Contains("auto", StringComparer.Ordinal))
+            {
+                await ExercisePrerenderHandoffAsync(page, baseUrl!);
             }
         }
         catch (Exception exception)
@@ -266,5 +274,157 @@ public sealed class PackageConsumerSmokeTests
         await dialog.GetByRole(AriaRole.Button, new() { Name = "Complete package dialog" }).ClickAsync();
         await Expect(dialog).ToHaveCountAsync(0);
         await Expect(page.GetByTestId($"{runtime}-dialog-result")).ToHaveTextAsync("Completed: true");
+    }
+
+    private static async Task ExerciseStaticPostAsync(IPage page, string baseUrl)
+    {
+        var response = await page.GotoAsync($"{baseUrl}/static-smoke");
+        Assert.True(response?.Ok ?? false, "Could not load the Static SSR package consumer route.");
+
+        await page.GetByTestId("static-project-name").FillAsync(string.Empty);
+        await page.GetByTestId("static-reviewer-count").FillAsync("0");
+        await page.RunAndWaitForResponseAsync(
+            async () =>
+            {
+                await page.GetByTestId("static-post-form")
+                    .EvaluateAsync("form => form.submit()");
+            },
+            response => response.Request.Method == "POST"
+                && response.Url == $"{baseUrl}/static-smoke");
+        await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+        await Expect(page.GetByTestId("static-validation"))
+            .ToContainTextAsync("Project name is required.");
+        await Expect(page.GetByTestId("static-validation"))
+            .ToContainTextAsync("Reviewer count must be between 1 and 20.");
+
+        await page.GetByTestId("static-project-name").FillAsync("Aurora");
+        await page.GetByTestId("static-reviewer-count").FillAsync("4");
+        await page.GetByTestId("static-due-date").FillAsync("2026-08-07");
+        await page.GetByLabel("Notify owners", new() { Exact = true }).UncheckAsync();
+        await page.Locator("input[name='Form.Priority'][value='high']")
+            .CheckAsync(new() { Force = true });
+        await page.GetByLabel("Stage", new() { Exact = true }).SelectOptionAsync("review");
+        await page.GetByLabel("Targets", new() { Exact = true })
+            .SelectOptionAsync(["accessibility", "aot"]);
+        await page.GetByTestId("static-submit").ClickAsync();
+
+        await Expect(page.GetByTestId("static-post-result")).ToHaveTextAsync(
+            "Submitted | Aurora | 4 | 2026-08-07 | high | review | accessibility,aot | notify=false");
+    }
+
+    private static async Task ExercisePrerenderHandoffAsync(IPage page, string baseUrl)
+    {
+        const string frameworkScriptPattern = "**/_framework/blazor.web*.js";
+        var scriptRequested = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseScript = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+
+        await page.RouteAsync(frameworkScriptPattern, async route =>
+        {
+            scriptRequested.TrySetResult(true);
+            await releaseScript.Task;
+            await route.ContinueAsync();
+        });
+
+        Task<IResponse?>? navigation = null;
+        try
+        {
+            navigation = page.GotoAsync($"{baseUrl}/auto-smoke");
+            await scriptRequested.Task.WaitAsync(TimeSpan.FromSeconds(30));
+
+            var prerender = await CaptureRelationshipsAsync(page, "auto");
+            AssertRelationshipsResolve(prerender);
+            await page.GetByTestId("auto-number").FocusAsync();
+            await Expect(page.GetByTestId("auto-number")).ToBeFocusedAsync();
+
+            releaseScript.TrySetResult(true);
+            var response = await navigation;
+            Assert.True(response?.Ok ?? false, "Could not activate the Auto package consumer route.");
+            await Expect(page.GetByTestId("auto-ready")).ToHaveTextAsync("Interactive package ready");
+
+            var interactive = await CaptureRelationshipsAsync(page, "auto");
+            AssertRelationshipsResolve(interactive);
+            await page.GetByTestId("auto-number").FocusAsync();
+            await Expect(page.GetByTestId("auto-number")).ToBeFocusedAsync();
+        }
+        finally
+        {
+            releaseScript.TrySetResult(true);
+            if (navigation is not null)
+            {
+                try
+                {
+                    await navigation;
+                }
+                catch
+                {
+                    // Preserve the primary assertion or navigation failure.
+                }
+            }
+            await page.UnrouteAsync(frameworkScriptPattern);
+        }
+    }
+
+    private static Task<RelationshipSnapshot> CaptureRelationshipsAsync(IPage page, string runtime) =>
+        page.EvaluateAsync<RelationshipSnapshot>(
+            """
+            runtime => {
+                const number = document.querySelector(`[data-testid='${runtime}-number']`);
+                const date = document.querySelector(`[data-testid='${runtime}-date']`);
+                const tab = document.querySelector(`[data-testid='${runtime}-tabs'] [role='tab']`);
+                const panel = tab ? document.getElementById(tab.getAttribute('aria-controls')) : null;
+                const numberLabel = number?.id
+                    ? document.querySelector(`label[for='${CSS.escape(number.id)}']`)
+                    : null;
+                const dateLabel = date?.id
+                    ? document.querySelector(`label[for='${CSS.escape(date.id)}']`)
+                    : null;
+                return {
+                    NumberInputId: number?.id ?? null,
+                    NumberLabelFor: numberLabel?.getAttribute('for') ?? null,
+                    DateInputId: date?.id ?? null,
+                    DateLabelFor: dateLabel?.getAttribute('for') ?? null,
+                    TabId: tab?.id ?? null,
+                    TabControls: tab?.getAttribute('aria-controls') ?? null,
+                    PanelId: panel?.id ?? null,
+                    PanelLabelledBy: panel?.getAttribute('aria-labelledby') ?? null,
+                };
+            }
+            """,
+            runtime);
+
+    private static void AssertRelationshipsResolve(RelationshipSnapshot snapshot)
+    {
+        Assert.False(string.IsNullOrWhiteSpace(snapshot.NumberInputId));
+        Assert.Equal(snapshot.NumberInputId, snapshot.NumberLabelFor);
+        Assert.False(string.IsNullOrWhiteSpace(snapshot.DateInputId));
+        Assert.Equal(snapshot.DateInputId, snapshot.DateLabelFor);
+        Assert.False(string.IsNullOrWhiteSpace(snapshot.TabId));
+        Assert.Equal(snapshot.TabControls, snapshot.PanelId);
+        Assert.Equal(snapshot.TabId, snapshot.PanelLabelledBy);
+    }
+
+    private sealed class RelationshipSnapshot
+    {
+        public RelationshipSnapshot()
+        {
+        }
+
+        public string? NumberInputId { get; set; }
+
+        public string? NumberLabelFor { get; set; }
+
+        public string? DateInputId { get; set; }
+
+        public string? DateLabelFor { get; set; }
+
+        public string? TabId { get; set; }
+
+        public string? TabControls { get; set; }
+
+        public string? PanelId { get; set; }
+
+        public string? PanelLabelledBy { get; set; }
     }
 }

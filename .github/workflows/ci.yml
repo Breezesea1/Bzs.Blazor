@@ -17,8 +17,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  fast-verification:
+    name: Fast build and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.302
+
+      - name: Run fast verification
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/verify-fast.ps1 -Configuration Release
+
   release-gate:
     name: Release gate
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
 
@@ -63,6 +82,7 @@ jobs:
 
   windows-branded-browsers:
     name: Windows branded browsers
+    if: ${{ github.event_name == 'push' }}
     runs-on: windows-latest
     timeout-minutes: 45
 

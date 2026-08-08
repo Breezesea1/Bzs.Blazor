@@ -1,40 +1,53 @@
 namespace Bzs.Blazor;
 
-internal sealed class BzsThemeProviderInterop(IJSRuntime js)
+internal sealed class BzsThemeProviderInterop
 {
     internal const string ModulePath = "./_content/Bzs.Blazor/Components/Theme/BzsThemeProvider.razor.js";
     internal const string SetSystemModeMethod = "setSystemMode";
     internal const string DisposeMethod = "dispose";
 
-    private IJSObjectReference? _module;
+    private readonly BzsJsModule _module;
+
+    internal BzsThemeProviderInterop(IJSRuntime js, Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null)
+    {
+        _module = new BzsJsModule(js, ModulePath, loggerFactory);
+    }
 
     public async ValueTask<bool> SetSystemModeAsync(
         ElementReference element,
         DotNetObjectReference<BzsThemeProvider> dotNetReference,
         bool enabled)
     {
-        var module = await GetModuleAsync();
-        return await module.InvokeAsync<bool>(SetSystemModeMethod, element, dotNetReference, enabled);
+        return await _module.InvokeAsync<bool>(SetSystemModeMethod, element, dotNetReference, enabled);
     }
 
     public async ValueTask DisposeAsync(ElementReference element)
     {
-        try
+        Exception? disposalException = null;
+        if (_module.IsLoaded)
         {
-            if (_module is not null)
+            try
             {
-                await _module.InvokeVoidAsync(DisposeMethod, element);
-                await _module.DisposeAsync();
+                await _module.TryInvokeVoidAsync(DisposeMethod, element);
+            }
+            catch (Exception exception)
+            {
+                disposalException = exception;
             }
         }
-        catch (Exception exception) when (IsTransientInteropFailure(exception))
+
+        try
         {
+            await _module.DisposeAsync();
+        }
+        catch (Exception exception)
+        {
+            disposalException ??= exception;
+        }
+
+        if (disposalException is not null)
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(disposalException).Throw();
         }
     }
-
-    private async ValueTask<IJSObjectReference> GetModuleAsync()
-        => _module ??= await js.InvokeAsync<IJSObjectReference>("import", ModulePath);
-
-    private static bool IsTransientInteropFailure(Exception exception) =>
-        exception is JSDisconnectedException or TaskCanceledException;
 }
