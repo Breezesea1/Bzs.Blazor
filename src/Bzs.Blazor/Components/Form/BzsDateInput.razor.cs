@@ -22,10 +22,6 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         new(2000, 2, 29),
         new(2099, 11, 23),
     ];
-    private static readonly Type ValueDateType = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
-    private static readonly bool IsSupportedDateType = ValueDateType == typeof(DateOnly)
-        || ValueDateType == typeof(DateTime)
-        || ValueDateType == typeof(DateTimeOffset);
     private static readonly ResourceManager DatePickerResources = new(typeof(BzsBlazorResources));
 
     /// <summary>
@@ -83,7 +79,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private CultureInfo? _dateCultureSource;
     private CultureInfo? _dateCulture;
     private DateOnly _today = DateOnly.FromDateTime(DateTime.Today);
-    private DateOnly _viewMonth = FirstOfMonth(DateOnly.FromDateTime(DateTime.Today));
+    private DateOnly _viewMonth = BzsDateCalendarMath.FirstOfMonth(DateOnly.FromDateTime(DateTime.Today));
     private DateOnly _focusedDate = DateOnly.FromDateTime(DateTime.Today);
 
     private string PanelId => $"{InputId}-calendar";
@@ -108,7 +104,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             if (!ReferenceEquals(_dateCultureSource, source))
             {
                 _dateCultureSource = source;
-                _dateCulture = CreateDateCulture(source);
+                _dateCulture = BzsDateCalendarMath.CreateGregorianCulture(source);
             }
             return _dateCulture!;
         }
@@ -117,10 +113,12 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private DateOnly FirstAllowedDate => Min ?? DateOnly.MinValue;
     private DateOnly LastAllowedDate => Max ?? DateOnly.MaxValue;
     private DayOfWeek FirstDayOfWeek => DateCulture.DateTimeFormat.FirstDayOfWeek;
-    private string? NativeValueAsString => TryGetDate(CurrentValue, out var date) ? FormatNativeDate(date) : null;
+    private string? NativeValueAsString => BzsDateValueAdapter<TValue>.TryGetDate(CurrentValue, out var date)
+        ? FormatNativeDate(date)
+        : null;
     private string ViewMonthAccessibleLabel => _viewMonth.ToString("Y", DateCulture);
-    private bool CanNavigatePreviousMonth => _viewMonth > FirstOfMonth(FirstAllowedDate);
-    private bool CanNavigateNextMonth => _viewMonth < FirstOfMonth(LastAllowedDate);
+    private bool CanNavigatePreviousMonth => _viewMonth > BzsDateCalendarMath.FirstOfMonth(FirstAllowedDate);
+    private bool CanNavigateNextMonth => _viewMonth < BzsDateCalendarMath.FirstOfMonth(LastAllowedDate);
     private string IsMonthMenuOpen => _openPeriodMenu == DatePeriodMenu.Month ? "true" : "false";
     private string IsYearMenuOpen => _openPeriodMenu == DatePeriodMenu.Year ? "true" : "false";
 
@@ -156,20 +154,15 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         }
     }
 
-    private IReadOnlyList<int> AvailableMonths => Enumerable.Range(1, 12)
-        .Where(month => MonthIntersectsRange(_viewMonth.Year, month))
-        .ToArray();
+    private IReadOnlyList<int> AvailableMonths => BzsDateCalendarMath.GetAvailableMonths(
+        _viewMonth.Year,
+        FirstAllowedDate,
+        LastAllowedDate);
 
-    private IReadOnlyList<int> AvailableYears
-    {
-        get
-        {
-            var centerYear = Math.Clamp(_viewMonth.Year, FirstAllowedDate.Year, LastAllowedDate.Year);
-            var firstYear = Math.Max(FirstAllowedDate.Year, centerYear - 50);
-            var lastYear = Math.Min(LastAllowedDate.Year, centerYear + 50);
-            return Enumerable.Range(firstYear, lastYear - firstYear + 1).ToArray();
-        }
-    }
+    private IReadOnlyList<int> AvailableYears => BzsDateCalendarMath.GetAvailableYears(
+        _viewMonth.Year,
+        FirstAllowedDate,
+        LastAllowedDate);
 
     private IReadOnlyList<CalendarWeekday> Weekdays
     {
@@ -183,35 +176,21 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         }
     }
 
-    private IReadOnlyList<CalendarDay> CalendarDays
+    private IReadOnlyList<BzsDateCalendarDay> CalendarDays
     {
         get
         {
-            var offset = ((int)_viewMonth.DayOfWeek - (int)FirstDayOfWeek + 7) % 7;
-            var startDayNumber = _viewMonth.DayNumber - offset;
-            var selectedDate = TryGetDate(CurrentValue, out var selected) ? selected : (DateOnly?)null;
-            var days = new CalendarDay[42];
-
-            for (var index = 0; index < days.Length; index++)
-            {
-                var dayNumber = startDayNumber + index;
-                if (dayNumber < DateOnly.MinValue.DayNumber || dayNumber > DateOnly.MaxValue.DayNumber)
-                {
-                    days[index] = new CalendarDay(null, false, false, false, false, true);
-                    continue;
-                }
-
-                var date = DateOnly.FromDayNumber(dayNumber);
-                days[index] = new CalendarDay(
-                    date,
-                    date.Month == _viewMonth.Month,
-                    date == Today,
-                    selectedDate == date,
-                    date == _focusedDate,
-                    !IsDateAllowed(date));
-            }
-
-            return days;
+            var selectedDate = BzsDateValueAdapter<TValue>.TryGetDate(CurrentValue, out var selected)
+                ? selected
+                : (DateOnly?)null;
+            return BzsDateCalendarMath.CreateCalendarGrid(
+                _viewMonth,
+                FirstDayOfWeek,
+                Today,
+                selectedDate,
+                _focusedDate,
+                FirstAllowedDate,
+                LastAllowedDate);
         }
     }
 
@@ -236,8 +215,8 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         }
         else
         {
-            _focusedDate = ClampToAllowedRange(_focusedDate);
-            _viewMonth = ClampMonthToAllowedRange(_viewMonth);
+            _focusedDate = BzsDateCalendarMath.ClampDate(_focusedDate, FirstAllowedDate, LastAllowedDate);
+            _viewMonth = BzsDateCalendarMath.ClampMonth(_viewMonth, FirstAllowedDate, LastAllowedDate);
             SynchronizeOpenPeriodMenu();
         }
     }
@@ -265,7 +244,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
                 return;
             }
 
-            _interop ??= new BzsDateInputInterop(JsRuntime);
+            _interop ??= new BzsDateInputInterop(JsRuntime, LoggerFactory);
             _dotNetReference ??= DotNetObjectReference.Create(this);
             _interopInitializationPending = true;
             BzsDateInputInitialization initialization;
@@ -345,7 +324,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     /// <inheritdoc />
     protected override string? FormatValueAsString(TValue? value)
     {
-        if (!TryGetDate(value, out var date))
+        if (!BzsDateValueAdapter<TValue>.TryGetDate(value, out var date))
         {
             return null;
         }
@@ -359,7 +338,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         out TValue result,
         [NotNullWhen(false)] out string? validationErrorMessage)
     {
-        if (string.IsNullOrWhiteSpace(value) && Nullable.GetUnderlyingType(typeof(TValue)) is not null)
+        if (string.IsNullOrWhiteSpace(value) && BzsDateValueAdapter<TValue>.IsNullable)
         {
             result = default!;
             validationErrorMessage = null;
@@ -367,7 +346,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         }
 
         if (TryParseDateValue(value, out result)
-            && TryGetDate(result, out var date))
+            && BzsDateValueAdapter<TValue>.TryGetDate(result, out var date))
         {
             if (IsDateAllowed(date))
             {
@@ -385,7 +364,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 
     private void ValidateParameters()
     {
-        if (!IsSupportedDateType)
+        if (!BzsDateValueAdapter<TValue>.IsSupported)
         {
             throw new InvalidOperationException(
                 $"{nameof(BzsDateInput<TValue>)} supports DateOnly, DateTime, DateTimeOffset, and their nullable forms.");
@@ -396,7 +375,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             throw new InvalidOperationException($"{nameof(BzsDateInput<TValue>)} requires Min to be earlier than or equal to Max.");
         }
 
-        if (Clearable && Nullable.GetUnderlyingType(typeof(TValue)) is null)
+        if (Clearable && !BzsDateValueAdapter<TValue>.IsNullable)
         {
             throw new InvalidOperationException(
                 $"{nameof(BzsDateInput<TValue>)} requires a nullable TValue when {nameof(Clearable)} is true.");
@@ -460,9 +439,9 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 
     private void SynchronizeCalendarWithValue()
     {
-        var reference = TryGetDate(CurrentValue, out var selected) ? selected : Today;
-        _focusedDate = ClampToAllowedRange(reference);
-        _viewMonth = FirstOfMonth(_focusedDate);
+        var reference = BzsDateValueAdapter<TValue>.TryGetDate(CurrentValue, out var selected) ? selected : Today;
+        _focusedDate = BzsDateCalendarMath.ClampDate(reference, FirstAllowedDate, LastAllowedDate);
+        _viewMonth = BzsDateCalendarMath.FirstOfMonth(_focusedDate);
     }
 
     private void SynchronizeOpenPeriodMenu()
@@ -496,10 +475,12 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 
         var text = args.Value?.ToString();
         CurrentValueAsString = text;
-        if (TryParseDateValue(text, out var value) && TryGetDate(value, out var date) && IsDateAllowed(date))
+        if (TryParseDateValue(text, out var value)
+            && BzsDateValueAdapter<TValue>.TryGetDate(value, out var date)
+            && IsDateAllowed(date))
         {
             _focusedDate = date;
-            _viewMonth = FirstOfMonth(date);
+            _viewMonth = BzsDateCalendarMath.FirstOfMonth(date);
         }
     }
 
@@ -900,38 +881,33 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 
     private void MoveFocusedDate(int days)
     {
-        var dayNumber = Math.Clamp(
-            (long)_focusedDate.DayNumber + days,
-            FirstAllowedDate.DayNumber,
-            LastAllowedDate.DayNumber);
-        _focusedDate = DateOnly.FromDayNumber((int)dayNumber);
-        _viewMonth = FirstOfMonth(_focusedDate);
+        ApplyCalendarState(BzsDateCalendarMath.MoveFocusedDate(
+            _focusedDate,
+            days,
+            FirstAllowedDate,
+            LastAllowedDate));
         _focusDayPending = true;
     }
 
     private void MoveFocusedDateByMonth(int months)
     {
-        var targetMonth = Math.Clamp(
-            (long)_focusedDate.Year * 12 + _focusedDate.Month - 1 + months,
-            12L,
-            120_000L - 1);
-        var year = (int)(targetMonth / 12);
-        var month = (int)(targetMonth % 12) + 1;
-        var day = Math.Min(_focusedDate.Day, DateTime.DaysInMonth(year, month));
-        _focusedDate = ClampToAllowedRange(new DateOnly(year, month, day));
-        _viewMonth = FirstOfMonth(_focusedDate);
+        ApplyCalendarState(BzsDateCalendarMath.MoveFocusedDateByMonth(
+            _focusedDate,
+            months,
+            FirstAllowedDate,
+            LastAllowedDate));
         _focusDayPending = true;
     }
 
     private void ShiftViewMonth(int months)
     {
         _openPeriodMenu = null;
-        var target = AddMonths(_viewMonth, months);
-        _viewMonth = ClampMonthToAllowedRange(target);
-        _focusedDate = ClampToAllowedRange(new DateOnly(
-            _viewMonth.Year,
-            _viewMonth.Month,
-            Math.Min(_focusedDate.Day, DateTime.DaysInMonth(_viewMonth.Year, _viewMonth.Month))));
+        ApplyCalendarState(BzsDateCalendarMath.ShiftViewMonth(
+            _viewMonth,
+            _focusedDate,
+            months,
+            FirstAllowedDate,
+            LastAllowedDate));
     }
 
     private void SelectMonth(int month) => SetViewMonth(_viewMonth.Year, month);
@@ -945,11 +921,17 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private void SetViewMonth(int year, int month)
     {
         _openPeriodMenu = null;
-        _viewMonth = ClampMonthToAllowedRange(new DateOnly(year, month, 1));
-        _focusedDate = ClampToAllowedRange(new DateOnly(
-            _viewMonth.Year,
-            _viewMonth.Month,
-            Math.Min(_focusedDate.Day, DateTime.DaysInMonth(_viewMonth.Year, _viewMonth.Month))));
+        ApplyCalendarState(BzsDateCalendarMath.SetViewMonth(
+            new DateOnly(year, month, 1),
+            _focusedDate,
+            FirstAllowedDate,
+            LastAllowedDate));
+    }
+
+    private void ApplyCalendarState(BzsDateCalendarState state)
+    {
+        _viewMonth = state.ViewMonth;
+        _focusedDate = state.FocusedDate;
     }
 
     private void FocusDate(DateOnly date) => _focusedDate = date;
@@ -961,9 +943,9 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             return;
         }
 
-        CurrentValueAsString = FormatValueAsString(CreateValue(date));
+        CurrentValueAsString = FormatValueAsString(BzsDateValueAdapter<TValue>.CreateValue(date, CurrentValue));
         _focusedDate = date;
-        _viewMonth = FirstOfMonth(date);
+        _viewMonth = BzsDateCalendarMath.FirstOfMonth(date);
         await CloseAsync(true);
     }
 
@@ -972,70 +954,18 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private async Task ClearAsync()
     {
         CurrentValueAsString = string.Empty;
-        _focusedDate = ClampToAllowedRange(Today);
-        _viewMonth = FirstOfMonth(_focusedDate);
+        _focusedDate = BzsDateCalendarMath.ClampDate(Today, FirstAllowedDate, LastAllowedDate);
+        _viewMonth = BzsDateCalendarMath.FirstOfMonth(_focusedDate);
         await CloseAsync(true);
     }
 
-    private bool TryParseDateValue(string? value, out TValue result)
-    {
-        var culture = DateCulture;
-        var styles = DateTimeStyles.AllowWhiteSpaces;
-        if (DateOnly.TryParseExact(value, NativeDateFormat, CultureInfo.InvariantCulture, styles, out var date)
-            || DateOnly.TryParseExact(value, EffectiveDateFormat, culture, styles, out date)
-            || DateOnly.TryParse(value, culture, styles, out date)
-            || (Culture is null
-                && (DateOnly.TryParse(value, CultureInfo.CurrentCulture, styles, out date)
-                    || DateOnly.TryParse(value, CultureInfo.InvariantCulture, styles, out date))))
-        {
-            result = CreateValue(date);
-            return true;
-        }
-
-        result = default!;
-        return false;
-    }
-
-    private static bool TryGetDate(TValue? value, out DateOnly date)
-    {
-        switch (value)
-        {
-            case DateOnly dateOnly:
-                date = dateOnly;
-                return true;
-            case DateTime dateTime:
-                date = DateOnly.FromDateTime(dateTime);
-                return true;
-            case DateTimeOffset dateTimeOffset:
-                date = DateOnly.FromDateTime(dateTimeOffset.DateTime);
-                return true;
-            default:
-                date = default;
-                return false;
-        }
-    }
-
-    private TValue CreateValue(DateOnly date)
-    {
-        object value = ValueDateType == typeof(DateOnly)
-            ? date
-            : ValueDateType == typeof(DateTime)
-                ? date.ToDateTime(TimeOnly.MinValue)
-                : CreateDateTimeOffset(date);
-        return (TValue)value;
-    }
-
-    private DateTimeOffset CreateDateTimeOffset(DateOnly date)
-    {
-        var localDateTime = date.ToDateTime(TimeOnly.MinValue);
-        var offset = CurrentValue is DateTimeOffset current ? current.Offset : TimeSpan.Zero;
-        var utcTicks = localDateTime.Ticks - offset.Ticks;
-        if (utcTicks < DateTime.MinValue.Ticks || utcTicks > DateTime.MaxValue.Ticks)
-        {
-            offset = TimeSpan.Zero;
-        }
-        return new DateTimeOffset(localDateTime, offset);
-    }
+    private bool TryParseDateValue(string? value, out TValue result) => BzsDateValueAdapter<TValue>.TryParse(
+        value,
+        EffectiveDateFormat,
+        DateCulture,
+        Culture is null ? CultureInfo.CurrentCulture : null,
+        CurrentValue,
+        out result);
 
     private string GetMonthName(int month) => DateCulture.DateTimeFormat.GetMonthName(month);
 
@@ -1070,25 +1000,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 
     private static string FormatNativeDate(DateOnly date) => date.ToString(NativeDateFormat, CultureInfo.InvariantCulture);
 
-    private static CultureInfo CreateDateCulture(CultureInfo culture)
-    {
-        if (culture.DateTimeFormat.Calendar is GregorianCalendar)
-        {
-            return culture;
-        }
-
-        var gregorianCalendar = culture.OptionalCalendars.OfType<GregorianCalendar>().FirstOrDefault();
-        if (gregorianCalendar is null)
-        {
-            return CultureInfo.InvariantCulture;
-        }
-
-        var localizedGregorianCulture = (CultureInfo)culture.Clone();
-        localizedGregorianCulture.DateTimeFormat.Calendar = gregorianCalendar;
-        return CultureInfo.ReadOnly(localizedGregorianCulture);
-    }
-
-    private string GetDayClass(CalendarDay day) => string.Join(" ", new[]
+    private string GetDayClass(BzsDateCalendarDay day) => string.Join(" ", new[]
     {
         "bzs-date-picker__day",
         day.IsInViewMonth ? null : "bzs-date-picker__day--outside",
@@ -1096,34 +1008,10 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         day.IsSelected ? "bzs-date-picker__day--selected" : null,
     }.Where(static value => value is not null));
 
-    private bool IsDateAllowed(DateOnly date) => date >= FirstAllowedDate && date <= LastAllowedDate;
-
-    private bool MonthIntersectsRange(int year, int month)
-    {
-        var first = new DateOnly(year, month, 1);
-        var last = new DateOnly(year, month, DateTime.DaysInMonth(year, month));
-        return last >= FirstAllowedDate && first <= LastAllowedDate;
-    }
-
-    private DateOnly ClampToAllowedRange(DateOnly date) => date < FirstAllowedDate
-        ? FirstAllowedDate
-        : date > LastAllowedDate
-            ? LastAllowedDate
-            : date;
-
-    private DateOnly ClampMonthToAllowedRange(DateOnly month) => month < FirstOfMonth(FirstAllowedDate)
-        ? FirstOfMonth(FirstAllowedDate)
-        : month > FirstOfMonth(LastAllowedDate)
-            ? FirstOfMonth(LastAllowedDate)
-            : month;
-
-    private static DateOnly FirstOfMonth(DateOnly date) => new(date.Year, date.Month, 1);
-
-    private static DateOnly AddMonths(DateOnly month, int offset)
-    {
-        var monthIndex = Math.Clamp((long)month.Year * 12 + month.Month - 1 + offset, 12L, 120_000L - 1);
-        return new DateOnly((int)(monthIndex / 12), (int)(monthIndex % 12) + 1, 1);
-    }
+    private bool IsDateAllowed(DateOnly date) => BzsDateCalendarMath.IsDateAllowed(
+        date,
+        FirstAllowedDate,
+        LastAllowedDate);
 
     /// <summary>Closes the calendar after an outside pointer interaction.</summary>
     [JSInvokable]
@@ -1207,11 +1095,4 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         Year,
     }
 
-    private sealed record CalendarDay(
-        DateOnly? Date,
-        bool IsInViewMonth,
-        bool IsToday,
-        bool IsSelected,
-        bool IsFocused,
-        bool IsDisabled = false);
 }

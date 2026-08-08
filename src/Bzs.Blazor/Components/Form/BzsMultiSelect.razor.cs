@@ -44,6 +44,7 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
     private bool _interopInitialized;
     private bool _positionPending;
     private bool _focusSearchPending;
+    private bool _disposed;
     private int _activeIndex = -1;
     private string _searchText = string.Empty;
 
@@ -74,9 +75,8 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
     private IReadOnlyList<TValue> SelectedValues => CurrentValue ?? [];
     private HashSet<TValue> SelectedSet => SelectedValues.ToHashSet(EqualityComparer<TValue>.Default);
     private IReadOnlyList<BzsSelectOption<TValue>> SelectedOptions => Options.Where(option => IsSelected(option.Value)).ToArray();
-    private IReadOnlyList<BzsSelectOption<TValue>> FilteredOptions => string.IsNullOrWhiteSpace(_searchText)
-        ? Options
-        : Options.Where(MatchesSearch).ToArray();
+    private IReadOnlyList<BzsSelectOption<TValue>> FilteredOptions =>
+        BzsSelectNavigation.Filter(Options, _searchText);
     private bool HasEnabledFilteredOptions => FilteredOptions.Any(static option => !option.Disabled);
     private bool HasClearableFilteredSelection => FilteredOptions.Any(option => !option.Disabled && IsSelected(option.Value));
     private int NativeSize => Math.Clamp(Options.Count, 2, 6);
@@ -171,7 +171,7 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
 
         if (!_interopInitialized)
         {
-            _interop ??= new BzsSelectInterop(JsRuntime);
+            _interop ??= new BzsSelectInterop(JsRuntime, LoggerFactory);
             _dotNetReference ??= DotNetObjectReference.Create(this);
             _interopInitialized = await _interop.InitializeAsync(
                 _instanceId,
@@ -191,10 +191,6 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
             await _interop.SetOpenAsync(_instanceId, _isOpen, focus);
         }
     }
-
-    private bool MatchesSearch(BzsSelectOption<TValue> option) =>
-        option.Label.Contains(_searchText, StringComparison.OrdinalIgnoreCase)
-        || option.Description?.Contains(_searchText, StringComparison.OrdinalIgnoreCase) == true;
 
     private bool IsSelected(TValue value) => SelectedSet.Contains(value);
 
@@ -236,7 +232,7 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
     {
         _isOpen = true;
         _searchText = string.Empty;
-        _activeIndex = FindFirstEnabledIndex();
+        _activeIndex = BzsSelectNavigation.FindFirstEnabledIndex(FilteredOptions);
         _positionPending = true;
         _focusSearchPending = SearchEnabled;
     }
@@ -310,7 +306,7 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
     private void OnSearchInput(ChangeEventArgs args)
     {
         _searchText = args.Value?.ToString() ?? string.Empty;
-        _activeIndex = FindFirstEnabledIndex();
+        _activeIndex = BzsSelectNavigation.FindFirstEnabledIndex(FilteredOptions);
     }
 
     private async Task HandleKeyDownAsync(KeyboardEventArgs args)
@@ -326,10 +322,10 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
                 if (!_isOpen) Open(); else MoveActive(-1);
                 break;
             case "Home" when _isOpen:
-                _activeIndex = FindFirstEnabledIndex();
+                _activeIndex = BzsSelectNavigation.FindFirstEnabledIndex(FilteredOptions);
                 break;
             case "End" when _isOpen:
-                _activeIndex = FindLastEnabledIndex();
+                _activeIndex = BzsSelectNavigation.FindLastEnabledIndex(FilteredOptions);
                 break;
             case "Enter" when _isOpen:
                 await ToggleActiveAsync();
@@ -356,24 +352,7 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
 
     private void MoveActive(int delta)
     {
-        var options = FilteredOptions;
-        if (options.Count == 0) { _activeIndex = -1; return; }
-        for (var offset = 1; offset <= options.Count; offset++)
-        {
-            var candidate = (_activeIndex + delta * offset + options.Count) % options.Count;
-            if (!options[candidate].Disabled) { _activeIndex = candidate; return; }
-        }
-    }
-
-    private int FindFirstEnabledIndex() => FilteredOptions.ToList().FindIndex(static option => !option.Disabled);
-
-    private int FindLastEnabledIndex()
-    {
-        for (var index = FilteredOptions.Count - 1; index >= 0; index--)
-        {
-            if (!FilteredOptions[index].Disabled) return index;
-        }
-        return -1;
+        _activeIndex = BzsSelectNavigation.MoveActiveIndex(FilteredOptions, _activeIndex, delta);
     }
 
     private void ValidateOptions()
@@ -402,11 +381,54 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if (_interop is not null)
+        if (_disposed)
         {
-            await _interop.DisposeInstanceAsync(_instanceId);
-            await _interop.DisposeAsync();
+            return;
         }
-        _dotNetReference?.Dispose();
+
+        _disposed = true;
+        try
+        {
+            Exception? disposalException = null;
+            if (_interop is not null)
+            {
+                try
+                {
+                    await _interop.DisposeInstanceAsync(_instanceId);
+                }
+                catch (Exception exception)
+                {
+                    disposalException = exception;
+                }
+
+                try
+                {
+                    await _interop.DisposeAsync();
+                }
+                catch (Exception exception)
+                {
+                    disposalException ??= exception;
+                }
+            }
+
+            try
+            {
+                _dotNetReference?.Dispose();
+            }
+            catch (Exception exception)
+            {
+                disposalException ??= exception;
+            }
+            _dotNetReference = null;
+
+            if (disposalException is not null)
+            {
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(disposalException).Throw();
+            }
+        }
+        finally
+        {
+            ((IDisposable)this).Dispose();
+        }
     }
 }

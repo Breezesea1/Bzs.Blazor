@@ -1,6 +1,7 @@
 @namespace Bzs.Blazor
 @inherits BzsComponentBase
 @inject IJSRuntime JS
+@inject Microsoft.Extensions.Logging.ILoggerFactory LoggerFactory
 
 <div @ref="_rootElement" @attributes="RootAttributes">
     <div class="bzs-tabs__composition" hidden>

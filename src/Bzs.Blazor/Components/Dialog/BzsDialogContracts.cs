@@ -291,6 +291,12 @@ public interface IBzsDialogService
     /// Opens <typeparamref name="TComponent" /> and completes when its cascaded
     /// <see cref="BzsDialogContext{TResult}" /> reports an outcome.
     /// </summary>
+    /// <remarks>
+    /// Call this method only after the interactive application root has rendered.
+    /// A registered host that is still rendering statically returns
+    /// <see cref="BzsDialogResultKind.Unavailable" /> without queuing work. A call
+    /// made before any host registers is treated as a configuration error.
+    /// </remarks>
     /// <typeparam name="TComponent">The component rendered as dialog content.</typeparam>
     /// <typeparam name="TResult">The result supplied by dialog content.</typeparam>
     /// <param name="parameters">Optional component parameters selected by property expression.</param>
