@@ -27,15 +27,17 @@ internal sealed class BzsDateInputInterop : IAsyncDisposable
     internal async ValueTask<BzsDateInputInitialization> InitializeAsync<T>(
         string instanceId,
         ElementReference root,
-        DotNetObjectReference<T> dotNetReference)
+        DotNetObjectReference<T> dotNetReference,
+        CancellationToken cancellationToken = default)
         where T : class
     {
-        var invocation = await _module.TryInvokeAsync<string>(
+        var invocation = await _module.TryInvokeAsync<string?>(
             InitializeMethod,
+            cancellationToken,
             instanceId,
             root,
             dotNetReference);
-        if (!invocation.Succeeded)
+        if (!invocation.Succeeded || string.IsNullOrWhiteSpace(invocation.Result))
         {
             return default;
         }

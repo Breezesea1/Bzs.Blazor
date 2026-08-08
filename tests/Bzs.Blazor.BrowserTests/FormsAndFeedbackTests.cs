@@ -9,9 +9,20 @@ namespace Bzs.Blazor.BrowserTests;
 public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGatePageTest
 {
     [Fact]
-    public async Task DatePickerFollowsTheHeaderLanguageSelection()
+    public async Task DatePickerSurvivesLanguageAndEnhancedNavigationWithoutBrowserErrors()
     {
         BeginBrowserGateTest();
+        var consoleErrors = new ConcurrentQueue<string>();
+        var pageErrors = new ConcurrentQueue<string>();
+        Page.Console += (_, message) =>
+        {
+            if (string.Equals(message.Type, "error", StringComparison.OrdinalIgnoreCase))
+            {
+                consoleErrors.Enqueue(message.Text);
+            }
+        };
+        Page.PageError += (_, error) => pageErrors.Enqueue(error);
+
         await Page.GotoAsync($"{server.BaseUrl}/forms?next=culture=zh-Hans");
         var language = Page.GetByRole(
             AriaRole.Radiogroup,
@@ -71,6 +82,10 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
         await input.ClickAsync();
         await Expect(Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" })).ToBeVisibleAsync();
+        await input.PressAsync("Escape");
+
+        Assert.DoesNotContain(consoleErrors, IsDateInputInteropError);
+        Assert.DoesNotContain(pageErrors, IsDateInputInteropError);
     }
 
     [Fact]
@@ -787,6 +802,11 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
 
     private static string FormatNativeDate(DateOnly value) =>
         value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private static bool IsDateInputInteropError(string message) =>
+        message.Contains("BzsDateInput", StringComparison.OrdinalIgnoreCase)
+        || message.Contains("addEventListener", StringComparison.OrdinalIgnoreCase)
+        || message.Contains("querySelector", StringComparison.OrdinalIgnoreCase);
 
     private string ChineseFormsUrl => $"{server.BaseUrl}/forms?culture=zh-Hans";
 

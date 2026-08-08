@@ -94,6 +94,7 @@ public sealed class JsModuleLifecycleTests
 
         var first = module.TryInvokeVoidAsync("first").AsTask();
         var second = module.TryInvokeVoidAsync("second").AsTask();
+        await runtime.WaitForImportAttemptAsync();
         Assert.Equal(1, runtime.ImportAttempts);
 
         runtime.ReleaseImport();
@@ -113,6 +114,7 @@ public sealed class JsModuleLifecycleTests
         await using var module = new BzsJsModule(runtime, ModulePath);
 
         var invocation = module.TryInvokeVoidAsync("initialize").AsTask();
+        await runtime.WaitForImportAttemptAsync();
         Assert.Equal(1, runtime.ImportAttempts);
 
         await module.DisposeAsync();
@@ -123,17 +125,180 @@ public sealed class JsModuleLifecycleTests
         Assert.Equal(1, runtime.Module.DisposeAttempts);
     }
 
+    [Fact]
+    public async Task CancellationDuringImportDoesNotInvokeFeature()
+    {
+        var runtime = new TestJsRuntime { BlockImport = true };
+        await using var module = new BzsJsModule(runtime, ModulePath);
+        using var cancellation = new CancellationTokenSource();
+
+        var invocation = module.TryInvokeAsync<string>(
+            "initialize",
+            cancellation.Token).AsTask();
+        await runtime.WaitForImportAttemptAsync();
+        Assert.Equal(1, runtime.ImportAttempts);
+
+        cancellation.Cancel();
+
+        Assert.False((await invocation.WaitAsync(TimeSpan.FromSeconds(5))).Succeeded);
+        Assert.Empty(runtime.Module.Invocations);
+        Assert.Equal(0, runtime.Module.CancellableInvocationAttempts);
+
+        await module.DisposeAsync();
+        runtime.ReleaseImport();
+        await runtime.Module.WaitForDisposalAsync();
+        Assert.Equal(1, runtime.Module.DisposeAttempts);
+    }
+
+    [Fact]
+    public async Task CanceledImportWaitObservesFailureAndAllowsRetry()
+    {
+        var runtime = new TestJsRuntime { BlockImport = true };
+        var lateFailure = new InvalidOperationException("Late import failure.");
+        using var loggerFactory = new RecordingLoggerFactory();
+        await using var module = new BzsJsModule(runtime, ModulePath, loggerFactory);
+        using var cancellation = new CancellationTokenSource();
+
+        var firstInvocation = module.TryInvokeAsync<string>(
+            "initialize",
+            cancellation.Token).AsTask();
+        await runtime.WaitForImportAttemptAsync();
+
+        cancellation.Cancel();
+        Assert.False((await firstInvocation).Succeeded);
+
+        runtime.FailImport(lateFailure);
+        var lateFailureEntry = await loggerFactory.WaitForEntryAsync(
+            entry => ReferenceEquals(entry.Exception, lateFailure));
+
+        Assert.Equal(LogLevel.Error, lateFailureEntry.Level);
+        Assert.True((await module.TryInvokeAsync<string>("initialize")).Succeeded);
+        Assert.Equal(2, runtime.ImportAttempts);
+        Assert.Equal(["initialize"], runtime.Module.Invocations);
+    }
+
+    [Fact]
+    public async Task NonTransientLateImportFailureAfterDisposalIsLoggedAsError()
+    {
+        var runtime = new TestJsRuntime { BlockImport = true };
+        var lateFailure = new InvalidOperationException("Late disposed import failure.");
+        using var loggerFactory = new RecordingLoggerFactory();
+        var module = new BzsJsModule(runtime, ModulePath, loggerFactory);
+
+        var invocation = module.TryInvokeVoidAsync("initialize").AsTask();
+        await runtime.WaitForImportAttemptAsync();
+        await module.DisposeAsync();
+
+        runtime.FailImport(lateFailure);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => invocation);
+        var entry = await loggerFactory.WaitForEntryAsync(
+            candidate => ReferenceEquals(candidate.Exception, lateFailure));
+        Assert.Equal(LogLevel.Error, entry.Level);
+    }
+
+    [Fact]
+    public async Task NonTransientLateFeatureFailureAfterCancellationIsLoggedAsError()
+    {
+        var runtime = new TestJsRuntime();
+        runtime.Module.BlockOperation = true;
+        var lateFailure = new InvalidOperationException("Late feature failure.");
+        using var loggerFactory = new RecordingLoggerFactory();
+        await using var module = new BzsJsModule(runtime, ModulePath, loggerFactory);
+        using var cancellation = new CancellationTokenSource();
+
+        var invocation = module.TryInvokeAsync<string>(
+            "initialize",
+            cancellation.Token).AsTask();
+        await runtime.Module.WaitForInvocationAsync();
+
+        cancellation.Cancel();
+        Assert.False((await invocation).Succeeded);
+        runtime.Module.FailOperation(lateFailure);
+
+        var entry = await loggerFactory.WaitForEntryAsync(
+            candidate => ReferenceEquals(candidate.Exception, lateFailure));
+        Assert.Equal(LogLevel.Error, entry.Level);
+    }
+
+    [Fact]
+    public async Task TransientLateImportFailureAfterCancellationIsLoggedAsDebug()
+    {
+        var runtime = new TestJsRuntime { BlockImport = true };
+        var lateFailure = new JSDisconnectedException("Circuit disconnected during import.");
+        using var loggerFactory = new RecordingLoggerFactory();
+        await using var module = new BzsJsModule(runtime, ModulePath, loggerFactory);
+        using var cancellation = new CancellationTokenSource();
+
+        var invocation = module.TryInvokeAsync<string>(
+            "initialize",
+            cancellation.Token).AsTask();
+        await runtime.WaitForImportAttemptAsync();
+
+        cancellation.Cancel();
+        Assert.False((await invocation).Succeeded);
+        runtime.FailImport(lateFailure);
+
+        var entry = await loggerFactory.WaitForEntryAsync(
+            candidate => ReferenceEquals(candidate.Exception, lateFailure));
+        Assert.Equal(LogLevel.Debug, entry.Level);
+    }
+
+    [Fact]
+    public async Task TransientLateFeatureFailureAfterCancellationIsLoggedAsDebug()
+    {
+        var runtime = new TestJsRuntime();
+        runtime.Module.BlockOperation = true;
+        var lateFailure = new TaskCanceledException("Feature invocation timed out.");
+        using var loggerFactory = new RecordingLoggerFactory();
+        await using var module = new BzsJsModule(runtime, ModulePath, loggerFactory);
+        using var cancellation = new CancellationTokenSource();
+
+        var invocation = module.TryInvokeAsync<string>(
+            "initialize",
+            cancellation.Token).AsTask();
+        await runtime.Module.WaitForInvocationAsync();
+
+        cancellation.Cancel();
+        Assert.False((await invocation).Succeeded);
+        runtime.Module.FailOperation(lateFailure);
+
+        var entry = await loggerFactory.WaitForEntryAsync(
+            candidate => ReferenceEquals(candidate.Exception, lateFailure));
+        Assert.Equal(LogLevel.Debug, entry.Level);
+    }
+
+    [Fact]
+    public async Task CancellableFeatureInvocationUsesTokenlessModuleOverload()
+    {
+        var runtime = new TestJsRuntime();
+        await using var module = new BzsJsModule(runtime, ModulePath);
+        using var cancellation = new CancellationTokenSource();
+
+        var invocation = await module.TryInvokeAsync<string>(
+            "initialize",
+            cancellation.Token);
+
+        Assert.True(invocation.Succeeded);
+        Assert.Equal(["initialize"], runtime.Module.Invocations);
+        Assert.Equal(0, runtime.Module.CancellableInvocationAttempts);
+    }
+
     private sealed class TestJsRuntime : IJSRuntime
     {
+        private readonly object _importGate = new();
+        private readonly TaskCompletionSource<bool> _importStarted =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private TaskCompletionSource<IJSObjectReference>? _blockedImport;
+        private int _importAttempts;
+
         internal TestJsModule Module { get; } = new();
 
         internal Exception? ImportFailure { get; set; }
 
         internal bool BlockImport { get; set; }
 
-        internal int ImportAttempts { get; private set; }
-
-        private TaskCompletionSource<bool>? ImportRelease { get; set; }
+        internal int ImportAttempts => Volatile.Read(ref _importAttempts);
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
             InvokeAsync<TValue>(identifier, CancellationToken.None, args);
@@ -144,12 +309,19 @@ public sealed class JsModuleLifecycleTests
             object?[]? args)
         {
             Assert.Equal("import", identifier);
-            ImportAttempts++;
+            Interlocked.Increment(ref _importAttempts);
+            _importStarted.TrySetResult(true);
             if (BlockImport)
             {
-                ImportRelease ??= new TaskCompletionSource<bool>(
-                    TaskCreationOptions.RunContinuationsAsynchronously);
-                return AwaitImportAsync<TValue>(ImportRelease.Task);
+                Task<IJSObjectReference> blockedImport;
+                lock (_importGate)
+                {
+                    _blockedImport ??= new TaskCompletionSource<IJSObjectReference>(
+                        TaskCreationOptions.RunContinuationsAsynchronously);
+                    blockedImport = _blockedImport.Task;
+                }
+
+                return AwaitImportAsync<TValue>(blockedImport);
             }
 
             if (ImportFailure is { } exception)
@@ -161,33 +333,86 @@ public sealed class JsModuleLifecycleTests
             return ValueTask.FromResult((TValue)(object)Module);
         }
 
-        internal void ReleaseImport() => ImportRelease?.TrySetResult(true);
-
-        private async ValueTask<TValue> AwaitImportAsync<TValue>(Task release)
+        internal void ReleaseImport()
         {
-            await release;
-            return (TValue)(object)Module;
+            TaskCompletionSource<IJSObjectReference>? blockedImport;
+            lock (_importGate)
+            {
+                BlockImport = false;
+                blockedImport = _blockedImport;
+            }
+
+            blockedImport?.TrySetResult(Module);
+        }
+
+        internal void FailImport(Exception exception)
+        {
+            TaskCompletionSource<IJSObjectReference>? blockedImport;
+            lock (_importGate)
+            {
+                BlockImport = false;
+                blockedImport = _blockedImport;
+            }
+
+            Assert.NotNull(blockedImport);
+            blockedImport.TrySetException(exception);
+        }
+
+        internal async Task WaitForImportAttemptAsync() =>
+            await _importStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        private static async ValueTask<TValue> AwaitImportAsync<TValue>(
+            Task<IJSObjectReference> import)
+        {
+            var module = await import;
+            return (TValue)module;
         }
     }
 
     private sealed class TestJsModule : IJSObjectReference
     {
+        private readonly TaskCompletionSource<bool> _disposalStarted =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<bool> _invocationStarted =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<object?> _operationCompletion =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _cancellableInvocationAttempts;
+        private int _disposeAttempts;
+
         internal ConcurrentQueue<string> Invocations { get; } = [];
 
         internal Exception? OperationFailure { get; set; }
 
         internal Exception? DisposeFailure { get; set; }
 
-        internal int DisposeAttempts { get; private set; }
+        internal bool BlockOperation { get; set; }
+
+        internal int DisposeAttempts => Volatile.Read(ref _disposeAttempts);
+
+        internal int CancellableInvocationAttempts =>
+            Volatile.Read(ref _cancellableInvocationAttempts);
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
-            InvokeAsync<TValue>(identifier, CancellationToken.None, args);
+            InvokeCoreAsync<TValue>(identifier);
 
         public ValueTask<TValue> InvokeAsync<TValue>(
             string identifier,
             CancellationToken cancellationToken,
             object?[]? args)
         {
+            Interlocked.Increment(ref _cancellableInvocationAttempts);
+            return InvokeCoreAsync<TValue>(identifier);
+        }
+
+        private ValueTask<TValue> InvokeCoreAsync<TValue>(string identifier)
+        {
+            _invocationStarted.TrySetResult(true);
+            if (BlockOperation)
+            {
+                return AwaitOperationAsync<TValue>();
+            }
+
             if (OperationFailure is { } exception)
             {
                 return ValueTask.FromException<TValue>(exception);
@@ -197,9 +422,25 @@ public sealed class JsModuleLifecycleTests
             return ValueTask.FromResult(default(TValue)!);
         }
 
+        internal void FailOperation(Exception exception) =>
+            _operationCompletion.TrySetException(exception);
+
+        internal async Task WaitForDisposalAsync() =>
+            await _disposalStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        internal async Task WaitForInvocationAsync() =>
+            await _invocationStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        private async ValueTask<TValue> AwaitOperationAsync<TValue>()
+        {
+            await _operationCompletion.Task;
+            return default!;
+        }
+
         public ValueTask DisposeAsync()
         {
-            DisposeAttempts++;
+            Interlocked.Increment(ref _disposeAttempts);
+            _disposalStarted.TrySetResult(true);
             return DisposeFailure is { } exception
                 ? ValueTask.FromException(exception)
                 : ValueTask.CompletedTask;
@@ -208,20 +449,42 @@ public sealed class JsModuleLifecycleTests
 
     private sealed class RecordingLoggerFactory : ILoggerFactory
     {
-        internal List<LogEntry> Entries { get; } = [];
+        private readonly SemaphoreSlim _entryAdded = new(0);
+
+        internal ConcurrentQueue<LogEntry> Entries { get; } = [];
 
         public void AddProvider(ILoggerProvider provider)
         {
         }
 
-        public ILogger CreateLogger(string categoryName) => new RecordingLogger(Entries);
+        public ILogger CreateLogger(string categoryName) =>
+            new RecordingLogger(Entries, _entryAdded);
+
+        internal async Task<LogEntry> WaitForEntryAsync(Func<LogEntry, bool> predicate)
+        {
+            while (true)
+            {
+                var entry = Entries.FirstOrDefault(predicate);
+                if (entry is not null)
+                {
+                    return entry;
+                }
+
+                Assert.True(
+                    await _entryAdded.WaitAsync(TimeSpan.FromSeconds(5)),
+                    "Timed out waiting for the expected log entry.");
+            }
+        }
 
         public void Dispose()
         {
+            _entryAdded.Dispose();
         }
     }
 
-    private sealed class RecordingLogger(List<LogEntry> entries) : ILogger
+    private sealed class RecordingLogger(
+        ConcurrentQueue<LogEntry> entries,
+        SemaphoreSlim entryAdded) : ILogger
     {
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
@@ -232,9 +495,12 @@ public sealed class JsModuleLifecycleTests
             EventId eventId,
             TState state,
             Exception? exception,
-            Func<TState, Exception?, string> formatter) =>
-            entries.Add(new LogEntry(logLevel, formatter(state, exception)));
+            Func<TState, Exception?, string> formatter)
+        {
+            entries.Enqueue(new LogEntry(logLevel, formatter(state, exception), exception));
+            entryAdded.Release();
+        }
     }
 
-    private sealed record LogEntry(LogLevel Level, string Message);
+    private sealed record LogEntry(LogLevel Level, string Message, Exception? Exception);
 }

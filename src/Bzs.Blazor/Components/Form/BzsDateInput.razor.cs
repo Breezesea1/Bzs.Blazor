@@ -49,6 +49,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     [Parameter] public bool ShowToday { get; set; } = true;
 
     private readonly string _instanceId = $"bzs-date-picker-{Guid.NewGuid():N}";
+    private readonly CancellationTokenSource _interopLifetimeCancellation = new();
     private ElementReference _rootReference;
     private ElementReference _inputReference;
     private ElementReference _periodMenuReference;
@@ -253,7 +254,8 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
                 _interopInitializationTask = _interop.InitializeAsync(
                     _instanceId,
                     _rootReference,
-                    _dotNetReference).AsTask();
+                    _dotNetReference,
+                    _interopLifetimeCancellation.Token).AsTask();
                 initialization = await _interopInitializationTask;
             }
             finally
@@ -1036,6 +1038,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         }
 
         _disposed = true;
+        _interopLifetimeCancellation.Cancel();
         try
         {
             _openRequested = false;
@@ -1083,6 +1086,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         }
         finally
         {
+            _interopLifetimeCancellation.Dispose();
             ((IDisposable)this).Dispose();
         }
     }

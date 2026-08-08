@@ -40,6 +40,8 @@ function handleKeyDown(event, instance) {
 }
 
 export function initialize(instanceId, root, dotNetReference) {
+    if (!isUsableRoot(root)) return null;
+
     const previousInstance = instances.get(instanceId);
     if (previousInstance) cleanupInstance(previousInstance);
 
@@ -52,10 +54,24 @@ export function initialize(instanceId, root, dotNetReference) {
         positionHandler: null
     };
     instance.keydownHandler = event => handleKeyDown(event, instance);
-    instances.set(instanceId, instance);
     root.addEventListener('keydown', instance.keydownHandler);
-    ensureListeners();
+    try {
+        ensureListeners();
+        instances.set(instanceId, instance);
+    } catch (error) {
+        root.removeEventListener('keydown', instance.keydownHandler);
+        throw error;
+    }
     return formatLocalDate(new Date());
+}
+
+function isUsableRoot(root) {
+    return root !== null
+        && typeof root === 'object'
+        && typeof root.addEventListener === 'function'
+        && typeof root.removeEventListener === 'function'
+        && typeof root.querySelector === 'function'
+        && typeof root.contains === 'function';
 }
 
 function formatLocalDate(date) {
@@ -240,17 +256,23 @@ function detachPositionHandler(instance) {
 }
 
 function cleanupInstance(instance) {
-    hidePanel(instance);
-    instance.root.removeEventListener('keydown', instance.keydownHandler);
+    try {
+        hidePanel(instance);
+    } finally {
+        instance.root?.removeEventListener?.('keydown', instance.keydownHandler);
+    }
 }
 
 export function dispose(instanceId) {
     const instance = instances.get(instanceId);
     if (!instance) return;
-    cleanupInstance(instance);
     instances.delete(instanceId);
-    if (instances.size === 0 && listenersAttached) {
-        document.removeEventListener('pointerdown', handlePointerDown, true);
-        listenersAttached = false;
+    try {
+        cleanupInstance(instance);
+    } finally {
+        if (instances.size === 0 && listenersAttached) {
+            document.removeEventListener('pointerdown', handlePointerDown, true);
+            listenersAttached = false;
+        }
     }
 }

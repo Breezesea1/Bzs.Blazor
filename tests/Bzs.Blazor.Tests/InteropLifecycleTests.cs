@@ -106,6 +106,49 @@ public sealed class InteropLifecycleTests
     }
 
     [Fact]
+    public async Task DateInputCancellationDuringImportDoesNotInitializeAnInstance()
+    {
+        var runtime = new LifecycleJsRuntime { BlockImport = true };
+        await using var interop = new BzsDateInputInterop(runtime);
+        using var dotNetReference = DotNetObjectReference.Create(new object());
+        using var cancellation = new CancellationTokenSource();
+
+        var initialization = interop.InitializeAsync(
+            "date-input",
+            default,
+            dotNetReference,
+            cancellation.Token).AsTask();
+        await runtime.WaitForImportAsync();
+
+        cancellation.Cancel();
+
+        Assert.False((await initialization.WaitAsync(TimeSpan.FromSeconds(5))).Initialized);
+        Assert.Empty(runtime.Module.Invocations);
+
+        await interop.DisposeAsync();
+        runtime.ReleaseImport();
+        await runtime.Module.WaitForDisposalAsync();
+        Assert.Equal(1, runtime.Module.DisposeAttempts);
+    }
+
+    [Fact]
+    public async Task DateInputNullInitializationResultRemainsUninitialized()
+    {
+        var runtime = new LifecycleJsRuntime();
+        await using var interop = new BzsDateInputInterop(runtime);
+        using var dotNetReference = DotNetObjectReference.Create(new object());
+
+        var initialization = await interop.InitializeAsync(
+            "date-input",
+            default,
+            dotNetReference);
+
+        Assert.False(initialization.Initialized);
+        Assert.Null(initialization.BrowserToday);
+        Assert.Equal([BzsDateInputInterop.InitializeMethod], runtime.Module.Invocations);
+    }
+
+    [Fact]
     public async Task OverlayDisposePreservesDeactivateFailureAndStillDisposesModule()
     {
         var runtime = new LifecycleJsRuntime();
@@ -213,6 +256,8 @@ public sealed class InteropLifecycleTests
 
     private sealed class LifecycleJsModule : IJSObjectReference
     {
+        private readonly TaskCompletionSource<bool> _disposalStarted =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
         private int _disposeAttempts;
 
         internal ConcurrentQueue<string> Invocations { get; } = [];
@@ -224,6 +269,9 @@ public sealed class InteropLifecycleTests
         internal Exception? DisposeFailure { get; set; }
 
         internal int DisposeAttempts => Volatile.Read(ref _disposeAttempts);
+
+        internal async Task WaitForDisposalAsync() =>
+            await _disposalStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
             InvokeAsync<TValue>(identifier, CancellationToken.None, args);
@@ -250,6 +298,7 @@ public sealed class InteropLifecycleTests
         public ValueTask DisposeAsync()
         {
             Interlocked.Increment(ref _disposeAttempts);
+            _disposalStarted.TrySetResult(true);
             return DisposeFailure is { } exception
                 ? ValueTask.FromException(exception)
                 : ValueTask.CompletedTask;

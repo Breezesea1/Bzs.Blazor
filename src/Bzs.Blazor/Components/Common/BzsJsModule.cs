@@ -66,23 +66,49 @@ internal sealed class BzsJsModule : IAsyncDisposable
         }
     }
 
+    internal ValueTask<BzsJsInvocation<TValue>> TryInvokeAsync<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicFields
+            | DynamicallyAccessedMemberTypes.PublicProperties)] TValue>(
+        string operationName,
+        params object?[]? args) =>
+        TryInvokeAsync<TValue>(operationName, CancellationToken.None, args);
+
     internal async ValueTask<BzsJsInvocation<TValue>> TryInvokeAsync<
         [DynamicallyAccessedMembers(
             DynamicallyAccessedMemberTypes.PublicConstructors
             | DynamicallyAccessedMemberTypes.PublicFields
             | DynamicallyAccessedMemberTypes.PublicProperties)] TValue>(
         string operationName,
+        CancellationToken cancellationToken,
         params object?[]? args)
     {
         var importing = !IsLoaded;
         try
         {
-            var module = await GetModuleAsync();
+            cancellationToken.ThrowIfCancellationRequested();
+            var module = await GetModuleAsync(cancellationToken, operationName);
             importing = false;
-            var result = await module.InvokeAsync<TValue>(operationName, args);
+            cancellationToken.ThrowIfCancellationRequested();
+            var invocationTask = module.InvokeAsync<TValue>(operationName, args).AsTask();
+            TValue result;
+            try
+            {
+                result = cancellationToken.CanBeCanceled
+                    ? await invocationTask.WaitAsync(cancellationToken)
+                    : await invocationTask;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                _ = ObserveInvocationAfterCancellationAsync(invocationTask, operationName);
+                throw;
+            }
             return new BzsJsInvocation<TValue>(true, result);
         }
-        catch (Exception exception) when (IsTransientFailure(exception, importing, _options))
+        catch (Exception exception) when (
+            IsTransientFailure(exception, importing, _options)
+            || (cancellationToken.IsCancellationRequested && exception is OperationCanceledException))
         {
             LogTransientFailure(exception, operationName);
             return default;
@@ -114,6 +140,7 @@ internal sealed class BzsJsModule : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         IJSObjectReference? module;
+        Task<IJSObjectReference>? moduleLoadTask;
         lock (_moduleGate)
         {
             if (_disposed)
@@ -124,17 +151,27 @@ internal sealed class BzsJsModule : IAsyncDisposable
             _disposed = true;
             module = _module;
             _module = null;
+            moduleLoadTask = _moduleLoadTask;
         }
 
         if (module is null)
         {
+            if (moduleLoadTask is not null)
+            {
+                _ = ObserveAbandonedModuleLoadAsync(
+                    moduleLoadTask,
+                    ModuleDisposeOperation,
+                    abandonedAfterDisposal: true);
+            }
             return;
         }
 
         await DisposeModuleAsync(module);
     }
 
-    private async ValueTask<IJSObjectReference> GetModuleAsync()
+    private async ValueTask<IJSObjectReference> GetModuleAsync(
+        CancellationToken cancellationToken = default,
+        string operationName = ImportIdentifier)
     {
         Task<IJSObjectReference> loadTask;
         lock (_moduleGate)
@@ -150,18 +187,21 @@ internal sealed class BzsJsModule : IAsyncDisposable
 
         try
         {
-            return await loadTask;
+            return cancellationToken.CanBeCanceled
+                ? await loadTask.WaitAsync(cancellationToken)
+                : await loadTask;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _ = ObserveAbandonedModuleLoadAsync(
+                loadTask,
+                operationName,
+                abandonedAfterDisposal: false);
+            throw;
         }
         catch
         {
-            lock (_moduleGate)
-            {
-                if (ReferenceEquals(_moduleLoadTask, loadTask))
-                {
-                    _moduleLoadTask = null;
-                }
-            }
-
+            ClearModuleLoadTask(loadTask);
             throw;
         }
     }
@@ -189,6 +229,80 @@ internal sealed class BzsJsModule : IAsyncDisposable
         }
 
         return module;
+    }
+
+    private async Task ObserveAbandonedModuleLoadAsync(
+        Task<IJSObjectReference> moduleLoadTask,
+        string operationName,
+        bool abandonedAfterDisposal)
+    {
+        try
+        {
+            await moduleLoadTask;
+        }
+        catch (Exception exception)
+        {
+            if (!ClearModuleLoadTask(moduleLoadTask))
+            {
+                return;
+            }
+
+            if (IsTransientFailure(exception, importing: true, _options))
+            {
+                LogTransientFailure(exception, operationName);
+            }
+            else if (abandonedAfterDisposal)
+            {
+                _logger.LogError(
+                    exception,
+                    "JavaScript module {ModulePath} failed while completing a load after disposal.",
+                    _modulePath);
+            }
+            else
+            {
+                _logger.LogError(
+                    exception,
+                    "JavaScript module {ModulePath} failed while completing a load after the caller canceled operation {OperationName}.",
+                    _modulePath,
+                    operationName);
+            }
+        }
+    }
+
+    private async Task ObserveInvocationAfterCancellationAsync<TValue>(
+        Task<TValue> invocationTask,
+        string operationName)
+    {
+        try
+        {
+            await invocationTask;
+        }
+        catch (Exception exception) when (IsTransientFailure(exception, importing: false, _options))
+        {
+            LogTransientFailure(exception, operationName);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(
+                exception,
+                "JavaScript module {ModulePath} operation {OperationName} failed after its caller canceled.",
+                _modulePath,
+                operationName);
+        }
+    }
+
+    private bool ClearModuleLoadTask(Task<IJSObjectReference> moduleLoadTask)
+    {
+        lock (_moduleGate)
+        {
+            if (!ReferenceEquals(_moduleLoadTask, moduleLoadTask))
+            {
+                return false;
+            }
+
+            _moduleLoadTask = null;
+            return true;
+        }
     }
 
     private async ValueTask DisposeModuleAsync(IJSObjectReference module)

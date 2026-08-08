@@ -755,7 +755,7 @@ public sealed class FormsTests
     }
 
     [Fact]
-    public async Task DateInputDisposalWaitsForPendingInitializationBeforeCleaningUp()
+    public async Task DateInputDisposalCancelsPendingInitializationBeforeCleaningUp()
     {
         using var culture = new CultureScope("en-US");
         using var context = new BunitContext();
@@ -774,11 +774,11 @@ public sealed class FormsTests
 
         var disposal = cut.Instance.DisposeAsync().AsTask();
 
-        Assert.False(disposal.IsCompleted);
-        initialization.SetResult("2031-02-03");
-        await disposal;
+        await disposal.WaitAsync(TimeSpan.FromSeconds(5));
         dispose.VerifyInvoke("dispose");
         dateModule.VerifyNotInvoke("setOpen");
+
+        initialization.SetResult("2031-02-03");
     }
 
     [Fact]
