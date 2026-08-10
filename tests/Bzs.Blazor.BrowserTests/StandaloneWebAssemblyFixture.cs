@@ -11,6 +11,7 @@ namespace Bzs.Blazor.BrowserTests;
 
 public sealed class StandaloneWebAssemblyFixture : IAsyncLifetime
 {
+    private const string StandaloneBasePath = "/Bzs.Blazor";
     private WebApplication? _application;
     private string? _temporaryDirectory;
 
@@ -43,6 +44,8 @@ public sealed class StandaloneWebAssemblyFixture : IAsyncLifetime
                     $"The standalone WebAssembly publish did not produce {Path.Combine(webRoot, "index.html")}.");
             }
 
+            await SetPublishedBasePathAsync(webRoot);
+
             var builder = WebApplication.CreateSlimBuilder();
             builder.WebHost.UseUrls("http://127.0.0.1:0");
             _application = builder.Build();
@@ -53,6 +56,7 @@ public sealed class StandaloneWebAssemblyFixture : IAsyncLifetime
                 ServeUnknownFileTypes = true,
                 DefaultContentType = "application/octet-stream",
             };
+            _application.UsePathBase(StandaloneBasePath);
             _application.UseStaticFiles(staticFiles);
             _application.MapFallbackToFile("index.html", staticFiles);
 
@@ -63,7 +67,8 @@ public sealed class StandaloneWebAssemblyFixture : IAsyncLifetime
                 .Get<IServerAddressesFeature>()!
                 .Addresses
                 .Single()
-                .TrimEnd('/');
+                .TrimEnd('/')
+                + StandaloneBasePath;
         }
         catch
         {
@@ -194,6 +199,23 @@ public sealed class StandaloneWebAssemblyFixture : IAsyncLifetime
         }
 
         await Task.WhenAll(standardOutput, standardError);
+    }
+
+    private static async Task SetPublishedBasePathAsync(string webRoot)
+    {
+        var indexPath = Path.Combine(webRoot, "index.html");
+        var index = await File.ReadAllTextAsync(indexPath);
+        var updatedIndex = index.Replace(
+            "<base href=\"/\" />",
+            $"<base href=\"{StandaloneBasePath}/\" />",
+            StringComparison.Ordinal);
+        if (string.Equals(index, updatedIndex, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "The standalone WebAssembly index did not contain the expected root base element.");
+        }
+
+        await File.WriteAllTextAsync(indexPath, updatedIndex);
     }
 
     private static string FindRepositoryRoot()

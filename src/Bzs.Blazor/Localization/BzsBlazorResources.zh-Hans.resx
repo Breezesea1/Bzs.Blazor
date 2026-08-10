@@ -99,4 +99,148 @@
   <data name="DatePickerClear" xml:space="preserve">
     <value>清除</value>
   </data>
+  <data name="FileUploadEmpty" xml:space="preserve">
+    <value>未选择文件。</value>
+  </data>
+  <data name="FileUploadFilesLabel" xml:space="preserve">
+    <value>已选择的文件</value>
+  </data>
+  <data name="FileUploadProgressLabel" xml:space="preserve">
+    <value>上传进度</value>
+  </data>
+  <data name="FileUploadRemove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="FileUploadClear" xml:space="preserve">
+    <value>清除文件</value>
+  </data>
+  <data name="FileUploadRequired" xml:space="preserve">
+    <value>请至少选择一个文件。</value>
+  </data>
+  <data name="FileUploadMaximumCount" xml:space="preserve">
+    <value>最多可选择 {0} 个文件。</value>
+  </data>
+  <data name="FileUploadMaximumFileSize" xml:space="preserve">
+    <value>每个文件不得大于 {0} 字节。</value>
+  </data>
+  <data name="FileUploadMaximumTotalSize" xml:space="preserve">
+    <value>所选文件总大小不得超过 {0} 字节。</value>
+  </data>
+  <data name="AutocompleteLoadingText" xml:space="preserve">
+    <value>正在加载建议</value>
+  </data>
+  <data name="AutocompleteEmptyText" xml:space="preserve">
+    <value>未找到建议</value>
+  </data>
+  <data name="AutocompleteErrorText" xml:space="preserve">
+    <value>无法加载建议</value>
+  </data>
+  <data name="AutocompleteRetryText" xml:space="preserve">
+    <value>重试</value>
+  </data>
+  <data name="AutocompleteClearText" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="AutocompleteSelectionValidation" xml:space="preserve">
+    <value>{0} 字段必须匹配一个建议。</value>
+  </data>
+  <data name="DataGridAccessibleName" xml:space="preserve">
+    <value>数据表格</value>
+  </data>
+  <data name="DataGridLoadingText" xml:space="preserve">
+    <value>正在加载数据</value>
+  </data>
+  <data name="DataGridEmptyText" xml:space="preserve">
+    <value>暂无数据</value>
+  </data>
+  <data name="DataGridErrorText" xml:space="preserve">
+    <value>无法加载数据</value>
+  </data>
+  <data name="DataGridPageSizeText" xml:space="preserve">
+    <value>每页行数</value>
+  </data>
+  <data name="DataGridPaginationAccessibleName" xml:space="preserve">
+    <value>数据分页</value>
+  </data>
+  <data name="DataGridSelectionColumnText" xml:space="preserve">
+    <value>行选择</value>
+  </data>
+  <data name="DataGridSelectRowText" xml:space="preserve">
+    <value>选择第 {0} 行</value>
+  </data>
+  <data name="DataGridRetryText" xml:space="preserve">
+    <value>重试</value>
+  </data>
+  <data name="DataGridSortAscendingText" xml:space="preserve">
+    <value>升序排序</value>
+  </data>
+  <data name="DataGridSortDescendingText" xml:space="preserve">
+    <value>降序排序</value>
+  </data>
+  <data name="DataGridClearSortText" xml:space="preserve">
+    <value>清除排序</value>
+  </data>
+  <data name="DataGridClearFilterText" xml:space="preserve">
+    <value>清除筛选</value>
+  </data>
+  <data name="DataGridColumnMenuText" xml:space="preserve">
+    <value>{0} 列菜单</value>
+  </data>
+  <data name="DataGridFilterOperatorText" xml:space="preserve">
+    <value>{0} 筛选运算符</value>
+  </data>
+  <data name="DataGridFilterValueText" xml:space="preserve">
+    <value>{0} 筛选值</value>
+  </data>
+  <data name="DataGridApplyFilterText" xml:space="preserve">
+    <value>应用 {0} 筛选</value>
+  </data>
+  <data name="DataGridContainsText" xml:space="preserve">
+    <value>包含</value>
+  </data>
+  <data name="DataGridStartsWithText" xml:space="preserve">
+    <value>开头为</value>
+  </data>
+  <data name="DataGridEndsWithText" xml:space="preserve">
+    <value>结尾为</value>
+  </data>
+  <data name="DataGridEqualsText" xml:space="preserve">
+    <value>等于</value>
+  </data>
+  <data name="DataGridNotEqualsText" xml:space="preserve">
+    <value>不等于</value>
+  </data>
+  <data name="DataGridLessThanText" xml:space="preserve">
+    <value>小于</value>
+  </data>
+  <data name="DataGridLessThanOrEqualText" xml:space="preserve">
+    <value>小于或等于</value>
+  </data>
+  <data name="DataGridGreaterThanText" xml:space="preserve">
+    <value>大于</value>
+  </data>
+  <data name="DataGridGreaterThanOrEqualText" xml:space="preserve">
+    <value>大于或等于</value>
+  </data>
+  <data name="DataGridAnyText" xml:space="preserve">
+    <value>任意</value>
+  </data>
+  <data name="DataGridTrueText" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="DataGridFalseText" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="DataGridPreviousPageText" xml:space="preserve">
+    <value>上一页</value>
+  </data>
+  <data name="DataGridNextPageText" xml:space="preserve">
+    <value>下一页</value>
+  </data>
+  <data name="DataGridCurrentPageText" xml:space="preserve">
+    <value>第 {0} 页</value>
+  </data>
+  <data name="BreadcrumbAccessibleName" xml:space="preserve">
+    <value>面包屑导航</value>
+  </data>
 </root>

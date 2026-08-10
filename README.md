@@ -11,7 +11,7 @@ After a release is published to nuget.org, install the package into both the
 server host and WebAssembly client projects that render Bzs.Blazor components:
 
 ```text
-dotnet add package Bzs.Blazor --version 0.1.13
+dotnet add package Bzs.Blazor --version 0.2.1
 ```
 
 Register the library once during application startup. The call is idempotent,
@@ -24,6 +24,20 @@ builder.Services.AddBzsBlazor();
 The registration establishes the library's standard .NET localization support.
 Consumer applications continue to choose render modes, theme persistence, and
 their own application-localization policy.
+
+## Component coverage
+
+The package includes theme and layout foundations, EditForm-integrated inputs,
+feedback and overlay components, tabs, and the following productivity modules:
+
+- Anchored `BzsPopover`, `BzsTooltip`, `BzsMenu`, and `BzsContextMenu`
+  interaction.
+- `BzsNavMenu`, `BzsBreadcrumbs`, and controlled `BzsPagination` navigation.
+- `BzsSkeleton`, `BzsBadge`, `BzsChip`, and `BzsAvatar` status primitives.
+- Provider-backed `BzsAutocomplete<TValue>` and validated `BzsFileUpload`
+  selection.
+- Typed `BzsDataGrid<TItem>` workflows for in-memory and asynchronous provider
+  data.
 
 ## Run the Demo with Aspire
 
@@ -69,7 +83,7 @@ in `0.x` development, where documented breaking changes remain possible.
 
 ## Publishing
 
-A strict SemVer tag such as `v0.1.13` starts the GitHub Actions release workflow.
+A strict SemVer tag such as `v0.2.1` starts the GitHub Actions release workflow.
 The workflow runs the release gates, packs the package and symbols, and publishes
 to nuget.org through the protected `nuget-production` environment. Creating a
 tag does not bypass the environment's configured approvals or protections.
@@ -97,4 +111,4 @@ release gate with:
 pwsh scripts/verify-release.ps1
 ```
 
-Release notes are recorded in `docs/releases/0.1.13.md`.
+Release notes are recorded in `docs/releases/0.2.1.md`.

@@ -1,0 +1,28 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+@inject IJSRuntime JS
+@inject Microsoft.Extensions.Logging.ILoggerFactory LoggerFactory
+
+<span @ref="_rootElement" @attributes="RootAttributes">
+    <button type="button"
+            class="bzs-popover__trigger"
+            data-bzs-anchor="true"
+            aria-controls="@_panelId"
+            aria-expanded="@(Open ? "true" : "false")"
+            aria-label="@EffectiveTriggerAccessibleName"
+            disabled="@Disabled"
+            @onclick="ToggleAsync">
+        @TriggerContent
+    </button>
+    @if (Open)
+    {
+        <span id="@_panelId"
+              class="bzs-popover__panel"
+              data-bzs-anchored-panel="true"
+              data-bzs-placement="@PlacementName"
+              role="@PanelRole"
+              aria-label="@EffectivePanelAccessibleName">
+            @ChildContent
+        </span>
+    }
+</span>

@@ -1,0 +1,16 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+<span @attributes="RootAttributes">
+    <span class="bzs-avatar__fallback" aria-hidden="true">
+        @FallbackContent
+    </span>
+    @if (HasImage)
+    {
+        <img class="bzs-avatar__image"
+             src="@ImageUrl!.Trim()"
+             alt=""
+             aria-hidden="true"
+             draggable="false" />
+    }
+</span>

@@ -190,7 +190,22 @@ public sealed class LayoutTests
         var content = cut.Find("#application-content");
         Assert.Equal(expectedTag, content.TagName);
         Assert.Equal(expectedMode, content.GetAttribute("data-bzs-main-content"));
+        Assert.Equal("0", content.GetAttribute("tabindex"));
         Assert.Equal("Main content", content.TextContent.Trim());
+    }
+
+    [Fact]
+    public void MainContentAllowsConsumersToOverrideItsScrollRegionTabIndex()
+    {
+        using var context = new BunitContext();
+        var cut = context.Render<BzsMainContent>(parameters => parameters
+            .Add(component => component.AdditionalAttributes, new Dictionary<string, object>
+            {
+                ["tabindex"] = "-1",
+            })
+            .Add(component => component.ChildContent, "Main content"));
+
+        Assert.Equal("-1", cut.Find("main").GetAttribute("tabindex"));
     }
 
     [Fact]

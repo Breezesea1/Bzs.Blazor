@@ -1,0 +1,87 @@
+@inject NavigationManager Navigation
+
+<PageTitle>@PageTitleText</PageTitle>
+
+<section class="demo-page demo-releases-page"
+         aria-labelledby="releases-title"
+         data-testid="releases-page">
+    <header class="demo-page-header">
+        <p class="demo-eyebrow">@Eyebrow</p>
+        <h1 id="releases-title">@Heading</h1>
+        <p class="demo-page-summary">@Summary</p>
+    </header>
+
+    <div class="demo-release-history">
+        @foreach (var release in DemoReleaseCatalog.All)
+        {
+            <article id="@release.Id"
+                     class="demo-release-entry"
+                     aria-labelledby="@($"{release.Id}-title")"
+                     data-testid="@($"release-{release.Version}")"
+                     @key="release.Id">
+                <aside class="demo-release-entry-meta">
+                    <BzsBadge Severity="BzsMessageSeverity.Information">
+                        @release.Version
+                    </BzsBadge>
+                    <strong>@release.Status.Resolve(IsChinese)</strong>
+                    <time datetime="@release.PublishedAt.ToString("yyyy-MM-dd")">
+                        @FormatDate(release.PublishedAt)
+                    </time>
+                </aside>
+                <div class="demo-release-entry-content">
+                    <h2 id="@($"{release.Id}-title")">@release.Title.Resolve(IsChinese)</h2>
+                    <p>@release.Summary.Resolve(IsChinese)</p>
+                    <h3>@HighlightsHeading</h3>
+                    <ul>
+                        @foreach (var highlight in release.Highlights)
+                        {
+                            <li @key="highlight">@highlight.Resolve(IsChinese)</li>
+                        }
+                    </ul>
+                    @for (var sectionIndex = 0; sectionIndex < release.Sections.Count; sectionIndex++)
+                    {
+                        var section = release.Sections[sectionIndex];
+                        var sectionId = $"{release.Id}-section-{sectionIndex}";
+                        <section class="demo-release-section"
+                                 aria-labelledby="@sectionId"
+                                 @key="section.Heading.English">
+                            <h3 id="@sectionId">@section.Heading.Resolve(IsChinese)</h3>
+                            <ul>
+                                @foreach (var item in section.Items)
+                                {
+                                    <li @key="item.English">@item.Resolve(IsChinese)</li>
+                                }
+                            </ul>
+                        </section>
+                    }
+                    <p class="demo-release-compatibility">
+                        <BzsIcon Icon="BzsIcons.Check" />
+                        @release.Compatibility.Resolve(IsChinese)
+                    </p>
+                </div>
+            </article>
+        }
+    </div>
+</section>
+
+@code {
+    private bool IsChinese => DemoCulture.IsChinese(new Uri(Navigation.Uri));
+
+    private string PageTitleText => IsChinese
+        ? "版本公告 - Bzs.Blazor"
+        : "Releases - Bzs.Blazor";
+
+    private string Eyebrow => IsChinese ? "项目更新" : "Project updates";
+
+    private string Heading => IsChinese ? "版本公告" : "Release announcements";
+
+    private string Summary => IsChinese
+        ? "查看 Bzs.Blazor 每个版本的重要变化、兼容性说明和新增控件。"
+        : "Review the important changes, compatibility notes, and new components in every Bzs.Blazor release.";
+
+    private string HighlightsHeading => IsChinese ? "主要更新" : "Highlights";
+
+    private string FormatDate(DateTimeOffset date) => date.ToString(
+        "D",
+        DemoCulture.Resolve(IsChinese ? "zh-Hans" : "en-US"));
+}

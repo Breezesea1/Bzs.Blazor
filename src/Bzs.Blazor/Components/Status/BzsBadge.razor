@@ -1,0 +1,19 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+@if (IsVisible)
+{
+    <span @attributes="RootAttributes">
+        <BzsIcon Icon="SeverityIcon" Class="bzs-badge__icon" />
+        <span class="bzs-badge__content">
+            @if (Count is int count)
+            {
+                @FormatCount(count)
+            }
+            else
+            {
+                @ChildContent
+            }
+        </span>
+    </span>
+}

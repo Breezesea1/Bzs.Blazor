@@ -1,0 +1,16 @@
+.bzs-nav-menu {
+    box-sizing: border-box;
+    min-inline-size: 0;
+    color: var(--bzs-text);
+    font-family: var(--bzs-font-family);
+}
+
+.bzs-nav-menu__list {
+    display: grid;
+    box-sizing: border-box;
+    gap: 0.125rem;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}

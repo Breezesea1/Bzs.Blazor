@@ -1,0 +1,41 @@
+.bzs-tooltip {
+    position: relative;
+    display: inline-flex;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+}
+
+.bzs-tooltip__panel {
+    position: absolute;
+    z-index: 1150;
+    inset-block-end: calc(100% + 0.25rem);
+    inset-inline-start: 0;
+    box-sizing: border-box;
+    min-inline-size: min(6rem, calc(100vw - 1rem));
+    max-inline-size: min(20rem, calc(100vw - 1rem));
+    border: var(--bzs-border-width) solid var(--bzs-border);
+    border-radius: var(--bzs-radius-control);
+    padding: 0.375rem 0.5rem;
+    background: var(--bzs-text);
+    box-shadow: var(--bzs-shadow-overlay);
+    color: var(--bzs-surface);
+    font-family: var(--bzs-font-family);
+    font-size: var(--bzs-font-size-small);
+    line-height: 1.35;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bzs-tooltip__panel {
+        transition: none;
+    }
+}
+
+@media (forced-colors: active) {
+    .bzs-tooltip__panel {
+        border-color: CanvasText;
+        background: Canvas;
+        box-shadow: none;
+        color: CanvasText;
+    }
+}

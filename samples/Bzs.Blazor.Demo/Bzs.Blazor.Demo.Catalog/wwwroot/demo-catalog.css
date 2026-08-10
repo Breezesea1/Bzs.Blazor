@@ -9,7 +9,7 @@
     --demo-border: #c7ced8;
     --demo-text: #202733;
     --demo-muted: #526077;
-    --demo-accent: #5756d8;
+    --demo-accent: #5352ce;
     --demo-accent-strong: #403fae;
     --demo-focus: #5756d8;
     --demo-success: #147a63;
@@ -670,7 +670,8 @@ h1[tabindex="-1"]:focus {
     gap: 0.625rem;
 }
 
-.demo-control-row button {
+.demo-control-row > button,
+.demo-inline-command {
     min-height: 2.25rem;
     border: 1px solid var(--bzs-border);
     border-radius: var(--bzs-radius-control);
@@ -678,11 +679,44 @@ h1[tabindex="-1"]:focus {
     background: var(--bzs-surface-raised);
     box-shadow: var(--bzs-shadow-raised);
     color: var(--bzs-text);
+    font: inherit;
+    transition: background-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        color var(--bzs-motion-fast) var(--bzs-motion-easing);
+    cursor: pointer;
 }
 
-.demo-control-row button[aria-pressed="true"] {
+.demo-control-row > button:not(:disabled):hover,
+.demo-inline-command:not(:disabled):hover {
+    background: color-mix(in srgb, var(--bzs-primary) 8%, var(--bzs-surface-raised));
+    color: var(--bzs-primary);
+}
+
+.demo-control-row > button[aria-pressed="true"] {
     background: var(--bzs-primary);
     color: var(--bzs-on-primary);
+}
+
+.demo-status-skeleton {
+    inline-size: min(10rem, 100%);
+    flex: 0 1 10rem;
+    align-self: center;
+}
+
+.demo-context-target {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.25rem;
+    border-radius: var(--bzs-radius-control);
+    padding-inline: 0.75rem;
+    color: var(--bzs-text-muted);
+    transition: background-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        color var(--bzs-motion-fast) var(--bzs-motion-easing);
+    cursor: context-menu;
+}
+
+.demo-context-target:hover {
+    background: var(--bzs-surface-inset);
+    color: var(--bzs-text);
 }
 
 .demo-theme-swatch {
@@ -764,6 +798,14 @@ h1[tabindex="-1"]:focus {
 }
 
 @media (width < 48rem) {
+    body:has(.demo-sidebar[data-bzs-open="true"]) {
+        overflow: hidden;
+    }
+
+    body:has(.demo-sidebar[data-bzs-open="true"]) .demo-main {
+        overflow: hidden;
+    }
+
     .demo-header {
         gap: 0.5rem;
         padding-inline: 0.75rem;

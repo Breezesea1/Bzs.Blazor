@@ -1,1 +1,530 @@
 #nullable enable
+Bzs.Blazor.BzsAutocomplete<TValue>
+Bzs.Blazor.BzsAutocomplete<TValue>.BzsAutocomplete() -> void
+Bzs.Blazor.BzsAutocomplete<TValue>.ClearText.get -> string?
+Bzs.Blazor.BzsAutocomplete<TValue>.ClearText.set -> void
+Bzs.Blazor.BzsAutocomplete<TValue>.CloseFromBrowserAsync(bool restoreFocus = false) -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsAutocomplete<TValue>.DebounceDelay.get -> System.TimeSpan
+Bzs.Blazor.BzsAutocomplete<TValue>.DebounceDelay.set -> void
+Bzs.Blazor.BzsAutocomplete<TValue>.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsAutocomplete<TValue>.EmptyText.get -> string?
+Bzs.Blazor.BzsAutocomplete<TValue>.EmptyText.set -> void
+Bzs.Blazor.BzsAutocomplete<TValue>.ErrorText.get -> string?
+Bzs.Blazor.BzsAutocomplete<TValue>.ErrorText.set -> void
+Bzs.Blazor.BzsAutocomplete<TValue>.LoadingText.get -> string?
+Bzs.Blazor.BzsAutocomplete<TValue>.LoadingText.set -> void
+Bzs.Blazor.BzsAutocomplete<TValue>.MinimumQueryLength.get -> int
+Bzs.Blazor.BzsAutocomplete<TValue>.MinimumQueryLength.set -> void
+Bzs.Blazor.BzsAutocomplete<TValue>.Provider.get -> Bzs.Blazor.IBzsAutocompleteProvider<TValue>?
+Bzs.Blazor.BzsAutocomplete<TValue>.Provider.set -> void
+Bzs.Blazor.BzsAutocomplete<TValue>.ProviderFailed.get -> Microsoft.AspNetCore.Components.EventCallback<System.Exception!>
+Bzs.Blazor.BzsAutocomplete<TValue>.ProviderFailed.set -> void
+Bzs.Blazor.BzsAutocomplete<TValue>.ResultTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment<Bzs.Blazor.BzsAutocompleteOption<TValue>!>?
+Bzs.Blazor.BzsAutocomplete<TValue>.ResultTemplate.set -> void
+Bzs.Blazor.BzsAutocomplete<TValue>.RetryText.get -> string?
+Bzs.Blazor.BzsAutocomplete<TValue>.RetryText.set -> void
+Bzs.Blazor.BzsAutocomplete<TValue>.SelectionValidationMessage.get -> string?
+Bzs.Blazor.BzsAutocomplete<TValue>.SelectionValidationMessage.set -> void
+Bzs.Blazor.BzsAutocompleteOption<TValue>
+Bzs.Blazor.BzsAutocompleteOption<TValue>.<Clone>$() -> Bzs.Blazor.BzsAutocompleteOption<TValue>!
+Bzs.Blazor.BzsAutocompleteOption<TValue>.BzsAutocompleteOption(TValue value, string! label, bool disabled = false, string? valueText = null) -> void
+Bzs.Blazor.BzsAutocompleteOption<TValue>.Description.get -> string?
+Bzs.Blazor.BzsAutocompleteOption<TValue>.Description.init -> void
+Bzs.Blazor.BzsAutocompleteOption<TValue>.Disabled.get -> bool
+Bzs.Blazor.BzsAutocompleteOption<TValue>.Equals(Bzs.Blazor.BzsAutocompleteOption<TValue>? other) -> bool
+Bzs.Blazor.BzsAutocompleteOption<TValue>.Icon.get -> Bzs.Blazor.BzsIconData?
+Bzs.Blazor.BzsAutocompleteOption<TValue>.Icon.init -> void
+Bzs.Blazor.BzsAutocompleteOption<TValue>.Label.get -> string!
+Bzs.Blazor.BzsAutocompleteOption<TValue>.Value.get -> TValue
+Bzs.Blazor.BzsAutocompleteOption<TValue>.ValueText.get -> string!
+Bzs.Blazor.BzsAvatar
+Bzs.Blazor.BzsAvatar.AccessibleName.get -> string?
+Bzs.Blazor.BzsAvatar.AccessibleName.set -> void
+Bzs.Blazor.BzsAvatar.BzsAvatar() -> void
+Bzs.Blazor.BzsAvatar.Icon.get -> Bzs.Blazor.BzsIconData?
+Bzs.Blazor.BzsAvatar.Icon.set -> void
+Bzs.Blazor.BzsAvatar.ImageUrl.get -> string?
+Bzs.Blazor.BzsAvatar.ImageUrl.set -> void
+Bzs.Blazor.BzsAvatar.Initials.get -> string?
+Bzs.Blazor.BzsAvatar.Initials.set -> void
+Bzs.Blazor.BzsAvatar.Shape.get -> Bzs.Blazor.BzsAvatarShape
+Bzs.Blazor.BzsAvatar.Shape.set -> void
+Bzs.Blazor.BzsAvatar.Size.get -> Bzs.Blazor.BzsAvatarSize
+Bzs.Blazor.BzsAvatar.Size.set -> void
+Bzs.Blazor.BzsAvatarShape
+Bzs.Blazor.BzsAvatarShape.Circle = 0 -> Bzs.Blazor.BzsAvatarShape
+Bzs.Blazor.BzsAvatarShape.Rounded = 1 -> Bzs.Blazor.BzsAvatarShape
+Bzs.Blazor.BzsAvatarShape.Square = 2 -> Bzs.Blazor.BzsAvatarShape
+Bzs.Blazor.BzsAvatarSize
+Bzs.Blazor.BzsAvatarSize.Large = 2 -> Bzs.Blazor.BzsAvatarSize
+Bzs.Blazor.BzsAvatarSize.Medium = 1 -> Bzs.Blazor.BzsAvatarSize
+Bzs.Blazor.BzsAvatarSize.Small = 0 -> Bzs.Blazor.BzsAvatarSize
+Bzs.Blazor.BzsBadge
+Bzs.Blazor.BzsBadge.AccessibleName.get -> string?
+Bzs.Blazor.BzsBadge.AccessibleName.set -> void
+Bzs.Blazor.BzsBadge.BzsBadge() -> void
+Bzs.Blazor.BzsBadge.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsBadge.ChildContent.set -> void
+Bzs.Blazor.BzsBadge.Count.get -> int?
+Bzs.Blazor.BzsBadge.Count.set -> void
+Bzs.Blazor.BzsBadge.Maximum.get -> int
+Bzs.Blazor.BzsBadge.Maximum.set -> void
+Bzs.Blazor.BzsBadge.Severity.get -> Bzs.Blazor.BzsMessageSeverity
+Bzs.Blazor.BzsBadge.Severity.set -> void
+Bzs.Blazor.BzsBadge.ShowZero.get -> bool
+Bzs.Blazor.BzsBadge.ShowZero.set -> void
+Bzs.Blazor.BzsBreadcrumbItem
+Bzs.Blazor.BzsBreadcrumbItem.<Clone>$() -> Bzs.Blazor.BzsBreadcrumbItem!
+Bzs.Blazor.BzsBreadcrumbItem.BzsBreadcrumbItem(string! label, string? href = null, bool? current = null) -> void
+Bzs.Blazor.BzsBreadcrumbItem.Current.get -> bool?
+Bzs.Blazor.BzsBreadcrumbItem.Equals(Bzs.Blazor.BzsBreadcrumbItem? other) -> bool
+Bzs.Blazor.BzsBreadcrumbItem.Href.get -> string?
+Bzs.Blazor.BzsBreadcrumbItem.Label.get -> string!
+Bzs.Blazor.BzsBreadcrumbs
+Bzs.Blazor.BzsBreadcrumbs.AccessibleName.get -> string?
+Bzs.Blazor.BzsBreadcrumbs.AccessibleName.set -> void
+Bzs.Blazor.BzsBreadcrumbs.BzsBreadcrumbs() -> void
+Bzs.Blazor.BzsBreadcrumbs.Items.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsBreadcrumbItem!>!
+Bzs.Blazor.BzsBreadcrumbs.Items.set -> void
+Bzs.Blazor.BzsBreadcrumbs.ItemTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment<Bzs.Blazor.BzsBreadcrumbItem!>?
+Bzs.Blazor.BzsBreadcrumbs.ItemTemplate.set -> void
+Bzs.Blazor.BzsBreadcrumbs.SeparatorContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsBreadcrumbs.SeparatorContent.set -> void
+Bzs.Blazor.BzsChip
+Bzs.Blazor.BzsChip.BzsChip() -> void
+Bzs.Blazor.BzsChip.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsChip.ChildContent.set -> void
+Bzs.Blazor.BzsChip.Disabled.get -> bool
+Bzs.Blazor.BzsChip.Disabled.set -> void
+Bzs.Blazor.BzsChip.EndIcon.get -> Bzs.Blazor.BzsIconData?
+Bzs.Blazor.BzsChip.EndIcon.set -> void
+Bzs.Blazor.BzsChip.Removable.get -> bool
+Bzs.Blazor.BzsChip.Removable.set -> void
+Bzs.Blazor.BzsChip.RemoveAccessibleName.get -> string?
+Bzs.Blazor.BzsChip.RemoveAccessibleName.set -> void
+Bzs.Blazor.BzsChip.RemoveRequested.get -> Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Web.MouseEventArgs!>
+Bzs.Blazor.BzsChip.RemoveRequested.set -> void
+Bzs.Blazor.BzsChip.Selectable.get -> bool
+Bzs.Blazor.BzsChip.Selectable.set -> void
+Bzs.Blazor.BzsChip.Selected.get -> bool
+Bzs.Blazor.BzsChip.Selected.set -> void
+Bzs.Blazor.BzsChip.SelectedChanged.get -> Microsoft.AspNetCore.Components.EventCallback<bool>
+Bzs.Blazor.BzsChip.SelectedChanged.set -> void
+Bzs.Blazor.BzsChip.StartIcon.get -> Bzs.Blazor.BzsIconData?
+Bzs.Blazor.BzsChip.StartIcon.set -> void
+Bzs.Blazor.BzsContextMenu
+Bzs.Blazor.BzsContextMenu.AccessibleName.get -> string?
+Bzs.Blazor.BzsContextMenu.AccessibleName.set -> void
+Bzs.Blazor.BzsContextMenu.BzsContextMenu() -> void
+Bzs.Blazor.BzsContextMenu.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsContextMenu.ChildContent.set -> void
+Bzs.Blazor.BzsContextMenu.CloseFromBrowserAsync(bool restoreFocus = false) -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsContextMenu.Disabled.get -> bool
+Bzs.Blazor.BzsContextMenu.Disabled.set -> void
+Bzs.Blazor.BzsContextMenu.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsContextMenu.Open.get -> bool
+Bzs.Blazor.BzsContextMenu.Open.set -> void
+Bzs.Blazor.BzsContextMenu.OpenChanged.get -> Microsoft.AspNetCore.Components.EventCallback<bool>
+Bzs.Blazor.BzsContextMenu.OpenChanged.set -> void
+Bzs.Blazor.BzsContextMenu.TargetAccessibleName.get -> string?
+Bzs.Blazor.BzsContextMenu.TargetAccessibleName.set -> void
+Bzs.Blazor.BzsContextMenu.TargetContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsContextMenu.TargetContent.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>
+Bzs.Blazor.BzsDataGrid<TItem>.AccessibleName.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.AccessibleName.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.BzsDataGrid() -> void
+Bzs.Blazor.BzsDataGrid<TItem>.Caption.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.Caption.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.CaptionContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsDataGrid<TItem>.CaptionContent.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsDataGrid<TItem>.ChildContent.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.CompactPagination.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.CompactPagination.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsDataGrid<TItem>.EmptyTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsDataGrid<TItem>.EmptyTemplate.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.EmptyText.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.EmptyText.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.Error.get -> System.Exception?
+Bzs.Blazor.BzsDataGrid<TItem>.Error.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ErrorTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment<System.Exception!>?
+Bzs.Blazor.BzsDataGrid<TItem>.ErrorTemplate.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ErrorText.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.ErrorText.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.Filters.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridFilter!>!
+Bzs.Blazor.BzsDataGrid<TItem>.Filters.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.FiltersChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridFilter!>!>
+Bzs.Blazor.BzsDataGrid<TItem>.FiltersChanged.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ItemKey.get -> System.Func<TItem, object?>?
+Bzs.Blazor.BzsDataGrid<TItem>.ItemKey.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ItemKeyComparer.get -> System.Collections.Generic.IEqualityComparer<object?>?
+Bzs.Blazor.BzsDataGrid<TItem>.ItemKeyComparer.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.Items.get -> System.Collections.Generic.IReadOnlyList<TItem>?
+Bzs.Blazor.BzsDataGrid<TItem>.Items.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.Loading.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.Loading.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.LoadingTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsDataGrid<TItem>.LoadingTemplate.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.LoadingText.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.LoadingText.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.Page.get -> int
+Bzs.Blazor.BzsDataGrid<TItem>.Page.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.PageChanged.get -> Microsoft.AspNetCore.Components.EventCallback<int>
+Bzs.Blazor.BzsDataGrid<TItem>.PageChanged.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.PageSize.get -> int
+Bzs.Blazor.BzsDataGrid<TItem>.PageSize.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.PageSizeChanged.get -> Microsoft.AspNetCore.Components.EventCallback<int>
+Bzs.Blazor.BzsDataGrid<TItem>.PageSizeChanged.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.PageSizeOptions.get -> System.Collections.Generic.IReadOnlyList<int>!
+Bzs.Blazor.BzsDataGrid<TItem>.PageSizeOptions.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.PageSizeText.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.PageSizeText.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.PaginationAccessibleName.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.PaginationAccessibleName.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.Provider.get -> Bzs.Blazor.IBzsDataGridProvider<TItem>?
+Bzs.Blazor.BzsDataGrid<TItem>.Provider.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ProviderFailed.get -> Microsoft.AspNetCore.Components.EventCallback<System.Exception!>
+Bzs.Blazor.BzsDataGrid<TItem>.ProviderFailed.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.RetryText.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.RetryText.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.RowAccessibleName.get -> System.Func<TItem, string!>?
+Bzs.Blazor.BzsDataGrid<TItem>.RowAccessibleName.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SelectedItem.get -> TItem?
+Bzs.Blazor.BzsDataGrid<TItem>.SelectedItem.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemChanged.get -> Microsoft.AspNetCore.Components.EventCallback<TItem?>
+Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemChanged.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SelectedItems.get -> System.Collections.Generic.IReadOnlyList<TItem>!
+Bzs.Blazor.BzsDataGrid<TItem>.SelectedItems.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemsChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<TItem>!>
+Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemsChanged.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SelectionColumnText.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.SelectionColumnText.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SelectionMode.get -> Bzs.Blazor.BzsDataGridSelectionMode
+Bzs.Blazor.BzsDataGrid<TItem>.SelectionMode.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.Sort.get -> Bzs.Blazor.BzsDataGridSort?
+Bzs.Blazor.BzsDataGrid<TItem>.Sort.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SortChanged.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsDataGridSort?>
+Bzs.Blazor.BzsDataGrid<TItem>.SortChanged.set -> void
+Bzs.Blazor.BzsDataGridBooleanFilter
+Bzs.Blazor.BzsDataGridBooleanFilter.BzsDataGridBooleanFilter(string! columnKey, bool value) -> void
+Bzs.Blazor.BzsDataGridBooleanFilter.Value.get -> bool
+Bzs.Blazor.BzsDataGridColumn<TItem>
+Bzs.Blazor.BzsDataGridColumn<TItem>.AccessibleName.get -> string?
+Bzs.Blazor.BzsDataGridColumn<TItem>.AccessibleName.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.BzsDataGridColumn() -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.CellTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment<TItem>?
+Bzs.Blazor.BzsDataGridColumn<TItem>.CellTemplate.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Dispose() -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.FilterKind.get -> Bzs.Blazor.BzsDataGridFilterKind
+Bzs.Blazor.BzsDataGridColumn<TItem>.FilterKind.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Format.get -> string?
+Bzs.Blazor.BzsDataGridColumn<TItem>.Format.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.HeaderTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsDataGridColumn<TItem>.HeaderTemplate.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Key.get -> string?
+Bzs.Blazor.BzsDataGridColumn<TItem>.Key.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Sortable.get -> bool
+Bzs.Blazor.BzsDataGridColumn<TItem>.Sortable.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.SortComparison.get -> System.Comparison<TItem>?
+Bzs.Blazor.BzsDataGridColumn<TItem>.SortComparison.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Title.get -> string?
+Bzs.Blazor.BzsDataGridColumn<TItem>.Title.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.ValueSelector.get -> System.Func<TItem, object?>?
+Bzs.Blazor.BzsDataGridColumn<TItem>.ValueSelector.set -> void
+Bzs.Blazor.BzsDataGridComparisonOperator
+Bzs.Blazor.BzsDataGridComparisonOperator.Equals = 0 -> Bzs.Blazor.BzsDataGridComparisonOperator
+Bzs.Blazor.BzsDataGridComparisonOperator.GreaterThan = 4 -> Bzs.Blazor.BzsDataGridComparisonOperator
+Bzs.Blazor.BzsDataGridComparisonOperator.GreaterThanOrEqual = 5 -> Bzs.Blazor.BzsDataGridComparisonOperator
+Bzs.Blazor.BzsDataGridComparisonOperator.LessThan = 2 -> Bzs.Blazor.BzsDataGridComparisonOperator
+Bzs.Blazor.BzsDataGridComparisonOperator.LessThanOrEqual = 3 -> Bzs.Blazor.BzsDataGridComparisonOperator
+Bzs.Blazor.BzsDataGridComparisonOperator.NotEquals = 1 -> Bzs.Blazor.BzsDataGridComparisonOperator
+Bzs.Blazor.BzsDataGridDateFilter
+Bzs.Blazor.BzsDataGridDateFilter.BzsDataGridDateFilter(string! columnKey, System.DateOnly value, Bzs.Blazor.BzsDataGridComparisonOperator operator = Bzs.Blazor.BzsDataGridComparisonOperator.Equals) -> void
+Bzs.Blazor.BzsDataGridDateFilter.Operator.get -> Bzs.Blazor.BzsDataGridComparisonOperator
+Bzs.Blazor.BzsDataGridDateFilter.Value.get -> System.DateOnly
+Bzs.Blazor.BzsDataGridFilter
+Bzs.Blazor.BzsDataGridFilter.ColumnKey.get -> string!
+Bzs.Blazor.BzsDataGridFilterKind
+Bzs.Blazor.BzsDataGridFilterKind.Boolean = 4 -> Bzs.Blazor.BzsDataGridFilterKind
+Bzs.Blazor.BzsDataGridFilterKind.Date = 3 -> Bzs.Blazor.BzsDataGridFilterKind
+Bzs.Blazor.BzsDataGridFilterKind.None = 0 -> Bzs.Blazor.BzsDataGridFilterKind
+Bzs.Blazor.BzsDataGridFilterKind.Number = 2 -> Bzs.Blazor.BzsDataGridFilterKind
+Bzs.Blazor.BzsDataGridFilterKind.Text = 1 -> Bzs.Blazor.BzsDataGridFilterKind
+Bzs.Blazor.BzsDataGridNumberFilter
+Bzs.Blazor.BzsDataGridNumberFilter.BzsDataGridNumberFilter(string! columnKey, decimal value, Bzs.Blazor.BzsDataGridComparisonOperator operator = Bzs.Blazor.BzsDataGridComparisonOperator.Equals) -> void
+Bzs.Blazor.BzsDataGridNumberFilter.Operator.get -> Bzs.Blazor.BzsDataGridComparisonOperator
+Bzs.Blazor.BzsDataGridNumberFilter.Value.get -> decimal
+Bzs.Blazor.BzsDataGridRequest
+Bzs.Blazor.BzsDataGridRequest.BzsDataGridRequest(int page, int pageSize, Bzs.Blazor.BzsDataGridSort? sort = null, System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridFilter!>? filters = null) -> void
+Bzs.Blazor.BzsDataGridRequest.Filters.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridFilter!>!
+Bzs.Blazor.BzsDataGridRequest.Page.get -> int
+Bzs.Blazor.BzsDataGridRequest.PageSize.get -> int
+Bzs.Blazor.BzsDataGridRequest.Sort.get -> Bzs.Blazor.BzsDataGridSort?
+Bzs.Blazor.BzsDataGridResult<TItem>
+Bzs.Blazor.BzsDataGridResult<TItem>.BzsDataGridResult(System.Collections.Generic.IReadOnlyList<TItem>! items, bool hasNextPage) -> void
+Bzs.Blazor.BzsDataGridResult<TItem>.BzsDataGridResult(System.Collections.Generic.IReadOnlyList<TItem>! items, int totalCount) -> void
+Bzs.Blazor.BzsDataGridResult<TItem>.HasNextPage.get -> bool?
+Bzs.Blazor.BzsDataGridResult<TItem>.Items.get -> System.Collections.Generic.IReadOnlyList<TItem>!
+Bzs.Blazor.BzsDataGridResult<TItem>.TotalCount.get -> int?
+Bzs.Blazor.BzsDataGridSelectionMode
+Bzs.Blazor.BzsDataGridSelectionMode.Multiple = 2 -> Bzs.Blazor.BzsDataGridSelectionMode
+Bzs.Blazor.BzsDataGridSelectionMode.None = 0 -> Bzs.Blazor.BzsDataGridSelectionMode
+Bzs.Blazor.BzsDataGridSelectionMode.Single = 1 -> Bzs.Blazor.BzsDataGridSelectionMode
+Bzs.Blazor.BzsDataGridSort
+Bzs.Blazor.BzsDataGridSort.<Clone>$() -> Bzs.Blazor.BzsDataGridSort!
+Bzs.Blazor.BzsDataGridSort.BzsDataGridSort(string! columnKey, Bzs.Blazor.BzsDataGridSortDirection direction) -> void
+Bzs.Blazor.BzsDataGridSort.ColumnKey.get -> string!
+Bzs.Blazor.BzsDataGridSort.Direction.get -> Bzs.Blazor.BzsDataGridSortDirection
+Bzs.Blazor.BzsDataGridSort.Equals(Bzs.Blazor.BzsDataGridSort? other) -> bool
+Bzs.Blazor.BzsDataGridSortDirection
+Bzs.Blazor.BzsDataGridSortDirection.Ascending = 0 -> Bzs.Blazor.BzsDataGridSortDirection
+Bzs.Blazor.BzsDataGridSortDirection.Descending = 1 -> Bzs.Blazor.BzsDataGridSortDirection
+Bzs.Blazor.BzsDataGridTextFilter
+Bzs.Blazor.BzsDataGridTextFilter.BzsDataGridTextFilter(string! columnKey, string! value, Bzs.Blazor.BzsDataGridTextOperator operator = Bzs.Blazor.BzsDataGridTextOperator.Contains, bool caseSensitive = false) -> void
+Bzs.Blazor.BzsDataGridTextFilter.CaseSensitive.get -> bool
+Bzs.Blazor.BzsDataGridTextFilter.Operator.get -> Bzs.Blazor.BzsDataGridTextOperator
+Bzs.Blazor.BzsDataGridTextFilter.Value.get -> string!
+Bzs.Blazor.BzsDataGridTextOperator
+Bzs.Blazor.BzsDataGridTextOperator.Contains = 0 -> Bzs.Blazor.BzsDataGridTextOperator
+Bzs.Blazor.BzsDataGridTextOperator.EndsWith = 2 -> Bzs.Blazor.BzsDataGridTextOperator
+Bzs.Blazor.BzsDataGridTextOperator.Equals = 3 -> Bzs.Blazor.BzsDataGridTextOperator
+Bzs.Blazor.BzsDataGridTextOperator.StartsWith = 1 -> Bzs.Blazor.BzsDataGridTextOperator
+Bzs.Blazor.BzsFileUpload
+Bzs.Blazor.BzsFileUpload.Accept.get -> string?
+Bzs.Blazor.BzsFileUpload.Accept.set -> void
+Bzs.Blazor.BzsFileUpload.BzsFileUpload() -> void
+Bzs.Blazor.BzsFileUpload.Cleared.get -> Microsoft.AspNetCore.Components.EventCallback
+Bzs.Blazor.BzsFileUpload.Cleared.set -> void
+Bzs.Blazor.BzsFileUpload.ClearText.get -> string?
+Bzs.Blazor.BzsFileUpload.ClearText.set -> void
+Bzs.Blazor.BzsFileUpload.EmptyTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsFileUpload.EmptyTemplate.set -> void
+Bzs.Blazor.BzsFileUpload.EmptyText.get -> string?
+Bzs.Blazor.BzsFileUpload.EmptyText.set -> void
+Bzs.Blazor.BzsFileUpload.FileRemoved.get -> Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Forms.IBrowserFile!>
+Bzs.Blazor.BzsFileUpload.FileRemoved.set -> void
+Bzs.Blazor.BzsFileUpload.FilesLabel.get -> string?
+Bzs.Blazor.BzsFileUpload.FilesLabel.set -> void
+Bzs.Blazor.BzsFileUpload.FileTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment<Microsoft.AspNetCore.Components.Forms.IBrowserFile!>?
+Bzs.Blazor.BzsFileUpload.FileTemplate.set -> void
+Bzs.Blazor.BzsFileUpload.MaximumFileCount.get -> int?
+Bzs.Blazor.BzsFileUpload.MaximumFileCount.set -> void
+Bzs.Blazor.BzsFileUpload.MaximumFileCountValidationMessage.get -> string?
+Bzs.Blazor.BzsFileUpload.MaximumFileCountValidationMessage.set -> void
+Bzs.Blazor.BzsFileUpload.MaximumFileSize.get -> long?
+Bzs.Blazor.BzsFileUpload.MaximumFileSize.set -> void
+Bzs.Blazor.BzsFileUpload.MaximumFileSizeValidationMessage.get -> string?
+Bzs.Blazor.BzsFileUpload.MaximumFileSizeValidationMessage.set -> void
+Bzs.Blazor.BzsFileUpload.MaximumTotalSize.get -> long?
+Bzs.Blazor.BzsFileUpload.MaximumTotalSize.set -> void
+Bzs.Blazor.BzsFileUpload.MaximumTotalSizeValidationMessage.get -> string?
+Bzs.Blazor.BzsFileUpload.MaximumTotalSizeValidationMessage.set -> void
+Bzs.Blazor.BzsFileUpload.Multiple.get -> bool
+Bzs.Blazor.BzsFileUpload.Multiple.set -> void
+Bzs.Blazor.BzsFileUpload.Progress.get -> System.Collections.Generic.IReadOnlyDictionary<Microsoft.AspNetCore.Components.Forms.IBrowserFile!, double?>?
+Bzs.Blazor.BzsFileUpload.Progress.set -> void
+Bzs.Blazor.BzsFileUpload.ProgressLabel.get -> string?
+Bzs.Blazor.BzsFileUpload.ProgressLabel.set -> void
+Bzs.Blazor.BzsFileUpload.RemoveText.get -> string?
+Bzs.Blazor.BzsFileUpload.RemoveText.set -> void
+Bzs.Blazor.BzsFileUpload.RequiredValidationMessage.get -> string?
+Bzs.Blazor.BzsFileUpload.RequiredValidationMessage.set -> void
+Bzs.Blazor.BzsFileUpload.SelectionChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Components.Forms.IBrowserFile!>!>
+Bzs.Blazor.BzsFileUpload.SelectionChanged.set -> void
+Bzs.Blazor.BzsMenu
+Bzs.Blazor.BzsMenu.AccessibleName.get -> string?
+Bzs.Blazor.BzsMenu.AccessibleName.set -> void
+Bzs.Blazor.BzsMenu.BzsMenu() -> void
+Bzs.Blazor.BzsMenu.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsMenu.ChildContent.set -> void
+Bzs.Blazor.BzsMenu.CloseFromBrowserAsync(bool restoreFocus = false) -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsMenu.Disabled.get -> bool
+Bzs.Blazor.BzsMenu.Disabled.set -> void
+Bzs.Blazor.BzsMenu.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsMenu.Open.get -> bool
+Bzs.Blazor.BzsMenu.Open.set -> void
+Bzs.Blazor.BzsMenu.OpenChanged.get -> Microsoft.AspNetCore.Components.EventCallback<bool>
+Bzs.Blazor.BzsMenu.OpenChanged.set -> void
+Bzs.Blazor.BzsMenu.Placement.get -> Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsMenu.Placement.set -> void
+Bzs.Blazor.BzsMenu.TriggerAccessibleName.get -> string?
+Bzs.Blazor.BzsMenu.TriggerAccessibleName.set -> void
+Bzs.Blazor.BzsMenu.TriggerContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsMenu.TriggerContent.set -> void
+Bzs.Blazor.BzsMenuItem
+Bzs.Blazor.BzsMenuItem.Activated.get -> Microsoft.AspNetCore.Components.EventCallback
+Bzs.Blazor.BzsMenuItem.Activated.set -> void
+Bzs.Blazor.BzsMenuItem.BzsMenuItem() -> void
+Bzs.Blazor.BzsMenuItem.Checkable.get -> bool
+Bzs.Blazor.BzsMenuItem.Checkable.set -> void
+Bzs.Blazor.BzsMenuItem.Checked.get -> bool
+Bzs.Blazor.BzsMenuItem.Checked.set -> void
+Bzs.Blazor.BzsMenuItem.CheckedChanged.get -> Microsoft.AspNetCore.Components.EventCallback<bool>
+Bzs.Blazor.BzsMenuItem.CheckedChanged.set -> void
+Bzs.Blazor.BzsMenuItem.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsMenuItem.ChildContent.set -> void
+Bzs.Blazor.BzsMenuItem.Disabled.get -> bool
+Bzs.Blazor.BzsMenuItem.Disabled.set -> void
+Bzs.Blazor.BzsMenuItem.Dispose() -> void
+Bzs.Blazor.BzsMenuItem.Icon.get -> Bzs.Blazor.BzsIconData?
+Bzs.Blazor.BzsMenuItem.Icon.set -> void
+Bzs.Blazor.BzsMenuItem.Separator.get -> bool
+Bzs.Blazor.BzsMenuItem.Separator.set -> void
+Bzs.Blazor.BzsMenuItem.ShortcutContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsMenuItem.ShortcutContent.set -> void
+Bzs.Blazor.BzsMenuItem.Text.get -> string?
+Bzs.Blazor.BzsMenuItem.Text.set -> void
+Bzs.Blazor.BzsNavItem
+Bzs.Blazor.BzsNavItem.AccessibleName.get -> string?
+Bzs.Blazor.BzsNavItem.AccessibleName.set -> void
+Bzs.Blazor.BzsNavItem.Active.get -> bool?
+Bzs.Blazor.BzsNavItem.Active.set -> void
+Bzs.Blazor.BzsNavItem.BzsNavItem() -> void
+Bzs.Blazor.BzsNavItem.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsNavItem.ChildContent.set -> void
+Bzs.Blazor.BzsNavItem.Disabled.get -> bool
+Bzs.Blazor.BzsNavItem.Disabled.set -> void
+Bzs.Blazor.BzsNavItem.Href.get -> string?
+Bzs.Blazor.BzsNavItem.Href.set -> void
+Bzs.Blazor.BzsNavItem.Icon.get -> Bzs.Blazor.BzsIconData?
+Bzs.Blazor.BzsNavItem.Icon.set -> void
+Bzs.Blazor.BzsNavItem.Label.get -> string?
+Bzs.Blazor.BzsNavItem.Label.set -> void
+Bzs.Blazor.BzsNavItem.LabelContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsNavItem.LabelContent.set -> void
+Bzs.Blazor.BzsNavItem.LinkAttributes.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object!>?
+Bzs.Blazor.BzsNavItem.LinkAttributes.set -> void
+Bzs.Blazor.BzsNavItem.Match.get -> Microsoft.AspNetCore.Components.Routing.NavLinkMatch
+Bzs.Blazor.BzsNavItem.Match.set -> void
+Bzs.Blazor.BzsNavItem.Open.get -> bool
+Bzs.Blazor.BzsNavItem.Open.set -> void
+Bzs.Blazor.BzsNavItem.OpenChanged.get -> Microsoft.AspNetCore.Components.EventCallback<bool>
+Bzs.Blazor.BzsNavItem.OpenChanged.set -> void
+Bzs.Blazor.BzsNavMenu
+Bzs.Blazor.BzsNavMenu.AccessibleName.get -> string?
+Bzs.Blazor.BzsNavMenu.AccessibleName.set -> void
+Bzs.Blazor.BzsNavMenu.BzsNavMenu() -> void
+Bzs.Blazor.BzsNavMenu.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsNavMenu.ChildContent.set -> void
+Bzs.Blazor.BzsPagination
+Bzs.Blazor.BzsPagination.AccessibleName.get -> string?
+Bzs.Blazor.BzsPagination.AccessibleName.set -> void
+Bzs.Blazor.BzsPagination.BoundaryCount.get -> int
+Bzs.Blazor.BzsPagination.BoundaryCount.set -> void
+Bzs.Blazor.BzsPagination.BzsPagination() -> void
+Bzs.Blazor.BzsPagination.Compact.get -> bool
+Bzs.Blazor.BzsPagination.Compact.set -> void
+Bzs.Blazor.BzsPagination.Disabled.get -> bool
+Bzs.Blazor.BzsPagination.Disabled.set -> void
+Bzs.Blazor.BzsPagination.FirstPageLabel.get -> string?
+Bzs.Blazor.BzsPagination.FirstPageLabel.set -> void
+Bzs.Blazor.BzsPagination.LastPageLabel.get -> string?
+Bzs.Blazor.BzsPagination.LastPageLabel.set -> void
+Bzs.Blazor.BzsPagination.NextPageLabel.get -> string?
+Bzs.Blazor.BzsPagination.NextPageLabel.set -> void
+Bzs.Blazor.BzsPagination.Page.get -> int
+Bzs.Blazor.BzsPagination.Page.set -> void
+Bzs.Blazor.BzsPagination.PageChanged.get -> Microsoft.AspNetCore.Components.EventCallback<int>
+Bzs.Blazor.BzsPagination.PageChanged.set -> void
+Bzs.Blazor.BzsPagination.PageCount.get -> int
+Bzs.Blazor.BzsPagination.PageCount.set -> void
+Bzs.Blazor.BzsPagination.PreviousPageLabel.get -> string?
+Bzs.Blazor.BzsPagination.PreviousPageLabel.set -> void
+Bzs.Blazor.BzsPagination.SiblingCount.get -> int
+Bzs.Blazor.BzsPagination.SiblingCount.set -> void
+Bzs.Blazor.BzsPopover
+Bzs.Blazor.BzsPopover.BzsPopover() -> void
+Bzs.Blazor.BzsPopover.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsPopover.ChildContent.set -> void
+Bzs.Blazor.BzsPopover.CloseFromBrowserAsync(bool restoreFocus = false) -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsPopover.CloseOnEscape.get -> bool
+Bzs.Blazor.BzsPopover.CloseOnEscape.set -> void
+Bzs.Blazor.BzsPopover.CloseOnOutsideInteraction.get -> bool
+Bzs.Blazor.BzsPopover.CloseOnOutsideInteraction.set -> void
+Bzs.Blazor.BzsPopover.ContentAccessibleName.get -> string?
+Bzs.Blazor.BzsPopover.ContentAccessibleName.set -> void
+Bzs.Blazor.BzsPopover.ContentRole.get -> string?
+Bzs.Blazor.BzsPopover.ContentRole.set -> void
+Bzs.Blazor.BzsPopover.Disabled.get -> bool
+Bzs.Blazor.BzsPopover.Disabled.set -> void
+Bzs.Blazor.BzsPopover.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsPopover.Open.get -> bool
+Bzs.Blazor.BzsPopover.Open.set -> void
+Bzs.Blazor.BzsPopover.OpenChanged.get -> Microsoft.AspNetCore.Components.EventCallback<bool>
+Bzs.Blazor.BzsPopover.OpenChanged.set -> void
+Bzs.Blazor.BzsPopover.Placement.get -> Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsPopover.Placement.set -> void
+Bzs.Blazor.BzsPopover.RestoreFocusOnEscape.get -> bool
+Bzs.Blazor.BzsPopover.RestoreFocusOnEscape.set -> void
+Bzs.Blazor.BzsPopover.TriggerAccessibleName.get -> string?
+Bzs.Blazor.BzsPopover.TriggerAccessibleName.set -> void
+Bzs.Blazor.BzsPopover.TriggerContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsPopover.TriggerContent.set -> void
+Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsPopoverPlacement.Bottom = 1 -> Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsPopoverPlacement.BottomEnd = 2 -> Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsPopoverPlacement.BottomStart = 0 -> Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsPopoverPlacement.End = 7 -> Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsPopoverPlacement.Start = 6 -> Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsPopoverPlacement.Top = 4 -> Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsPopoverPlacement.TopEnd = 5 -> Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsPopoverPlacement.TopStart = 3 -> Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsSkeleton
+Bzs.Blazor.BzsSkeleton.Animated.get -> bool
+Bzs.Blazor.BzsSkeleton.Animated.set -> void
+Bzs.Blazor.BzsSkeleton.BzsSkeleton() -> void
+Bzs.Blazor.BzsSkeleton.Shape.get -> Bzs.Blazor.BzsSkeletonShape
+Bzs.Blazor.BzsSkeleton.Shape.set -> void
+Bzs.Blazor.BzsSkeleton.Size.get -> Bzs.Blazor.BzsSkeletonSize
+Bzs.Blazor.BzsSkeleton.Size.set -> void
+Bzs.Blazor.BzsSkeletonShape
+Bzs.Blazor.BzsSkeletonShape.Circle = 2 -> Bzs.Blazor.BzsSkeletonShape
+Bzs.Blazor.BzsSkeletonShape.Rectangle = 1 -> Bzs.Blazor.BzsSkeletonShape
+Bzs.Blazor.BzsSkeletonShape.Text = 0 -> Bzs.Blazor.BzsSkeletonShape
+Bzs.Blazor.BzsSkeletonSize
+Bzs.Blazor.BzsSkeletonSize.Large = 2 -> Bzs.Blazor.BzsSkeletonSize
+Bzs.Blazor.BzsSkeletonSize.Medium = 1 -> Bzs.Blazor.BzsSkeletonSize
+Bzs.Blazor.BzsSkeletonSize.Small = 0 -> Bzs.Blazor.BzsSkeletonSize
+Bzs.Blazor.BzsTooltip
+Bzs.Blazor.BzsTooltip.BzsTooltip() -> void
+Bzs.Blazor.BzsTooltip.CloseFromBrowserAsync(bool restoreFocus = false) -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsTooltip.Disabled.get -> bool
+Bzs.Blazor.BzsTooltip.Disabled.set -> void
+Bzs.Blazor.BzsTooltip.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsTooltip.HideDelay.get -> System.TimeSpan
+Bzs.Blazor.BzsTooltip.HideDelay.set -> void
+Bzs.Blazor.BzsTooltip.Placement.get -> Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsTooltip.Placement.set -> void
+Bzs.Blazor.BzsTooltip.ShowDelay.get -> System.TimeSpan
+Bzs.Blazor.BzsTooltip.ShowDelay.set -> void
+Bzs.Blazor.BzsTooltip.Text.get -> string?
+Bzs.Blazor.BzsTooltip.Text.set -> void
+Bzs.Blazor.BzsTooltip.TooltipContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsTooltip.TooltipContent.set -> void
+Bzs.Blazor.BzsTooltip.TriggerAccessibleName.get -> string?
+Bzs.Blazor.BzsTooltip.TriggerAccessibleName.set -> void
+Bzs.Blazor.BzsTooltip.TriggerContent.get -> Microsoft.AspNetCore.Components.RenderFragment<Bzs.Blazor.BzsTooltipTriggerContext!>?
+Bzs.Blazor.BzsTooltip.TriggerContent.set -> void
+Bzs.Blazor.BzsTooltipTriggerContext
+Bzs.Blazor.BzsTooltipTriggerContext.Attributes.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object!>!
+Bzs.Blazor.IBzsAutocompleteProvider<TValue>
+Bzs.Blazor.IBzsAutocompleteProvider<TValue>.GetSuggestionsAsync(string! query, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsAutocompleteOption<TValue>!>!>
+Bzs.Blazor.IBzsDataGridProvider<TItem>
+Bzs.Blazor.IBzsDataGridProvider<TItem>.GetItemsAsync(Bzs.Blazor.BzsDataGridRequest! request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Bzs.Blazor.BzsDataGridResult<TItem>!>
+override Bzs.Blazor.BzsAutocompleteOption<TValue>.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsAutocompleteOption<TValue>.GetHashCode() -> int
+override Bzs.Blazor.BzsAutocompleteOption<TValue>.ToString() -> string!
+override Bzs.Blazor.BzsBreadcrumbItem.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsBreadcrumbItem.GetHashCode() -> int
+override Bzs.Blazor.BzsBreadcrumbItem.ToString() -> string!
+override Bzs.Blazor.BzsDataGridSort.Equals(object? obj) -> bool
+override Bzs.Blazor.BzsDataGridSort.GetHashCode() -> int
+override Bzs.Blazor.BzsDataGridSort.ToString() -> string!
+static Bzs.Blazor.BzsAutocompleteOption<TValue>.operator !=(Bzs.Blazor.BzsAutocompleteOption<TValue>? left, Bzs.Blazor.BzsAutocompleteOption<TValue>? right) -> bool
+static Bzs.Blazor.BzsAutocompleteOption<TValue>.operator ==(Bzs.Blazor.BzsAutocompleteOption<TValue>? left, Bzs.Blazor.BzsAutocompleteOption<TValue>? right) -> bool
+static Bzs.Blazor.BzsBreadcrumbItem.operator !=(Bzs.Blazor.BzsBreadcrumbItem? left, Bzs.Blazor.BzsBreadcrumbItem? right) -> bool
+static Bzs.Blazor.BzsBreadcrumbItem.operator ==(Bzs.Blazor.BzsBreadcrumbItem? left, Bzs.Blazor.BzsBreadcrumbItem? right) -> bool
+static Bzs.Blazor.BzsDataGridSort.operator !=(Bzs.Blazor.BzsDataGridSort? left, Bzs.Blazor.BzsDataGridSort? right) -> bool
+static Bzs.Blazor.BzsDataGridSort.operator ==(Bzs.Blazor.BzsDataGridSort? left, Bzs.Blazor.BzsDataGridSort? right) -> bool

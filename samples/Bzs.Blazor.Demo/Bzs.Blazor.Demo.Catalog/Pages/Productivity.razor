@@ -1,0 +1,289 @@
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Forms
+@using Bzs.Blazor
+@inject NavigationManager Navigation
+
+<PageTitle>Productivity components - Bzs.Blazor</PageTitle>
+
+<section class="demo-page"
+         aria-labelledby="productivity-title"
+         data-testid="productivity-workbench"
+         data-bzs-renderer="@RendererInfo.Name.ToLowerInvariant()"
+         data-bzs-interactive="@(RendererInfo.IsInteractive ? "true" : "false")">
+    <header class="demo-page-header">
+        <p class="demo-eyebrow">Productivity components</p>
+        <h1 id="productivity-title">Operational workbench</h1>
+        <p class="demo-page-summary">
+            The new navigation, overlay, status, asynchronous input, upload, and typed DataGrid contracts in one usable workflow.
+        </p>
+    </header>
+
+    <BzsBreadcrumbs Items="@BreadcrumbItems" AccessibleName="Productivity breadcrumb" />
+
+    <section class="demo-panel" aria-labelledby="navigation-specimen-title">
+        <header class="demo-form-section-header">
+            <h2 id="navigation-specimen-title">Navigation and status</h2>
+            <p>Links, disclosure groups, counts, identities, loading placeholders, and controlled chips.</p>
+        </header>
+        <div class="demo-control-row">
+            <BzsNavMenu AccessibleName="Workbench navigation">
+                <BzsNavItem Label="Overview" Href="@RouteUrl("./")" Match="NavLinkMatch.All" Icon="@BzsIcons.Package" />
+                <BzsNavItem Label="Productivity" Href="@RouteUrl("productivity")" Active="true" Icon="@BzsIcons.Package" />
+                <BzsNavItem Label="Review queue"
+                            Open="@_reviewQueueOpen"
+                            OpenChanged="value => _reviewQueueOpen = value"
+                            Icon="@BzsIcons.Menu">
+                    <ChildContent>
+                        <BzsNavItem Label="Assigned" Href="@RouteUrl("productivity?view=assigned")" />
+                        <BzsNavItem Label="Waiting" Href="@RouteUrl("productivity?view=waiting")" />
+                    </ChildContent>
+                </BzsNavItem>
+            </BzsNavMenu>
+        </div>
+        <div class="demo-control-row" aria-label="Status primitives">
+            <BzsAvatar Initials="AS" AccessibleName="Alicia Santos" Size="BzsAvatarSize.Medium" />
+            <BzsBadge Severity="BzsMessageSeverity.Success" Count="7" AccessibleName="Seven open reviews" />
+            @if (_chipVisible)
+            {
+                <BzsChip Selectable="true"
+                         Selected="@_chipSelected"
+                         SelectedChanged="value => _chipSelected = value"
+                         Removable="true"
+                         RemoveAccessibleName="Remove review filter"
+                         RemoveRequested="RemoveChip">
+                    Needs review
+                </BzsChip>
+            }
+            <BzsSkeleton Class="demo-status-skeleton" Shape="BzsSkeletonShape.Text" Size="BzsSkeletonSize.Small" />
+        </div>
+        <BzsPagination Page="@_page" PageCount="6" PageChanged="value => _page = value" AccessibleName="Review pages" />
+    </section>
+
+    <section class="demo-panel" aria-labelledby="overlay-specimen-title">
+        <header class="demo-form-section-header">
+            <h2 id="overlay-specimen-title">Anchored commands</h2>
+            <p>Popover, Tooltip, menu, and context-menu all retain passive markup before interactivity.</p>
+        </header>
+        <div class="demo-control-row">
+            <BzsTooltip Text="Shows the keyboard and pointer contract"
+                        ShowDelay="@TimeSpan.Zero"
+                        HideDelay="@TimeSpan.Zero">
+                <TriggerContent Context="trigger">
+                    <button type="button"
+                            class="demo-inline-command"
+                            data-testid="productivity-tooltip-trigger"
+                            @attributes="trigger.Attributes">Focus me</button>
+                </TriggerContent>
+            </BzsTooltip>
+            <BzsPopover Open="@_popoverOpen"
+                        OpenChanged="value => _popoverOpen = value"
+                        TriggerAccessibleName="Open review details"
+                        ContentRole="dialog"
+                        ContentAccessibleName="Review details"
+                        data-testid="productivity-popover">
+                <TriggerContent><span>Review details</span></TriggerContent>
+                <ChildContent><p>Two reviewers are waiting for a response.</p></ChildContent>
+            </BzsPopover>
+            <BzsMenu Open="@_menuOpen"
+                     OpenChanged="value => _menuOpen = value"
+                     TriggerAccessibleName="Open review actions"
+                     AccessibleName="Review actions"
+                     data-testid="productivity-menu">
+                <TriggerContent><span>Actions</span></TriggerContent>
+                <ChildContent>
+                    <BzsMenuItem Text="Mark ready" Activated="MarkReady" />
+                    <BzsMenuItem Text="Assign reviewer" Activated="AssignReviewer" />
+                    <BzsMenuItem Separator="true" />
+                    <BzsMenuItem Text="Archive" Disabled="true" />
+                </ChildContent>
+            </BzsMenu>
+            <BzsContextMenu Open="@_contextMenuOpen"
+                            OpenChanged="value => _contextMenuOpen = value"
+                            TargetAccessibleName="Review row actions"
+                            AccessibleName="Review row actions">
+                <TargetContent><div class="demo-context-target">Right-click this review</div></TargetContent>
+                <ChildContent>
+                    <BzsMenuItem Text="Open review" Activated="OpenReview" />
+                    <BzsMenuItem Text="Copy link" Activated="CopyReviewLink" />
+                </ChildContent>
+            </BzsContextMenu>
+        </div>
+        <p class="demo-runtime-status" role="status">@_commandStatus</p>
+    </section>
+
+    <EditForm Model="@_form" FormName="productivity-workbench" class="demo-panel">
+        <DataAnnotationsValidator />
+        <header class="demo-form-section-header">
+            <h2 id="input-specimen-title">Asynchronous input and file selection</h2>
+            <p>Suggestions are provider-owned; selected browser files are validated and remain transport-owned by the consumer.</p>
+        </header>
+        <div class="demo-form-grid">
+            <BzsAutocomplete TValue="string"
+                             Id="review-owner"
+                             @bind-Value="_form.Owner"
+                             Provider="@_ownerProvider"
+                             Label="Review owner"
+                             Description="Type a name to load suggestions."
+                             MinimumQueryLength="1"
+                             DebounceDelay="@TimeSpan.FromMilliseconds(120)"
+                             data-testid="productivity-owner" />
+            <BzsFileUpload Id="review-attachments"
+                           @bind-Value="_form.Files"
+                           Label="Attachments"
+                           Description="Select up to three review files."
+                           Multiple="true"
+                           MaximumFileCount="3"
+                           Accept=".pdf,.png,.jpg"
+                           data-testid="productivity-upload" />
+        </div>
+    </EditForm>
+
+    <section class="demo-panel" aria-labelledby="grid-specimen-title">
+        <header class="demo-form-section-header">
+            <h2 id="grid-specimen-title">Typed provider DataGrid</h2>
+            <p>Page, sort, filter, loading, empty, error, retry, and row identity stay in the public contract.</p>
+        </header>
+        <BzsDataGrid TItem="ReviewRow"
+                     Provider="@_gridProvider"
+                     Page="@_gridPage"
+                     PageChanged="value => _gridPage = value"
+                     PageSize="@_gridPageSize"
+                     PageSizeChanged="value => _gridPageSize = value"
+                     PageSizeOptions="@_gridPageSizeOptions"
+                     Sort="@_gridSort"
+                     SortChanged="value => _gridSort = value"
+                     Filters="@_gridFilters"
+                     FiltersChanged="value => _gridFilters = value"
+                     ItemKey="row => row.Id"
+                     SelectionMode="BzsDataGridSelectionMode.Multiple"
+                     SelectedItems="@_selectedRows"
+                     SelectedItemsChanged="value => _selectedRows = value"
+                     Caption="Review queue"
+                     AccessibleName="Review queue data"
+                     data-testid="productivity-grid">
+            <BzsDataGridColumn TItem="ReviewRow"
+                               Key="title"
+                               Title="Review"
+                               ValueSelector="row => row.Title"
+                               Sortable="true"
+                               FilterKind="BzsDataGridFilterKind.Text" />
+            <BzsDataGridColumn TItem="ReviewRow"
+                               Key="owner"
+                               Title="Owner"
+                               ValueSelector="row => row.Owner"
+                               Sortable="true" />
+            <BzsDataGridColumn TItem="ReviewRow"
+                               Key="priority"
+                               Title="Priority"
+                               ValueSelector="row => row.Priority"
+                               Sortable="true" />
+        </BzsDataGrid>
+    </section>
+</section>
+
+@code {
+    private IReadOnlyList<BzsBreadcrumbItem> BreadcrumbItems =>
+    [
+        new("Home", RouteUrl("./")),
+        new("Productivity", current: true),
+    ];
+    private readonly OwnerProvider _ownerProvider = new();
+    private readonly DemoGridProvider _gridProvider = new();
+    private readonly WorkbenchForm _form = new();
+    private bool _chipSelected = true;
+    private bool _chipVisible = true;
+    private bool _reviewQueueOpen = true;
+    private bool _popoverOpen;
+    private bool _menuOpen;
+    private bool _contextMenuOpen;
+    private int _page = 1;
+    private string _commandStatus = "Ready for a review command.";
+    private int _gridPage = 1;
+    private int _gridPageSize = 5;
+    private static readonly IReadOnlyList<int> _gridPageSizeOptions = [5, 10, 25];
+    private BzsDataGridSort? _gridSort;
+    private IReadOnlyList<BzsDataGridFilter> _gridFilters = Array.Empty<BzsDataGridFilter>();
+    private IReadOnlyList<ReviewRow> _selectedRows = Array.Empty<ReviewRow>();
+
+    private Task RemoveChip(MouseEventArgs _)
+    {
+        _chipVisible = false;
+        return Task.CompletedTask;
+    }
+
+    private string RouteUrl(string route) => DemoCulture.PreserveCulture(
+        new Uri(Navigation.Uri),
+        new Uri(Navigation.BaseUri),
+        route);
+
+    private Task MarkReady() { _commandStatus = "Review marked ready."; return Task.CompletedTask; }
+    private Task AssignReviewer() { _commandStatus = "Reviewer assignment opened."; return Task.CompletedTask; }
+    private Task OpenReview() { _commandStatus = "Review opened."; return Task.CompletedTask; }
+    private Task CopyReviewLink() { _commandStatus = "Review link copied."; return Task.CompletedTask; }
+
+    private sealed class OwnerProvider : IBzsAutocompleteProvider<string>
+    {
+        private static readonly IReadOnlyList<BzsAutocompleteOption<string>> Options =
+        [
+            new("alicia", "Alicia Santos") { Description = "Workspace administrator", Icon = BzsIcons.Info },
+            new("ben", "Ben Carter") { Description = "Accessibility reviewer", Icon = BzsIcons.Info },
+            new("mei", "Mei Lin") { Description = "Release manager", Icon = BzsIcons.Info },
+        ];
+
+        public ValueTask<IReadOnlyList<BzsAutocompleteOption<string>>> GetSuggestionsAsync(
+            string query,
+            CancellationToken cancellationToken)
+        {
+            var matches = Options
+                .Where(option => option.Label.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            return ValueTask.FromResult<IReadOnlyList<BzsAutocompleteOption<string>>>(matches);
+        }
+    }
+
+    private sealed class DemoGridProvider : IBzsDataGridProvider<ReviewRow>
+    {
+        private static readonly IReadOnlyList<ReviewRow> Rows =
+        [
+            new(1, "North Harbor lighting", "Alicia Santos", "High"),
+            new(2, "Warehouse accessibility", "Ben Carter", "Medium"),
+            new(3, "Release notes review", "Mei Lin", "Low"),
+            new(4, "Tablet navigation", "Alicia Santos", "High"),
+            new(5, "Color contrast audit", "Ben Carter", "Medium"),
+            new(6, "Localization pass", "Mei Lin", "Low"),
+            new(7, "Keyboard regression", "Alicia Santos", "High"),
+            new(8, "Upload policy", "Ben Carter", "Medium"),
+        ];
+
+        public async ValueTask<BzsDataGridResult<ReviewRow>> GetItemsAsync(
+            BzsDataGridRequest request,
+            CancellationToken cancellationToken)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(75), cancellationToken);
+            IEnumerable<ReviewRow> query = Rows;
+            if (request.Filters.OfType<BzsDataGridTextFilter>().FirstOrDefault() is { } filter)
+            {
+                query = query.Where(row => row.Title.Contains(filter.Value, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (request.Sort is { } sort)
+            {
+                query = sort.Direction == BzsDataGridSortDirection.Ascending
+                    ? query.OrderBy(row => sort.ColumnKey == "owner" ? row.Owner : sort.ColumnKey == "priority" ? row.Priority : row.Title, StringComparer.Ordinal)
+                    : query.OrderByDescending(row => sort.ColumnKey == "owner" ? row.Owner : sort.ColumnKey == "priority" ? row.Priority : row.Title, StringComparer.Ordinal);
+            }
+
+            var total = query.Count();
+            var page = query.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToArray();
+            return new BzsDataGridResult<ReviewRow>(page, total);
+        }
+    }
+
+    private sealed class WorkbenchForm
+    {
+        public string Owner { get; set; } = string.Empty;
+        public IReadOnlyList<IBrowserFile> Files { get; set; } = Array.Empty<IBrowserFile>();
+    }
+
+    private sealed record ReviewRow(int Id, string Title, string Owner, string Priority);
+}

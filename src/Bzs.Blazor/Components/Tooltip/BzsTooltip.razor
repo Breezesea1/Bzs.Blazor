@@ -1,0 +1,31 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+@inject IJSRuntime JS
+@inject Microsoft.Extensions.Logging.ILoggerFactory LoggerFactory
+
+<span @ref="_rootElement"
+      @attributes="RootAttributes"
+      @onfocusin="HandleFocusInAsync"
+      @onfocusout="HandleFocusOutAsync">
+    @if (TriggerContent is not null)
+    {
+        @TriggerContent(TriggerContext)
+    }
+    @if (_open)
+    {
+        <span id="@_tooltipId"
+              class="bzs-tooltip__panel"
+              role="tooltip"
+              data-bzs-anchored-panel="true"
+              data-bzs-placement="@PlacementName">
+            @if (TooltipContent is not null)
+            {
+                @TooltipContent
+            }
+            else
+            {
+                @Text
+            }
+        </span>
+    }
+</span>

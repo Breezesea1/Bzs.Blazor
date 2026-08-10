@@ -1,0 +1,32 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+@inject IJSRuntime JS
+@inject Microsoft.Extensions.Logging.ILoggerFactory LoggerFactory
+
+<span @ref="_rootElement" @attributes="RootAttributes">
+    <span class="bzs-context-menu__target"
+          id="@_targetId"
+          data-bzs-anchor="true"
+          tabindex="@(Disabled ? -1 : 0)"
+          aria-haspopup="menu"
+          aria-controls="@_menuId"
+          aria-label="@EffectiveTargetAccessibleName"
+          @oncontextmenu="HandleContextMenuAsync"
+          @oncontextmenu:preventDefault="@(!Disabled)">
+        @TargetContent
+    </span>
+    @if (Open)
+    {
+        <ul id="@_menuId"
+            class="bzs-context-menu__panel"
+            role="menu"
+            aria-label="@EffectiveAccessibleName"
+            aria-labelledby="@MenuLabelledBy"
+            data-bzs-anchored-panel="true"
+            data-bzs-placement="bottom-start">
+            <CascadingValue Value="@((IBzsMenuOwner)this)" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
+        </ul>
+    }
+</span>

@@ -1,0 +1,100 @@
+@namespace Bzs.Blazor
+@typeparam TValue
+@inherits BzsInputBase<TValue>
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject Microsoft.Extensions.Logging.ILoggerFactory LoggerFactory
+
+<BzsField InputId="@InputId" Label="@Label" Description="@Description" Error="@FieldError" Required="@Required">
+    <div class="bzs-autocomplete" @ref="_rootElement">
+        <input type="hidden" name="@InputName" value="@FormValueText" />
+        <div class="bzs-autocomplete__input-wrap">
+            <input @attributes="InputAttributes"
+                   value="@_query"
+                   @oninput="OnInputAsync"
+                   @onkeydown="HandleKeyDownAsync"
+                   @onblur="OnBlurAsync" />
+            @if (!Disabled && !ReadOnly && _query.Length > 0)
+            {
+                <button type="button"
+                        class="bzs-autocomplete__clear"
+                        aria-label="@EffectiveClearText"
+                        title="@EffectiveClearText"
+                        tabindex="-1"
+                        @onpointerdown:preventDefault
+                        @onclick="ClearAsync">
+                    <BzsIcon Icon="BzsIcons.Close" Class="bzs-autocomplete__clear-icon" />
+                </button>
+            }
+        </div>
+
+        @if (_isOpen)
+        {
+            <div id="@ListboxId"
+                 class="bzs-autocomplete__panel"
+                 data-bzs-anchored-panel="true"
+                 role="listbox"
+                 aria-busy="@(_loading ? "true" : "false")">
+                @if (_loading)
+                {
+                    <div class="bzs-autocomplete__status" role="status">@EffectiveLoadingText</div>
+                }
+                else if (_providerError is not null)
+                {
+                    <div class="bzs-autocomplete__error" role="alert">
+                        <span>@EffectiveErrorText</span>
+                        <button type="button"
+                                class="bzs-autocomplete__retry"
+                                @onpointerdown:preventDefault
+                                @onclick="RetryAsync">
+                            @EffectiveRetryText
+                        </button>
+                    </div>
+                }
+                else if (_suggestions.Count == 0)
+                {
+                    <div class="bzs-autocomplete__status" role="status">@EffectiveEmptyText</div>
+                }
+                else
+                {
+                    @for (var index = 0; index < _suggestions.Count; index++)
+                    {
+                        var option = _suggestions[index];
+                        <button id="@GetOptionId(index)"
+                                @key="GetOptionId(index)"
+                                type="button"
+                                role="option"
+                                tabindex="-1"
+                                class="@GetOptionClass(index, option)"
+                                aria-selected="@(IsSelected(option) ? "true" : "false")"
+                                disabled="@option.Disabled"
+                                @onmouseenter="() => Activate(index)"
+                                @onpointerdown:preventDefault
+                                @onclick="() => SelectAsync(option)">
+                            @if (ResultTemplate is not null)
+                            {
+                                @ResultTemplate(option)
+                            }
+                            else
+                            {
+                                <span class="bzs-autocomplete__option-content">
+                                    <span class="bzs-autocomplete__option-heading">
+                                        @if (option.Icon is not null)
+                                        {
+                                            <BzsIcon Icon="option.Icon" Class="bzs-autocomplete__option-icon" />
+                                        }
+                                        <span class="bzs-autocomplete__option-label">@option.Label</span>
+                                    </span>
+                                    @if (option.Description is not null)
+                                    {
+                                        <span class="bzs-autocomplete__option-description">@option.Description</span>
+                                    }
+                                </span>
+                            }
+                        </button>
+                    }
+                }
+            </div>
+        }
+    </div>
+</BzsField>

@@ -43,8 +43,8 @@ $consumerPackagesDirectory = Join-Path $releaseRoot "consumer-packages"
 $publishDirectory = Join-Path $releaseRoot "publish"
 $aotDirectory = Join-Path $releaseRoot "aot-client"
 $summaryPath = Join-Path $releaseRoot "verification-summary.md"
-$packageSizeBudgetBytes = 196608
-$symbolPackageSizeBudgetBytes = 131072
+$packageSizeBudgetBytes = 270336
+$symbolPackageSizeBudgetBytes = 163840
 $aotFrameworkSizeBudgetBytes = 41943040
 $versionPattern = '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$'
 
@@ -338,8 +338,10 @@ function Assert-PackageContents {
         "lib/net10.0/zh-Hans/Bzs.Blazor.resources.dll",
         "staticwebassets/bzs.blazor.css",
         "staticwebassets/Components/Dialog/BzsDialog.razor.js",
+        "staticwebassets/Components/Form/BzsAutocomplete.razor.js",
         "staticwebassets/Components/Form/BzsDateInput.razor.js",
         "staticwebassets/Components/Form/BzsSelect.razor.js",
+        "staticwebassets/Components/Popover/BzsPopover.razor.js",
         "staticwebassets/Components/Tabs/BzsTabs.razor.js",
         "staticwebassets/Components/Theme/BzsThemeProvider.razor.js",
         "build/Bzs.Blazor.props",

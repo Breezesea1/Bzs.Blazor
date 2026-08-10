@@ -162,7 +162,7 @@ public static class BzsThemes
         Success: "#2f7d62",
         Warning: "#9a641f",
         Error: "#b42318",
-        Info: "#356b86",
+        Info: "#336881",
         DisabledSurface: "#c9ced6",
         DisabledText: "#89919c");
 

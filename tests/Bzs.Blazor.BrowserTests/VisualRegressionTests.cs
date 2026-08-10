@@ -64,6 +64,19 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         await AssertMatchesBaselineAsync("auto-dark-mobile.png");
     }
 
+    [Fact]
+    public async Task ProductivityLightDesktopMatchesBaseline()
+    {
+        BeginBrowserGateTest();
+        await Page.SetViewportSizeAsync(1440, 900);
+        await Page.EmulateMediaAsync(new() { ReducedMotion = ReducedMotion.Reduce });
+        await Page.GotoAsync($"{server.BaseUrl}/productivity");
+        await Expect(Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" })
+            .Locator("tbody tr")).ToHaveCountAsync(5);
+
+        await AssertMatchesBaselineAsync("productivity-light-desktop.png");
+    }
+
     private async Task AssertMatchesBaselineAsync(string fileName)
     {
         await Expect(Page.GetByRole(

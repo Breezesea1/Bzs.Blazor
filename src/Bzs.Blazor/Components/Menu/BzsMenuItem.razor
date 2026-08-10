@@ -1,0 +1,44 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+@if (Separator)
+{
+    <li @attributes="RootAttributes"></li>
+}
+else
+{
+    <li @attributes="RootAttributes">
+        <button @ref="_buttonElement"
+                @attributes="ButtonAttributes"
+                @onclick="ActivateAsync"
+                @onkeydown="HandleKeyDownAsync">
+            @if (Checkable)
+            {
+                <span class="bzs-menu-item__check" aria-hidden="true">
+                    @if (Checked)
+                    {
+                        <BzsIcon Icon="BzsIcons.Check" />
+                    }
+                </span>
+            }
+            @if (Icon is not null)
+            {
+                <BzsIcon Icon="Icon" Class="bzs-menu-item__icon" />
+            }
+            <span class="bzs-menu-item__content">
+                @if (ChildContent is not null)
+                {
+                    @ChildContent
+                }
+                else
+                {
+                    @EffectiveText
+                }
+            </span>
+            @if (ShortcutContent is not null)
+            {
+                <span class="bzs-menu-item__shortcut" aria-hidden="true">@ShortcutContent</span>
+            }
+        </button>
+    </li>
+}

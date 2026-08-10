@@ -1,0 +1,53 @@
+.bzs-context-menu {
+    position: relative;
+    display: inline-flex;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+}
+
+.bzs-context-menu__target {
+    display: inline-flex;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    border-radius: var(--bzs-radius-control);
+}
+
+.bzs-context-menu__target:focus-visible {
+    outline: 2px solid var(--bzs-focus-ring);
+    outline-offset: 2px;
+}
+
+.bzs-context-menu__panel {
+    position: absolute;
+    z-index: 1150;
+    inset-block-start: 100%;
+    inset-inline-start: 0;
+    display: grid;
+    box-sizing: border-box;
+    gap: 0.125rem;
+    min-inline-size: min(10rem, calc(100vw - 1rem));
+    max-inline-size: min(24rem, calc(100vw - 1rem));
+    max-block-size: min(24rem, calc(100vh - 1rem));
+    overflow: auto;
+    margin: 0;
+    padding: 0.25rem;
+    border: var(--bzs-border-width) solid var(--bzs-border);
+    border-radius: var(--bzs-radius-overlay);
+    background: var(--bzs-surface-overlay);
+    box-shadow: var(--bzs-shadow-overlay);
+    color: var(--bzs-text);
+    list-style: none;
+}
+
+@media (forced-colors: active) {
+    .bzs-context-menu__target:focus-visible {
+        outline-color: Highlight;
+    }
+
+    .bzs-context-menu__panel {
+        border-color: CanvasText;
+        background: Canvas;
+        box-shadow: none;
+        color: CanvasText;
+    }
+}

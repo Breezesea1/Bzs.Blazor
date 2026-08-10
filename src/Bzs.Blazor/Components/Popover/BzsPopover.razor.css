@@ -1,0 +1,71 @@
+.bzs-popover {
+    position: relative;
+    display: inline-flex;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+}
+
+.bzs-popover__trigger {
+    display: inline-flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 0;
+    min-block-size: var(--bzs-control-height);
+    border: var(--bzs-border-width) solid var(--bzs-border);
+    border-radius: var(--bzs-radius-control);
+    padding-inline: var(--bzs-control-padding-inline);
+    background: var(--bzs-surface-raised);
+    box-shadow: var(--bzs-shadow-raised);
+    color: var(--bzs-text);
+    font: inherit;
+    transition: background-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        color var(--bzs-motion-fast) var(--bzs-motion-easing);
+    cursor: pointer;
+}
+
+.bzs-popover__trigger:not(:disabled):hover {
+    background: color-mix(in srgb, var(--bzs-primary) 8%, var(--bzs-surface-raised));
+    color: var(--bzs-primary);
+}
+
+.bzs-popover__trigger:focus-visible {
+    outline: 2px solid var(--bzs-focus-ring);
+    outline-offset: 2px;
+    box-shadow: var(--bzs-shadow-focus);
+}
+
+.bzs-popover__trigger:disabled {
+    background: var(--bzs-disabled-surface);
+    box-shadow: none;
+    color: var(--bzs-disabled-text);
+    cursor: not-allowed;
+}
+
+.bzs-popover__panel {
+    position: absolute;
+    z-index: 1100;
+    inset-block-start: calc(100% + 0.25rem);
+    inset-inline-start: 0;
+    box-sizing: border-box;
+    min-inline-size: min(10rem, calc(100vw - 1rem));
+    max-inline-size: min(24rem, calc(100vw - 1rem));
+    max-block-size: min(24rem, calc(100vh - 1rem));
+    overflow: auto;
+    border: var(--bzs-border-width) solid var(--bzs-border);
+    border-radius: var(--bzs-radius-overlay);
+    padding: 0.5rem;
+    background: var(--bzs-surface-overlay);
+    box-shadow: var(--bzs-shadow-overlay);
+    color: var(--bzs-text);
+}
+
+@media (forced-colors: active) {
+    .bzs-popover__trigger,
+    .bzs-popover__panel {
+        border-color: CanvasText;
+        background: Canvas;
+        box-shadow: none;
+        color: CanvasText;
+    }
+}

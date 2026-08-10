@@ -1,0 +1,34 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+@inject IJSRuntime JS
+@inject Microsoft.Extensions.Logging.ILoggerFactory LoggerFactory
+
+<span @ref="_rootElement" @attributes="RootAttributes">
+    <button id="@_triggerId"
+            type="button"
+            class="bzs-menu__trigger"
+            data-bzs-anchor="true"
+            aria-haspopup="menu"
+            aria-expanded="@(Open ? "true" : "false")"
+            aria-controls="@_menuId"
+            aria-label="@EffectiveTriggerAccessibleName"
+            disabled="@Disabled"
+            @onclick="ToggleAsync"
+            @onkeydown="HandleTriggerKeyDownAsync">
+        @TriggerContent
+    </button>
+    @if (Open)
+    {
+        <ul id="@_menuId"
+            class="bzs-menu__panel"
+            role="menu"
+            aria-label="@EffectiveAccessibleName"
+            aria-labelledby="@MenuLabelledBy"
+            data-bzs-anchored-panel="true"
+            data-bzs-placement="@PlacementName">
+            <CascadingValue Value="@((IBzsMenuOwner)this)" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
+        </ul>
+    }
+</span>

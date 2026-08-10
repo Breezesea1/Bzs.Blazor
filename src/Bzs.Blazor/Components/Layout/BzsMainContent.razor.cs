@@ -27,6 +27,7 @@ public sealed partial class BzsMainContent : BzsComponentBase
             {
                 ["data-bzs-main-content"] = Landmark ? "landmark" : "container",
             };
+            attributes.TryAdd("tabindex", "0");
 
             return attributes;
         }

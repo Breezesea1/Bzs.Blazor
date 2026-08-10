@@ -1,0 +1,88 @@
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+
+<div class="demo-release-announcement"
+    data-testid="demo-release-announcement"
+    data-demo-release-storage-key="@StorageKey">
+    <BzsTooltip Text="@WhatsNewLabel"
+                TriggerAccessibleName="@TriggerAccessibleName"
+                Disabled="_dialogOpen"
+                Placement="BzsPopoverPlacement.BottomEnd">
+        <TriggerContent Context="trigger">
+            @if (_isInteractive)
+            {
+                <BzsButton Class="demo-release-trigger"
+                           Variant="BzsButtonVariant.Secondary"
+                           Size="BzsButtonSize.Small"
+                           StartIcon="DemoNavIcons.Announcements"
+                           Click="OpenDialogAsync"
+                           aria-haspopup="dialog"
+                           aria-expanded="@(_dialogOpen ? "true" : "false")"
+                           data-testid="demo-release-trigger"
+                           @attributes="trigger.Attributes" />
+            }
+            else
+            {
+                <a class="demo-release-fallback"
+                   href="@ReleasesUrl"
+                   title="@WhatsNewLabel"
+                   data-testid="demo-release-fallback"
+                   @attributes="trigger.Attributes">
+                    <BzsIcon Icon="DemoNavIcons.Announcements" />
+                </a>
+            }
+        </TriggerContent>
+    </BzsTooltip>
+
+    @if (_readStateLoaded && _unreadCount > 0)
+    {
+        <BzsBadge Class="demo-release-unread"
+                  Count="_unreadCount"
+                  Maximum="9"
+                  AccessibleName="@UnreadBadgeAccessibleName" />
+    }
+</div>
+
+<BzsDialog Open="_dialogOpen"
+           OpenChanged="SetDialogOpenAsync"
+           Title="@DialogTitle"
+           InitialFocusSelector="[data-demo-release-acknowledge]"
+           Dismissed="HandleDismissedAsync"
+           data-testid="demo-release-dialog">
+    <ChildContent>
+        <div class="demo-release-summary">
+            <div class="demo-release-meta">
+                <BzsBadge Severity="BzsMessageSeverity.Information">
+                    @Latest.Version
+                </BzsBadge>
+                <span>@Latest.Status.Resolve(IsChinese)</span>
+                <time datetime="@Latest.PublishedAt.ToString("yyyy-MM-dd")">@PublishedDate</time>
+            </div>
+            <h3>@Latest.Title.Resolve(IsChinese)</h3>
+            <p>@Latest.Summary.Resolve(IsChinese)</p>
+            <ul>
+                @foreach (var highlight in Latest.Highlights)
+                {
+                    <li @key="highlight">@highlight.Resolve(IsChinese)</li>
+                }
+            </ul>
+        </div>
+    </ChildContent>
+    <FooterContent>
+        <a class="demo-release-details-link"
+           href="@LatestReleaseUrl"
+           @onclick="CloseDialogForNavigationAsync">
+            @ViewAllReleasesLabel
+            <BzsIcon Icon="BzsIcons.ChevronRight" />
+        </a>
+        <BzsButton Variant="BzsButtonVariant.Primary"
+                   Size="BzsButtonSize.Small"
+                   StartIcon="BzsIcons.Check"
+                   Click="AcknowledgeLatestAsync"
+                   data-demo-release-acknowledge="true"
+                   data-testid="demo-release-acknowledge">
+            @MarkAsReadLabel
+        </BzsButton>
+    </FooterContent>
+</BzsDialog>

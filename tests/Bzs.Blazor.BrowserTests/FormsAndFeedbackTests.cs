@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Globalization;
+using System.Net;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
 
@@ -86,6 +87,64 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
 
         Assert.DoesNotContain(consoleErrors, IsDateInputInteropError);
         Assert.DoesNotContain(pageErrors, IsDateInputInteropError);
+    }
+
+    [Fact]
+    public async Task CultureCookieCanonicalizesQuerylessAndUnsupportedHtmlGets()
+    {
+        BeginBrowserGateTest();
+
+        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+
+        await Page.GotoAsync($"{server.BaseUrl}/forms");
+
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        var language = Page.GetByRole(
+            AriaRole.Radiogroup,
+            new() { Name = "Date picker language", Exact = true });
+        await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true }))
+            .ToBeCheckedAsync();
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+
+        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=invalid");
+
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=en-US");
+        await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "English", Exact = true }))
+            .ToBeCheckedAsync();
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+    }
+
+    [Fact]
+    public async Task CultureCookieDoesNotRedirectQuerylessHtmlPosts()
+    {
+        BeginBrowserGateTest();
+        using var handler = new HttpClientHandler
+        {
+            AllowAutoRedirect = false,
+            CookieContainer = new CookieContainer(),
+        };
+        using var client = new HttpClient(handler);
+        using var seedRequest = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{server.BaseUrl}/forms?culture=zh-Hans");
+        seedRequest.Headers.Accept.ParseAdd("text/html");
+        using var seedResponse = await client.SendAsync(seedRequest);
+        seedResponse.EnsureSuccessStatusCode();
+        var cookies = handler.CookieContainer.GetCookies(new Uri(server.BaseUrl));
+        Assert.Contains(cookies.Cast<System.Net.Cookie>(), cookie =>
+            cookie.Name == ".AspNetCore.Culture"
+            && cookie.Value.Contains("zh-Hans", StringComparison.Ordinal));
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{server.BaseUrl}/forms");
+        request.Headers.Accept.ParseAdd("text/html");
+        request.Content = new StringContent(string.Empty);
+        using var response = await client.SendAsync(request);
+
+        Assert.False(
+            (int)response.StatusCode is >= 300 and < 400,
+            $"The queryless HTML POST was redirected to {response.Headers.Location}.");
+        Assert.Null(response.Headers.Location);
     }
 
     [Fact]

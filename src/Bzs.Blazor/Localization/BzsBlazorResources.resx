@@ -99,4 +99,148 @@
   <data name="DatePickerClear" xml:space="preserve">
     <value>Clear</value>
   </data>
+  <data name="FileUploadEmpty" xml:space="preserve">
+    <value>No files selected.</value>
+  </data>
+  <data name="FileUploadFilesLabel" xml:space="preserve">
+    <value>Selected files</value>
+  </data>
+  <data name="FileUploadProgressLabel" xml:space="preserve">
+    <value>Upload progress</value>
+  </data>
+  <data name="FileUploadRemove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="FileUploadClear" xml:space="preserve">
+    <value>Clear files</value>
+  </data>
+  <data name="FileUploadRequired" xml:space="preserve">
+    <value>Select at least one file.</value>
+  </data>
+  <data name="FileUploadMaximumCount" xml:space="preserve">
+    <value>Select no more than {0} files.</value>
+  </data>
+  <data name="FileUploadMaximumFileSize" xml:space="preserve">
+    <value>Each file must be no larger than {0} bytes.</value>
+  </data>
+  <data name="FileUploadMaximumTotalSize" xml:space="preserve">
+    <value>Selected files must total no more than {0} bytes.</value>
+  </data>
+  <data name="AutocompleteLoadingText" xml:space="preserve">
+    <value>Loading suggestions</value>
+  </data>
+  <data name="AutocompleteEmptyText" xml:space="preserve">
+    <value>No suggestions found</value>
+  </data>
+  <data name="AutocompleteErrorText" xml:space="preserve">
+    <value>Suggestions could not be loaded</value>
+  </data>
+  <data name="AutocompleteRetryText" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="AutocompleteClearText" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="AutocompleteSelectionValidation" xml:space="preserve">
+    <value>The {0} field must match a suggestion.</value>
+  </data>
+  <data name="DataGridAccessibleName" xml:space="preserve">
+    <value>Data grid</value>
+  </data>
+  <data name="DataGridLoadingText" xml:space="preserve">
+    <value>Loading data</value>
+  </data>
+  <data name="DataGridEmptyText" xml:space="preserve">
+    <value>No data</value>
+  </data>
+  <data name="DataGridErrorText" xml:space="preserve">
+    <value>Data could not be loaded</value>
+  </data>
+  <data name="DataGridPageSizeText" xml:space="preserve">
+    <value>Rows per page</value>
+  </data>
+  <data name="DataGridPaginationAccessibleName" xml:space="preserve">
+    <value>Data pages</value>
+  </data>
+  <data name="DataGridSelectionColumnText" xml:space="preserve">
+    <value>Row selection</value>
+  </data>
+  <data name="DataGridSelectRowText" xml:space="preserve">
+    <value>Select row {0}</value>
+  </data>
+  <data name="DataGridRetryText" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="DataGridSortAscendingText" xml:space="preserve">
+    <value>Sort ascending</value>
+  </data>
+  <data name="DataGridSortDescendingText" xml:space="preserve">
+    <value>Sort descending</value>
+  </data>
+  <data name="DataGridClearSortText" xml:space="preserve">
+    <value>Clear sort</value>
+  </data>
+  <data name="DataGridClearFilterText" xml:space="preserve">
+    <value>Clear filter</value>
+  </data>
+  <data name="DataGridColumnMenuText" xml:space="preserve">
+    <value>{0} column menu</value>
+  </data>
+  <data name="DataGridFilterOperatorText" xml:space="preserve">
+    <value>{0} filter operator</value>
+  </data>
+  <data name="DataGridFilterValueText" xml:space="preserve">
+    <value>{0} filter value</value>
+  </data>
+  <data name="DataGridApplyFilterText" xml:space="preserve">
+    <value>Apply {0} filter</value>
+  </data>
+  <data name="DataGridContainsText" xml:space="preserve">
+    <value>Contains</value>
+  </data>
+  <data name="DataGridStartsWithText" xml:space="preserve">
+    <value>Starts with</value>
+  </data>
+  <data name="DataGridEndsWithText" xml:space="preserve">
+    <value>Ends with</value>
+  </data>
+  <data name="DataGridEqualsText" xml:space="preserve">
+    <value>Equals</value>
+  </data>
+  <data name="DataGridNotEqualsText" xml:space="preserve">
+    <value>Does not equal</value>
+  </data>
+  <data name="DataGridLessThanText" xml:space="preserve">
+    <value>Less than</value>
+  </data>
+  <data name="DataGridLessThanOrEqualText" xml:space="preserve">
+    <value>Less than or equal</value>
+  </data>
+  <data name="DataGridGreaterThanText" xml:space="preserve">
+    <value>Greater than</value>
+  </data>
+  <data name="DataGridGreaterThanOrEqualText" xml:space="preserve">
+    <value>Greater than or equal</value>
+  </data>
+  <data name="DataGridAnyText" xml:space="preserve">
+    <value>Any</value>
+  </data>
+  <data name="DataGridTrueText" xml:space="preserve">
+    <value>True</value>
+  </data>
+  <data name="DataGridFalseText" xml:space="preserve">
+    <value>False</value>
+  </data>
+  <data name="DataGridPreviousPageText" xml:space="preserve">
+    <value>Previous page</value>
+  </data>
+  <data name="DataGridNextPageText" xml:space="preserve">
+    <value>Next page</value>
+  </data>
+  <data name="DataGridCurrentPageText" xml:space="preserve">
+    <value>Page {0}</value>
+  </data>
+  <data name="BreadcrumbAccessibleName" xml:space="preserve">
+    <value>Breadcrumb</value>
+  </data>
 </root>

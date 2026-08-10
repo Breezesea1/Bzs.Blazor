@@ -113,6 +113,47 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     }
 
     [Fact]
+    public async Task ProductivityExpandedStatesHaveNoCriticalOrSeriousAxeViolations()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/productivity");
+        await Expect(Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" })
+            .Locator("tbody tr")).ToHaveCountAsync(5);
+
+        var owner = Page.GetByTestId("productivity-owner");
+        await owner.FillAsync("Alicia");
+        await Expect(Page.GetByRole(AriaRole.Option, new() { Name = "Alicia Santos" }))
+            .ToBeVisibleAsync();
+        await AssertNoCriticalOrSeriousAxeViolationsAsync("open Productivity autocomplete");
+        await Page.GetByRole(AriaRole.Option, new() { Name = "Alicia Santos" }).ClickAsync();
+
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Open review actions" }).ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Menu, new() { Name = "Review actions" }))
+            .ToBeVisibleAsync();
+        await AssertNoCriticalOrSeriousAxeViolationsAsync("open Productivity menu");
+    }
+
+    [Fact]
+    public async Task ReleaseAnnouncementStatesHaveNoCriticalOrSeriousAxeViolations()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync(server.BaseUrl);
+
+        await Page.GetByTestId("demo-release-trigger").ClickAsync();
+        var dialog = Page.GetByRole(
+            AriaRole.Dialog,
+            new() { Name = "What's new in Bzs.Blazor 0.2.1", Exact = true });
+        await Expect(dialog).ToBeVisibleAsync();
+        await AssertNoCriticalOrSeriousAxeViolationsAsync("open release announcement dialog");
+
+        await dialog.GetByRole(AriaRole.Link, new() { Name = "View all releases", Exact = true })
+            .ClickAsync();
+        await Expect(dialog).ToHaveCountAsync(0);
+        await Expect(Page.GetByTestId("releases-page")).ToBeVisibleAsync();
+        await AssertNoCriticalOrSeriousAxeViolationsAsync("release announcement history");
+    }
+
+    [Fact]
     public async Task ResponsiveNavigationDrawerStatesHaveNoCriticalOrSeriousAxeViolations()
     {
         BeginBrowserGateTest();
@@ -166,6 +207,18 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
         Assert.True(await HasVisibleFocusAsync(activity));
         Assert.True(await HasBorderAsync(activity));
         await AssertNoHorizontalPageOverflowAsync(page, "forced-colors tabs");
+
+        await page.GotoAsync($"{server.BaseUrl}/productivity");
+        await page.GetByRole(AriaRole.Table, new() { Name = "Review queue" })
+            .Locator("tbody tr")
+            .WaitForAsync();
+        var tooltipTrigger = page.GetByTestId("productivity-tooltip-trigger");
+        await tooltipTrigger.FocusAsync();
+        await Expect(tooltipTrigger).ToBeFocusedAsync();
+        Assert.True(await HasVisibleFocusAsync(tooltipTrigger));
+        await Expect(page.GetByRole(AriaRole.Tooltip)).ToBeVisibleAsync();
+        Assert.True(await HasBorderAsync(page.GetByRole(AriaRole.Tooltip)));
+        await AssertNoHorizontalPageOverflowAsync(page, "forced-colors productivity");
     }
 
     [Fact]
@@ -189,6 +242,11 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
         await Expect(Page.GetByTestId("overlays-runtime-status"))
             .ToHaveTextAsync("Interactive runtime ready");
         await AssertFitsAtTwoHundredPercentReflowEquivalentAsync(Page, "overlays");
+
+        await Page.GotoAsync($"{server.BaseUrl}/productivity");
+        await Expect(Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" })
+            .Locator("tbody tr")).ToHaveCountAsync(5);
+        await AssertFitsAtTwoHundredPercentReflowEquivalentAsync(Page, "productivity");
     }
 
     [Theory]
@@ -224,6 +282,48 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
             .ClickAsync();
         await Expect(page.GetByTestId("automatic-selection")).ToHaveTextAsync("Selected: activity");
         await AssertNoHorizontalPageOverflowAsync(page, $"{deviceName} tabs");
+
+        await page.GotoAsync($"{server.BaseUrl}/productivity");
+        await Expect(page.GetByRole(AriaRole.Table, new() { Name = "Review queue" })
+            .Locator("tbody tr")).ToHaveCountAsync(5);
+        var tooltipTrigger = page.GetByTestId("productivity-tooltip-trigger");
+        await tooltipTrigger.TapAsync();
+        await Expect(page.GetByRole(AriaRole.Tooltip)).ToBeVisibleAsync();
+        await tooltipTrigger.TapAsync();
+        await Expect(page.GetByRole(AriaRole.Tooltip)).ToHaveCountAsync(0);
+        await AssertNoHorizontalPageOverflowAsync(page, $"{deviceName} productivity");
+    }
+
+    [Fact]
+    public async Task ProductivityHonorsReducedMotionAndRtlKeyboardInteraction()
+    {
+        BeginBrowserGateTest();
+        await Page.EmulateMediaAsync(new() { ReducedMotion = ReducedMotion.Reduce });
+        await Page.GotoAsync($"{server.BaseUrl}/productivity");
+        await Expect(Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" })
+            .Locator("tbody tr")).ToHaveCountAsync(5);
+        Assert.True(await Page.EvaluateAsync<bool>(
+            "() => matchMedia('(prefers-reduced-motion: reduce)').matches"));
+
+        var tooltipTrigger = Page.GetByTestId("productivity-tooltip-trigger");
+        await tooltipTrigger.FocusAsync();
+        var tooltip = Page.GetByRole(AriaRole.Tooltip);
+        await Expect(tooltip).ToBeVisibleAsync();
+        Assert.Equal(
+            "0s",
+            await tooltip.EvaluateAsync<string>("element => getComputedStyle(element).transitionDuration"));
+        await Page.Keyboard.PressAsync("Escape");
+
+        await Page.EvaluateAsync("() => document.documentElement.dir = 'rtl'");
+        var menuTrigger = Page.GetByRole(AriaRole.Button, new() { Name = "Open review actions" });
+        await menuTrigger.FocusAsync();
+        await menuTrigger.PressAsync("Enter");
+        var firstMenuItem = Page.GetByRole(AriaRole.Menuitem, new() { Name = "Mark ready" });
+        await Expect(firstMenuItem).ToBeFocusedAsync();
+        await firstMenuItem.PressAsync("ArrowDown");
+        await Expect(Page.GetByRole(AriaRole.Menuitem, new() { Name = "Assign reviewer" }))
+            .ToBeFocusedAsync();
+        await AssertNoHorizontalPageOverflowAsync(Page, "RTL productivity");
     }
 
     private async Task AssertNoCriticalOrSeriousAxeViolationsAsync(string state)

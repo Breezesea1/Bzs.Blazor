@@ -1,0 +1,126 @@
+.demo-release-announcement {
+    position: relative;
+    display: inline-grid;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    flex: 0 0 2.25rem;
+    place-items: center;
+}
+
+.demo-release-announcement ::deep .demo-release-trigger.bzs-button,
+.demo-release-fallback {
+    box-sizing: border-box;
+    inline-size: 2.25rem;
+    min-block-size: 2.25rem;
+    padding: 0;
+}
+
+.demo-release-fallback {
+    display: inline-grid;
+    place-items: center;
+    border-radius: var(--bzs-radius-control);
+    background: var(--bzs-surface-raised);
+    box-shadow: var(--bzs-shadow-raised);
+    color: var(--bzs-text);
+    text-decoration: none;
+}
+
+.demo-release-fallback:active {
+    box-shadow: var(--bzs-shadow-inset);
+}
+
+.demo-release-fallback ::deep .bzs-icon {
+    inline-size: 1rem;
+    block-size: 1rem;
+}
+
+.demo-release-announcement ::deep .demo-release-unread {
+    position: absolute;
+    inset-block-start: -0.25rem;
+    inset-inline-end: -0.35rem;
+    min-block-size: 1.125rem;
+    min-inline-size: 1.125rem;
+    justify-content: center;
+    padding-inline: 0.2rem;
+    border-color: var(--bzs-surface-raised);
+    background: var(--bzs-error);
+    box-shadow: 0 0.125rem 0.35rem rgb(42 49 65 / 0.24);
+    color: #ffffff;
+    font-size: 0.625rem;
+    pointer-events: none;
+}
+
+.demo-release-announcement ::deep .demo-release-unread .bzs-badge__icon {
+    display: none;
+}
+
+.demo-release-summary {
+    display: grid;
+    gap: 0.875rem;
+}
+
+.demo-release-summary h3,
+.demo-release-summary p,
+.demo-release-summary ul {
+    margin: 0;
+}
+
+.demo-release-summary h3 {
+    font-size: 1rem;
+}
+
+.demo-release-summary p,
+.demo-release-summary li {
+    color: var(--bzs-text-muted);
+}
+
+.demo-release-summary ul {
+    display: grid;
+    gap: 0.5rem;
+    padding-inline-start: 1.25rem;
+}
+
+.demo-release-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    color: var(--bzs-text-muted);
+    font-size: var(--bzs-font-size-small);
+}
+
+.demo-release-details-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-block-size: calc(var(--bzs-control-height) - 0.5rem);
+    border-radius: var(--bzs-radius-control);
+    padding-inline: calc(var(--bzs-control-padding-inline) - 0.1875rem);
+    color: var(--bzs-primary);
+    font-size: var(--bzs-font-size-small);
+    font-weight: var(--bzs-font-weight-medium);
+    text-decoration: none;
+}
+
+.demo-release-details-link:hover {
+    background: color-mix(in srgb, var(--bzs-primary) 8%, transparent);
+}
+
+.demo-release-details-link ::deep .bzs-icon {
+    inline-size: 1rem;
+    block-size: 1rem;
+}
+
+@media (width < 34rem) {
+    .demo-release-details-link {
+        padding-inline: 0.375rem;
+    }
+}
+
+@media (forced-colors: active) {
+    .demo-release-fallback,
+    .demo-release-announcement ::deep .demo-release-unread {
+        outline: 1px solid ButtonText;
+        box-shadow: none;
+    }
+}

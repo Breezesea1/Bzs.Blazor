@@ -1,0 +1,54 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+<span @attributes="RootAttributes">
+    @if (Selectable)
+    {
+        <button class="bzs-chip__select"
+                type="button"
+                aria-pressed="@(Selected ? "true" : "false")"
+                disabled="@Disabled"
+                data-bzs-chip-command="select"
+                @onclick="RequestSelectionChangeAsync">
+            @if (Selected)
+            {
+                <BzsIcon Icon="BzsIcons.Check" Class="bzs-chip__state-icon" />
+            }
+            @if (StartIcon is not null)
+            {
+                <BzsIcon Icon="StartIcon" Class="bzs-chip__icon" />
+            }
+            <span class="bzs-chip__content">@ChildContent</span>
+            @if (EndIcon is not null)
+            {
+                <BzsIcon Icon="EndIcon" Class="bzs-chip__icon" />
+            }
+        </button>
+    }
+    else
+    {
+        <span class="bzs-chip__display">
+            @if (StartIcon is not null)
+            {
+                <BzsIcon Icon="StartIcon" Class="bzs-chip__icon" />
+            }
+            <span class="bzs-chip__content">@ChildContent</span>
+            @if (EndIcon is not null)
+            {
+                <BzsIcon Icon="EndIcon" Class="bzs-chip__icon" />
+            }
+        </span>
+    }
+
+    @if (Removable)
+    {
+        <button class="bzs-chip__remove"
+                type="button"
+                aria-label="@RemoveAccessibleName"
+                disabled="@Disabled"
+                data-bzs-chip-command="remove"
+                @onclick="RequestRemovalAsync">
+            <BzsIcon Icon="BzsIcons.Close" />
+        </button>
+    }
+</span>

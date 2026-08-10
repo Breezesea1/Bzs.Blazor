@@ -1,0 +1,43 @@
+@namespace Bzs.Blazor
+@using Microsoft.AspNetCore.Components.Routing
+@inherits BzsComponentBase
+
+<li @attributes="RootAttributes">
+    @if (HasNestedItems)
+    {
+        <details @attributes="DisclosureAttributes"
+                 @onkeydown="HandleDisclosureKeyDownAsync">
+            <summary @ref="_summaryElement"
+                     @attributes="SummaryAttributes"
+                     @onclick="RequestToggleAsync"
+                     @onclick:preventDefault="true">
+                @ItemContent
+                <BzsIcon Icon="BzsIcons.ChevronDown" Class="bzs-nav-item__chevron" />
+            </summary>
+            <ul id="@_itemsId" class="bzs-nav-item__items">
+                @ChildContent
+            </ul>
+        </details>
+    }
+    else if (Disabled)
+    {
+        <span @attributes="DisabledItemAttributes">
+            @ItemContent
+        </span>
+    }
+    else if (Active.HasValue)
+    {
+        <a href="@EffectiveHref" @attributes="ControlledLinkAttributes">
+            @ItemContent
+        </a>
+    }
+    else
+    {
+        <NavLink href="@EffectiveHref"
+                 Match="@Match"
+                 ActiveClass="bzs-nav-item__link--active"
+                 @attributes="RouterLinkAttributes">
+            @ItemContent
+        </NavLink>
+    }
+</li>

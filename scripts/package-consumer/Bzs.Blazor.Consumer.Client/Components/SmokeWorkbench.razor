@@ -30,6 +30,56 @@
         @_model.ReleaseDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
     </p>
 
+    <BzsPopover Open="@_popoverOpen"
+                OpenChanged="value => _popoverOpen = value"
+                TriggerAccessibleName="Open package details"
+                ContentRole="dialog"
+                ContentAccessibleName="Package details"
+                data-testid="@($"{Runtime}-popover")">
+        <TriggerContent>Package details</TriggerContent>
+        <ChildContent>Anchored package content.</ChildContent>
+    </BzsPopover>
+
+    <EditForm Model="_model" FormName="@($"{Runtime}-productivity-form")">
+        <BzsAutocomplete TValue="string"
+                         @bind-Value="_model.Owner"
+                         Provider="_ownerProvider"
+                         Label="Package owner"
+                         MinimumQueryLength="1"
+                         DebounceDelay="@TimeSpan.Zero"
+                         data-testid="@($"{Runtime}-autocomplete")" />
+        <BzsFileUpload @bind-Value="_model.Files"
+                       Label="Package attachments"
+                       Multiple="true"
+                       MaximumFileCount="2"
+                       Accept=".txt"
+                       data-testid="@($"{Runtime}-upload")" />
+    </EditForm>
+    <p data-testid="@($"{Runtime}-owner-value")">@_model.Owner</p>
+
+    <BzsDataGrid TItem="SmokeRow"
+                 Provider="_gridProvider"
+                 Page="_gridPage"
+                 PageChanged="value => _gridPage = value"
+                 PageSize="3"
+                 PageSizeOptions="GridPageSizes"
+                 Sort="_gridSort"
+                 SortChanged="value => _gridSort = value"
+                 ItemKey="row => row.Id"
+                 Caption="Package work items"
+                 AccessibleName="Package work items"
+                 data-testid="@($"{Runtime}-grid")">
+        <BzsDataGridColumn TItem="SmokeRow"
+                           Key="title"
+                           Title="Work item"
+                           ValueSelector="row => row.Title"
+                           Sortable="true" />
+        <BzsDataGridColumn TItem="SmokeRow"
+                           Key="owner"
+                           Title="Owner"
+                           ValueSelector="row => row.Owner" />
+    </BzsDataGrid>
+
     <BzsTabs AccessibleName="Package tabs" data-testid="@($"{Runtime}-tabs")">
         <BzsTabItem Value="summary" Title="Summary">Summary package content.</BzsTabItem>
         <BzsTabItem Value="details" Title="Details">Details package content.</BzsTabItem>
@@ -50,19 +100,25 @@
     ];
 
     private readonly SmokeModel _model = new();
+    private readonly OwnerProvider _ownerProvider = new();
+    private readonly GridProvider _gridProvider = new();
     private BzsThemeMode _mode = BzsThemeMode.System;
+    private BzsDataGridSort? _gridSort;
+    private int _gridPage = 1;
+    private bool _popoverOpen;
     private bool _ready;
     private string _dialogResult = "No dialog result.";
+    private static readonly IReadOnlyList<int> GridPageSizes = [3];
 
     [Parameter, EditorRequired]
     public string Runtime { get; set; } = string.Empty;
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             _ready = true;
-            _ = InvokeAsync(StateHasChanged);
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -99,5 +155,56 @@
         public DateOnly ReleaseDate { get; set; } = new(2026, 7, 17);
 
         public string Stage { get; set; } = "layout";
+
+        public string Owner { get; set; } = string.Empty;
+
+        public IReadOnlyList<IBrowserFile> Files { get; set; } = Array.Empty<IBrowserFile>();
     }
+
+    private sealed class OwnerProvider : IBzsAutocompleteProvider<string>
+    {
+        private static readonly IReadOnlyList<BzsAutocompleteOption<string>> Options =
+        [
+            new("alicia", "Alicia Santos"),
+            new("ben", "Ben Carter"),
+        ];
+
+        public async ValueTask<IReadOnlyList<BzsAutocompleteOption<string>>> GetSuggestionsAsync(
+            string query,
+            CancellationToken cancellationToken)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(25), cancellationToken);
+            return Options
+                .Where(option => option.Label.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+        }
+    }
+
+    private sealed class GridProvider : IBzsDataGridProvider<SmokeRow>
+    {
+        private static readonly IReadOnlyList<SmokeRow> Rows =
+        [
+            new(1, "Accessibility review", "Alicia Santos"),
+            new(2, "Package verification", "Ben Carter"),
+            new(3, "AOT smoke", "Mei Lin"),
+            new(4, "Release notes", "Alicia Santos"),
+        ];
+
+        public async ValueTask<BzsDataGridResult<SmokeRow>> GetItemsAsync(
+            BzsDataGridRequest request,
+            CancellationToken cancellationToken)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(25), cancellationToken);
+            var query = request.Sort?.Direction == BzsDataGridSortDirection.Descending
+                ? Rows.OrderByDescending(row => row.Title, StringComparer.Ordinal)
+                : Rows.OrderBy(row => row.Title, StringComparer.Ordinal);
+            var items = query
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToArray();
+            return new BzsDataGridResult<SmokeRow>(items, Rows.Count);
+        }
+    }
+
+    private sealed record SmokeRow(int Id, string Title, string Owner);
 }

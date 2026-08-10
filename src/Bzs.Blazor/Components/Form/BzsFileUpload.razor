@@ -1,0 +1,68 @@
+@namespace Bzs.Blazor
+@inherits BzsInputBase<IReadOnlyList<IBrowserFile>>
+
+<BzsField InputId="@InputId" Label="@Label" Description="@Description" Error="@CurrentError" Required="@Required">
+    <div class="bzs-file-upload">
+        <InputFile @key="InputKey" @attributes="InputAttributes" OnChange="OnInputChangedAsync" />
+
+        @if (SelectedFiles.Count == 0)
+        {
+            @if (EmptyTemplate is not null)
+            {
+                @EmptyTemplate
+            }
+            else
+            {
+                <div class="bzs-file-upload__empty" role="status">@EffectiveEmptyText</div>
+            }
+        }
+        else
+        {
+            <ul class="bzs-file-upload__list" aria-label="@EffectiveFilesLabel">
+                @for (var index = 0; index < SelectedFiles.Count; index++)
+                {
+                    var fileIndex = index;
+                    var file = SelectedFiles[index];
+                    <li @key="file" class="bzs-file-upload__item">
+                        @if (FileTemplate is not null)
+                        {
+                            @FileTemplate(file)
+                        }
+                        else
+                        {
+                            <span class="bzs-file-upload__metadata">
+                                <span class="bzs-file-upload__name">@file.Name</span>
+                                <span class="bzs-file-upload__details">@FormatFileDetails(file)</span>
+                            </span>
+                        }
+
+                        @if (Progress is not null && Progress.TryGetValue(file, out var progress))
+                        {
+                            <progress class="bzs-file-upload__progress"
+                                      max="100"
+                                      value="@(progress is null ? null : FormatProgressValue(progress.Value))"
+                                      aria-label="@($"{EffectiveProgressLabel}: {file.Name}")">
+                                @(progress is null ? EffectiveProgressLabel : FormatProgressText(progress.Value))
+                            </progress>
+                        }
+
+                        @if (!Disabled && !ReadOnly)
+                        {
+                            <button type="button"
+                                    class="bzs-file-upload__remove"
+                                    aria-label="@($"{EffectiveRemoveText}: {file.Name}")"
+                                    title="@EffectiveRemoveText"
+                                    @onclick="() => RemoveAsync(fileIndex, file)">
+                                <BzsIcon Icon="BzsIcons.Close" /><span class="bzs-file-upload__remove-label">@EffectiveRemoveText</span></button>
+                        }
+                    </li>
+                }
+            </ul>
+
+            @if (!Disabled && !ReadOnly)
+            {
+                <button type="button" class="bzs-file-upload__clear" @onclick="ClearAsync">@EffectiveClearText</button>
+            }
+        }
+    </div>
+</BzsField>

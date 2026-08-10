@@ -8,9 +8,12 @@ namespace Bzs.Blazor.BrowserTests;
 public abstract class BrowserGatePageTest : PageTest
 {
     private readonly ConcurrentQueue<string> _consoleMessages = new();
+    private readonly ConcurrentQueue<string> _consoleErrors = new();
     private readonly List<IBrowserContext> _observedContexts = [];
     private readonly List<IPage> _observedPages = [];
+    private readonly ConcurrentQueue<string> _pageErrors = new();
     private readonly ConcurrentQueue<string> _requestFailures = new();
+    private readonly ConcurrentQueue<(string Method, string Url, string? Failure)> _failedRequests = new();
     private readonly ConcurrentQueue<string> _requests = new();
     private readonly ConcurrentQueue<string> _responses = new();
     private IBrowserContext? _artifactContext;
@@ -89,8 +92,12 @@ public abstract class BrowserGatePageTest : PageTest
         context.Page += (_, page) => ObservePage(page);
         context.Request += (_, request) => _requests.Enqueue(
             $"{DateTimeOffset.UtcNow:O} {request.Method} {request.ResourceType} {request.Url}");
-        context.RequestFailed += (_, request) => _requestFailures.Enqueue(
-            $"{DateTimeOffset.UtcNow:O} {request.Method} {request.Url}: {request.Failure ?? "request failed without a reported reason"}");
+        context.RequestFailed += (_, request) =>
+        {
+            _requestFailures.Enqueue(
+                $"{DateTimeOffset.UtcNow:O} {request.Method} {request.Url}: {request.Failure ?? "request failed without a reported reason"}");
+            _failedRequests.Enqueue((request.Method, request.Url, request.Failure));
+        };
         context.Response += (_, response) => _responses.Enqueue(
             $"{DateTimeOffset.UtcNow:O} {response.Status} {response.Request.Method} {response.Url}");
 
@@ -114,8 +121,15 @@ public abstract class BrowserGatePageTest : PageTest
             return;
         }
 
-        page.Console += (_, message) => _consoleMessages.Enqueue(
-            $"{DateTimeOffset.UtcNow:O} [{message.Type}] {message.Text}");
+        page.Console += (_, message) =>
+        {
+            _consoleMessages.Enqueue($"{DateTimeOffset.UtcNow:O} [{message.Type}] {message.Text}");
+            if (string.Equals(message.Type, "error", StringComparison.OrdinalIgnoreCase))
+            {
+                _consoleErrors.Enqueue(message.Text);
+            }
+        };
+        page.PageError += (_, error) => _pageErrors.Enqueue(error);
     }
 
     private async Task WriteFailureLogsAsync(string artifactDirectory)
@@ -123,6 +137,9 @@ public abstract class BrowserGatePageTest : PageTest
         await File.WriteAllLinesAsync(
             Path.Combine(artifactDirectory, "console.log"),
             _consoleMessages);
+        await File.WriteAllLinesAsync(
+            Path.Combine(artifactDirectory, "page-errors.log"),
+            _pageErrors);
         await File.WriteAllLinesAsync(
             Path.Combine(artifactDirectory, "requests.log"),
             _requests);
@@ -132,6 +149,35 @@ public abstract class BrowserGatePageTest : PageTest
         await File.WriteAllLinesAsync(
             Path.Combine(artifactDirectory, "request-failures.log"),
             _requestFailures);
+    }
+
+    protected void AssertNoUnexpectedBrowserErrors(string? context = null)
+    {
+        var errors = _consoleErrors
+            .Select(error => $"Console error: {error}")
+            .Concat(_pageErrors.Select(error => $"Page error: {error}"))
+            .Concat(_failedRequests
+                .Where(request => !IsExpectedAbort(request.Failure))
+                .Select(request =>
+                    $"Request failed: {request.Method} {request.Url}: {request.Failure ?? "request failed without a reported reason"}"))
+            .ToArray();
+
+        var message = context is null
+            ? "Unexpected browser errors were reported."
+            : $"Unexpected browser errors were reported during {context}.";
+        Assert.True(errors.Length == 0, $"{message}{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
+    }
+
+    private static bool IsExpectedAbort(string? failure)
+    {
+        if (string.IsNullOrWhiteSpace(failure))
+        {
+            return false;
+        }
+
+        return failure.Contains("net::ERR_ABORTED", StringComparison.OrdinalIgnoreCase)
+            || failure.Contains("NS_BINDING_ABORTED", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(failure.Trim(), "ERR_ABORTED", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task CaptureFailureScreenshotAsync(string artifactDirectory)

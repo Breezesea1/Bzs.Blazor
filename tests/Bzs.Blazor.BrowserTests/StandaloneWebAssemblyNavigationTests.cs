@@ -178,6 +178,94 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
 
         Assert.Empty(consoleErrors);
         Assert.Empty(pageErrors);
+        AssertNoUnexpectedBrowserErrors("standalone WebAssembly render-mode workflow");
+    }
+
+    [Fact]
+    public async Task ProductivityWorkflowRunsInStandaloneWebAssembly()
+    {
+        BeginBrowserGateTest();
+        var response = await Page.GotoAsync($"{server.BaseUrl}/productivity");
+
+        Assert.True(response?.Ok ?? false);
+        await Expect(Page.GetByTestId("productivity-workbench"))
+            .ToHaveAttributeAsync("data-bzs-interactive", "true");
+        var grid = Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" });
+        await Expect(grid.Locator("tbody tr")).ToHaveCountAsync(5);
+
+        var workbenchNavigation = Page.GetByRole(
+            AriaRole.Navigation,
+            new() { Name = "Workbench navigation", Exact = true });
+        var reviewQueueDisclosure = workbenchNavigation.Locator("details");
+        await Expect(reviewQueueDisclosure).ToHaveAttributeAsync("data-bzs-open", "true");
+        await reviewQueueDisclosure.Locator("summary").ClickAsync();
+        await Expect(reviewQueueDisclosure).ToHaveAttributeAsync("data-bzs-open", "false");
+        await reviewQueueDisclosure.Locator("summary").ClickAsync();
+        await Expect(reviewQueueDisclosure).ToHaveAttributeAsync("data-bzs-open", "true");
+
+        var removeReviewFilter = Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Remove review filter", Exact = true });
+        await removeReviewFilter.ClickAsync();
+        await Expect(removeReviewFilter).ToHaveCountAsync(0);
+        await Expect(Page.GetByText("Needs review", new() { Exact = true })).ToHaveCountAsync(0);
+
+        var tooltipTrigger = Page.GetByTestId("productivity-tooltip-trigger");
+        await tooltipTrigger.FocusAsync();
+        await Expect(Page.GetByRole(AriaRole.Tooltip))
+            .ToContainTextAsync("keyboard and pointer");
+
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Open review details" }).ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Dialog, new() { Name = "Review details" }))
+            .ToBeVisibleAsync();
+        await Page.Keyboard.PressAsync("Escape");
+
+        var owner = Page.GetByTestId("productivity-owner");
+        await owner.FillAsync("Mei");
+        await Page.GetByRole(AriaRole.Option, new() { Name = "Mei Lin" }).ClickAsync();
+        await Expect(owner).ToHaveValueAsync("Mei Lin");
+
+        workbenchNavigation = Page.GetByRole(
+            AriaRole.Navigation,
+            new() { Name = "Workbench navigation", Exact = true });
+        await workbenchNavigation.GetByRole(
+            AriaRole.Link,
+            new() { Name = "Productivity", Exact = true }).ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/productivity");
+
+        workbenchNavigation = Page.GetByRole(
+            AriaRole.Navigation,
+            new() { Name = "Workbench navigation", Exact = true });
+        await workbenchNavigation.GetByRole(
+            AriaRole.Link,
+            new() { Name = "Assigned", Exact = true }).ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/productivity?view=assigned");
+
+        workbenchNavigation = Page.GetByRole(
+            AriaRole.Navigation,
+            new() { Name = "Workbench navigation", Exact = true });
+        await workbenchNavigation.GetByRole(
+            AriaRole.Link,
+            new() { Name = "Waiting", Exact = true }).ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/productivity?view=waiting");
+
+        workbenchNavigation = Page.GetByRole(
+            AriaRole.Navigation,
+            new() { Name = "Workbench navigation", Exact = true });
+        await workbenchNavigation.GetByRole(
+            AriaRole.Link,
+            new() { Name = "Overview", Exact = true }).ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/");
+
+        await Page.GotoAsync($"{server.BaseUrl}/productivity");
+        var breadcrumbs = Page.GetByRole(
+            AriaRole.Navigation,
+            new() { Name = "Productivity breadcrumb", Exact = true });
+        await breadcrumbs.GetByRole(
+            AriaRole.Link,
+            new() { Name = "Home", Exact = true }).ClickAsync();
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/");
+        AssertNoUnexpectedBrowserErrors("standalone WebAssembly productivity workflow");
     }
 
     private async Task ClickUniqueNavigationLinkAsync(string accessibleName)

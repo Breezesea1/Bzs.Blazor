@@ -1,0 +1,43 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+<nav @attributes="RootAttributes">
+    <ol class="bzs-breadcrumbs__list">
+        @for (var index = 0; index < Items.Count; index++)
+        {
+            var item = Items[index];
+            var isCurrent = index == _currentIndex;
+            <li @key="(item, index)" class="bzs-breadcrumbs__item">
+                @if (index > 0)
+                {
+                    <span class="bzs-breadcrumbs__separator" aria-hidden="true">
+                        @if (SeparatorContent is not null)
+                        {
+                            @SeparatorContent
+                        }
+                        else
+                        {
+                            <text>/</text>
+                        }
+                    </span>
+                }
+
+                @if (item.Href is not null)
+                {
+                    <a class="bzs-breadcrumbs__link"
+                       href="@item.Href"
+                       aria-current="@(isCurrent ? "page" : null)">
+                        @RenderItem(item)
+                    </a>
+                }
+                else
+                {
+                    <span class="bzs-breadcrumbs__label"
+                          aria-current="@(isCurrent ? "page" : null)">
+                        @RenderItem(item)
+                    </span>
+                }
+            </li>
+        }
+    </ol>
+</nav>

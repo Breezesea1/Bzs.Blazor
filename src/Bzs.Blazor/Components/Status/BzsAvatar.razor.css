@@ -1,0 +1,90 @@
+.bzs-avatar {
+    display: inline-grid;
+    box-sizing: border-box;
+    place-items: center;
+    overflow: hidden;
+    border: var(--bzs-border-width) solid var(--bzs-border);
+    background-color: var(--bzs-surface-inset);
+    box-shadow: var(--bzs-shadow-inset);
+    color: var(--bzs-text);
+    font-family: var(--bzs-font-family);
+    font-weight: var(--bzs-font-weight-bold);
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.bzs-avatar--small {
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    font-size: 0.625rem;
+}
+
+.bzs-avatar--medium {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    font-size: var(--bzs-font-size-small);
+}
+
+.bzs-avatar--large {
+    inline-size: 4rem;
+    block-size: 4rem;
+    font-size: var(--bzs-font-size);
+}
+
+.bzs-avatar--circle {
+    border-radius: 50%;
+}
+
+.bzs-avatar--rounded {
+    border-radius: var(--bzs-radius-container);
+}
+
+.bzs-avatar--square {
+    border-radius: 0;
+}
+
+.bzs-avatar__image,
+.bzs-avatar__fallback {
+    grid-area: 1 / 1;
+    inline-size: 100%;
+    block-size: 100%;
+}
+
+.bzs-avatar__image {
+    display: block;
+    border: 0;
+    background-color: transparent;
+    color: transparent;
+    font-size: 0;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.bzs-avatar__fallback {
+    display: grid;
+    box-sizing: border-box;
+    place-items: center;
+    overflow: hidden;
+}
+
+.bzs-avatar__initials {
+    max-inline-size: 100%;
+    padding-inline: 0.125rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bzs-avatar ::deep .bzs-avatar__icon {
+    inline-size: 55%;
+    block-size: 55%;
+}
+
+@media (forced-colors: active) {
+    .bzs-avatar {
+        border-color: CanvasText;
+        background-color: Canvas;
+        box-shadow: none;
+        color: CanvasText;
+    }
+}

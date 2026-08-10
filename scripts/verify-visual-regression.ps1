@@ -3,7 +3,7 @@ param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
     [ValidateRange(1, [int]::MaxValue)]
-    [int]$ExpectedTestCount = 4
+    [int]$ExpectedTestCount = 5
 )
 
 Set-StrictMode -Version Latest

@@ -7,9 +7,9 @@ The browser suite has two execution paths:
 | `PageTest` suite     | Playwright Chromium         | Fast, deterministic behavior, axe, forced-colors, zoom, and mobile-emulation gates. It does not read a `BROWSER` environment variable.     |
 | `BrowserMatrixTests` | Manual `IPlaywright` launch | A representative Interactive Auto public-UI workflow across desktop engines plus Pixel 5 Chromium and iPhone 13 WebKit device descriptors. |
 
-The accessibility gate covers an Interactive Auto catalog completion, invalid form validation, an open controlled dialog, and tabs. It fails only for axe `critical` or `serious` violations and includes the rule help plus affected nodes in the assertion message. Keyboard/focus behavior remains covered by the focused browser tests.
+The accessibility gate covers an Interactive Auto catalog completion, invalid form validation, an open date picker, an open controlled dialog, tabs, responsive navigation, and expanded Productivity autocomplete and menu states. It also checks forced colors, 200% reflow-equivalent layouts, mobile interaction, reduced motion, and RTL keyboard behavior. Axe checks fail for `critical` or `serious` violations and include the rule help plus affected nodes in the assertion message.
 
-Pixel baselines are owned by Windows Chromium because operating-system font metrics and rasterization change full-page pixels and mobile document height. Linux release gates run the remaining behavior, accessibility, browser-matrix, package, trimming, and AOT coverage with `verify-release.ps1 -SkipVisualRegression`; the Windows branded-browser job runs all four visual baselines before Chrome and Edge. `verify-visual-regression.ps1` parses the TRX and requires exactly four executed and passed tests, so zero discovery or skipped baselines fail the gate.
+Pixel baselines are owned by Windows Chromium because operating-system font metrics and rasterization change full-page pixels and mobile document height. Linux release gates run the remaining behavior, accessibility, browser-matrix, package, trimming, and AOT coverage with `verify-release.ps1 -SkipVisualRegression`; the Windows branded-browser job runs all five visual baselines before Chrome and Edge. The fifth baseline covers the Productivity workbench. `verify-visual-regression.ps1` parses the TRX and requires exactly five executed and passed tests, so zero discovery or skipped baselines fail the gate.
 
 ## Install
 
@@ -31,7 +31,7 @@ Run the focused Chromium accessibility gate:
 dotnet test tests/Bzs.Blazor.BrowserTests/Bzs.Blazor.BrowserTests.csproj --configuration Release --no-build --filter "FullyQualifiedName~AccessibilityGateTests"
 ```
 
-Run the sequential cross-browser matrix. The script restores and builds first, then runs the seven targets in the order above. Each target starts its own local Release Demo unless `BZS_DEMO_BASE_URL` or `-DemoBaseUrl` supplies an already-running demo. The workflow verifies Interactive Auto runtime readiness and counter interaction, theme selection, form save, tabs, controlled-dialog focus and Escape dismissal, drawer close, service-dialog completion, toast visibility, Simplified Chinese content, and inherited RTL keyboard behavior.
+Run the sequential cross-browser matrix. The script restores and builds first, then runs the seven targets in the order above. Each target starts its own local Release Demo unless `BZS_DEMO_BASE_URL` or `-DemoBaseUrl` supplies an already-running demo. The workflow verifies Interactive Auto runtime readiness and counter interaction, theme selection, form save, tabs, controlled-dialog focus and Escape dismissal, drawer close, service-dialog completion, toast visibility, Simplified Chinese content, and inherited RTL keyboard behavior. A separate page exercises the Productivity tooltip, popover, menu, autocomplete, file selection, and provider DataGrid workflow without interrupting Interactive Auto's background WebAssembly upgrade.
 
 ```powershell
 pwsh tests/Bzs.Blazor.BrowserTests/run-browser-matrix.ps1
@@ -46,7 +46,7 @@ The runner first uses a nonzero `PLAYWRIGHT_BROWSERS_PATH` when locating install
 
 ## Artifacts
 
-Each matrix target writes its TRX result below `TestResults/browser-matrix/<target>/`. The target artifact directory is cleared before each run so stale evidence cannot survive. The manual-launch workflow also preserves `workflow.png`, `rtl.png`, `trace.zip`, `console.log`, `requests.log`, `request-failures.log`, and `responses.log` in that target directory, including when the workflow fails. The trace can be opened with:
+Each matrix target writes its TRX result below `TestResults/browser-matrix/<target>/`. The target artifact directory is cleared before each run so stale evidence cannot survive. The manual-launch workflow also preserves `workflow.png`, `productivity.png`, `rtl.png`, `trace.zip`, `console.log`, `requests.log`, `request-failures.log`, and `responses.log` in that target directory, including when the workflow fails. The trace can be opened with:
 
 ```powershell
 pwsh tests/Bzs.Blazor.BrowserTests/bin/Release/net10.0/playwright.ps1 show-trace TestResults/browser-matrix/chromium/trace.zip

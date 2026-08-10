@@ -31,6 +31,7 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
         });
 
         var page = await context.NewPageAsync();
+        IPage? productivityPage = null;
         IPage? localizationPage = null;
         var consoleMessages = new List<string>();
         var consoleErrors = new List<string>();
@@ -75,6 +76,9 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
         try
         {
             await RunInteractiveAutoWorkflowAsync(page, server.BaseUrl, target);
+            productivityPage = await context.NewPageAsync();
+            ObservePage(productivityPage);
+            await RunProductivityWorkflowAsync(productivityPage, server.BaseUrl, target);
             localizationPage = await context.NewPageAsync();
             ObservePage(localizationPage);
             await RunLocalizationAndRtlWorkflowAsync(localizationPage, server.BaseUrl, target);
@@ -105,6 +109,17 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
                     await localizationPage.ScreenshotAsync(new PageScreenshotOptions
                     {
                         Path = Path.Combine(artifactDirectory, "rtl.png"),
+                        FullPage = true,
+                    });
+                });
+            }
+            if (productivityPage is not null)
+            {
+                await TryCaptureArtifactAsync(async () =>
+                {
+                    await productivityPage.ScreenshotAsync(new PageScreenshotOptions
+                    {
+                        Path = Path.Combine(artifactDirectory, "productivity.png"),
                         FullPage = true,
                     });
                 });
@@ -210,6 +225,74 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
         await summary.PressAsync("ArrowRight");
         await Expect(decisions).ToHaveAttributeAsync("aria-selected", "true");
         await Expect(page.GetByTestId("rtl-selection")).ToHaveTextAsync("المحدد: decisions");
+    }
+
+    private static async Task RunProductivityWorkflowAsync(IPage page, string baseUrl, string target)
+    {
+        var response = await page.GotoAsync($"{baseUrl}/productivity");
+        Assert.True(response?.Ok ?? false, $"{target} could not load the Productivity catalog.");
+        await Expect(page.GetByTestId("productivity-workbench"))
+            .ToHaveAttributeAsync("data-bzs-interactive", "true");
+
+        var grid = page.GetByRole(AriaRole.Table, new() { Name = "Review queue" });
+        await Expect(grid.Locator("tbody tr")).ToHaveCountAsync(5);
+
+        var tooltipTrigger = page.GetByTestId("productivity-tooltip-trigger");
+        if (target is "mobile-chrome" or "mobile-safari")
+        {
+            await tooltipTrigger.TapAsync();
+            await Expect(page.GetByRole(AriaRole.Tooltip)).ToBeVisibleAsync();
+            await tooltipTrigger.TapAsync();
+            await Expect(page.GetByRole(AriaRole.Tooltip)).ToHaveCountAsync(0);
+        }
+        else
+        {
+            await tooltipTrigger.FocusAsync();
+            await Expect(page.GetByRole(AriaRole.Tooltip)).ToBeVisibleAsync();
+            await page.Keyboard.PressAsync("Escape");
+        }
+
+        await page.GetByRole(AriaRole.Button, new() { Name = "Open review details" }).ClickAsync();
+        await Expect(page.GetByRole(AriaRole.Dialog, new() { Name = "Review details" }))
+            .ToBeVisibleAsync();
+        await page.Keyboard.PressAsync("Escape");
+
+        var menuTrigger = page.GetByRole(AriaRole.Button, new() { Name = "Open review actions" });
+        await menuTrigger.FocusAsync();
+        await menuTrigger.PressAsync("Enter");
+        var markReady = page.GetByRole(AriaRole.Menuitem, new() { Name = "Mark ready" });
+        await Expect(markReady).ToBeFocusedAsync();
+        await markReady.PressAsync("Enter");
+        await Expect(page.GetByText("Review marked ready.", new() { Exact = true })).ToBeVisibleAsync();
+
+        var owner = page.GetByTestId("productivity-owner");
+        await owner.FillAsync("Alicia");
+        await Expect(page.GetByRole(AriaRole.Option, new() { Name = "Alicia Santos" }))
+            .ToBeVisibleAsync();
+        await owner.PressAsync("ArrowDown");
+        await owner.PressAsync("Enter");
+        await Expect(owner).ToHaveValueAsync("Alicia Santos");
+
+        var upload = page.GetByTestId("productivity-upload");
+        await upload.FocusAsync();
+        await Expect(upload).ToBeFocusedAsync();
+        await upload.SetInputFilesAsync(new FilePayload
+        {
+            Name = "matrix-review.pdf",
+            MimeType = "application/pdf",
+            Buffer = "Browser matrix upload"u8.ToArray(),
+        });
+        await Expect(page.GetByText("matrix-review.pdf", new() { Exact = true })).ToBeVisibleAsync();
+
+        var reviewSort = grid.GetByRole(AriaRole.Button, new() { Name = "Review", Exact = true });
+        await reviewSort.FocusAsync();
+        await reviewSort.PressAsync("Enter");
+        await Expect(grid.Locator("th[aria-sort]"))
+            .ToHaveAttributeAsync("aria-sort", "ascending");
+
+        var hasHorizontalOverflow = await page.EvaluateAsync<bool>(
+            "() => document.documentElement.scrollWidth > document.documentElement.clientWidth");
+        Assert.False(hasHorizontalOverflow, $"{target} Productivity catalog has horizontal page overflow.");
     }
 
     private static Task<IBrowser> LaunchBrowserAsync(IPlaywright playwright, string target) =>

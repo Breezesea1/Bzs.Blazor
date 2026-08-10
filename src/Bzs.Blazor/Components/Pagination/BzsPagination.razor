@@ -1,0 +1,88 @@
+@namespace Bzs.Blazor
+@inherits BzsComponentBase
+
+<nav @attributes="RootAttributes">
+    <ul class="bzs-pagination__list">
+        <li>
+            <button class="bzs-pagination__command"
+                    type="button"
+                    aria-label="@EffectiveFirstPageLabel"
+                    disabled="@IsFirstPageUnavailable"
+                    data-bzs-pagination-command="first"
+                    @onclick="RequestFirstPageAsync">
+                <span class="bzs-pagination__double-icon" aria-hidden="true">
+                    <BzsIcon Icon="BzsIcons.ChevronLeft" />
+                    <BzsIcon Icon="BzsIcons.ChevronLeft" />
+                </span>
+            </button>
+        </li>
+        <li>
+            <button class="bzs-pagination__command"
+                    type="button"
+                    aria-label="@EffectivePreviousPageLabel"
+                    disabled="@IsFirstPageUnavailable"
+                    data-bzs-pagination-command="previous"
+                    @onclick="RequestPreviousPageAsync">
+                <BzsIcon Icon="BzsIcons.ChevronLeft" />
+            </button>
+        </li>
+
+        @if (Compact)
+        {
+            <li class="bzs-pagination__status" data-bzs-pagination-status>
+                @CompactStatus
+            </li>
+        }
+        else
+        {
+            @for (var index = 0; index < _range.Count; index++)
+            {
+                var item = _range[index];
+                if (item is int page)
+                {
+                    <li @key="GetPageKey(page)">
+                        <button class="bzs-pagination__page"
+                                type="button"
+                                aria-current="@(page == Page ? "page" : null)"
+                                aria-label="@GetPageLabel(page)"
+                                disabled="@Disabled"
+                                data-bzs-pagination-page="@(page)"
+                                @onclick="() => RequestPageAsync(page)">
+                            @FormatPage(page)
+                        </button>
+                    </li>
+                }
+                else
+                {
+                    <li @key="GetEllipsisKey(index)">
+                        <span class="bzs-pagination__ellipsis" aria-hidden="true">...</span>
+                    </li>
+                }
+            }
+        }
+
+        <li>
+            <button class="bzs-pagination__command"
+                    type="button"
+                    aria-label="@EffectiveNextPageLabel"
+                    disabled="@IsLastPageUnavailable"
+                    data-bzs-pagination-command="next"
+                    @onclick="RequestNextPageAsync">
+                <BzsIcon Icon="BzsIcons.ChevronRight" />
+            </button>
+        </li>
+        <li>
+            <button class="bzs-pagination__command"
+                    type="button"
+                    aria-label="@EffectiveLastPageLabel"
+                    disabled="@IsLastPageUnavailable"
+                    data-bzs-pagination-command="last"
+                    @onclick="RequestLastPageAsync">
+                <span class="bzs-pagination__double-icon" aria-hidden="true">
+                    <BzsIcon Icon="BzsIcons.ChevronRight" />
+                    <BzsIcon Icon="BzsIcons.ChevronRight" />
+                </span>
+            </button>
+        </li>
+    </ul>
+</nav>

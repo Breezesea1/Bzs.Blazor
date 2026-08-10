@@ -1,5 +1,7 @@
 using Bzs.Blazor;
+using Bzs.Blazor.Demo.Client;
 using Bzs.Blazor.Demo.WebAssembly;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -9,4 +11,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddBzsBlazor();
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+DemoCulture.ApplyCurrentCulture(new Uri(host.Services.GetRequiredService<NavigationManager>().Uri));
+
+await host.RunAsync();

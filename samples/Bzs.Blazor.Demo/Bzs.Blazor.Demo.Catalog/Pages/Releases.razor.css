@@ -1,0 +1,116 @@
+.demo-releases-page {
+    max-inline-size: 58rem;
+}
+
+.demo-release-history {
+    display: grid;
+}
+
+.demo-release-entry {
+    display: grid;
+    grid-template-columns: minmax(8.5rem, 0.28fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    border-block-start: 1px solid var(--demo-border);
+    padding-block: 1.5rem;
+}
+
+.demo-release-entry:last-child {
+    border-block-end: 1px solid var(--demo-border);
+}
+
+.demo-release-entry-meta,
+.demo-release-entry-content {
+    display: grid;
+    align-content: start;
+}
+
+.demo-release-entry-meta {
+    justify-items: start;
+    gap: 0.5rem;
+    color: var(--demo-muted);
+    font-size: 0.8125rem;
+}
+
+.demo-release-entry-meta strong {
+    color: var(--demo-text);
+}
+
+.demo-release-entry-content {
+    gap: 0.875rem;
+    min-inline-size: 0;
+}
+
+.demo-release-entry-content h2,
+.demo-release-entry-content h3,
+.demo-release-entry-content p,
+.demo-release-entry-content ul,
+.demo-release-section {
+    margin: 0;
+}
+
+.demo-release-entry-content h2 {
+    font-size: 1.125rem;
+}
+
+.demo-release-entry-content h3 {
+    margin-block-start: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.demo-release-section {
+    display: grid;
+    gap: 0.625rem;
+    padding-block-start: 0.125rem;
+}
+
+.demo-release-entry-content > p,
+.demo-release-entry-content li {
+    color: var(--demo-muted);
+}
+
+.demo-release-entry-content ul {
+    display: grid;
+    gap: 0.5rem;
+    padding-inline-start: 1.25rem;
+}
+
+.demo-release-compatibility {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    border-inline-start: 0.1875rem solid var(--demo-success);
+    padding: 0.625rem 0.75rem;
+    background: color-mix(in srgb, var(--demo-success) 7%, transparent);
+    color: var(--demo-text) !important;
+}
+
+.demo-release-compatibility ::deep .bzs-icon {
+    inline-size: 1rem;
+    block-size: 1rem;
+    flex: 0 0 auto;
+    margin-block-start: 0.125rem;
+    color: var(--demo-success);
+}
+
+@media (width < 40rem) {
+    .demo-release-entry {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1rem;
+    }
+
+    .demo-release-entry-meta {
+        grid-template-columns: auto 1fr;
+        align-items: center;
+    }
+
+    .demo-release-entry-meta time {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (forced-colors: active) {
+    .demo-release-compatibility {
+        border-color: CanvasText;
+        background: Canvas;
+    }
+}

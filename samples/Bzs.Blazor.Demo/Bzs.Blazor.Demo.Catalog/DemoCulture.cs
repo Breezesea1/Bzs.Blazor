@@ -12,6 +12,18 @@ public static class DemoCulture
     public static CultureInfo Resolve(string? cultureName) =>
         IsChinese(cultureName) ? SimplifiedChineseCulture : EnglishCulture;
 
+    public static CultureInfo Resolve(Uri uri) =>
+        IsChinese(uri) ? SimplifiedChineseCulture : EnglishCulture;
+
+    public static void ApplyCurrentCulture(Uri uri)
+    {
+        var culture = Resolve(uri);
+        CultureInfo.DefaultThreadCurrentCulture = culture;
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+    }
+
     public static bool IsChinese(Uri uri)
     {
         foreach (var queryPart in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))

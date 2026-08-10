@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\samples\Bzs.Blazor.Demo\Bzs.Blazor.Demo.Catalog\Bzs.Blazor.Demo.Catalog.csproj" />
     <ProjectReference Include="..\..\samples\Bzs.Blazor.Demo\Bzs.Blazor.Demo\Bzs.Blazor.Demo.csproj"
                       ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\samples\Bzs.Blazor.Demo\Bzs.Blazor.Demo.WebAssembly\Bzs.Blazor.Demo.WebAssembly.csproj"

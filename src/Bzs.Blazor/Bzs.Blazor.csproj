@@ -7,14 +7,14 @@
     <RootNamespace>Bzs.Blazor</RootNamespace>
     <AssemblyName>Bzs.Blazor</AssemblyName>
     <PackageId>Bzs.Blazor</PackageId>
-    <Version>0.1.13</Version>
+    <Version>0.2.1</Version>
     <Authors>tongyu</Authors>
     <Description>A compact, accessible Blazor component library with restrained neumorphic light and dark themes.</Description>
     <PackageTags>blazor;components;ui;neumorphism;wasm</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageCopyright>Copyright (c) 2026 tongyu</PackageCopyright>
-    <PackageReleaseNotes>Prevent DateInput initialization and cleanup failures during WebAssembly navigation, and harden canceled JavaScript module operations with observable retry-safe lifecycle handling. See docs/releases/0.1.13.md in the repository.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add the productivity component wave and harden accessibility, keyboard interaction, and Demo release announcements. See docs/releases/0.2.1.md in the repository.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

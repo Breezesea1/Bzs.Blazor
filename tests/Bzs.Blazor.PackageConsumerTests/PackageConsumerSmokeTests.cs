@@ -51,12 +51,21 @@ public sealed class PackageConsumerSmokeTests
 
         var consoleErrors = new List<string>();
         var badResponses = new List<string>();
+        var unexpectedRequestFailures = new List<string>();
         var loadedAssets = new HashSet<string>(StringComparer.Ordinal);
         page.Console += (_, message) =>
         {
             if (string.Equals(message.Type, "error", StringComparison.OrdinalIgnoreCase))
             {
                 consoleErrors.Add(message.Text);
+            }
+        };
+        page.RequestFailed += (_, request) =>
+        {
+            if (!IsAllowedRequestFailure(request.Failure))
+            {
+                unexpectedRequestFailures.Add(
+                    $"{request.Method} {request.Url}: {request.Failure ?? "request failed without a reported reason"}");
             }
         };
         page.Response += (_, response) =>
@@ -96,11 +105,14 @@ public sealed class PackageConsumerSmokeTests
                 $"{exception}{Environment.NewLine}Console errors:{Environment.NewLine}"
                 + string.Join(Environment.NewLine, consoleErrors)
                 + $"{Environment.NewLine}HTTP errors:{Environment.NewLine}"
-                + string.Join(Environment.NewLine, badResponses));
+                + string.Join(Environment.NewLine, badResponses)
+                + $"{Environment.NewLine}Request failures:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, unexpectedRequestFailures));
         }
 
         Assert.Empty(consoleErrors);
         Assert.Empty(badResponses);
+        Assert.Empty(unexpectedRequestFailures);
         Assert.Subset(loadedAssets, RequiredAssets);
         if (requestedRuntimes.Contains("aot", StringComparer.Ordinal))
         {
@@ -150,14 +162,29 @@ public sealed class PackageConsumerSmokeTests
         Assert.False(MatchesRuntimeAsset(url, logicalAsset));
     }
 
+    [Theory]
+    [InlineData("net::ERR_ABORTED", true)]
+    [InlineData("NET::ERR_ABORTED", true)]
+    [InlineData("net::ERR_FAILED", false)]
+    [InlineData("", false)]
+    [InlineData(null, false)]
+    public void RequestFailureClassificationAllowsOnlyExplicitAborts(
+        string? failure,
+        bool expected)
+    {
+        Assert.Equal(expected, IsAllowedRequestFailure(failure));
+    }
+
     private static readonly HashSet<string> RequiredAssets = new(StringComparer.Ordinal)
     {
         "_content/Bzs.Blazor/bzs.blazor.css",
         "Components/Theme/BzsThemeProvider.razor.js",
         "Components/Tabs/BzsTabs.razor.js",
         "Components/Dialog/BzsDialog.razor.js",
+        "Components/Form/BzsAutocomplete.razor.js",
         "Components/Form/BzsDateInput.razor.js",
         "Components/Form/BzsSelect.razor.js",
+        "Components/Popover/BzsPopover.razor.js",
     };
 
     private static readonly IReadOnlyList<string> ObservedAssets =
@@ -170,6 +197,9 @@ public sealed class PackageConsumerSmokeTests
             ? ["server", "wasm", "auto", "aot"]
             : configured.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
+
+    private static bool IsAllowedRequestFailure(string? failure) =>
+        string.Equals(failure, "net::ERR_ABORTED", StringComparison.OrdinalIgnoreCase);
 
     private static bool MatchesRuntimeAsset(string url, string logicalAsset)
     {
@@ -260,6 +290,33 @@ public sealed class PackageConsumerSmokeTests
         await stage.ClickAsync();
         await page.GetByRole(AriaRole.Option, new() { Name = "Review" }).ClickAsync();
         await Expect(stage).ToContainTextAsync("Review");
+
+        await page.GetByRole(AriaRole.Button, new() { Name = "Open package details" }).ClickAsync();
+        var packageDetails = page.GetByRole(AriaRole.Dialog, new() { Name = "Package details" });
+        await Expect(packageDetails).ToContainTextAsync("Anchored package content.");
+        await page.Keyboard.PressAsync("Escape");
+        await Expect(packageDetails).ToHaveCountAsync(0);
+
+        var owner = page.GetByTestId($"{runtime}-autocomplete");
+        await owner.FillAsync("Ali");
+        await page.GetByRole(AriaRole.Option, new() { Name = "Alicia Santos" }).ClickAsync();
+        await Expect(owner).ToHaveValueAsync("Alicia Santos");
+        await Expect(page.GetByTestId($"{runtime}-owner-value")).ToHaveTextAsync("alicia");
+
+        await page.GetByTestId($"{runtime}-upload").SetInputFilesAsync(new FilePayload
+        {
+            Name = "package-review.txt",
+            MimeType = "text/plain",
+            Buffer = "Package consumer upload"u8.ToArray(),
+        });
+        await Expect(page.GetByText("package-review.txt", new() { Exact = true })).ToBeVisibleAsync();
+
+        var grid = page.GetByTestId($"{runtime}-grid");
+        var table = grid.GetByRole(AriaRole.Table, new() { Name = "Package work items" });
+        await Expect(table.Locator("tbody tr")).ToHaveCountAsync(3);
+        await table.GetByRole(AriaRole.Button, new() { Name = "Work item", Exact = true }).ClickAsync();
+        await Expect(table.Locator("th[aria-sort]"))
+            .ToHaveAttributeAsync("aria-sort", "ascending");
 
         var tabs = page.GetByTestId($"{runtime}-tabs");
         await tabs.GetByRole(AriaRole.Tab, new() { Name = "Details" }).ClickAsync();

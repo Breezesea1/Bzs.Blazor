@@ -1,0 +1,90 @@
+.bzs-skeleton {
+    display: block;
+    box-sizing: border-box;
+    max-inline-size: 100%;
+    border: var(--bzs-border-width) solid transparent;
+    background-color: var(--bzs-surface-inset);
+    box-shadow: var(--bzs-shadow-inset);
+    pointer-events: none;
+}
+
+.bzs-skeleton[data-bzs-skeleton-animated="true"] {
+    animation: bzs-skeleton-pulse 1.4s var(--bzs-motion-easing) infinite;
+}
+
+.bzs-skeleton--text {
+    inline-size: 100%;
+    border-radius: var(--bzs-radius-control);
+}
+
+.bzs-skeleton--text.bzs-skeleton--small {
+    block-size: 0.625rem;
+}
+
+.bzs-skeleton--text.bzs-skeleton--medium {
+    block-size: 0.875rem;
+}
+
+.bzs-skeleton--text.bzs-skeleton--large {
+    block-size: 1.125rem;
+}
+
+.bzs-skeleton--rectangle {
+    inline-size: 100%;
+    border-radius: var(--bzs-radius-container);
+}
+
+.bzs-skeleton--rectangle.bzs-skeleton--small {
+    block-size: 2rem;
+}
+
+.bzs-skeleton--rectangle.bzs-skeleton--medium {
+    block-size: 4rem;
+}
+
+.bzs-skeleton--rectangle.bzs-skeleton--large {
+    block-size: 6rem;
+}
+
+.bzs-skeleton--circle {
+    border-radius: 50%;
+}
+
+.bzs-skeleton--circle.bzs-skeleton--small {
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+}
+
+.bzs-skeleton--circle.bzs-skeleton--medium {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+}
+
+.bzs-skeleton--circle.bzs-skeleton--large {
+    inline-size: 4rem;
+    block-size: 4rem;
+}
+
+@keyframes bzs-skeleton-pulse {
+    0%, 100% {
+        opacity: 0.55;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bzs-skeleton[data-bzs-skeleton-animated="true"] {
+        animation: none;
+    }
+}
+
+@media (forced-colors: active) {
+    .bzs-skeleton {
+        border-color: CanvasText;
+        background-color: Canvas;
+        box-shadow: none;
+    }
+}

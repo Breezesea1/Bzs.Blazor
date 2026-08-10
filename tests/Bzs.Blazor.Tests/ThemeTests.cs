@@ -40,6 +40,17 @@ public sealed class ThemeTests
     }
 
     [Fact]
+    public void BuiltInInformationTextMeetsTextContrastOnBaseSurfaces()
+    {
+        foreach (var colors in new[] { BzsThemes.Light, BzsThemes.Dark })
+        {
+            Assert.True(
+                GetContrastRatio(colors.Info, colors.Surface) >= 4.5,
+                $"{colors.Info} must contrast with surface {colors.Surface} by at least 4.5:1.");
+        }
+    }
+
+    [Fact]
     public void BuiltInThemeRecordsMatchStaticCss()
     {
         var stylesheet = File.ReadAllText(FindRepositoryFile(
