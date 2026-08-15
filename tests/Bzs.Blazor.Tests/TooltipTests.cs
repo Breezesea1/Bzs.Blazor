@@ -123,6 +123,30 @@ public sealed class TooltipTests
     }
 
     [Fact]
+    public async Task BrowserDismissalNeverRestoresFocus()
+    {
+        using var context = new BunitContext();
+        context.Services.AddBzsBlazor();
+        var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        module.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
+        var cut = context.Render<BzsTooltip>(parameters => parameters
+            .Add(component => component.Text, "Details")
+            .Add(component => component.ShowDelay, TimeSpan.Zero)
+            .Add(component => component.TriggerContent, BuildTrigger("Target")));
+        await cut.Find("[data-bzs-anchor='true']").TriggerEventAsync(
+            "onpointerenter",
+            new PointerEventArgs { PointerType = "mouse" });
+
+        await cut.Instance.CloseFromBrowserAsync(restoreFocus: true);
+
+        var closeSynchronization = module.Invocations[BzsAnchoredOverlaySession.SetOpenMethod].Last();
+        Assert.Contains(false, closeSynchronization.Arguments);
+        Assert.False(Assert.IsType<bool>(closeSynchronization.Arguments.ElementAt(5)));
+    }
+
+    [Fact]
     public async Task DisabledTooltipCannotBeRevealedAndDisposalCancelsActiveDelay()
     {
         using var context = CreateContext();
@@ -171,24 +195,6 @@ public sealed class TooltipTests
     }
 
     [Fact]
-    public void TooltipMakesThreeBoundedImmediateSynchronizationAttempts()
-    {
-        using var context = new BunitContext();
-        context.Services.AddBzsBlazor();
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        var setOpen = module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true)
-            .SetException(new TaskCanceledException("Tooltip synchronization was interrupted."));
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
-
-        context.Render<BzsTooltip>(parameters => parameters
-            .Add(component => component.Text, "Retry")
-            .Add(component => component.TriggerContent, BuildTrigger("Target")));
-
-        setOpen.VerifyInvoke(BzsAnchoredOverlayInterop.SetOpenMethod, 3);
-    }
-
-    [Fact]
     public async Task StaticRenderingKeepsTheConsumerTriggerSemanticAndInert()
     {
         using var context = CreateContext();
@@ -217,10 +223,10 @@ public sealed class TooltipTests
     {
         var context = new BunitContext();
         context.Services.AddBzsBlazor();
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
+        var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        module.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
         return context;
     }
 

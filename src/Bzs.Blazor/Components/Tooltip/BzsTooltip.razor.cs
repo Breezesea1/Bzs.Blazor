@@ -6,23 +6,15 @@ namespace Bzs.Blazor;
 public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
 {
     private const int ImmediateInteropAttemptLimit = 3;
-    private readonly string _instanceId = $"bzs-tooltip-{Guid.NewGuid():N}";
     private readonly string _tooltipId = $"bzs-tooltip-content-{Guid.NewGuid():N}";
     private readonly CancellationTokenSource _lifetimeCancellation = new();
     private ElementReference _rootElement;
-    private DotNetObjectReference<BzsTooltip>? _dotNetReference;
-    private BzsAnchoredOverlayInterop? _interop;
+    private BzsAnchoredOverlaySession? _overlaySession;
     private CancellationTokenSource? _delayCancellation;
     private bool _pointerInside;
     private bool _focusInside;
     private long? _touchPointerId;
     private bool _open;
-    private bool _interopInitialized;
-    private int _initializationAttemptCount;
-    private bool _synchronizationPending = true;
-    private int _synchronizationAttemptCount;
-    private int _synchronizationVersion;
-    private BzsPopoverPlacement _lastPlacement;
     private bool _disposed;
 
     /// <summary>
@@ -70,19 +62,7 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
     private string? EffectiveTriggerAccessibleName => Normalize(TriggerAccessibleName);
 
     private BzsTooltipTriggerContext TriggerContext => new(BuildTriggerAttributes());
-
-    private string PlacementName => Placement switch
-    {
-        BzsPopoverPlacement.BottomStart => "bottom-start",
-        BzsPopoverPlacement.Bottom => "bottom",
-        BzsPopoverPlacement.BottomEnd => "bottom-end",
-        BzsPopoverPlacement.TopStart => "top-start",
-        BzsPopoverPlacement.Top => "top",
-        BzsPopoverPlacement.TopEnd => "top-end",
-        BzsPopoverPlacement.Start => "start",
-        BzsPopoverPlacement.End => "end",
-        _ => throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "The tooltip placement is not supported."),
-    };
+    private string PlacementName => BzsAnchoredOverlaySession.GetPlacementName(Placement);
 
     private IReadOnlyDictionary<string, object> RootAttributes
     {
@@ -128,12 +108,6 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
             throw new ArgumentOutOfRangeException(nameof(HideDelay), HideDelay, "HideDelay cannot be negative.");
         }
 
-        if (_lastPlacement != Placement)
-        {
-            _lastPlacement = Placement;
-            RequestSynchronization();
-        }
-
         if (Disabled)
         {
             CancelDelay();
@@ -143,9 +117,10 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
             if (_open)
             {
                 _open = false;
-                RequestSynchronization();
             }
         }
+
+        UpdateOverlayState();
     }
 
     /// <inheritdoc />
@@ -156,57 +131,7 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
             return;
         }
 
-        if (!_interopInitialized)
-        {
-            _interop ??= new BzsAnchoredOverlayInterop(JS, LoggerFactory);
-            _dotNetReference ??= DotNetObjectReference.Create(this);
-            _initializationAttemptCount++;
-            _interopInitialized = await _interop.InitializeAsync(
-                _instanceId,
-                _rootElement,
-                _dotNetReference);
-            if (_disposed || !_interopInitialized)
-            {
-                if (!_disposed && _initializationAttemptCount < ImmediateInteropAttemptLimit)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
-                return;
-            }
-
-            _initializationAttemptCount = 0;
-            RequestSynchronization();
-        }
-
-        if (_synchronizationPending && _interop is not null)
-        {
-            var version = _synchronizationVersion;
-            _synchronizationAttemptCount++;
-            var synchronized = await _interop.SetOpenAsync(
-                _instanceId,
-                _open,
-                PlacementName,
-                closeOnOutsideInteraction: true,
-                closeOnEscape: true,
-                restoreFocus: false);
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (!synchronized || version != _synchronizationVersion)
-            {
-                if (_synchronizationPending
-                    && _synchronizationAttemptCount < ImmediateInteropAttemptLimit)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
-            }
-            else
-            {
-                _synchronizationPending = false;
-            }
-        }
+        await GetOverlaySession().AfterRenderAsync(_rootElement);
     }
 
     private Task HandlePointerEnterAsync(PointerEventArgs args)
@@ -312,7 +237,7 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
             }
 
             _open = nextOpen;
-            RequestSynchronization();
+            UpdateOverlayState();
         }
         catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
         {
@@ -328,8 +253,17 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
     }
 
     /// <summary>Dismisses the tooltip after a browser-owned outside or Escape interaction.</summary>
-    [JSInvokable]
     public Task CloseFromBrowserAsync(bool restoreFocus = false)
+    {
+        if (_disposed || !_open)
+        {
+            return Task.CompletedTask;
+        }
+
+        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
+    }
+
+    private Task HandleCloseRequestedAsync()
     {
         if (_disposed || !_open)
         {
@@ -338,18 +272,16 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
 
         return InvokeAsync(() =>
         {
-            if (_disposed || !_open)
+            if (!_disposed && _open)
             {
-                return;
+                CancelDelay();
+                _pointerInside = false;
+                _focusInside = false;
+                _touchPointerId = null;
+                _open = false;
+                UpdateOverlayState();
+                StateHasChanged();
             }
-
-            CancelDelay();
-            _pointerInside = false;
-            _focusInside = false;
-            _touchPointerId = null;
-            _open = false;
-            RequestSynchronization();
-            StateHasChanged();
         });
     }
 
@@ -365,40 +297,21 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
         _lifetimeCancellation.Cancel();
         CancelDelay();
         Exception? disposalException = null;
-        if (_interop is not null)
+        if (_overlaySession is not null)
         {
             try
             {
-                await _interop.DisposeInstanceAsync(_instanceId);
+                await _overlaySession.DisposeAsync();
             }
             catch (Exception exception)
             {
                 disposalException = exception;
             }
 
-            try
-            {
-                await _interop.DisposeAsync();
-            }
-            catch (Exception exception)
-            {
-                disposalException ??= exception;
-            }
+            _overlaySession = null;
         }
 
-        try
-        {
-            _dotNetReference?.Dispose();
-        }
-        catch (Exception exception)
-        {
-            disposalException ??= exception;
-        }
-        finally
-        {
-            _dotNetReference = null;
-            _lifetimeCancellation.Dispose();
-        }
+        _lifetimeCancellation.Dispose();
 
         if (disposalException is not null)
         {
@@ -406,12 +319,20 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
         }
     }
 
-    private void RequestSynchronization()
-    {
-        _synchronizationVersion++;
-        _synchronizationAttemptCount = 0;
-        _synchronizationPending = true;
-    }
+    private BzsAnchoredOverlaySession GetOverlaySession() =>
+        _overlaySession ??= new BzsAnchoredOverlaySession(
+            JS,
+            HandleCloseRequestedAsync,
+            ImmediateInteropAttemptLimit,
+            LoggerFactory);
+
+    private void UpdateOverlayState() =>
+        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
+            _open,
+            Placement,
+            CloseOnOutsideInteraction: true,
+            CloseOnEscape: true,
+            RestoreFocusOnBrowserClose: false));
 
     private void CancelDelay()
     {

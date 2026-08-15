@@ -7,23 +7,14 @@ public sealed partial class BzsMenu : BzsComponentBase, IBzsMenuOwner, IAsyncDis
 {
     private const int ImmediateInteropAttemptLimit = 2;
     private const int TypeaheadResetMilliseconds = 700;
-    private readonly string _instanceId = $"bzs-menu-{Guid.NewGuid():N}";
     private readonly string _triggerId = $"bzs-menu-trigger-{Guid.NewGuid():N}";
     private readonly string _menuId = $"bzs-menu-list-{Guid.NewGuid():N}";
     private readonly BzsMenuState _menuState = new();
     private ElementReference _rootElement;
-    private DotNetObjectReference<BzsMenu>? _dotNetReference;
-    private BzsAnchoredOverlayInterop? _interop;
-    private bool _interopInitialized;
-    private int _initializationAttemptCount;
-    private bool _synchronizationPending = true;
-    private int _synchronizationVersion;
-    private int _synchronizationAttemptCount;
+    private BzsAnchoredOverlaySession? _overlaySession;
     private bool _lastOpen;
-    private BzsPopoverPlacement _lastPlacement;
     private bool _focusPending;
     private bool _focusFromEnd;
-    private bool _restoreFocusPending;
     private string _typeahead = string.Empty;
     private DateTimeOffset _lastTypeaheadAt;
     private bool _disposed;
@@ -65,19 +56,7 @@ public sealed partial class BzsMenu : BzsComponentBase, IBzsMenuOwner, IAsyncDis
     private string? EffectiveTriggerAccessibleName => Normalize(TriggerAccessibleName);
     private string? EffectiveAccessibleName => Normalize(AccessibleName);
     private string? MenuLabelledBy => EffectiveAccessibleName is null ? _triggerId : null;
-
-    private string PlacementName => Placement switch
-    {
-        BzsPopoverPlacement.BottomStart => "bottom-start",
-        BzsPopoverPlacement.Bottom => "bottom",
-        BzsPopoverPlacement.BottomEnd => "bottom-end",
-        BzsPopoverPlacement.TopStart => "top-start",
-        BzsPopoverPlacement.Top => "top",
-        BzsPopoverPlacement.TopEnd => "top-end",
-        BzsPopoverPlacement.Start => "start",
-        BzsPopoverPlacement.End => "end",
-        _ => throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "The menu placement is not supported."),
-    };
+    private string PlacementName => BzsAnchoredOverlaySession.GetPlacementName(Placement);
 
     private IReadOnlyDictionary<string, object> RootAttributes
     {
@@ -107,11 +86,6 @@ public sealed partial class BzsMenu : BzsComponentBase, IBzsMenuOwner, IAsyncDis
             throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "The menu placement is not supported.");
         }
 
-        if (_lastOpen != Open || _lastPlacement != Placement)
-        {
-            RequestSynchronization();
-        }
-
         if (!_lastOpen && Open)
         {
             _focusPending = true;
@@ -122,13 +96,12 @@ public sealed partial class BzsMenu : BzsComponentBase, IBzsMenuOwner, IAsyncDis
             _menuState.ClearFocus();
         }
 
-        if (Open)
-        {
-            _restoreFocusPending = false;
-        }
-
         _lastOpen = Open;
-        _lastPlacement = Placement;
+        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
+            Open,
+            Placement,
+            CloseOnOutsideInteraction: true,
+            CloseOnEscape: true));
     }
 
     /// <inheritdoc />
@@ -139,53 +112,10 @@ public sealed partial class BzsMenu : BzsComponentBase, IBzsMenuOwner, IAsyncDis
             return;
         }
 
-        if (!_interopInitialized)
+        await GetOverlaySession().AfterRenderAsync(_rootElement);
+        if (_disposed)
         {
-            _interop ??= new BzsAnchoredOverlayInterop(JS, LoggerFactory);
-            _dotNetReference ??= DotNetObjectReference.Create(this);
-            _initializationAttemptCount++;
-            _interopInitialized = await _interop.InitializeAsync(_instanceId, _rootElement, _dotNetReference);
-            if (_disposed || !_interopInitialized)
-            {
-                if (!_disposed && _initializationAttemptCount < ImmediateInteropAttemptLimit)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
-                return;
-            }
-
-            _initializationAttemptCount = 0;
-            RequestSynchronization();
-        }
-
-        if (_synchronizationPending && _interop is not null)
-        {
-            var version = _synchronizationVersion;
-            _synchronizationAttemptCount++;
-            var synchronized = await _interop.SetOpenAsync(
-                _instanceId,
-                Open,
-                PlacementName,
-                closeOnOutsideInteraction: true,
-                closeOnEscape: true,
-                restoreFocus: !Open && _restoreFocusPending);
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (!synchronized || version != _synchronizationVersion)
-            {
-                if (_synchronizationPending
-                    && _synchronizationAttemptCount < ImmediateInteropAttemptLimit)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
-                return;
-            }
-
-            _synchronizationPending = false;
-            _restoreFocusPending = false;
+            return;
         }
 
         if (Open && _focusPending)
@@ -291,7 +221,6 @@ public sealed partial class BzsMenu : BzsComponentBase, IBzsMenuOwner, IAsyncDis
     }
 
     /// <summary>Requests closure after a browser-owned outside or Escape interaction.</summary>
-    [JSInvokable]
     public Task CloseFromBrowserAsync(bool restoreFocus = false)
     {
         if (_disposed || !Open)
@@ -299,14 +228,7 @@ public sealed partial class BzsMenu : BzsComponentBase, IBzsMenuOwner, IAsyncDis
             return Task.CompletedTask;
         }
 
-        return InvokeAsync(async () =>
-        {
-            if (_disposed || !Open)
-            {
-                return;
-            }
-            await RequestCloseAsync(restoreFocus);
-        });
+        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
     }
 
     /// <inheritdoc />
@@ -317,26 +239,10 @@ public sealed partial class BzsMenu : BzsComponentBase, IBzsMenuOwner, IAsyncDis
             return;
         }
         _disposed = true;
-        Exception? disposalException = null;
-        try
+        if (_overlaySession is not null)
         {
-            if (_interop is not null)
-            {
-                try { await _interop.DisposeInstanceAsync(_instanceId); }
-                catch (Exception exception) { disposalException = exception; }
-                try { await _interop.DisposeAsync(); }
-                catch (Exception exception) { disposalException ??= exception; }
-            }
-        }
-        finally
-        {
-            try { _dotNetReference?.Dispose(); }
-            catch (Exception exception) { disposalException ??= exception; }
-            _dotNetReference = null;
-        }
-        if (disposalException is not null)
-        {
-            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(disposalException).Throw();
+            await _overlaySession.DisposeAsync();
+            _overlaySession = null;
         }
     }
 
@@ -346,25 +252,36 @@ public sealed partial class BzsMenu : BzsComponentBase, IBzsMenuOwner, IAsyncDis
     private Task RefreshItemsAsync() =>
         Task.WhenAll(_menuState.Items.Select(static item => item.RefreshAsync()));
 
-    private async Task RequestCloseAsync(bool restoreFocus)
+    private Task RequestCloseAsync(bool restoreFocus)
     {
         if (_disposed || !Open)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        _restoreFocusPending = restoreFocus;
-        await OpenChanged.InvokeAsync(false);
-        if (!_disposed && Open)
-        {
-            _restoreFocusPending = false;
-        }
+        return GetOverlaySession().RequestCloseAsync(restoreFocus);
     }
 
-    private void RequestSynchronization()
+    private Task HandleCloseRequestedAsync()
     {
-        _synchronizationVersion++;
-        _synchronizationAttemptCount = 0;
-        _synchronizationPending = true;
+        if (_disposed || !Open)
+        {
+            return Task.CompletedTask;
+        }
+
+        return InvokeAsync(async () =>
+        {
+            if (!_disposed && Open)
+            {
+                await OpenChanged.InvokeAsync(false);
+            }
+        });
     }
+
+    private BzsAnchoredOverlaySession GetOverlaySession() =>
+        _overlaySession ??= new BzsAnchoredOverlaySession(
+            JS,
+            HandleCloseRequestedAsync,
+            ImmediateInteropAttemptLimit,
+            LoggerFactory);
 }

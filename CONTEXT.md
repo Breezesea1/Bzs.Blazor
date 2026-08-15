@@ -19,3 +19,7 @@ _Avoid_: Shadow on every element, soft block, global embossing
 **Theme Mode**:
 The active light, dark, or system-following appearance selected by a consumer application and rendered by the Bzs.Blazor theme provider.
 _Avoid_: Stored theme, application preference, color scheme setting
+
+**Anchored Overlay**:
+Transient content positioned relative to an on-page anchor or invocation point, including popovers, tooltips, menus, context menus, and autocomplete suggestions.
+_Avoid_: Floating panel, popover infrastructure, portal

@@ -45,6 +45,31 @@ public sealed class PopoverTests
     }
 
     [Fact]
+    public async Task BrowserClosureHonorsDisabledEscapeFocusRestoration()
+    {
+        using var context = new BunitContext();
+        context.Services.AddBzsBlazor();
+        var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        module.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
+        IRenderedComponent<BzsPopover>? cut = null;
+        cut = context.Render<BzsPopover>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.RestoreFocusOnEscape, false)
+            .Add(component => component.OpenChanged, value =>
+                cut!.Render(updated => updated.Add(component => component.Open, value)))
+            .Add(component => component.TriggerContent, "Open tools")
+            .Add(component => component.ChildContent, "Tools"));
+
+        await cut.Instance.CloseFromBrowserAsync(restoreFocus: true);
+
+        var closeSynchronization = module.Invocations[BzsAnchoredOverlaySession.SetOpenMethod].Last();
+        Assert.Contains(false, closeSynchronization.Arguments);
+        Assert.False(Assert.IsType<bool>(closeSynchronization.Arguments.ElementAt(5)));
+    }
+
+    [Fact]
     public async Task DisabledOpenPopoverStillRequestsBrowserDismissal()
     {
         using var context = CreateContext();
@@ -84,10 +109,10 @@ public sealed class PopoverTests
     {
         using var context = new BunitContext();
         context.Services.AddBzsBlazor();
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
+        var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        module.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
 
         var cut = context.Render<BzsPopover>(parameters => parameters
             .Add(component => component.Open, true)
@@ -97,58 +122,10 @@ public sealed class PopoverTests
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Single(module.Invocations[BzsAnchoredOverlayInterop.InitializeMethod]);
-            var synchronization = Assert.Single(module.Invocations[BzsAnchoredOverlayInterop.SetOpenMethod]);
+            Assert.Single(module.Invocations[BzsAnchoredOverlaySession.InitializeMethod]);
+            var synchronization = Assert.Single(module.Invocations[BzsAnchoredOverlaySession.SetOpenMethod]);
             Assert.Contains("top-end", synchronization.Arguments);
         });
-    }
-
-    [Fact]
-    public void PopoverRetriesTransientInitializationAndRecoversOnALaterRender()
-    {
-        using var context = new BunitContext();
-        context.Services.AddBzsBlazor();
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        var initialize = module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true)
-            .SetException(new TaskCanceledException("Anchored overlay initialization was interrupted."));
-        var setOpen = module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
-
-        var cut = context.Render<BzsPopover>(parameters => parameters
-            .Add(component => component.Open, true)
-            .Add(component => component.TriggerContent, "Open tools")
-            .Add(component => component.ChildContent, "Tools"));
-
-        initialize.VerifyInvoke(BzsAnchoredOverlayInterop.InitializeMethod, 2);
-        initialize.SetVoidResult();
-        cut.Render();
-
-        initialize.VerifyInvoke(BzsAnchoredOverlayInterop.InitializeMethod, 3);
-        setOpen.VerifyInvoke(BzsAnchoredOverlayInterop.SetOpenMethod, 1);
-    }
-
-    [Fact]
-    public void PopoverRetriesTransientSynchronizationAndRecoversOnALaterRender()
-    {
-        using var context = new BunitContext();
-        context.Services.AddBzsBlazor();
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        var setOpen = module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true)
-            .SetException(new TaskCanceledException("Anchored overlay synchronization was interrupted."));
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
-
-        var cut = context.Render<BzsPopover>(parameters => parameters
-            .Add(component => component.Open, true)
-            .Add(component => component.TriggerContent, "Open tools")
-            .Add(component => component.ChildContent, "Tools"));
-
-        setOpen.VerifyInvoke(BzsAnchoredOverlayInterop.SetOpenMethod, 2);
-        setOpen.SetVoidResult();
-        cut.Render();
-        setOpen.VerifyInvoke(BzsAnchoredOverlayInterop.SetOpenMethod, 3);
-        cut.Render();
-        setOpen.VerifyInvoke(BzsAnchoredOverlayInterop.SetOpenMethod, 3);
     }
 
     [Fact]
@@ -192,10 +169,10 @@ public sealed class PopoverTests
     {
         var context = new BunitContext();
         context.Services.AddBzsBlazor();
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
+        var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        module.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
         return context;
     }
 }

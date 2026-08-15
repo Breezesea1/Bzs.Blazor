@@ -11,8 +11,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
     private const int ImmediateInteropAttemptLimit = 2;
     private readonly string _instanceId = $"bzs-autocomplete-{Guid.NewGuid():N}";
     private ElementReference _rootElement;
-    private DotNetObjectReference<BzsAutocomplete<TValue>>? _dotNetReference;
-    private BzsAnchoredOverlayInterop? _interop;
+    private BzsAnchoredOverlaySession? _overlaySession;
     private BzsAutocompleteInterop? _keyboardInterop;
     private BzsAutocompleteRequestCoordinator<TValue>? _requestCoordinator;
     private IBzsAutocompleteProvider<TValue>? _coordinatorProvider;
@@ -26,14 +25,8 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
     private bool _loading;
     private bool _parametersInitialized;
     private TValue? _lastParameterValue;
-    private bool _interopInitialized;
-    private int _initializationAttemptCount;
     private bool _keyboardInteropInitialized;
     private int _keyboardInitializationAttemptCount;
-    private bool _overlaySynchronizationPending = true;
-    private int _overlaySynchronizationVersion;
-    private int _overlaySynchronizationAttemptCount;
-    private bool _restoreFocusPending;
     private bool _disposed;
 
     /// <summary>Gets or sets the asynchronous suggestion provider.</summary>
@@ -221,6 +214,8 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
             ResetProviderState();
             SetOpen(false);
         }
+
+        UpdateOverlayState();
     }
 
     /// <inheritdoc />
@@ -231,54 +226,10 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
             return;
         }
 
-        if (!_interopInitialized)
+        await GetOverlaySession().AfterRenderAsync(_rootElement);
+        if (_disposed)
         {
-            _interop ??= new BzsAnchoredOverlayInterop(JS, LoggerFactory);
-            _dotNetReference ??= DotNetObjectReference.Create(this);
-            _initializationAttemptCount++;
-            _interopInitialized = await _interop.InitializeAsync(_instanceId, _rootElement, _dotNetReference);
-            if (_disposed || !_interopInitialized)
-            {
-                if (!_disposed && _initializationAttemptCount < ImmediateInteropAttemptLimit)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
-                return;
-            }
-
-            _initializationAttemptCount = 0;
-            RequestOverlaySynchronization();
-        }
-
-        if (_overlaySynchronizationPending && _interop is not null)
-        {
-            var version = _overlaySynchronizationVersion;
-            _overlaySynchronizationAttemptCount++;
-            var synchronized = await _interop.SetOpenAsync(
-                _instanceId,
-                _isOpen,
-                "bottom-start",
-                closeOnOutsideInteraction: true,
-                closeOnEscape: true,
-                restoreFocus: !_isOpen && _restoreFocusPending);
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (!synchronized || version != _overlaySynchronizationVersion)
-            {
-                if (_overlaySynchronizationPending
-                    && _overlaySynchronizationAttemptCount < ImmediateInteropAttemptLimit)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
-            }
-            else
-            {
-                _overlaySynchronizationPending = false;
-                _restoreFocusPending = false;
-            }
+            return;
         }
 
         if (!_keyboardInteropInitialized)
@@ -448,10 +399,10 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
                 break;
             case "Tab":
                 CommitQuery();
-                Close(restoreFocus: false, cancelRequest: true);
+                await CloseAsync(restoreFocus: false, cancelRequest: true);
                 break;
             case "Escape" when _isOpen:
-                Close(restoreFocus: true, cancelRequest: true);
+                await CloseAsync(restoreFocus: true, cancelRequest: true);
                 break;
         }
     }
@@ -552,14 +503,10 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
         }
 
         _isOpen = open;
-        if (open)
-        {
-            _restoreFocusPending = false;
-        }
-        RequestOverlaySynchronization();
+        UpdateOverlayState();
     }
 
-    private void Close(bool restoreFocus, bool cancelRequest)
+    private Task CloseAsync(bool restoreFocus, bool cancelRequest)
     {
         if (cancelRequest)
         {
@@ -567,16 +514,22 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
             _loading = false;
         }
 
-        _restoreFocusPending = restoreFocus;
-        SetOpen(false);
+        return GetOverlaySession().RequestCloseAsync(restoreFocus);
     }
 
-    private void RequestOverlaySynchronization()
-    {
-        _overlaySynchronizationVersion++;
-        _overlaySynchronizationAttemptCount = 0;
-        _overlaySynchronizationPending = true;
-    }
+    private BzsAnchoredOverlaySession GetOverlaySession() =>
+        _overlaySession ??= new BzsAnchoredOverlaySession(
+            JS,
+            HandleOverlayCloseRequestedAsync,
+            ImmediateInteropAttemptLimit,
+            LoggerFactory);
+
+    private void UpdateOverlayState() =>
+        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
+            _isOpen,
+            BzsPopoverPlacement.BottomStart,
+            CloseOnOutsideInteraction: true,
+            CloseOnEscape: true));
 
     private string FormatSelectionValidationMessage()
     {
@@ -598,8 +551,17 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
     };
 
     /// <summary>Closes the suggestion panel after a browser-owned outside or Escape interaction.</summary>
-    [JSInvokable]
     public Task CloseFromBrowserAsync(bool restoreFocus = false)
+    {
+        if (_disposed || !_isOpen)
+        {
+            return Task.CompletedTask;
+        }
+
+        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
+    }
+
+    private Task HandleOverlayCloseRequestedAsync()
     {
         if (_disposed || !_isOpen)
         {
@@ -608,13 +570,13 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
 
         return InvokeAsync(() =>
         {
-            if (_disposed || !_isOpen)
+            if (!_disposed && _isOpen)
             {
-                return;
+                _requestCoordinator?.Cancel();
+                _loading = false;
+                SetOpen(false);
+                StateHasChanged();
             }
-
-            Close(restoreFocus, cancelRequest: true);
-            StateHasChanged();
         });
     }
 
@@ -633,25 +595,18 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
         Exception? disposalException = null;
         try
         {
-            if (_interop is not null)
+            if (_overlaySession is not null)
             {
                 try
                 {
-                    await _interop.DisposeInstanceAsync(_instanceId);
+                    await _overlaySession.DisposeAsync();
                 }
                 catch (Exception exception)
                 {
                     disposalException = exception;
                 }
 
-                try
-                {
-                    await _interop.DisposeAsync();
-                }
-                catch (Exception exception)
-                {
-                    disposalException ??= exception;
-                }
+                _overlaySession = null;
             }
 
             if (_keyboardInterop is not null)
@@ -677,16 +632,6 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
         }
         finally
         {
-            try
-            {
-                _dotNetReference?.Dispose();
-            }
-            catch (Exception exception)
-            {
-                disposalException ??= exception;
-            }
-
-            _dotNetReference = null;
             ((IDisposable)this).Dispose();
         }
 

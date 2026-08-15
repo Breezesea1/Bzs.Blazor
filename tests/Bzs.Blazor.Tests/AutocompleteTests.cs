@@ -374,10 +374,10 @@ public sealed class AutocompleteTests
     {
         using var context = new BunitContext();
         context.Services.AddBzsBlazor();
-        var overlayModule = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        overlayModule.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        overlayModule.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true).SetVoidResult();
-        var overlayDispose = overlayModule.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true)
+        var overlayModule = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        overlayModule.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        overlayModule.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
+        var overlayDispose = overlayModule.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true)
             .SetVoidResult();
         var keyboardModule = context.JSInterop.SetupModule(BzsAutocompleteInterop.ModulePath);
         keyboardModule.SetupVoid(BzsAutocompleteInterop.InitializeMethod, _ => true).SetVoidResult();
@@ -391,7 +391,7 @@ public sealed class AutocompleteTests
 
         await cut.FindComponent<BzsAutocomplete<string?>>().Instance.DisposeAsync();
 
-        overlayDispose.VerifyInvoke(BzsAnchoredOverlayInterop.DisposeMethod, 1);
+        overlayDispose.VerifyInvoke(BzsAnchoredOverlaySession.DisposeMethod, 1);
         keyboardDispose.VerifyInvoke(BzsAutocompleteInterop.DisposeMethod, 1);
     }
 
@@ -434,10 +434,10 @@ public sealed class AutocompleteTests
     {
         var context = new BunitContext();
         context.Services.AddBzsBlazor();
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
+        var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        module.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
         var keyboardModule = context.JSInterop.SetupModule(BzsAutocompleteInterop.ModulePath);
         keyboardModule.SetupVoid(BzsAutocompleteInterop.InitializeMethod, _ => true).SetVoidResult();
         keyboardModule.SetupVoid(BzsAutocompleteInterop.DisposeMethod, _ => true).SetVoidResult();

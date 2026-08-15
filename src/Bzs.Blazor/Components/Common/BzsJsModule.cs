@@ -115,17 +115,27 @@ internal sealed class BzsJsModule : IAsyncDisposable
         }
     }
 
-    internal async ValueTask<bool> TryInvokeVoidAsync(string operationName, params object?[]? args)
+    internal ValueTask<bool> TryInvokeVoidAsync(string operationName, params object?[]? args) =>
+        TryInvokeVoidAsync(operationName, CancellationToken.None, args);
+
+    internal async ValueTask<bool> TryInvokeVoidAsync(
+        string operationName,
+        CancellationToken cancellationToken,
+        params object?[]? args)
     {
         var importing = !IsLoaded;
         try
         {
-            var module = await GetModuleAsync();
+            cancellationToken.ThrowIfCancellationRequested();
+            var module = await GetModuleAsync(cancellationToken, operationName);
             importing = false;
-            await module.InvokeVoidAsync(operationName, args);
+            cancellationToken.ThrowIfCancellationRequested();
+            await module.InvokeVoidAsync(operationName, cancellationToken, args);
             return true;
         }
-        catch (Exception exception) when (IsTransientFailure(exception, importing, _options))
+        catch (Exception exception) when (
+            IsTransientFailure(exception, importing, _options)
+            || (cancellationToken.IsCancellationRequested && exception is OperationCanceledException))
         {
             LogTransientFailure(exception, operationName);
             return false;

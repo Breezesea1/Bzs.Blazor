@@ -4,21 +4,9 @@ namespace Bzs.Blazor;
 public sealed partial class BzsPopover : BzsComponentBase, IAsyncDisposable
 {
     private const int ImmediateInteropAttemptLimit = 2;
-    private readonly string _instanceId = $"bzs-popover-{Guid.NewGuid():N}";
     private readonly string _panelId = $"bzs-popover-panel-{Guid.NewGuid():N}";
     private ElementReference _rootElement;
-    private DotNetObjectReference<BzsPopover>? _dotNetReference;
-    private BzsAnchoredOverlayInterop? _interop;
-    private bool _interopInitialized;
-    private int _initializationAttemptCount;
-    private bool _synchronizationPending = true;
-    private int _synchronizationVersion;
-    private int _synchronizationAttemptCount;
-    private bool _lastOpen;
-    private BzsPopoverPlacement _lastPlacement;
-    private bool _lastCloseOnOutsideInteraction;
-    private bool _lastCloseOnEscape;
-    private bool _restoreFocusPending;
+    private BzsAnchoredOverlaySession? _overlaySession;
     private bool _disposed;
 
     /// <summary>Gets or sets whether the popover content is visible.</summary>
@@ -72,19 +60,7 @@ public sealed partial class BzsPopover : BzsComponentBase, IAsyncDisposable
     private string? EffectiveTriggerAccessibleName => Normalize(TriggerAccessibleName);
     private string? EffectivePanelAccessibleName => Normalize(ContentAccessibleName);
     private string? PanelRole => Normalize(ContentRole);
-
-    private string PlacementName => Placement switch
-    {
-        BzsPopoverPlacement.BottomStart => "bottom-start",
-        BzsPopoverPlacement.Bottom => "bottom",
-        BzsPopoverPlacement.BottomEnd => "bottom-end",
-        BzsPopoverPlacement.TopStart => "top-start",
-        BzsPopoverPlacement.Top => "top",
-        BzsPopoverPlacement.TopEnd => "top-end",
-        BzsPopoverPlacement.Start => "start",
-        BzsPopoverPlacement.End => "end",
-        _ => throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "The popover placement is not supported."),
-    };
+    private string PlacementName => BzsAnchoredOverlaySession.GetPlacementName(Placement);
 
     private IReadOnlyDictionary<string, object> RootAttributes
     {
@@ -120,23 +96,12 @@ public sealed partial class BzsPopover : BzsComponentBase, IAsyncDisposable
             throw new InvalidOperationException("BzsPopover requires ChildContent.");
         }
 
-        if (_lastOpen != Open
-            || _lastPlacement != Placement
-            || _lastCloseOnOutsideInteraction != CloseOnOutsideInteraction
-            || _lastCloseOnEscape != CloseOnEscape)
-        {
-            RequestSynchronization();
-        }
-
-        if (Open)
-        {
-            _restoreFocusPending = false;
-        }
-
-        _lastOpen = Open;
-        _lastPlacement = Placement;
-        _lastCloseOnOutsideInteraction = CloseOnOutsideInteraction;
-        _lastCloseOnEscape = CloseOnEscape;
+        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
+            Open,
+            Placement,
+            CloseOnOutsideInteraction,
+            CloseOnEscape,
+            RestoreFocusOnBrowserClose: RestoreFocusOnEscape));
     }
 
     /// <inheritdoc />
@@ -147,59 +112,7 @@ public sealed partial class BzsPopover : BzsComponentBase, IAsyncDisposable
             return;
         }
 
-        if (!_interopInitialized)
-        {
-            _interop ??= new BzsAnchoredOverlayInterop(JS, LoggerFactory);
-            _dotNetReference ??= DotNetObjectReference.Create(this);
-            _initializationAttemptCount++;
-            _interopInitialized = await _interop.InitializeAsync(
-                _instanceId,
-                _rootElement,
-                _dotNetReference);
-            if (_disposed || !_interopInitialized)
-            {
-                if (!_disposed && _initializationAttemptCount < ImmediateInteropAttemptLimit)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
-                return;
-            }
-
-            _initializationAttemptCount = 0;
-            RequestSynchronization();
-        }
-
-        if (_synchronizationPending && _interop is not null)
-        {
-            var version = _synchronizationVersion;
-            var restoreFocus = !Open && RestoreFocusOnEscape && _restoreFocusPending;
-            _synchronizationAttemptCount++;
-            var synchronized = await _interop.SetOpenAsync(
-                _instanceId,
-                Open,
-                PlacementName,
-                CloseOnOutsideInteraction,
-                CloseOnEscape,
-                restoreFocus);
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (!synchronized || version != _synchronizationVersion)
-            {
-                if (_synchronizationPending
-                    && _synchronizationAttemptCount < ImmediateInteropAttemptLimit)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
-            }
-            else
-            {
-                _synchronizationPending = false;
-                _restoreFocusPending = false;
-            }
-        }
+        await GetOverlaySession().AfterRenderAsync(_rootElement);
     }
 
     private Task ToggleAsync()
@@ -213,7 +126,6 @@ public sealed partial class BzsPopover : BzsComponentBase, IAsyncDisposable
     }
 
     /// <summary>Requests closure after a browser-owned outside or Escape interaction.</summary>
-    [JSInvokable]
     public Task CloseFromBrowserAsync(bool restoreFocus = false)
     {
         if (_disposed || !Open)
@@ -221,16 +133,7 @@ public sealed partial class BzsPopover : BzsComponentBase, IAsyncDisposable
             return Task.CompletedTask;
         }
 
-        return InvokeAsync(async () =>
-        {
-            if (_disposed || !Open)
-            {
-                return;
-            }
-
-            _restoreFocusPending = restoreFocus;
-            await OpenChanged.InvokeAsync(false);
-        });
+        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
     }
 
     /// <inheritdoc />
@@ -242,57 +145,36 @@ public sealed partial class BzsPopover : BzsComponentBase, IAsyncDisposable
         }
 
         _disposed = true;
-        Exception? disposalException = null;
-        try
+        if (_overlaySession is not null)
         {
-            if (_interop is not null)
-            {
-                try
-                {
-                    await _interop.DisposeInstanceAsync(_instanceId);
-                }
-                catch (Exception exception)
-                {
-                    disposalException = exception;
-                }
-
-                try
-                {
-                    await _interop.DisposeAsync();
-                }
-                catch (Exception exception)
-                {
-                    disposalException ??= exception;
-                }
-            }
-        }
-        finally
-        {
-            try
-            {
-                _dotNetReference?.Dispose();
-            }
-            catch (Exception exception)
-            {
-                disposalException ??= exception;
-            }
-
-            _dotNetReference = null;
-        }
-
-        if (disposalException is not null)
-        {
-            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(disposalException).Throw();
+            await _overlaySession.DisposeAsync();
+            _overlaySession = null;
         }
     }
 
     private static string? Normalize(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
-    private void RequestSynchronization()
+    private BzsAnchoredOverlaySession GetOverlaySession() =>
+        _overlaySession ??= new BzsAnchoredOverlaySession(
+            JS,
+            HandleCloseRequestedAsync,
+            ImmediateInteropAttemptLimit,
+            LoggerFactory);
+
+    private Task HandleCloseRequestedAsync()
     {
-        _synchronizationVersion++;
-        _synchronizationAttemptCount = 0;
-        _synchronizationPending = true;
+        if (_disposed || !Open)
+        {
+            return Task.CompletedTask;
+        }
+
+        return InvokeAsync(async () =>
+        {
+            if (!_disposed && Open)
+            {
+                await OpenChanged.InvokeAsync(false);
+            }
+        });
     }
 }

@@ -523,10 +523,10 @@ public sealed class DataGridServerTests
         context.Services.AddBzsBlazor();
         context.Renderer.SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         context.JSInterop.Mode = JSRuntimeMode.Loose;
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
+        var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        module.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
         return context;
     }
 

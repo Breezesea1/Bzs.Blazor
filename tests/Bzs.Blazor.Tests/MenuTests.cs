@@ -269,10 +269,10 @@ public sealed class MenuTests
         using var context = new BunitContext();
         context.Services.AddBzsBlazor();
         context.JSInterop.Mode = JSRuntimeMode.Loose;
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenAtMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
+        var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        module.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenAtMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
         var openRequestCount = 0;
         var cut = context.Render<BzsContextMenu>(parameters => parameters
             .Add(component => component.Open, false)
@@ -291,9 +291,56 @@ public sealed class MenuTests
 
         cut.Render(parameters => parameters.Add(component => component.Open, true));
         Assert.Equal("0", cut.Find("[role='menuitem']").GetAttribute("tabindex"));
-        var invocation = module.Invocations[BzsAnchoredOverlayInterop.SetOpenAtMethod].Last();
+        var invocation = module.Invocations[BzsAnchoredOverlaySession.SetOpenAtMethod].Last();
         Assert.Contains(120d, invocation.Arguments);
         Assert.Contains(80d, invocation.Arguments);
+    }
+
+    [Fact]
+    public async Task RejectedAsyncContextInvocationDoesNotPositionLaterProgrammaticOpen()
+    {
+        using var context = new BunitContext();
+        context.Services.AddBzsBlazor();
+        var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        module.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenAtMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
+        var openRequestCount = 0;
+        var callbackEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseCallback = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var cut = context.Render<BzsContextMenu>(parameters => parameters
+            .Add(component => component.Open, false)
+            .Add(component => component.OpenChanged, async value =>
+            {
+                openRequestCount += value ? 1 : 0;
+                callbackEntered.SetResult();
+                await releaseCallback.Task;
+            })
+            .Add(component => component.TargetContent, "Document")
+            .Add(component => component.ChildContent, BuildItems(new ItemDefinition("Rename"))));
+
+        var invocationTask = cut.Find("[data-bzs-anchor='true']").TriggerEventAsync(
+            "oncontextmenu",
+            new MouseEventArgs
+            {
+                ClientX = 120,
+                ClientY = 80,
+            });
+        await callbackEntered.Task;
+        Assert.Equal(1, openRequestCount);
+
+        cut.Render(parameters => parameters.Add(component => component.Open, false));
+        releaseCallback.SetResult();
+        await invocationTask;
+        cut.Render(parameters => parameters.Add(component => component.Open, true));
+
+        Assert.DoesNotContain(
+            module.Invocations[BzsAnchoredOverlaySession.SetOpenAtMethod],
+            invocation => invocation.Arguments.ElementAt(1) is true);
+        var invocation = module.Invocations[BzsAnchoredOverlaySession.SetOpenMethod]
+            .Last(candidate => candidate.Arguments.ElementAt(1) is true);
+        Assert.Contains(true, invocation.Arguments);
     }
 
     [Fact]
@@ -301,10 +348,10 @@ public sealed class MenuTests
     {
         using var context = new BunitContext();
         context.Services.AddBzsBlazor();
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
+        var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        module.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
         var closeRequestCount = 0;
         var cut = context.Render<BzsMenu>(parameters => parameters
             .Add(component => component.Open, true)
@@ -317,7 +364,7 @@ public sealed class MenuTests
         Assert.Equal(2, closeRequestCount);
 
         cut.Render(parameters => parameters.Add(component => component.Open, false));
-        var closeSynchronization = module.Invocations[BzsAnchoredOverlayInterop.SetOpenMethod].Last();
+        var closeSynchronization = module.Invocations[BzsAnchoredOverlaySession.SetOpenMethod].Last();
         Assert.Contains(false, closeSynchronization.Arguments);
         Assert.DoesNotContain(true, closeSynchronization.Arguments.Skip(5));
     }
@@ -327,10 +374,10 @@ public sealed class MenuTests
     {
         using var context = new BunitContext();
         context.Services.AddBzsBlazor();
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
+        var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        module.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
         var closeRequestCount = 0;
         IRenderedComponent<BzsMenu>? cut = null;
         cut = context.Render<BzsMenu>(parameters => parameters
@@ -347,59 +394,11 @@ public sealed class MenuTests
 
         Assert.Equal(1, closeRequestCount);
         Assert.Empty(cut.FindAll("[role='menu']"));
-        var closeSynchronizations = module.Invocations[BzsAnchoredOverlayInterop.SetOpenMethod]
+        var closeSynchronizations = module.Invocations[BzsAnchoredOverlaySession.SetOpenMethod]
             .Where(invocation => invocation.Arguments.ElementAt(1) is false)
             .ToArray();
         var closeSynchronization = Assert.Single(closeSynchronizations);
         Assert.Contains(true, closeSynchronization.Arguments.Skip(5));
-    }
-
-    [Fact]
-    public void MenuRetriesTransientInitializationAndRecoversOnALaterRender()
-    {
-        using var context = new BunitContext();
-        context.Services.AddBzsBlazor();
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        var initialize = module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true)
-            .SetException(new TaskCanceledException("Menu initialization was interrupted."));
-        var setOpen = module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
-
-        var cut = context.Render<BzsMenu>(parameters => parameters
-            .Add(component => component.Open, true)
-            .Add(component => component.TriggerContent, "Open actions")
-            .Add(component => component.ChildContent, BuildItems(new ItemDefinition("Archive"))));
-
-        initialize.VerifyInvoke(BzsAnchoredOverlayInterop.InitializeMethod, 2);
-        initialize.SetVoidResult();
-        cut.Render();
-
-        initialize.VerifyInvoke(BzsAnchoredOverlayInterop.InitializeMethod, 3);
-        setOpen.VerifyInvoke(BzsAnchoredOverlayInterop.SetOpenMethod, 1);
-    }
-
-    [Fact]
-    public void ContextMenuRetriesTransientSynchronizationAndRecoversOnALaterRender()
-    {
-        using var context = new BunitContext();
-        context.Services.AddBzsBlazor();
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        var setOpen = module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenAtMethod, _ => true)
-            .SetException(new TaskCanceledException("Context menu synchronization was interrupted."));
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
-
-        var cut = context.Render<BzsContextMenu>(parameters => parameters
-            .Add(component => component.Open, true)
-            .Add(component => component.TargetContent, "Document")
-            .Add(component => component.ChildContent, BuildItems(new ItemDefinition("Rename"))));
-
-        setOpen.VerifyInvoke(BzsAnchoredOverlayInterop.SetOpenAtMethod, 2);
-        setOpen.SetVoidResult();
-        cut.Render();
-        setOpen.VerifyInvoke(BzsAnchoredOverlayInterop.SetOpenAtMethod, 3);
-        cut.Render();
-        setOpen.VerifyInvoke(BzsAnchoredOverlayInterop.SetOpenAtMethod, 3);
     }
 
     [Fact]
@@ -433,11 +432,11 @@ public sealed class MenuTests
         var context = new BunitContext();
         context.Services.AddBzsBlazor();
         context.JSInterop.Mode = JSRuntimeMode.Loose;
-        var module = context.JSInterop.SetupModule(BzsAnchoredOverlayInterop.ModulePath);
-        module.SetupVoid(BzsAnchoredOverlayInterop.InitializeMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.SetOpenAtMethod, _ => true).SetVoidResult();
-        module.SetupVoid(BzsAnchoredOverlayInterop.DisposeMethod, _ => true).SetVoidResult();
+        var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        module.SetupVoid(BzsAnchoredOverlaySession.InitializeMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.SetOpenAtMethod, _ => true).SetVoidResult();
+        module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
         return context;
     }
 

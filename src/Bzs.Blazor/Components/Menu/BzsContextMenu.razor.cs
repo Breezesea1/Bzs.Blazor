@@ -7,23 +7,19 @@ public sealed partial class BzsContextMenu : BzsComponentBase, IBzsMenuOwner, IA
 {
     private const int ImmediateInteropAttemptLimit = 2;
     private const int TypeaheadResetMilliseconds = 700;
-    private readonly string _instanceId = $"bzs-context-menu-{Guid.NewGuid():N}";
     private readonly string _targetId = $"bzs-context-menu-target-{Guid.NewGuid():N}";
     private readonly string _menuId = $"bzs-context-menu-list-{Guid.NewGuid():N}";
     private readonly BzsMenuState _menuState = new();
     private ElementReference _rootElement;
-    private DotNetObjectReference<BzsContextMenu>? _dotNetReference;
-    private BzsAnchoredOverlayInterop? _interop;
-    private bool _interopInitialized;
-    private int _initializationAttemptCount;
-    private bool _synchronizationPending = true;
-    private int _synchronizationVersion;
-    private int _synchronizationAttemptCount;
+    private BzsAnchoredOverlaySession? _overlaySession;
     private bool _lastOpen;
     private bool _focusPending;
-    private bool _restoreFocusPending;
     private double? _clientX;
     private double? _clientY;
+    private bool _invocationOpenRequestPending;
+    private long _invocationOpenRequestVersion;
+    private long _activeInvocationOpenRequestVersion;
+    private long _closedInvocationOpenRequestVersion;
     private string _typeahead = string.Empty;
     private DateTimeOffset _lastTypeaheadAt;
     private bool _disposed;
@@ -85,29 +81,33 @@ public sealed partial class BzsContextMenu : BzsComponentBase, IBzsMenuOwner, IA
             throw new InvalidOperationException("BzsContextMenu requires TargetContent and ChildContent.");
         }
 
-        if (_lastOpen != Open)
+        if (!Open && _invocationOpenRequestPending)
         {
-            RequestSynchronization();
+            if (_activeInvocationOpenRequestVersion == 0)
+            {
+                ClearInvocationPoint();
+            }
+            else
+            {
+                _closedInvocationOpenRequestVersion = _activeInvocationOpenRequestVersion;
+            }
         }
 
         if (!_lastOpen && Open)
         {
             _focusPending = true;
+            _invocationOpenRequestPending = false;
+            _closedInvocationOpenRequestVersion = 0;
         }
         else if (_lastOpen && !Open)
         {
             _typeahead = string.Empty;
             _menuState.ClearFocus();
-            _clientX = null;
-            _clientY = null;
-        }
-
-        if (Open)
-        {
-            _restoreFocusPending = false;
+            ClearInvocationPoint();
         }
 
         _lastOpen = Open;
+        UpdateOverlayState();
     }
 
     /// <inheritdoc />
@@ -118,55 +118,10 @@ public sealed partial class BzsContextMenu : BzsComponentBase, IBzsMenuOwner, IA
             return;
         }
 
-        if (!_interopInitialized)
+        await GetOverlaySession().AfterRenderAsync(_rootElement);
+        if (_disposed)
         {
-            _interop ??= new BzsAnchoredOverlayInterop(JS, LoggerFactory);
-            _dotNetReference ??= DotNetObjectReference.Create(this);
-            _initializationAttemptCount++;
-            _interopInitialized = await _interop.InitializeAsync(_instanceId, _rootElement, _dotNetReference);
-            if (_disposed || !_interopInitialized)
-            {
-                if (!_disposed && _initializationAttemptCount < ImmediateInteropAttemptLimit)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
-                return;
-            }
-
-            _initializationAttemptCount = 0;
-            RequestSynchronization();
-        }
-
-        if (_synchronizationPending && _interop is not null)
-        {
-            var version = _synchronizationVersion;
-            _synchronizationAttemptCount++;
-            var synchronized = await _interop.SetOpenAtAsync(
-                _instanceId,
-                Open,
-                "bottom-start",
-                closeOnOutsideInteraction: true,
-                closeOnEscape: true,
-                restoreFocus: !Open && _restoreFocusPending,
-                _clientX,
-                _clientY);
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (!synchronized || version != _synchronizationVersion)
-            {
-                if (_synchronizationPending
-                    && _synchronizationAttemptCount < ImmediateInteropAttemptLimit)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
-                return;
-            }
-
-            _synchronizationPending = false;
-            _restoreFocusPending = false;
+            return;
         }
 
         if (Open && _focusPending)
@@ -192,12 +147,32 @@ public sealed partial class BzsContextMenu : BzsComponentBase, IBzsMenuOwner, IA
         _focusPending = true;
         if (Open)
         {
-            RequestSynchronization();
+            _invocationOpenRequestPending = false;
+            UpdateOverlayState();
             await InvokeAsync(StateHasChanged);
         }
         else
         {
-            await OpenChanged.InvokeAsync(true);
+            var requestVersion = ++_invocationOpenRequestVersion;
+            _invocationOpenRequestPending = true;
+            _activeInvocationOpenRequestVersion = requestVersion;
+            try
+            {
+                await OpenChanged.InvokeAsync(true);
+            }
+            finally
+            {
+                if (_activeInvocationOpenRequestVersion == requestVersion)
+                {
+                    _activeInvocationOpenRequestVersion = 0;
+                    if (_invocationOpenRequestPending
+                        && _closedInvocationOpenRequestVersion == requestVersion
+                        && !Open)
+                    {
+                        ClearInvocationPoint();
+                    }
+                }
+            }
         }
     }
 
@@ -259,21 +234,13 @@ public sealed partial class BzsContextMenu : BzsComponentBase, IBzsMenuOwner, IA
     }
 
     /// <summary>Requests closure after a browser-owned outside or Escape interaction.</summary>
-    [JSInvokable]
     public Task CloseFromBrowserAsync(bool restoreFocus = false)
     {
         if (_disposed || !Open)
         {
             return Task.CompletedTask;
         }
-        return InvokeAsync(async () =>
-        {
-            if (_disposed || !Open)
-            {
-                return;
-            }
-            await RequestCloseAsync(restoreFocus);
-        });
+        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
     }
 
     /// <inheritdoc />
@@ -284,54 +251,67 @@ public sealed partial class BzsContextMenu : BzsComponentBase, IBzsMenuOwner, IA
             return;
         }
         _disposed = true;
-        Exception? disposalException = null;
-        try
+        if (_overlaySession is not null)
         {
-            if (_interop is not null)
-            {
-                try { await _interop.DisposeInstanceAsync(_instanceId); }
-                catch (Exception exception) { disposalException = exception; }
-                try { await _interop.DisposeAsync(); }
-                catch (Exception exception) { disposalException ??= exception; }
-            }
-        }
-        finally
-        {
-            try { _dotNetReference?.Dispose(); }
-            catch (Exception exception) { disposalException ??= exception; }
-            _dotNetReference = null;
-        }
-        if (disposalException is not null)
-        {
-            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(disposalException).Throw();
+            await _overlaySession.DisposeAsync();
+            _overlaySession = null;
         }
     }
 
     private static string? Normalize(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
+    private void ClearInvocationPoint()
+    {
+        _clientX = null;
+        _clientY = null;
+        _invocationOpenRequestPending = false;
+        _closedInvocationOpenRequestVersion = 0;
+    }
+
     private Task RefreshItemsAsync() =>
         Task.WhenAll(_menuState.Items.Select(static item => item.RefreshAsync()));
 
-    private async Task RequestCloseAsync(bool restoreFocus)
+    private Task RequestCloseAsync(bool restoreFocus)
     {
         if (_disposed || !Open)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        _restoreFocusPending = restoreFocus;
-        await OpenChanged.InvokeAsync(false);
-        if (!_disposed && Open)
-        {
-            _restoreFocusPending = false;
-        }
+        return GetOverlaySession().RequestCloseAsync(restoreFocus);
     }
 
-    private void RequestSynchronization()
+    private Task HandleCloseRequestedAsync()
     {
-        _synchronizationVersion++;
-        _synchronizationAttemptCount = 0;
-        _synchronizationPending = true;
+        if (_disposed || !Open)
+        {
+            return Task.CompletedTask;
+        }
+
+        return InvokeAsync(async () =>
+        {
+            if (!_disposed && Open)
+            {
+                await OpenChanged.InvokeAsync(false);
+            }
+        });
     }
+
+    private BzsAnchoredOverlaySession GetOverlaySession() =>
+        _overlaySession ??= new BzsAnchoredOverlaySession(
+            JS,
+            HandleCloseRequestedAsync,
+            ImmediateInteropAttemptLimit,
+            LoggerFactory);
+
+    private void UpdateOverlayState() =>
+        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
+            Open,
+            BzsPopoverPlacement.BottomStart,
+            CloseOnOutsideInteraction: true,
+            CloseOnEscape: true,
+            _clientX is { } clientX && _clientY is { } clientY
+                ? new BzsAnchoredOverlayInvocationPoint(clientX, clientY)
+                : null));
 }

@@ -40,6 +40,7 @@ public sealed class OverlayDemoTests(DemoServerFixture server) : BrowserGatePage
 
         await Page.Keyboard.PressAsync("Enter");
         await Expect(dialog).ToBeVisibleAsync();
+        await Expect(primary).ToBeFocusedAsync();
         await Page.Keyboard.PressAsync("Escape");
         await Expect(dialog).ToHaveCountAsync(0);
         await Expect(trigger).ToBeFocusedAsync();

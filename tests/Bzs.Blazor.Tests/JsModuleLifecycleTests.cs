@@ -284,6 +284,22 @@ public sealed class JsModuleLifecycleTests
         Assert.Equal(0, runtime.Module.CancellableInvocationAttempts);
     }
 
+    [Fact]
+    public async Task CancellableVoidInvocationUsesCancellationAwareModuleOverload()
+    {
+        var runtime = new TestJsRuntime();
+        await using var module = new BzsJsModule(runtime, ModulePath);
+        using var cancellation = new CancellationTokenSource();
+
+        var succeeded = await module.TryInvokeVoidAsync(
+            "initialize",
+            cancellation.Token);
+
+        Assert.True(succeeded);
+        Assert.Equal(["initialize"], runtime.Module.Invocations);
+        Assert.Equal(1, runtime.Module.CancellableInvocationAttempts);
+    }
+
     private sealed class TestJsRuntime : IJSRuntime
     {
         private readonly object _importGate = new();
