@@ -71,8 +71,9 @@
         _open = true;
     }
 
-    private void OpenWithoutFocusable()
+    private async Task OpenWithoutFocusable()
     {
+        await Task.Delay(100);
         _showFocusableContent = false;
         _open = true;
     }

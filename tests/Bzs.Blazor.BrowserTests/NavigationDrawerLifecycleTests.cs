@@ -100,6 +100,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
         var drawer = Page.Locator("#fixture-drawer");
 
         await Page.Locator("#fixture-open-without-focusable").ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
         await AssertFocusIsInsideDrawerAsync(drawer);
         await Page.Keyboard.PressAsync("Tab");
         await AssertFocusIsInsideDrawerAsync(drawer);
@@ -233,7 +234,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
 
     private static async Task AssertFocusIsInsideDrawerAsync(ILocator drawer)
     {
-        Assert.True(await drawer.EvaluateAsync<bool>(
-            "element => element.contains(document.activeElement)"));
+        await Microsoft.Playwright.Assertions.Expect(drawer.Locator(":focus"))
+            .ToHaveCountAsync(1);
     }
 }
