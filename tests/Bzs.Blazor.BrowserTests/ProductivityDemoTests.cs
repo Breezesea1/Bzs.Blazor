@@ -12,7 +12,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest("static");
         using var client = new HttpClient();
-        var response = await client.GetAsync($"{server.BaseUrl}/productivity/static");
+        var response = await client.GetAsync($"{server.BaseUrl}/productivity/static?culture=en-US");
         var html = await response.Content.ReadAsStringAsync();
 
         response.EnsureSuccessStatusCode();
@@ -37,7 +37,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest(renderMode);
         await Page.SetViewportSizeAsync(1280, 900);
-        var response = await Page.GotoAsync($"{server.BaseUrl}/productivity/{renderMode}");
+        var response = await Page.GotoAsync($"{server.BaseUrl}/productivity/{renderMode}?culture=en-US");
         Assert.True(response?.Ok ?? false);
 
         await Expect(Page.GetByTestId("productivity-workbench"))
@@ -124,7 +124,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(800, 420);
-        await Page.GotoAsync($"{server.BaseUrl}/productivity/server");
+        await Page.GotoAsync($"{server.BaseUrl}/productivity/server?culture=en-US");
         await Expect(Page.GetByTestId("productivity-workbench"))
             .ToHaveAttributeAsync("data-bzs-interactive", "true");
 

@@ -9,6 +9,24 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     : BrowserGatePageTest
 {
     [Fact]
+    public async Task BareVisitUsesChineseAndExplicitEnglishUpdatesDocumentLanguage()
+    {
+        BeginBrowserGateTest();
+
+        await Page.GotoAsync(server.BaseUrl);
+        await Expect(Page.Locator("html")).ToHaveAttributeAsync("lang", "zh-Hans");
+
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Expect(Page.Locator("html")).ToHaveAttributeAsync("lang", "en-US");
+        var language = Page.GetByRole(
+            AriaRole.Radiogroup,
+            new() { Name = "Date picker language", Exact = true });
+        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
+        await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "English", Exact = true }))
+            .ToBeCheckedAsync();
+    }
+
+    [Fact]
     public async Task HostShellUsesBzsLayoutAndControlledNavigation()
     {
         BeginBrowserGateTest();

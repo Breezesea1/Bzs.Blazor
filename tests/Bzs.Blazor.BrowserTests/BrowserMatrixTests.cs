@@ -146,7 +146,7 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
     private static async Task RunInteractiveAutoWorkflowAsync(IPage page, string baseUrl, string target)
     {
         const string testId = "render-mode-auto";
-        var response = await page.GotoAsync($"{baseUrl}/render-modes/auto");
+        var response = await page.GotoAsync($"{baseUrl}/render-modes/auto?culture=en-US");
         Assert.True(response?.Ok ?? false, $"{target} could not load the Interactive Auto catalog.");
 
         await Expect(page.GetByTestId($"{testId}-runtime-readiness"))
@@ -207,7 +207,7 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
 
     private static async Task RunLocalizationAndRtlWorkflowAsync(IPage page, string baseUrl, string target)
     {
-        var response = await page.GotoAsync($"{baseUrl}/tabs");
+        var response = await page.GotoAsync($"{baseUrl}/tabs?culture=en-US");
         Assert.True(response?.Ok ?? false, $"{target} could not load the Interactive Auto tabs workbench.");
         await Expect(page.GetByTestId("tabs-runtime-status")).ToHaveTextAsync("Interactive runtime ready");
 
@@ -229,7 +229,7 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
 
     private static async Task RunProductivityWorkflowAsync(IPage page, string baseUrl, string target)
     {
-        var response = await page.GotoAsync($"{baseUrl}/productivity");
+        var response = await page.GotoAsync($"{baseUrl}/productivity?culture=en-US");
         Assert.True(response?.Ok ?? false, $"{target} could not load the Productivity catalog.");
         await Expect(page.GetByTestId("productivity-workbench"))
             .ToHaveAttributeAsync("data-bzs-interactive", "true");

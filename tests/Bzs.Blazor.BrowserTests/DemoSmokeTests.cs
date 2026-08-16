@@ -8,6 +8,20 @@ namespace Bzs.Blazor.BrowserTests;
 public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTest
 {
     [Fact]
+    public async Task BareVisitUsesChineseAndExplicitEnglishUpdatesDocumentLanguage()
+    {
+        BeginBrowserGateTest();
+
+        await Page.GotoAsync(server.BaseUrl);
+        await Expect(Page.Locator("html")).ToHaveAttributeAsync("lang", "zh-Hans");
+        await Expect(Page.Locator(".demo-skip-link")).ToHaveTextAsync("跳至目录内容");
+
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Expect(Page.Locator("html")).ToHaveAttributeAsync("lang", "en-US");
+        await Expect(Page.Locator(".demo-skip-link")).ToHaveTextAsync("Skip to catalog content");
+    }
+
+    [Fact]
     public async Task HostShellUsesBzsLayoutAcrossViewports()
     {
         BeginBrowserGateTest();

@@ -12,7 +12,7 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
     [Fact]
     public async Task ReleasesRouteProvidesAStaticDocumentFallback()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, $"{server.BaseUrl}/releases");
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"{server.BaseUrl}/releases?culture=en-US");
         request.Headers.TryAddWithoutValidation(HeaderNames.Accept, "text/html");
         using var client = new HttpClient();
         using var response = await client.SendAsync(request);
@@ -26,7 +26,7 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
         Assert.Contains("New public contracts", html, StringComparison.Ordinal);
         Assert.Contains("Deliberately deferred", html, StringComparison.Ordinal);
         Assert.Contains("data-testid=\"demo-release-fallback\"", html, StringComparison.Ordinal);
-        Assert.Contains("href=\"releases\"", html, StringComparison.Ordinal);
+        Assert.Contains("href=\"/releases?culture=en-US\"", html, StringComparison.Ordinal);
         Assert.Contains("title=\"What&#x27;s new\"", html, StringComparison.Ordinal);
     }
 
@@ -35,7 +35,7 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1280, 900);
-        await Page.GotoAsync(server.BaseUrl);
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
         await Page.EvaluateAsync($"localStorage.removeItem('{StorageKey}')");
         await Page.ReloadAsync();
 
@@ -84,7 +84,7 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
         await Expect(Page.Locator(".demo-release-unread")).ToHaveCountAsync(0);
 
         await Page.GetByRole(AriaRole.Link, new() { Name = "Releases", Exact = true }).ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/releases");
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/releases?culture=en-US");
         await Expect(Page.GetByRole(
             AriaRole.Heading,
             new() { Name = "Release announcements", Exact = true }))

@@ -1,5 +1,6 @@
+@using System.Globalization
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@CultureInfo.CurrentUICulture.Name">
 
 <head>
     <meta charset="utf-8" />
@@ -16,7 +17,7 @@
 </head>
 
 <body>
-    <a class="demo-skip-link" href="#main-content">Skip to catalog content</a>
+    <a class="demo-skip-link" href="#main-content">@DemoText.Chrome.SkipLink</a>
     <Routes />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="@Assets["_content/Bzs.Blazor.Demo.Catalog/demo-shell.js"]"></script>

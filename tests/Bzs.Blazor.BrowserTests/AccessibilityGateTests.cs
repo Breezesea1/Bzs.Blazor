@@ -11,7 +11,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     public async Task AutoCatalogCompleteStateHasNoCriticalOrSeriousAxeViolations()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/render-modes/auto");
+        await Page.GotoAsync($"{server.BaseUrl}/render-modes/auto?culture=en-US");
         await Expect(Page.GetByTestId("render-mode-auto-runtime-readiness"))
             .ToHaveTextAsync("Interactive runtime ready");
 
@@ -49,7 +49,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     public async Task InvalidFormStateHasNoCriticalOrSeriousAxeViolations()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var workEmail = Page.GetByLabel("Work email");
@@ -85,7 +85,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     public async Task OpenDialogStateHasNoCriticalOrSeriousAxeViolations()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/overlays");
+        await Page.GotoAsync($"{server.BaseUrl}/overlays?culture=en-US");
         await Expect(Page.GetByTestId("overlays-runtime-status"))
             .ToHaveTextAsync("Interactive runtime ready");
 
@@ -100,7 +100,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     public async Task TabsStateHasNoCriticalOrSeriousAxeViolations()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/tabs");
+        await Page.GotoAsync($"{server.BaseUrl}/tabs?culture=en-US");
         await Expect(Page.GetByTestId("tabs-runtime-status"))
             .ToHaveTextAsync("Interactive runtime ready");
 
@@ -116,7 +116,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     public async Task ProductivityExpandedStatesHaveNoCriticalOrSeriousAxeViolations()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/productivity");
+        await Page.GotoAsync($"{server.BaseUrl}/productivity?culture=en-US");
         await Expect(Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" })
             .Locator("tbody tr")).ToHaveCountAsync(5);
 
@@ -137,7 +137,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     public async Task ReleaseAnnouncementStatesHaveNoCriticalOrSeriousAxeViolations()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync(server.BaseUrl);
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
 
         await Page.GetByTestId("demo-release-trigger").ClickAsync();
         var dialog = Page.GetByRole(
@@ -158,7 +158,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(390, 844);
-        await Page.GotoAsync($"{server.BaseUrl}/layout");
+        await Page.GotoAsync($"{server.BaseUrl}/layout?culture=en-US");
 
         var drawer = Page.Locator("#layout-navigation-drawer");
         var close = Page.GetByRole(AriaRole.Button, new() { Name = "Close navigation" });
@@ -184,7 +184,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
             ViewportSize = new ViewportSize { Width = 1280, Height = 900 },
         });
 
-        await page.GotoAsync($"{server.BaseUrl}/forms");
+        await page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
         await page.GetByText("Interactive runtime ready").WaitForAsync();
         Assert.True(await page.EvaluateAsync<bool>("() => matchMedia('(forced-colors: active)').matches"));
 
@@ -195,7 +195,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
         Assert.True(await HasBorderAsync(workEmail));
         await AssertNoHorizontalPageOverflowAsync(page, "forced-colors forms");
 
-        await page.GotoAsync($"{server.BaseUrl}/tabs");
+        await page.GotoAsync($"{server.BaseUrl}/tabs?culture=en-US");
         await page.GetByTestId("tabs-runtime-status").WaitForAsync();
         var overview = page.GetByTestId("automatic-tabs")
             .GetByRole(AriaRole.Tab, new() { Name = "Overview" });
@@ -208,7 +208,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
         Assert.True(await HasBorderAsync(activity));
         await AssertNoHorizontalPageOverflowAsync(page, "forced-colors tabs");
 
-        await page.GotoAsync($"{server.BaseUrl}/productivity");
+        await page.GotoAsync($"{server.BaseUrl}/productivity?culture=en-US");
         await page.GetByRole(AriaRole.Table, new() { Name = "Review queue" })
             .Locator("tbody tr")
             .WaitForAsync();
@@ -229,21 +229,21 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
             "localStorage.setItem('bzs-demo-sidebar-collapsed', '1')");
         await SetTwoHundredPercentReflowEquivalentViewportAsync(Page);
 
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         await AssertFitsAtTwoHundredPercentReflowEquivalentAsync(Page, "forms");
 
-        await Page.GotoAsync($"{server.BaseUrl}/tabs");
+        await Page.GotoAsync($"{server.BaseUrl}/tabs?culture=en-US");
         await Expect(Page.GetByTestId("tabs-runtime-status"))
             .ToHaveTextAsync("Interactive runtime ready");
         await AssertFitsAtTwoHundredPercentReflowEquivalentAsync(Page, "tabs");
 
-        await Page.GotoAsync($"{server.BaseUrl}/overlays");
+        await Page.GotoAsync($"{server.BaseUrl}/overlays?culture=en-US");
         await Expect(Page.GetByTestId("overlays-runtime-status"))
             .ToHaveTextAsync("Interactive runtime ready");
         await AssertFitsAtTwoHundredPercentReflowEquivalentAsync(Page, "overlays");
 
-        await Page.GotoAsync($"{server.BaseUrl}/productivity");
+        await Page.GotoAsync($"{server.BaseUrl}/productivity?culture=en-US");
         await Expect(Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" })
             .Locator("tbody tr")).ToHaveCountAsync(5);
         await AssertFitsAtTwoHundredPercentReflowEquivalentAsync(Page, "productivity");
@@ -257,14 +257,14 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
         BeginBrowserGateTest(deviceName);
         var page = await NewObservedPageAsync(Playwright.Devices[deviceName]);
 
-        await page.GotoAsync($"{server.BaseUrl}/render-modes/auto");
+        await page.GotoAsync($"{server.BaseUrl}/render-modes/auto?culture=en-US");
         await page.GetByTestId("render-mode-auto-runtime-readiness").WaitForAsync();
         await page.GetByTestId("render-mode-auto-counter").ClickAsync();
         await Expect(page.GetByTestId("render-mode-auto-counter"))
             .ToHaveTextAsync("Interaction count: 1");
         await AssertNoHorizontalPageOverflowAsync(page, $"{deviceName} Interactive Auto catalog");
 
-        await page.GotoAsync($"{server.BaseUrl}/forms");
+        await page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
         await page.GetByText("Interactive runtime ready").WaitForAsync();
         var workEmail = page.GetByLabel("Work email");
         await workEmail.FillAsync("not-an-email");
@@ -272,7 +272,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
         await Expect(workEmail).ToHaveAttributeAsync("aria-invalid", "true");
         await AssertNoHorizontalPageOverflowAsync(page, $"{deviceName} forms");
 
-        await page.GotoAsync($"{server.BaseUrl}/tabs");
+        await page.GotoAsync($"{server.BaseUrl}/tabs?culture=en-US");
         await page.GetByTestId("tabs-runtime-status").WaitForAsync();
         var overview = page.GetByTestId("automatic-tabs")
             .GetByRole(AriaRole.Tab, new() { Name = "Overview" });
@@ -283,7 +283,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
         await Expect(page.GetByTestId("automatic-selection")).ToHaveTextAsync("Selected: activity");
         await AssertNoHorizontalPageOverflowAsync(page, $"{deviceName} tabs");
 
-        await page.GotoAsync($"{server.BaseUrl}/productivity");
+        await page.GotoAsync($"{server.BaseUrl}/productivity?culture=en-US");
         await Expect(page.GetByRole(AriaRole.Table, new() { Name = "Review queue" })
             .Locator("tbody tr")).ToHaveCountAsync(5);
         var tooltipTrigger = page.GetByTestId("productivity-tooltip-trigger");
@@ -299,7 +299,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
     {
         BeginBrowserGateTest();
         await Page.EmulateMediaAsync(new() { ReducedMotion = ReducedMotion.Reduce });
-        await Page.GotoAsync($"{server.BaseUrl}/productivity");
+        await Page.GotoAsync($"{server.BaseUrl}/productivity?culture=en-US");
         await Expect(Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" })
             .Locator("tbody tr")).ToHaveCountAsync(5);
         Assert.True(await Page.EvaluateAsync<bool>(

@@ -25,9 +25,9 @@ public partial class DemoLanguageSwitcher : ComponentBase
 
     private bool _isInteractive;
 
-    private string SelectedCulture => DemoCulture.IsChinese(new Uri(Navigation.Uri))
-        ? ChineseCulture
-        : EnglishCulture;
+    private string SelectedCulture => DemoCulture.IsEnglish(new Uri(Navigation.Uri))
+        ? EnglishCulture
+        : ChineseCulture;
 
     protected override void OnAfterRender(bool firstRender)
     {

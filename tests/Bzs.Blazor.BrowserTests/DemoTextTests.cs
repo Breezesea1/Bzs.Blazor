@@ -1,0 +1,50 @@
+using System.Globalization;
+using System.Reflection;
+using Bzs.Blazor.Demo.Client;
+
+namespace Bzs.Blazor.BrowserTests;
+
+public sealed class DemoTextTests
+{
+    [Fact]
+    public void ChromeSkipLinkFollowsTheCurrentUiCulture()
+    {
+        Assert.Equal("跳至目录内容", EvaluateUnderCulture("zh-Hans", () => DemoText.Chrome.SkipLink));
+        Assert.Equal("Skip to catalog content", EvaluateUnderCulture("en-US", () => DemoText.Chrome.SkipLink));
+    }
+
+    [Fact]
+    public void EveryCatalogEntryHasNonEmptyDistinctTranslations()
+    {
+        var properties = typeof(DemoText).GetNestedTypes()
+            .SelectMany(nestedType => nestedType.GetProperties(BindingFlags.Public | BindingFlags.Static))
+            .Where(property => property.PropertyType == typeof(string))
+            .ToArray();
+
+        Assert.NotEmpty(properties);
+
+        foreach (var property in properties)
+        {
+            var chinese = EvaluateUnderCulture("zh-Hans", () => (string?)property.GetValue(null));
+            var english = EvaluateUnderCulture("en-US", () => (string?)property.GetValue(null));
+
+            Assert.False(string.IsNullOrWhiteSpace(chinese), $"{property.Name} must not be empty under the default culture.");
+            Assert.False(string.IsNullOrWhiteSpace(english), $"{property.Name} must not be empty under en-US.");
+            Assert.NotEqual(chinese, english);
+        }
+    }
+
+    private static T EvaluateUnderCulture<T>(string cultureName, Func<T> evaluate)
+    {
+        var previousCulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(cultureName);
+            return evaluate();
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previousCulture;
+        }
+    }
+}

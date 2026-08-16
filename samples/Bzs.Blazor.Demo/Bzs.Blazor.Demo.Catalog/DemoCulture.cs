@@ -5,15 +5,16 @@ namespace Bzs.Blazor.Demo.Client;
 public static class DemoCulture
 {
     private const string ChineseCultureName = "zh-Hans";
+    private const string EnglishCultureName = "en-US";
 
-    private static readonly CultureInfo EnglishCulture = CultureInfo.GetCultureInfo("en-US");
+    private static readonly CultureInfo EnglishCulture = CultureInfo.GetCultureInfo(EnglishCultureName);
     private static readonly CultureInfo SimplifiedChineseCulture = CultureInfo.GetCultureInfo(ChineseCultureName);
 
     public static CultureInfo Resolve(string? cultureName) =>
-        IsChinese(cultureName) ? SimplifiedChineseCulture : EnglishCulture;
+        IsEnglish(cultureName) ? EnglishCulture : SimplifiedChineseCulture;
 
     public static CultureInfo Resolve(Uri uri) =>
-        IsChinese(uri) ? SimplifiedChineseCulture : EnglishCulture;
+        IsEnglish(uri) ? EnglishCulture : SimplifiedChineseCulture;
 
     public static void ApplyCurrentCulture(Uri uri)
     {
@@ -24,27 +25,17 @@ public static class DemoCulture
         CultureInfo.CurrentUICulture = culture;
     }
 
-    public static bool IsChinese(Uri uri)
-    {
-        foreach (var queryPart in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
-        {
-            if (!IsCultureQueryPart(queryPart))
-            {
-                continue;
-            }
+    public static bool IsChinese(Uri uri) =>
+        !IsEnglish(uri);
 
-            var separatorIndex = queryPart.IndexOf('=');
-            if (separatorIndex < 0)
-            {
-                return false;
-            }
+    public static bool IsEnglish(Uri uri) =>
+        IsEnglish(GetCultureName(uri));
 
-            var value = Uri.UnescapeDataString(queryPart[(separatorIndex + 1)..].Replace('+', ' '));
-            return IsChinese(value);
-        }
+    public static bool IsChinese(string? cultureName) =>
+        string.Equals(cultureName, ChineseCultureName, StringComparison.OrdinalIgnoreCase);
 
-        return false;
-    }
+    public static bool IsEnglish(string? cultureName) =>
+        string.Equals(cultureName, EnglishCultureName, StringComparison.OrdinalIgnoreCase);
 
     public static string WithCulture(Uri uri, string cultureName)
     {
@@ -61,13 +52,34 @@ public static class DemoCulture
         return $"{builder.Uri.AbsolutePath}{builder.Uri.Query}{builder.Uri.Fragment}";
     }
 
-    public static string PreserveCulture(Uri currentUri, Uri baseUri, string relativePath) =>
-        IsChinese(currentUri)
-            ? WithCulture(new Uri(baseUri, relativePath), ChineseCultureName)
-            : relativePath;
+    public static string PreserveCulture(Uri currentUri, Uri baseUri, string relativePath)
+    {
+        var cultureName = GetCultureName(currentUri);
+        return cultureName is null
+            ? relativePath
+            : WithCulture(new Uri(baseUri, relativePath), cultureName);
+    }
 
-    public static bool IsChinese(string? cultureName) =>
-        string.Equals(cultureName, ChineseCultureName, StringComparison.OrdinalIgnoreCase);
+    private static string? GetCultureName(Uri uri)
+    {
+        foreach (var queryPart in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!IsCultureQueryPart(queryPart))
+            {
+                continue;
+            }
+
+            var separatorIndex = queryPart.IndexOf('=');
+            if (separatorIndex < 0)
+            {
+                return null;
+            }
+
+            return Uri.UnescapeDataString(queryPart[(separatorIndex + 1)..].Replace('+', ' '));
+        }
+
+        return null;
+    }
 
     private static bool IsCultureQueryPart(string queryPart)
     {

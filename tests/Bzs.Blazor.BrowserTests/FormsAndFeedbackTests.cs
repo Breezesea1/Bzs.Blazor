@@ -24,7 +24,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         };
         Page.PageError += (_, error) => pageErrors.Enqueue(error);
 
-        await Page.GotoAsync($"{server.BaseUrl}/forms?next=culture=zh-Hans");
+        await Page.GotoAsync($"{server.BaseUrl}/forms?next=culture=zh-Hans&culture=en-US");
         var language = Page.GetByRole(
             AriaRole.Radiogroup,
             new() { Name = "Date picker language", Exact = true });
@@ -32,7 +32,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         var chinese = language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true });
         await Expect(english).ToBeCheckedAsync();
 
-        await Page.GotoAsync($"{server.BaseUrl}/forms?next=x");
+        await Page.GotoAsync($"{server.BaseUrl}/forms?next=x&culture=en-US");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         await Expect(english).ToBeCheckedAsync();
 
@@ -93,6 +93,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task CultureCookieCanonicalizesQuerylessAndUnsupportedHtmlGets()
     {
         BeginBrowserGateTest();
+        await Page.Context.ClearCookiesAsync();
 
         await Page.GotoAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
@@ -109,8 +110,8 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
 
         await Page.GotoAsync($"{server.BaseUrl}/forms?culture=invalid");
 
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=en-US");
-        await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "English", Exact = true }))
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true }))
             .ToBeCheckedAsync();
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
     }
@@ -652,7 +653,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task SearchableSelectsCloseAfterOutsidePointerInteraction()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var releaseNotes = Page.GetByLabel("Release notes");
@@ -671,7 +672,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task SearchableSelectKeyboardDoesNotSubmitTheForm()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var workspace = Page.GetByRole(AriaRole.Combobox, new() { Name = "Workspace" });
@@ -694,7 +695,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         var pageErrors = new ConcurrentQueue<string>();
         Page.PageError += (_, error) => pageErrors.Enqueue(error);
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         foreach (var name in new[] { "Workspace", "Review areas" })
@@ -724,7 +725,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task EnhancedChoiceControlsPreserveNativeRequiredAndLabelBehavior()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var constraints = Page.Locator("[data-bzs-select-constraint='true']");
@@ -761,7 +762,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(640, 720);
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
 
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
@@ -792,7 +793,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task TimedToastPausesForHoverAndKeyboardFocus()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/feedback");
+        await Page.GotoAsync($"{server.BaseUrl}/feedback?culture=en-US");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var showTimedToast = Page.GetByRole(AriaRole.Button, new() { Name = "Show timed toast" });
@@ -820,7 +821,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.EmulateMediaAsync(new() { ReducedMotion = ReducedMotion.Reduce });
-        await Page.GotoAsync($"{server.BaseUrl}/feedback");
+        await Page.GotoAsync($"{server.BaseUrl}/feedback?culture=en-US");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var persistentToastButton = Page.GetByRole(AriaRole.Button, new() { Name = "Show persistent toast" });
@@ -839,7 +840,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         var errorToast = Page.GetByRole(AriaRole.Alert, new() { Name = "Save failure toast" });
         await Expect(errorToast).ToHaveAttributeAsync("aria-live", "assertive");
 
-        await Page.GotoAsync($"{server.BaseUrl}/foundation");
+        await Page.GotoAsync($"{server.BaseUrl}/foundation?culture=en-US");
         await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync("Interactive runtime ready");
         var loadingIcon = Page.GetByRole(AriaRole.Button, new() { Name = "Saving" })
             .Locator(".bzs-button__loading-icon");

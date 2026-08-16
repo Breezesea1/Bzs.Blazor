@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hans">
 
 <head>
     <meta charset="utf-8" />
@@ -21,6 +21,7 @@
     <script>
         const parameters = new URLSearchParams(window.location.search);
         const selectedCulture = parameters.get("culture");
+        const culture = selectedCulture?.toLowerCase() === "en-us" ? "en-US" : "zh-Hans";
         const route = parameters.get("route");
         if (route) {
             const baseUrl = new URL(document.baseURI);
@@ -29,8 +30,9 @@
                 window.history.replaceState(null, "", `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`);
             }
         }
+        document.documentElement.lang = culture;
         Blazor.start({
-            applicationCulture: selectedCulture?.toLowerCase() === "zh-hans" ? "zh-Hans" : "en-US"
+            applicationCulture: culture
         });
     </script>
     <script src="_content/Bzs.Blazor.Demo.Catalog/demo-shell.js"></script>

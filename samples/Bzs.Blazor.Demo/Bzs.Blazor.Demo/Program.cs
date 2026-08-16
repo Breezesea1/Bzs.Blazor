@@ -8,7 +8,7 @@ builder.Services.AddBzsBlazor();
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
     string[] supportedCultures = ["en-US", "zh-Hans"];
-    options.SetDefaultCulture("en-US")
+    options.SetDefaultCulture("zh-Hans")
         .AddSupportedCultures(supportedCultures)
         .AddSupportedUICultures(supportedCultures);
     options.RequestCultureProviders =
@@ -39,7 +39,7 @@ app.Use(async (context, next) =>
                     : null;
             if (culture is null)
             {
-                context.Response.Redirect(CreateCultureUrl(context.Request, "en-US"));
+                context.Response.Redirect(CreateCultureUrl(context.Request, "zh-Hans"));
                 return;
             }
 
@@ -53,9 +53,12 @@ app.Use(async (context, next) =>
             var cookieCulture = CookieRequestCultureProvider.ParseCookieValue(
                 context.Request.Cookies[CookieRequestCultureProvider.DefaultCookieName] ?? string.Empty)
                 ?.Cultures.FirstOrDefault().Value;
-            if (string.Equals(cookieCulture, "zh-Hans", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(cookieCulture, "zh-Hans", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(cookieCulture, "en-US", StringComparison.OrdinalIgnoreCase))
             {
-                context.Response.Redirect(CreateCultureUrl(context.Request, "zh-Hans"));
+                // The URL parameter is the only culture source the WebAssembly bootstrapper reads,
+                // so an explicit redirect keeps host and client on the same culture.
+                context.Response.Redirect(CreateCultureUrl(context.Request, cookieCulture!));
                 return;
             }
         }
