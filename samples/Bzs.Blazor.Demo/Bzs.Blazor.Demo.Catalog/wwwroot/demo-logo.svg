@@ -2,8 +2,8 @@
   <title>Bzs.Blazor logo</title>
   <style>
     @media (prefers-color-scheme: dark) {
-      .tile { fill: url(#tile-dark); filter: url(#raise-dark); }
-      .mark { fill: #a3a4ec; filter: url(#glyph-dark); }
+      .bzs-tile { fill: url(#tile-dark); filter: url(#raise-dark); }
+      .bzs-mark { fill: #a3a4ec; filter: url(#glyph-dark); }
     }
   </style>
   <defs>
@@ -32,8 +32,8 @@
       <feDropShadow dx="-1" dy="-1" stdDeviation="1" flood-color="#38424f" flood-opacity="0.4" />
     </filter>
   </defs>
-  <rect class="tile" x="8" y="8" width="48" height="48" rx="12" fill="url(#tile-light)" filter="url(#raise-light)" />
-  <g class="mark" fill="#5352ce" filter="url(#glyph-light)">
+  <rect class="bzs-tile" x="8" y="8" width="48" height="48" rx="12" fill="url(#tile-light)" filter="url(#raise-light)" />
+  <g class="bzs-mark" fill="#5352ce" filter="url(#glyph-light)">
     <path d="M20.9 15H27.4V49H20.9Z" />
     <path fill-rule="evenodd" d="M24.9 15H32.1A7.6 7.6 0 0 1 32.1 30.2H24.9Z M27.4 19.9H31.8A3 2.7 0 0 1 31.8 25.3H27.4Z" />
     <path fill-rule="evenodd" d="M24.9 30.2H33.7A9.4 9.4 0 0 1 33.7 49H24.9Z M27.4 35.1H33.7A4.5 4.5 0 0 1 33.7 44.1H27.4Z" />

@@ -215,26 +215,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         Assert.NotNull(response);
         Assert.True(response.Ok);
 
-        await Expect(Page.GetByRole(
-            AriaRole.Navigation,
-            new() { Name = "Bzs.Blazor catalog", Exact = true }))
-            .ToBeVisibleAsync();
-        await Page.WaitForFunctionAsync(
-            """
-            () => {
-                const image = document.querySelector('#demo-navigation-drawer .demo-brand-mark');
-                return image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0;
-            }
-            """);
-
-        var iconHref = await Page.Locator("head link[rel='icon']").GetAttributeAsync("href");
-        Assert.False(string.IsNullOrWhiteSpace(iconHref), "The favicon link is missing.");
-        Assert.False(
-            iconHref.StartsWith("data:", StringComparison.Ordinal),
-            "The favicon link still uses the empty data: placeholder.");
-        var iconResponse = await Page.Context.APIRequest.GetAsync(
-            new Uri(new Uri(server.BaseUrl), iconHref).ToString());
-        Assert.True(iconResponse.Ok, $"The favicon '{iconHref}' was not served successfully.");
+        await AssertBrandBlockShowsLogoAndFaviconResolvesToServedAssetAsync();
     }
 
     [Theory]

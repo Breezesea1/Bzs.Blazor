@@ -81,6 +81,44 @@ public abstract class BrowserGatePageTest : PageTest
         return page;
     }
 
+    protected async Task AssertBrandBlockShowsLogoAndFaviconResolvesToServedAssetAsync()
+    {
+        var navigation = Page.GetByRole(
+            AriaRole.Navigation,
+            new() { Name = "Bzs.Blazor catalog", Exact = true });
+        await Expect(navigation).ToBeVisibleAsync();
+
+        var brandLink = navigation.GetByRole(
+            AriaRole.Link,
+            new() { Name = "Bzs.Blazor", Exact = false });
+        await Expect(brandLink).ToBeVisibleAsync();
+        var logo = brandLink.Locator("img");
+        var logoHref = await logo.GetAttributeAsync("src");
+        Assert.False(string.IsNullOrWhiteSpace(logoHref), "The brand logo source is missing.");
+        Assert.False(
+            logoHref.StartsWith("data:", StringComparison.Ordinal),
+            "The brand logo still uses an inline data URL.");
+        await logo.EvaluateAsync(
+            """
+            image => image.complete && image.naturalWidth > 0
+                ? Promise.resolve()
+                : new Promise((resolve, reject) => {
+                    image.addEventListener('load', resolve, { once: true });
+                    image.addEventListener('error', () => reject(new Error('The brand logo failed to load.')), { once: true });
+                })
+            """);
+
+        var icon = Page.Locator("head link[rel='icon']");
+        var iconHref = await icon.GetAttributeAsync("href");
+        Assert.False(string.IsNullOrWhiteSpace(iconHref), "The favicon link is missing.");
+        Assert.False(
+            iconHref.StartsWith("data:", StringComparison.Ordinal),
+            "The favicon link still uses the empty data: placeholder.");
+        var resolvedIconHref = await icon.EvaluateAsync<string>("element => element.href");
+        var iconResponse = await Page.Context.APIRequest.GetAsync(resolvedIconHref);
+        Assert.True(iconResponse.Ok, $"The favicon '{resolvedIconHref}' was not served successfully.");
+    }
+
     private async Task ObserveContextAsync(IBrowserContext context)
     {
         if (_observedContexts.Contains(context))
