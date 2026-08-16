@@ -331,6 +331,10 @@ public sealed class PackageConsumerSmokeTests
         var table = grid.GetByRole(AriaRole.Table, new() { Name = "Package work items" });
         await Expect(table.Locator("tbody tr")).ToHaveCountAsync(3);
         await Expect(grid.GetByRole(AriaRole.Combobox)).ToHaveCountAsync(0);
+        await Expect(grid.GetByRole(
+                AriaRole.Navigation,
+                new() { Name = "Package pagination", Exact = true }))
+            .ToHaveCountAsync(0);
         await grid.GetByRole(
                 AriaRole.Checkbox,
                 new() { Name = "Select current package page", Exact = true })
@@ -359,10 +363,11 @@ public sealed class PackageConsumerSmokeTests
         var drawerOpener = page.GetByTestId($"{runtime}-open-drawer");
         var drawer = page.GetByTestId($"{runtime}-drawer");
         await drawerOpener.ClickAsync();
-        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await Expect(drawer).Not.ToHaveAttributeAsync("aria-hidden", "true");
         await Expect(page.GetByTestId($"{runtime}-drawer-focus")).ToBeFocusedAsync();
         await page.Keyboard.PressAsync("Escape");
-        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+        await Expect(drawer).ToHaveAttributeAsync("aria-hidden", "true");
+        await Expect(drawer).ToHaveAttributeAsync("inert", "");
         await Expect(drawerOpener).ToBeFocusedAsync();
     }
 
@@ -428,7 +433,9 @@ public sealed class PackageConsumerSmokeTests
             await Expect(page.GetByTestId("auto-search")).ToHaveAttributeAsync("type", "search");
             await Expect(page.GetByTestId("auto-password")).ToHaveAttributeAsync("type", "password");
             await Expect(page.GetByTestId("auto-drawer"))
-                .ToHaveAttributeAsync("data-bzs-open", "false");
+                .ToHaveAttributeAsync("aria-hidden", "true");
+            await Expect(page.GetByTestId("auto-drawer"))
+                .ToHaveAttributeAsync("inert", "");
             await page.GetByTestId("auto-number").FocusAsync();
             await Expect(page.GetByTestId("auto-number")).ToBeFocusedAsync();
 
