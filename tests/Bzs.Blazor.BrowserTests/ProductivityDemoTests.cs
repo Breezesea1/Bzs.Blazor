@@ -71,6 +71,13 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(5);
         await Expect(reviewGrid.GetByRole(AriaRole.Combobox, new() { Name = "Rows per page" }))
             .ToHaveCountAsync(0);
+        var selectAllRows = reviewGrid.GetByRole(
+            AriaRole.Checkbox,
+            new() { Name = "Select all rows on this page", Exact = true });
+        await Expect(selectAllRows).Not.ToBeCheckedAsync();
+        await selectAllRows.FocusAsync();
+        await selectAllRows.PressAsync("Space");
+        await Expect(selectAllRows).ToBeCheckedAsync();
 
         var tooltipTrigger = Page.GetByRole(AriaRole.Button, new() { Name = "Focus me" });
         await tooltipTrigger.FocusAsync();
@@ -111,6 +118,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         await Page.GetByRole(AriaRole.Button, new() { Name = "Go to next page" }).Last.ClickAsync();
         await Expect(Page).ToHaveURLAsync(new Regex($"/productivity/{renderMode}(?:\\?|$)"));
         await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(3);
+        await Expect(selectAllRows).Not.ToBeCheckedAsync();
         AssertNoUnexpectedBrowserErrors($"productivity {renderMode} workflow");
     }
 

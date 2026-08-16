@@ -118,6 +118,14 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     [Parameter]
     public BzsDataGridSelectionMode SelectionMode { get; set; }
 
+    /// <summary>Gets or sets whether multiple selection includes a current-page select-all control.</summary>
+    [Parameter]
+    public bool ShowSelectAll { get; set; }
+
+    /// <summary>Gets or sets the accessible label for the current-page select-all control.</summary>
+    [Parameter]
+    public string? SelectAllText { get; set; }
+
     /// <summary>Gets or sets the stable row-key selector required by row selection.</summary>
     [Parameter]
     public Func<TItem, object?>? ItemKey { get; set; }
@@ -308,6 +316,8 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         Normalize(PaginationAccessibleName) ?? Localize("DataGridPaginationAccessibleName");
     private string EffectiveSelectionColumnText =>
         Normalize(SelectionColumnText) ?? Localize("DataGridSelectionColumnText");
+    private string EffectiveSelectAllText =>
+        Normalize(SelectAllText) ?? Localize("DataGridSelectAllText");
     private string EffectiveSortAscendingText => Localize("DataGridSortAscendingText");
     private string EffectiveSortDescendingText => Localize("DataGridSortDescendingText");
     private string EffectiveClearSortText => Localize("DataGridClearSortText");
@@ -785,6 +795,60 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         await SelectedItemsChanged.InvokeAsync(selected);
     }
 
+    private async Task RequestCurrentPageSelectionAsync(ChangeEventArgs args)
+    {
+        if (!ShowCurrentPageSelectAll)
+        {
+            return;
+        }
+
+        var rows = Rows;
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        var selectCurrentPage = args.Value is bool isChecked
+            ? isChecked
+            : !AreAllCurrentRowsSelected(rows);
+        var currentItemsByKey = new Dictionary<object, TItem>(KeyComparer);
+        foreach (var row in rows)
+        {
+            currentItemsByKey.Add(GetItemKey(row), row);
+        }
+
+        var selected = new List<TItem>(SelectedItems.Count + rows.Count);
+        var selectedCurrentPageKeys = new HashSet<object?>(KeyComparer);
+        foreach (var selectedItem in SelectedItems)
+        {
+            var selectedKey = GetItemKey(selectedItem);
+            if (currentItemsByKey.TryGetValue(selectedKey, out var currentItem))
+            {
+                if (selectCurrentPage && selectedCurrentPageKeys.Add(selectedKey))
+                {
+                    selected.Add(currentItem);
+                }
+
+                continue;
+            }
+
+            selected.Add(selectedItem);
+        }
+
+        if (selectCurrentPage)
+        {
+            foreach (var row in rows)
+            {
+                if (selectedCurrentPageKeys.Add(GetItemKey(row)))
+                {
+                    selected.Add(row);
+                }
+            }
+        }
+
+        await SelectedItemsChanged.InvokeAsync(selected);
+    }
+
     private bool IsColumnMenuOpen(BzsDataGridColumn<TItem> column) =>
         string.Equals(_openColumnMenuKey, column.EffectiveKey, StringComparison.Ordinal);
 
@@ -969,6 +1033,22 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 
     private bool IsSelectedMultiple(TItem item) =>
         _selectedItemKeys?.Contains(GetItemKey(item)) == true;
+
+    private bool ShowCurrentPageSelectAll =>
+        ShowSelectAll && SelectionMode == BzsDataGridSelectionMode.Multiple;
+
+    private bool AreAllCurrentRowsSelected(IReadOnlyList<TItem> rows) =>
+        rows.Count > 0 && rows.All(IsSelectedMultiple);
+
+    private string GetCurrentPageSelectAllState(IReadOnlyList<TItem> rows)
+    {
+        if (rows.Count == 0 || !rows.Any(IsSelectedMultiple))
+        {
+            return "false";
+        }
+
+        return AreAllCurrentRowsSelected(rows) ? "true" : "mixed";
+    }
 
     private bool KeysEqual(TItem left, TItem right) =>
         KeyComparer.Equals(GetItemKey(left), GetItemKey(right));

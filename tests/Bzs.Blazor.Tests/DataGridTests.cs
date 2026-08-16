@@ -240,6 +240,185 @@ public sealed class DataGridTests
     }
 
     [Fact]
+    public void CurrentPageSelectAllAddsCurrentPageInstancesAndPreservesOffPageSelections()
+    {
+        using var context = CreateContext();
+        var items = Enumerable.Range(1, 4).Select(index => new Row(index, $"Row {index}", index)).ToArray();
+        var offPageSelection = new Row(4, "Off-page selection", 4);
+        IReadOnlyList<Row>? requested = null;
+        var cut = RenderGrid(
+            context,
+            items,
+            parameters =>
+            {
+                parameters.Add(component => component.PageSize, 2);
+                parameters.Add(component => component.PageSizeOptions, new[] { 2 });
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+                parameters.Add(component => component.SelectedItems, new[] { offPageSelection });
+                parameters.Add(component => component.SelectedItemsChanged, value => requested = value);
+            });
+
+        var selectAll = cut.Find("thead input[type='checkbox']");
+        Assert.Equal("Select all rows on this page", selectAll.GetAttribute("aria-label"));
+        Assert.False(selectAll.HasAttribute("checked"));
+
+        selectAll.Change(true);
+
+        var selection = Assert.IsAssignableFrom<IReadOnlyList<Row>>(requested);
+        Assert.Equal([4, 1, 2], selection.Select(static row => row.Id));
+        Assert.Same(offPageSelection, selection[0]);
+        Assert.Same(items[0], selection[1]);
+        Assert.Same(items[1], selection[2]);
+        Assert.False(selectAll.HasAttribute("checked"));
+
+        cut.Render(parameters => parameters.Add(component => component.SelectedItems, selection));
+        selectAll = cut.Find("thead input[type='checkbox']");
+        Assert.True(selectAll.HasAttribute("checked"));
+        selectAll.Change(false);
+
+        Assert.Equal([4], requested!.Select(static row => row.Id));
+        Assert.Same(offPageSelection, requested![0]);
+    }
+
+    [Fact]
+    public void CurrentPageSelectAllReportsMixedStateAndRemainsControlledWhenRejected()
+    {
+        using var context = CreateContext();
+        var items = Enumerable.Range(1, 3).Select(index => new Row(index, $"Row {index}", index)).ToArray();
+        var requested = new List<IReadOnlyList<Row>>();
+        var cut = RenderGrid(
+            context,
+            items,
+            parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+                parameters.Add(component => component.SelectedItems, new[] { items[0] });
+                parameters.Add(component => component.SelectedItemsChanged, requested.Add);
+            });
+
+        var selectAll = cut.Find("thead input[type='checkbox']");
+        Assert.Equal("mixed", selectAll.GetAttribute("aria-checked"));
+        Assert.False(selectAll.HasAttribute("checked"));
+
+        selectAll.Change(true);
+
+        Assert.Equal([1, 2, 3], Assert.Single(requested).Select(static row => row.Id));
+        Assert.Equal("mixed", selectAll.GetAttribute("aria-checked"));
+        Assert.False(selectAll.HasAttribute("checked"));
+    }
+
+    [Fact]
+    public void CurrentPageSelectAllOnlyAffectsTheRenderedClientPage()
+    {
+        using var context = CreateContext();
+        var items = Enumerable.Range(1, 4).Select(index => new Row(index, $"Row {index}", index)).ToArray();
+        var offPageSelection = new Row(1, "First page", 1);
+        IReadOnlyList<Row>? requested = null;
+        var cut = RenderGrid(
+            context,
+            items,
+            parameters =>
+            {
+                parameters.Add(component => component.Page, 2);
+                parameters.Add(component => component.PageSize, 2);
+                parameters.Add(component => component.PageSizeOptions, new[] { 2 });
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+                parameters.Add(component => component.SelectedItems, new[] { offPageSelection, new Row(3, "Old third", 3) });
+                parameters.Add(component => component.SelectedItemsChanged, value => requested = value);
+            });
+
+        var selectAll = cut.Find("thead input[type='checkbox']");
+        Assert.Equal("mixed", selectAll.GetAttribute("aria-checked"));
+        selectAll.Change(true);
+
+        var selection = Assert.IsAssignableFrom<IReadOnlyList<Row>>(requested);
+        Assert.Equal([1, 3, 4], selection.Select(static row => row.Id));
+        Assert.Same(offPageSelection, selection[0]);
+        Assert.Same(items[2], selection[1]);
+        Assert.Same(items[3], selection[2]);
+    }
+
+    [Fact]
+    public void CurrentPageSelectAllUsesTheConfiguredKeyComparer()
+    {
+        using var context = CreateContext();
+        var items = new[] { new Row(1, "alpha", 1), new Row(2, "beta", 2) };
+        var previousAlpha = new Row(9, "ALPHA", 9);
+        IReadOnlyList<Row>? requested = null;
+        var cut = RenderGrid(
+            context,
+            items,
+            parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Name);
+                parameters.Add(component => component.ItemKeyComparer, OrdinalIgnoreCaseKeyComparer.Instance);
+                parameters.Add(component => component.SelectedItems, new[] { previousAlpha });
+                parameters.Add(component => component.SelectedItemsChanged, value => requested = value);
+            });
+
+        var selectAll = cut.Find("thead input[type='checkbox']");
+        Assert.Equal("mixed", selectAll.GetAttribute("aria-checked"));
+        selectAll.Change(true);
+
+        var selection = Assert.IsAssignableFrom<IReadOnlyList<Row>>(requested);
+        Assert.Equal(["alpha", "beta"], selection.Select(static row => row.Name));
+        Assert.Same(items[0], selection[0]);
+        Assert.Same(items[1], selection[1]);
+    }
+
+    [Fact]
+    public void CurrentPageSelectAllIsHiddenOutsideMultipleSelectionAndDisabledForAnEmptyPage()
+    {
+        using var context = CreateContext();
+        var items = new[] { new Row(1, "One", 1) };
+        var defaultMultiple = RenderGrid(
+            context,
+            items,
+            parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+            });
+        Assert.False(defaultMultiple.Instance.ShowSelectAll);
+        Assert.Empty(defaultMultiple.FindAll("thead input[type='checkbox']"));
+
+        var single = RenderGrid(
+            context,
+            items,
+            parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Single);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+            });
+        Assert.Empty(single.FindAll("thead input[type='checkbox']"));
+
+        var empty = RenderGrid(
+            context,
+            Array.Empty<Row>(),
+            parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+                parameters.Add(component => component.SelectAllText, "Select visible rows");
+            });
+        var selectAll = empty.Find("thead input[type='checkbox']");
+        Assert.True(selectAll.HasAttribute("disabled"));
+        Assert.False(selectAll.HasAttribute("checked"));
+        Assert.Equal("false", selectAll.GetAttribute("aria-checked"));
+        Assert.Equal("Select visible rows", selectAll.GetAttribute("aria-label"));
+    }
+
+    [Fact]
     public void MultipleSelectionUsesKeysAcrossEquivalentCollectionReplacement()
     {
         using var context = CreateContext();
@@ -374,6 +553,17 @@ public sealed class DataGridTests
                 parameters.Add(component => component.ItemKey, row => row.Id);
             }));
 
+        Assert.Throws<InvalidOperationException>(() => RenderGrid(
+            context,
+            [new(1, "alpha", 1), new(2, "ALPHA", 2)],
+            parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Name);
+                parameters.Add(component => component.ItemKeyComparer, OrdinalIgnoreCaseKeyComparer.Instance);
+            }));
+
         Assert.Throws<ArgumentOutOfRangeException>(() => RenderGrid(
             context,
             Array.Empty<Row>(),
@@ -399,6 +589,17 @@ public sealed class DataGridTests
             Assert.Equal("数据表格", cut.Find("table").GetAttribute("aria-label"));
             Assert.Equal("暂无数据", cut.Find("tbody td").TextContent.Trim());
             Assert.Contains("每页行数", cut.Find("label").TextContent, StringComparison.Ordinal);
+
+            var selectAll = RenderGrid(
+                context,
+                [new Row(1, "One", 1)],
+                parameters =>
+                {
+                    parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                    parameters.Add(component => component.ShowSelectAll, true);
+                    parameters.Add(component => component.ItemKey, row => row.Id);
+                });
+            Assert.Equal("选择本页所有行", selectAll.Find("thead input[type='checkbox']").GetAttribute("aria-label"));
         }
         finally
         {
@@ -582,6 +783,17 @@ public sealed class DataGridTests
         public int GetHashCode(object? value) => value?.GetHashCode() ?? 0;
 
         public void Reset() => EqualityCallCount = 0;
+    }
+
+    private sealed class OrdinalIgnoreCaseKeyComparer : IEqualityComparer<object?>
+    {
+        internal static OrdinalIgnoreCaseKeyComparer Instance { get; } = new();
+
+        public new bool Equals(object? left, object? right) =>
+            string.Equals(left as string, right as string, StringComparison.OrdinalIgnoreCase);
+
+        public int GetHashCode(object? value) =>
+            StringComparer.OrdinalIgnoreCase.GetHashCode((string)value!);
     }
 
     private sealed record RenderKey(int Value);

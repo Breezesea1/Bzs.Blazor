@@ -171,6 +171,9 @@
   <data name="DataGridSelectionColumnText" xml:space="preserve">
     <value>行选择</value>
   </data>
+  <data name="DataGridSelectAllText" xml:space="preserve">
+    <value>选择本页所有行</value>
+  </data>
   <data name="DataGridSelectRowText" xml:space="preserve">
     <value>选择第 {0} 行</value>
   </data>

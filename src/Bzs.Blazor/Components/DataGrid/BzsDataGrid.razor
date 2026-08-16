@@ -29,7 +29,19 @@
                     @if (SelectionMode != BzsDataGridSelectionMode.None)
                     {
                         <th class="bzs-data-grid__selection-header" scope="col">
-                            <span class="bzs-visually-hidden">@EffectiveSelectionColumnText</span>
+                            @if (ShowCurrentPageSelectAll)
+                            {
+                                <input type="checkbox"
+                                       checked="@AreAllCurrentRowsSelected(rows)"
+                                       disabled="@(rows.Count == 0)"
+                                       aria-checked="@GetCurrentPageSelectAllState(rows)"
+                                       aria-label="@EffectiveSelectAllText"
+                                       @onchange="RequestCurrentPageSelectionAsync" />
+                            }
+                            else
+                            {
+                                <span class="bzs-visually-hidden">@EffectiveSelectionColumnText</span>
+                            }
                         </th>
                     }
                     @foreach (var column in Columns)

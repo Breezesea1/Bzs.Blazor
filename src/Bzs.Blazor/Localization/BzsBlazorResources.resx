@@ -171,6 +171,9 @@
   <data name="DataGridSelectionColumnText" xml:space="preserve">
     <value>Row selection</value>
   </data>
+  <data name="DataGridSelectAllText" xml:space="preserve">
+    <value>Select all rows on this page</value>
+  </data>
   <data name="DataGridSelectRowText" xml:space="preserve">
     <value>Select row {0}</value>
   </data>

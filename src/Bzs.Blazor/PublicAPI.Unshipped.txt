@@ -218,6 +218,8 @@ Bzs.Blazor.BzsDataGrid<TItem>.SelectedItem.get -> TItem?
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItem.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemChanged.get -> Microsoft.AspNetCore.Components.EventCallback<TItem?>
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemChanged.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SelectAllText.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.SelectAllText.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItems.get -> System.Collections.Generic.IReadOnlyList<TItem>!
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItems.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemsChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<TItem>!>
@@ -230,6 +232,8 @@ Bzs.Blazor.BzsDataGrid<TItem>.ShowPageSizeSelector.get -> bool
 Bzs.Blazor.BzsDataGrid<TItem>.ShowPageSizeSelector.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ShowPagination.get -> bool
 Bzs.Blazor.BzsDataGrid<TItem>.ShowPagination.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ShowSelectAll.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ShowSelectAll.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.Sort.get -> Bzs.Blazor.BzsDataGridSort?
 Bzs.Blazor.BzsDataGrid<TItem>.Sort.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SortChanged.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsDataGridSort?>

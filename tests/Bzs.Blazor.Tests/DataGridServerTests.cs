@@ -334,6 +334,107 @@ public sealed class DataGridServerTests
     }
 
     [Fact]
+    public async Task CurrentPageSelectAllUsesRefreshedProviderInstancesAndPreservesOffPageSelections()
+    {
+        using var context = CreateContext();
+        var provider = new ControllableProvider();
+        var selectedBeforeRefresh = new Row(1, "Selected before refresh");
+        var offPageSelection = new Row(9, "Off page");
+        IReadOnlyList<Row>? requested = null;
+        var cut = RenderProviderGrid(
+            context,
+            provider,
+            configure: parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+                parameters.Add(component => component.SelectedItems, new[] { selectedBeforeRefresh, offPageSelection });
+                parameters.Add(component => component.SelectedItemsChanged, value => requested = value);
+            });
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        provider.Calls.Single().Completion.SetResult(
+            new BzsDataGridResult<Row>([new(1, "Initial instance")], false));
+        cut.WaitForAssertion(() => Assert.Equal("true", SelectAll(cut).GetAttribute("aria-checked")));
+
+        var refresh = cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Equal(2, provider.Calls.Count));
+        var refreshedFirst = new Row(1, "Refreshed instance");
+        var refreshedSecond = new Row(2, "Refreshed addition");
+        provider.Calls.Last().Completion.SetResult(
+            new BzsDataGridResult<Row>([refreshedFirst, refreshedSecond], false));
+        await refresh;
+        cut.WaitForAssertion(() => Assert.Equal("mixed", SelectAll(cut).GetAttribute("aria-checked")));
+
+        SelectAll(cut).Change(true);
+
+        var selection = Assert.IsAssignableFrom<IReadOnlyList<Row>>(requested);
+        Assert.Equal([1, 9, 2], selection.Select(static row => row.Id));
+        Assert.Same(refreshedFirst, selection[0]);
+        Assert.Same(offPageSelection, selection[1]);
+        Assert.Same(refreshedSecond, selection[2]);
+    }
+
+    [Fact]
+    public async Task CurrentPageSelectAllUsesRetainedProviderRowsDuringAndAfterAFailedRefresh()
+    {
+        using var context = CreateContext();
+        var provider = new ControllableProvider();
+        var selectedBeforeRefresh = new Row(1, "Selected before refresh");
+        IReadOnlyList<Row>? requested = null;
+        var cut = RenderProviderGrid(
+            context,
+            provider,
+            configure: parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+                parameters.Add(component => component.SelectedItems, new[] { selectedBeforeRefresh });
+                parameters.Add(component => component.SelectedItemsChanged, value => requested = value);
+            });
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        var acceptedFirst = new Row(1, "Accepted first");
+        var acceptedSecond = new Row(2, "Accepted second");
+        provider.Calls.Single().Completion.SetResult(
+            new BzsDataGridResult<Row>([acceptedFirst, acceptedSecond], false));
+        cut.WaitForAssertion(() => Assert.Equal("mixed", SelectAll(cut).GetAttribute("aria-checked")));
+
+        var refresh = cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Equal(2, provider.Calls.Count));
+        Assert.Equal("mixed", SelectAll(cut).GetAttribute("aria-checked"));
+        provider.Calls.Last().Completion.SetException(new InvalidOperationException("refresh failed"));
+        await refresh;
+        cut.WaitForAssertion(() => Assert.Equal("mixed", SelectAll(cut).GetAttribute("aria-checked")));
+
+        SelectAll(cut).Change(true);
+
+        var selection = Assert.IsAssignableFrom<IReadOnlyList<Row>>(requested);
+        Assert.Equal([1, 2], selection.Select(static row => row.Id));
+        Assert.Same(acceptedFirst, selection[0]);
+        Assert.Same(acceptedSecond, selection[1]);
+    }
+
+    [Fact]
+    public void CurrentPageSelectAllIsDisabledForAnAcceptedEmptyProviderPage()
+    {
+        using var context = CreateContext();
+        var provider = new RecordingProvider(_ => new BzsDataGridResult<Row>([], hasNextPage: false));
+        var cut = RenderProviderGrid(
+            context,
+            provider,
+            configure: parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+            });
+
+        cut.WaitForAssertion(() => Assert.True(SelectAll(cut).HasAttribute("disabled")));
+        Assert.Equal("false", SelectAll(cut).GetAttribute("aria-checked"));
+    }
+
+    [Fact]
     public void StaleProviderCompletionCannotReplaceTheCurrentPage()
     {
         using var context = CreateContext();
@@ -826,6 +927,9 @@ public sealed class DataGridServerTests
             parameters.Add(component => component.ChildContent, BuildColumns());
             configure?.Invoke(parameters);
         });
+
+    private static AngleSharp.Dom.IElement SelectAll(IRenderedComponent<BzsDataGrid<Row>> cut) =>
+        cut.Find("thead input[type='checkbox']");
 
     private static RenderFragment BuildColumns() => builder =>
     {
