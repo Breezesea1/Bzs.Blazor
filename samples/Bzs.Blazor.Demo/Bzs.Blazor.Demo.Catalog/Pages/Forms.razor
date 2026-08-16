@@ -53,6 +53,13 @@
                                   Label="Work email"
                                   Description="Used for approval notifications."
                                   Required="true" />
+                    <BzsPasswordInput Id="password-input-example"
+                                      @bind-Value="ActiveProfile.Password"
+                                      Label="@(IsChinese ? "访问密码" : "Access password")"
+                                      Description="@(IsChinese ? "显示按钮仅在交互式运行时切换原生输入类型。" : "The reveal action changes only the native input type while interactive.")"
+                                      Revealable="true"
+                                      autocomplete="new-password"
+                                      data-testid="password-input-example" />
                     <BzsNumberInput TValue="int"
                                     Id="profile-seat-count"
                                     @bind-Value="ActiveProfile.SeatCount"
@@ -241,6 +248,7 @@
         {
             FullName = "Alicia Santos",
             WorkEmail = "alicia@example.com",
+            Password = "catalog-secret",
             SeatCount = 8,
             DeliveryDate = DateOnly.FromDateTime(DateTime.Today.AddDays(14)),
             Workspace = "production",
@@ -289,6 +297,8 @@
         [Required(ErrorMessage = "Enter a work email.")]
         [EmailAddress(ErrorMessage = "Enter a valid work email.")]
         public string? WorkEmail { get; set; }
+
+        public string? Password { get; set; }
 
         [Range(1, 99, ErrorMessage = "Choose between 1 and 99 seats.")]
         public int SeatCount { get; set; }

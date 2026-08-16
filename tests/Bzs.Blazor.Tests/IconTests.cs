@@ -49,6 +49,22 @@ public sealed class IconTests
     }
 
     [Fact]
+    public void CuratedPasswordVisibilityIconsRenderAsDecorativeGeometry()
+    {
+        using var context = new BunitContext();
+
+        var eye = context.Render<BzsIcon>(parameters => parameters
+            .Add(component => component.Icon, BzsIcons.Eye));
+        var eyeOff = context.Render<BzsIcon>(parameters => parameters
+            .Add(component => component.Icon, BzsIcons.EyeOff));
+
+        Assert.False(string.IsNullOrWhiteSpace(eye.Find("path").GetAttribute("d")));
+        Assert.False(string.IsNullOrWhiteSpace(eyeOff.Find("path").GetAttribute("d")));
+        Assert.Equal("true", eye.Find("svg").GetAttribute("aria-hidden"));
+        Assert.Equal("true", eyeOff.Find("svg").GetAttribute("aria-hidden"));
+    }
+
+    [Fact]
     public void ExternallyLabelledIconRemainsExposed()
     {
         using var context = new BunitContext();

@@ -1,4 +1,15 @@
 #nullable enable
+Bzs.Blazor.BzsPasswordInput
+Bzs.Blazor.BzsPasswordInput.BzsPasswordInput() -> void
+Bzs.Blazor.BzsPasswordInput.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsPasswordInput.HidePasswordText.get -> string?
+Bzs.Blazor.BzsPasswordInput.HidePasswordText.set -> void
+Bzs.Blazor.BzsPasswordInput.Revealable.get -> bool
+Bzs.Blazor.BzsPasswordInput.Revealable.set -> void
+Bzs.Blazor.BzsPasswordInput.ShowPasswordText.get -> string?
+Bzs.Blazor.BzsPasswordInput.ShowPasswordText.set -> void
+static Bzs.Blazor.BzsIcons.Eye.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.EyeOff.get -> Bzs.Blazor.BzsIconData!
 Bzs.Blazor.BzsInputUpdateMode
 Bzs.Blazor.BzsInputUpdateMode.Change = 0 -> Bzs.Blazor.BzsInputUpdateMode
 Bzs.Blazor.BzsInputUpdateMode.Input = 1 -> Bzs.Blazor.BzsInputUpdateMode

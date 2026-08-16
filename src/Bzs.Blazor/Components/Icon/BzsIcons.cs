@@ -58,6 +58,14 @@ public static class BzsIcons
     public static BzsIconData Search { get; } = new(
         "m21 21-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16");
 
+    /// <summary>Gets the eye icon.</summary>
+    public static BzsIconData Eye { get; } = new(
+        "M2.062 12.348a1 1 0 0 1 0-.696C3.54 7.51 7.773 4.5 12 4.5c4.227 0 8.46 3.01 9.938 7.152a1 1 0 0 1 0 .696C20.46 16.49 16.227 19.5 12 19.5c-4.227 0-8.46-3.01-9.938-7.152ZM12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7");
+
+    /// <summary>Gets the eye-off icon.</summary>
+    public static BzsIconData EyeOff { get; } = new(
+        "m2 2 20 20M6.71 6.71C4.93 7.89 3.57 9.57 2.62 11.62a1 1 0 0 0 0 .76C4.1 15.49 7.98 18.5 12 18.5c1.35 0 2.66-.34 3.84-.96M10.73 10.73a2 2 0 0 0 2.54 2.54M9.88 4.24A10.94 10.94 0 0 1 12 4.03c4.02 0 7.9 3.01 9.38 7.15a1 1 0 0 1 0 .76 10.97 10.97 0 0 1-1.67 2.68");
+
     /// <summary>Gets the loading indicator icon.</summary>
     public static BzsIconData Loader { get; } = new(
         "M12 2v4M16.2 7.8l2.9-2.9M18 12h4M16.2 16.2l2.9 2.9M12 18v4M7.8 16.2l-2.9 2.9M6 12H2M7.8 7.8 4.9 4.9");

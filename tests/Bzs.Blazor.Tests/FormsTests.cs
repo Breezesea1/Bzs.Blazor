@@ -11,6 +11,188 @@ namespace Bzs.Blazor.Tests;
 
 public sealed class FormsTests
 {
+    [Fact]
+    public void PasswordInputDefaultsToNativePasswordAndUpdatesTheControlledFormValue()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Before" };
+        var editContext = new EditContext(model);
+
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsPasswordInput, string?>(
+            builder,
+            0,
+            model.Text,
+            () => model.Text,
+            EventCallback.Factory.Create<string?>(model, value => model.Text = value)));
+
+        var input = cut.Find("input");
+        input.Change("After");
+
+        Assert.Equal("password", input.GetAttribute("type"));
+        Assert.Equal("After", model.Text);
+        Assert.Empty(cut.FindAll("button"));
+    }
+
+    [Fact]
+    public void RevealablePasswordInputSwitchesNativeTypeAndUsesLocalizedOrOverriddenActionLabels()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Secret" };
+        var valueExpression = (Expression<Func<string?>>)(() => model.Text);
+
+        var cut = context.Render<BzsPasswordInput>(parameters => parameters
+            .Add(component => component.Value, model.Text)
+            .Add(component => component.ValueExpression, valueExpression)
+            .Add(component => component.Revealable, true)
+            .Add(component => component.ShowPasswordText, "Reveal credential")
+            .Add(component => component.HidePasswordText, "Conceal credential"));
+
+        var input = cut.Find("input");
+        var button = cut.Find("button");
+        Assert.Equal("password", input.GetAttribute("type"));
+        Assert.Equal("Reveal credential", button.GetAttribute("aria-label"));
+        Assert.False(button.HasAttribute("disabled"));
+
+        button.Click();
+
+        cut.WaitForAssertion(() => Assert.Equal("text", cut.Find("input").GetAttribute("type")));
+        Assert.Equal("Conceal credential", cut.Find("button").GetAttribute("aria-label"));
+        var invocations = context.JSInterop.Invocations
+            .Where(candidate => candidate.Identifier is "captureSelection" or "restoreFocusAndSelection")
+            .ToArray();
+        Assert.Equal(2, invocations.Length);
+        Assert.All(invocations, invocation =>
+        {
+            Assert.Single(invocation.Arguments);
+            Assert.IsType<ElementReference>(invocation.Arguments[0]);
+        });
+    }
+
+    [Fact]
+    public void PasswordInputUsesSimplifiedChineseRevealLabelByDefault()
+    {
+        using var culture = new CultureScope("zh-Hans");
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Secret" };
+        var valueExpression = (Expression<Func<string?>>)(() => model.Text);
+
+        var cut = context.Render<BzsPasswordInput>(parameters => parameters
+            .Add(component => component.Value, model.Text)
+            .Add(component => component.ValueExpression, valueExpression)
+            .Add(component => component.Revealable, true));
+
+        Assert.Equal("显示密码", cut.Find("button").GetAttribute("aria-label"));
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void PasswordInputHonorsDisabledAndReadOnlySemantics(bool disabled, bool readOnly)
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Secret" };
+        var editContext = new EditContext(model);
+
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsPasswordInput, string?>(
+            builder,
+            0,
+            model.Text,
+            () => model.Text,
+            EventCallback.Factory.Create<string?>(model, value => model.Text = value),
+            (attributes, sequence) =>
+            {
+                attributes.AddAttribute(sequence, nameof(BzsPasswordInput.Revealable), true);
+                attributes.AddAttribute(sequence + 1, nameof(BzsPasswordInput.Disabled), disabled);
+                attributes.AddAttribute(sequence + 2, nameof(BzsPasswordInput.ReadOnly), readOnly);
+            }));
+
+        var input = cut.Find("input");
+        input.Change("Changed");
+        cut.Find("button").Click();
+
+        if (readOnly)
+        {
+            cut.WaitForAssertion(() => Assert.Equal("text", cut.Find("input").GetAttribute("type")));
+        }
+
+        Assert.Equal("Secret", model.Text);
+        Assert.Equal(disabled, input.HasAttribute("disabled"));
+        Assert.Equal(readOnly ? "readonly" : null, input.GetAttribute("readonly"));
+        Assert.Equal(disabled, cut.Find("button").HasAttribute("disabled"));
+        Assert.Equal(readOnly ? "text" : "password", cut.Find("input").GetAttribute("type"));
+    }
+
+    [Fact]
+    public void PasswordInputForwardsAllowedAttributesAndProvidesStableStaticFormOutput()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Secret" };
+        var editContext = new EditContext(model);
+        var additional = new Dictionary<string, object>
+        {
+            ["autocomplete"] = "current-password",
+            ["data-form-field"] = "profile-password",
+            ["type"] = "text",
+        };
+
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsPasswordInput, string?>(
+            builder,
+            0,
+            model.Text,
+            () => model.Text,
+            EventCallback.Factory.Create<string?>(model, value => model.Text = value),
+            (attributes, sequence) =>
+            {
+                attributes.AddAttribute(sequence, nameof(BzsPasswordInput.Name), "profile.password");
+                attributes.AddAttribute(sequence + 1, nameof(BzsPasswordInput.Placeholder), "Enter access password");
+                attributes.AddAttribute(sequence + 2, nameof(BzsPasswordInput.AdditionalAttributes), additional);
+            }));
+
+        var input = cut.Find("input");
+        Assert.Equal("password", input.GetAttribute("type"));
+        Assert.Equal("profile.password", input.GetAttribute("name"));
+        Assert.Equal("Secret", input.GetAttribute("value"));
+        Assert.Equal("Enter access password", input.GetAttribute("placeholder"));
+        Assert.Equal("current-password", input.GetAttribute("autocomplete"));
+        Assert.Equal("profile-password", input.GetAttribute("data-form-field"));
+    }
+
+    [Fact]
+    public async Task PasswordInputConnectsFieldRelationshipsAndValidationErrors()
+    {
+        using var context = CreateContext();
+        var model = new FormModel();
+        var editContext = new EditContext(model);
+
+        var cut = RenderForm(context, editContext, builder =>
+        {
+            builder.OpenComponent<DataAnnotationsValidator>(0);
+            builder.CloseComponent();
+            AddInput<BzsPasswordInput, string?>(
+                builder,
+                10,
+                model.Text,
+                () => model.Text,
+                EventCallback.Factory.Create<string?>(model, value => model.Text = value),
+                (attributes, sequence) =>
+                {
+                    attributes.AddAttribute(sequence, nameof(BzsPasswordInput.Id), "profile-password");
+                    attributes.AddAttribute(sequence + 1, nameof(BzsPasswordInput.Label), "Access password");
+                    attributes.AddAttribute(sequence + 2, nameof(BzsPasswordInput.Description), "Used to sign in.");
+                    attributes.AddAttribute(sequence + 3, nameof(BzsPasswordInput.Required), true);
+                });
+        });
+
+        await cut.InvokeAsync(editContext.Validate);
+
+        var input = cut.Find("input");
+        Assert.Equal("profile-password", cut.Find("label").GetAttribute("for"));
+        Assert.Equal("true", input.GetAttribute("aria-required"));
+        Assert.Equal("true", input.GetAttribute("aria-invalid"));
+        Assert.Equal("profile-password-description profile-password-error", input.GetAttribute("aria-describedby"));
+        Assert.Equal("Profile name is required.", cut.Find("[role=alert]").TextContent);
+    }
+
     [Theory]
     [InlineData(BzsTextInputType.Text, BzsInputUpdateMode.Change, "text")]
     [InlineData(BzsTextInputType.Text, BzsInputUpdateMode.Input, "text")]
@@ -1423,6 +1605,9 @@ public sealed class FormsTests
         module.SetupVoid("initialize", _ => true);
         module.SetupVoid("setOpen", _ => true);
         module.SetupVoid("dispose", _ => true);
+        var passwordModule = context.JSInterop.SetupModule("./_content/Bzs.Blazor/Components/Form/BzsPasswordInput.razor.js");
+        passwordModule.SetupVoid("captureSelection", _ => true).SetVoidResult();
+        passwordModule.SetupVoid("restoreFocusAndSelection", _ => true).SetVoidResult();
         var dateModule = context.JSInterop.SetupModule("./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js");
         dateModule.Setup<string>("initialize", _ => true).SetResult("2031-02-03");
         dateModule.SetupVoid("setOpen", _ => true);
