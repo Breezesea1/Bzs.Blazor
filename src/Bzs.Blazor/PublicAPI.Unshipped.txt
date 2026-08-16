@@ -1,4 +1,15 @@
 #nullable enable
+Bzs.Blazor.BzsInputUpdateMode
+Bzs.Blazor.BzsInputUpdateMode.Change = 0 -> Bzs.Blazor.BzsInputUpdateMode
+Bzs.Blazor.BzsInputUpdateMode.Input = 1 -> Bzs.Blazor.BzsInputUpdateMode
+Bzs.Blazor.BzsTextInput.InputType.get -> Bzs.Blazor.BzsTextInputType
+Bzs.Blazor.BzsTextInput.InputType.set -> void
+Bzs.Blazor.BzsTextInput.UpdateMode.get -> Bzs.Blazor.BzsInputUpdateMode
+Bzs.Blazor.BzsTextInput.UpdateMode.set -> void
+Bzs.Blazor.BzsTextInputType
+Bzs.Blazor.BzsTextInputType.Email = 1 -> Bzs.Blazor.BzsTextInputType
+Bzs.Blazor.BzsTextInputType.Search = 2 -> Bzs.Blazor.BzsTextInputType
+Bzs.Blazor.BzsTextInputType.Text = 0 -> Bzs.Blazor.BzsTextInputType
 Bzs.Blazor.BzsAutocomplete<TValue>
 Bzs.Blazor.BzsAutocomplete<TValue>.BzsAutocomplete() -> void
 Bzs.Blazor.BzsAutocomplete<TValue>.ClearText.get -> string?

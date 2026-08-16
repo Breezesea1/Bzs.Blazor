@@ -11,6 +11,41 @@ namespace Bzs.Blazor.Tests;
 
 public sealed class FormsTests
 {
+    [Theory]
+    [InlineData(BzsTextInputType.Text, "text")]
+    [InlineData(BzsTextInputType.Email, "email")]
+    [InlineData(BzsTextInputType.Search, "search")]
+    public void TextInputRendersTheConfiguredNativeTextType(BzsTextInputType inputType, string nativeType)
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Source" };
+        var valueExpression = (Expression<Func<string?>>)(() => model.Text);
+
+        var cut = context.Render<BzsTextInput>(parameters => parameters
+            .Add(component => component.Value, model.Text)
+            .Add(component => component.ValueExpression, valueExpression)
+            .Add(component => component.InputType, inputType));
+
+        Assert.Equal(nativeType, cut.Find("input").GetAttribute("type"));
+    }
+
+    [Fact]
+    public void TextInputDefaultsToTextAndChangeUpdates()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Source" };
+        var valueExpression = (Expression<Func<string?>>)(() => model.Text);
+
+        var cut = context.Render<BzsTextInput>(parameters => parameters
+            .Add(component => component.Value, model.Text)
+            .Add(component => component.ValueExpression, valueExpression));
+
+        Assert.Equal(BzsTextInputType.Text, cut.Instance.InputType);
+        Assert.Equal(BzsInputUpdateMode.Change, cut.Instance.UpdateMode);
+        Assert.Equal("text", cut.Find("input").GetAttribute("type"));
+        Assert.Equal("Source", cut.Find("input").GetAttribute("value"));
+    }
+
     [Fact]
     public void TextInputUpdatesTheControlledValueAndNotifiesItsEditContextField()
     {
@@ -28,6 +63,32 @@ public sealed class FormsTests
             EventCallback.Factory.Create<string?>(model, value => model.Text = value)));
 
         cut.Find("input").Change("After");
+
+        Assert.Equal("After", model.Text);
+        Assert.Equal(editContext.Field(nameof(FormModel.Text)), Assert.Single(changedFields));
+    }
+
+    [Fact]
+    public void TextInputInputModeUpdatesTheControlledValueAndNotifiesItsEditContextField()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Before" };
+        var editContext = new EditContext(model);
+        var changedFields = new List<FieldIdentifier>();
+        editContext.OnFieldChanged += (_, args) => changedFields.Add(args.FieldIdentifier);
+
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsTextInput, string?>(
+            builder,
+            0,
+            model.Text,
+            () => model.Text,
+            EventCallback.Factory.Create<string?>(model, value => model.Text = value),
+            (attributes, sequence) => attributes.AddAttribute(
+                sequence,
+                nameof(BzsTextInput.UpdateMode),
+                BzsInputUpdateMode.Input)));
+
+        cut.Find("input").Input("After");
 
         Assert.Equal("After", model.Text);
         Assert.Equal(editContext.Field(nameof(FormModel.Text)), Assert.Single(changedFields));
@@ -1028,9 +1089,14 @@ public sealed class FormsTests
     }
 
     [Theory]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    public void DisabledOrReadOnlyTextInputSuppressesChanges(bool disabled, bool readOnly)
+    [InlineData(true, false, BzsInputUpdateMode.Change)]
+    [InlineData(false, true, BzsInputUpdateMode.Change)]
+    [InlineData(true, false, BzsInputUpdateMode.Input)]
+    [InlineData(false, true, BzsInputUpdateMode.Input)]
+    public void DisabledOrReadOnlyTextInputSuppressesChanges(
+        bool disabled,
+        bool readOnly,
+        BzsInputUpdateMode updateMode)
     {
         using var context = CreateContext();
         var model = new FormModel { Text = "Source" };
@@ -1046,10 +1112,18 @@ public sealed class FormsTests
             {
                 attributes.AddAttribute(sequence, nameof(BzsTextInput.Disabled), disabled);
                 attributes.AddAttribute(sequence + 1, nameof(BzsTextInput.ReadOnly), readOnly);
+                attributes.AddAttribute(sequence + 2, nameof(BzsTextInput.UpdateMode), updateMode);
             }));
 
         var input = cut.Find("input");
-        input.Change("Changed");
+        if (updateMode == BzsInputUpdateMode.Input)
+        {
+            input.Input("Changed");
+        }
+        else
+        {
+            input.Change("Changed");
+        }
 
         Assert.Equal("Source", model.Text);
         Assert.Equal(disabled, input.HasAttribute("disabled"));
@@ -1111,6 +1185,9 @@ public sealed class FormsTests
             ["name"] = "untrusted-name",
             ["type"] = "email",
             ["value"] = "untrusted-value",
+            ["oninput"] = "untrusted-input-handler",
+            ["oncompositionstart"] = "untrusted-composition-handler",
+            ["oncompositionend"] = "untrusted-composition-handler",
         };
 
         var cut = RenderForm(context, editContext, builder => AddInput<BzsTextInput, string?>(

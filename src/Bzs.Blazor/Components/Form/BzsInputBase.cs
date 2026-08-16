@@ -182,7 +182,8 @@ public abstract class BzsInputBase<TValue> : InputBase<TValue>
     private static readonly HashSet<string> ReservedAttributes = new(StringComparer.OrdinalIgnoreCase)
     {
         "id", "name", "class", "style", "type", "value", "checked", "disabled", "readonly",
-        "required", "placeholder", "onchange", "aria-describedby", "aria-invalid", "aria-required", "aria-readonly",
+        "required", "placeholder", "onchange", "oninput", "oncompositionstart", "oncompositionend",
+        "aria-describedby", "aria-invalid", "aria-required", "aria-readonly",
     };
 
     private static string Join(params string?[] values) =>

@@ -2,6 +2,17 @@
 @inherits BzsInputBase<string?>
 
 <BzsField InputId="@InputId" Label="@Label" Description="@Description" Error="@FieldError" Required="@Required">
-    <input @attributes="InputAttributes" value="@CurrentValueAsString" @onchange="OnChanged" />
+    @if (UpdateMode == BzsInputUpdateMode.Input)
+    {
+        <input @attributes="InputAttributes"
+               value="@CurrentValueAsString"
+               @oninput="OnInput"
+               @oncompositionstart="OnCompositionStarted"
+               @oncompositionend="OnCompositionEnded" />
+    }
+    else
+    {
+        <input @attributes="InputAttributes" value="@CurrentValueAsString" @onchange="OnChanged" />
+    }
 </BzsField>
 
