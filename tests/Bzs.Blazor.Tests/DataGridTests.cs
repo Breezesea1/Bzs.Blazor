@@ -435,6 +435,33 @@ public sealed class DataGridTests
         Assert.NotNull(document.QuerySelector("nav[aria-label='Data pages']"));
     }
 
+    [Fact]
+    public async Task StaticRenderingOmitsFooterControlsWhenBothAreHidden()
+    {
+        using var context = CreateContext();
+        await using var renderer = new HtmlRenderer(
+            context.Services,
+            context.Services.GetRequiredService<ILoggerFactory>());
+        var parameters = ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            [nameof(BzsDataGrid<Row>.Items)] = new[] { new Row(1, "Alpha", 42) },
+            [nameof(BzsDataGrid<Row>.ChildContent)] = BuildColumns(),
+            [nameof(BzsDataGrid<Row>.ShowPageSizeSelector)] = false,
+            [nameof(BzsDataGrid<Row>.ShowPagination)] = false,
+        });
+
+        var html = await renderer.Dispatcher.InvokeAsync(async () =>
+        {
+            var output = await renderer.RenderComponentAsync<BzsDataGrid<Row>>(parameters);
+            return output.ToHtmlString();
+        });
+        var document = await new HtmlParser().ParseDocumentAsync(html);
+
+        Assert.Equal("Data grid", document.QuerySelector("table")?.GetAttribute("aria-label"));
+        Assert.Equal("Alpha", document.QuerySelector("tbody td")?.TextContent.Trim());
+        Assert.Empty(document.QuerySelectorAll("label, nav[aria-label='Data pages']"));
+    }
+
     private static BunitContext CreateContext()
     {
         var context = new BunitContext();

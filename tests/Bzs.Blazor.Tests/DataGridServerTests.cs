@@ -12,17 +12,24 @@ namespace Bzs.Blazor.Tests;
 public sealed class DataGridServerTests
 {
     [Theory]
-    [InlineData(true, true)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(false, false, false)]
+    [InlineData(true, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(false, true, true)]
+    [InlineData(false, false, true)]
     public void ProviderFooterControlsDoNotChangePagingRequests(
         bool showPageSizeSelector,
-        bool showPagination)
+        bool showPagination,
+        bool hasKnownTotal)
     {
         using var context = CreateContext();
         var provider = new RecordingProvider(request =>
-            new BzsDataGridResult<Row>([new(request.Page, "Current")], hasNextPage: true));
+            hasKnownTotal
+                ? new BzsDataGridResult<Row>([new(request.Page, "Current")], totalCount: 50)
+                : new BzsDataGridResult<Row>([new(request.Page, "Current")], hasNextPage: true));
         var cut = RenderProviderGrid(
             context,
             provider,

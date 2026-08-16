@@ -69,13 +69,8 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         var reviewGrid = Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" });
         await Expect(reviewGrid).ToBeVisibleAsync();
         await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(5);
-        var pageSize = Page.GetByRole(AriaRole.Combobox, new() { Name = "Rows per page" });
-        await pageSize.SelectOptionAsync("10");
-        await Expect(pageSize).ToHaveValueAsync("10");
-        await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(8);
-        await pageSize.SelectOptionAsync("5");
-        await Expect(pageSize).ToHaveValueAsync("5");
-        await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(5);
+        await Expect(reviewGrid.GetByRole(AriaRole.Combobox, new() { Name = "Rows per page" }))
+            .ToHaveCountAsync(0);
 
         var tooltipTrigger = Page.GetByRole(AriaRole.Button, new() { Name = "Focus me" });
         await tooltipTrigger.FocusAsync();
