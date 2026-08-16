@@ -12,6 +12,9 @@
     let desktopCollapsed = null;
     let mobileOpen = false;
 
+    const usesInteractiveController = () =>
+        document.querySelector('[data-demo-shell-interactive="true"]') !== null;
+
     const readDesktopCollapsed = () => {
         if (desktopCollapsed !== null) {
             return desktopCollapsed;
@@ -38,6 +41,10 @@
     const readOpen = () => mobileQuery.matches ? mobileOpen : !readDesktopCollapsed();
 
     const applyState = (focusMode = null) => {
+        if (usesInteractiveController()) {
+            return;
+        }
+
         const open = readOpen();
         const modalOpen = mobileQuery.matches && open;
 
@@ -72,6 +79,10 @@
     };
 
     const requestOpen = (open) => {
+        if (usesInteractiveController()) {
+            return;
+        }
+
         if (mobileQuery.matches) {
             mobileOpen = open;
         } else {
@@ -82,7 +93,7 @@
     };
 
     const closeMobileNavigation = () => {
-        if (!mobileQuery.matches || !mobileOpen) {
+        if (usesInteractiveController() || !mobileQuery.matches || !mobileOpen) {
             return;
         }
 
@@ -108,7 +119,7 @@
     };
 
     const handleKeyDown = (event) => {
-        if (!mobileQuery.matches || !mobileOpen) {
+        if (usesInteractiveController() || !mobileQuery.matches || !mobileOpen) {
             return;
         }
 
@@ -147,6 +158,10 @@
 
         drawer.dataset.demoNavigationStateObserved = "1";
         const observer = new MutationObserver(() => {
+            if (usesInteractiveController()) {
+                return;
+            }
+
             const expectedOpen = readOpen();
             if (drawer.dataset.bzsOpen !== (expectedOpen ? "true" : "false")) {
                 applyState();
@@ -159,6 +174,10 @@
     };
 
     const wire = () => {
+        if (usesInteractiveController()) {
+            return;
+        }
+
         document.querySelectorAll("#demo-navigation-drawer").forEach(observeDrawerState);
 
         document.querySelectorAll("[data-demo-navigation-toggle]").forEach((button) => {
@@ -208,6 +227,10 @@
     document.addEventListener("enhancedload", wire);
     document.addEventListener("keydown", handleKeyDown);
     mobileQuery.addEventListener("change", () => {
+        if (usesInteractiveController()) {
+            return;
+        }
+
         const activeElement = document.activeElement;
         const drawer = document.querySelector("#demo-navigation-drawer");
         const activeElementWasInDrawer = drawer?.contains(activeElement) ?? false;

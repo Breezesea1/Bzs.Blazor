@@ -1,8 +1,11 @@
 <BzsThemeProvider Mode="BzsThemeMode.Light" data-testid="demo-global-theme-provider">
-    <BzsAppShell Id="demo-app-shell" Class="demo-shell">
+    <BzsAppShell Id="demo-app-shell"
+                 Class="demo-shell"
+                 data-demo-shell-interactive="@(_interactiveControllerReady ? "true" : "false")">
         <BzsNavigationDrawer Id="demo-navigation-drawer"
                              Class="demo-sidebar"
-                             Open="true"
+                             Open="@_navigationOpen"
+                             OpenChanged="AcceptNavigationOpenAsync"
                              Variant="BzsNavigationDrawerVariant.Responsive"
                              Position="BzsNavigationDrawerPosition.Start"
                              InitialFocusSelector=".demo-navigation-toggle--close"
@@ -20,7 +23,7 @@
                        data-demo-navigation-toggle="true"
                        data-demo-navigation-toggle-mode="open"
                        aria-controls="demo-navigation-drawer"
-                       aria-expanded="true" />
+                       aria-expanded="@_navigationOpen" />
             <p class="demo-header-context">
                 <span>Bzs.Blazor</span>
                 <span class="demo-header-separator" aria-hidden="true">/</span>

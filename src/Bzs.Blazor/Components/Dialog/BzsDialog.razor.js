@@ -48,14 +48,14 @@ export function activate(id, panel, modal, initialFocusSelector) {
     overlays.set(id, overlay);
     if (modal) {
         lockBody();
-        queueMicrotask(() => {
-            if (overlays.get(id) === overlay) {
-                focusInitial(overlay);
-            }
-        });
     }
 
     attachKeydownListener();
+    queueMicrotask(() => {
+        if (overlays.get(id) === overlay) {
+            focusInitial(overlay);
+        }
+    });
 }
 
 export function activateNavigationDrawer(id, root, panel, escapeTrigger, initialFocusSelector) {
