@@ -12,10 +12,16 @@ namespace Bzs.Blazor.Tests;
 public sealed class FormsTests
 {
     [Theory]
-    [InlineData(BzsTextInputType.Text, "text")]
-    [InlineData(BzsTextInputType.Email, "email")]
-    [InlineData(BzsTextInputType.Search, "search")]
-    public void TextInputRendersTheConfiguredNativeTextType(BzsTextInputType inputType, string nativeType)
+    [InlineData(BzsTextInputType.Text, BzsInputUpdateMode.Change, "text")]
+    [InlineData(BzsTextInputType.Text, BzsInputUpdateMode.Input, "text")]
+    [InlineData(BzsTextInputType.Email, BzsInputUpdateMode.Change, "email")]
+    [InlineData(BzsTextInputType.Email, BzsInputUpdateMode.Input, "email")]
+    [InlineData(BzsTextInputType.Search, BzsInputUpdateMode.Change, "search")]
+    [InlineData(BzsTextInputType.Search, BzsInputUpdateMode.Input, "search")]
+    public void TextInputRendersEveryNativeTypeAndUpdateModeCombination(
+        BzsTextInputType inputType,
+        BzsInputUpdateMode updateMode,
+        string nativeType)
     {
         using var context = CreateContext();
         var model = new FormModel { Text = "Source" };
@@ -24,9 +30,33 @@ public sealed class FormsTests
         var cut = context.Render<BzsTextInput>(parameters => parameters
             .Add(component => component.Value, model.Text)
             .Add(component => component.ValueExpression, valueExpression)
-            .Add(component => component.InputType, inputType));
+            .Add(component => component.InputType, inputType)
+            .Add(component => component.UpdateMode, updateMode));
 
         Assert.Equal(nativeType, cut.Find("input").GetAttribute("type"));
+        Assert.Equal(updateMode, cut.Instance.UpdateMode);
+    }
+
+    [Theory]
+    [InlineData((BzsTextInputType)99, BzsInputUpdateMode.Change, "InputType")]
+    [InlineData(BzsTextInputType.Text, (BzsInputUpdateMode)99, "UpdateMode")]
+    public void TextInputRejectsUnsupportedEnums(
+        BzsTextInputType inputType,
+        BzsInputUpdateMode updateMode,
+        string parameterName)
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Source" };
+        var valueExpression = (Expression<Func<string?>>)(() => model.Text);
+
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            context.Render<BzsTextInput>(parameters => parameters
+                .Add(component => component.Value, model.Text)
+                .Add(component => component.ValueExpression, valueExpression)
+                .Add(component => component.InputType, inputType)
+                .Add(component => component.UpdateMode, updateMode)));
+
+        Assert.Equal(parameterName, exception.ParamName);
     }
 
     [Fact]
@@ -92,6 +122,71 @@ public sealed class FormsTests
 
         Assert.Equal("After", model.Text);
         Assert.Equal(editContext.Field(nameof(FormModel.Text)), Assert.Single(changedFields));
+    }
+
+    [Fact]
+    public void TextInputCompositionEndCommitsTheFinalDomValueOnceAndSuppressesTheTrailingInput()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Before" };
+        var editContext = new EditContext(model);
+        var committedValues = new List<string?>();
+        var changedFields = new List<FieldIdentifier>();
+        editContext.OnFieldChanged += (_, args) => changedFields.Add(args.FieldIdentifier);
+
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsTextInput, string?>(
+            builder,
+            0,
+            model.Text,
+            () => model.Text,
+            EventCallback.Factory.Create<string?>(model, value =>
+            {
+                model.Text = value;
+                committedValues.Add(value);
+            }),
+            (attributes, sequence) => attributes.AddAttribute(
+                sequence,
+                nameof(BzsTextInput.UpdateMode),
+                BzsInputUpdateMode.Input)));
+
+        var input = cut.Find("input");
+        input.TriggerEvent("oncompositionstart", EventArgs.Empty);
+        input.Input("n");
+        input.TriggerEvent("onbzscompositionend", new ChangeEventArgs { Value = "\u4f60" });
+        input.Input("\u4f60");
+
+        Assert.Equal("\u4f60", model.Text);
+        Assert.Equal(["\u4f60"], committedValues);
+        Assert.Equal(editContext.Field(nameof(FormModel.Text)), Assert.Single(changedFields));
+    }
+
+    [Fact]
+    public void TextAreaContinuesToForwardAConsumerInputHandler()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Notes = "Before" };
+        var editContext = new EditContext(model);
+        var inputEvents = 0;
+        var additional = new Dictionary<string, object>
+        {
+            ["oninput"] = EventCallback.Factory.Create<ChangeEventArgs>(model, _ => inputEvents++),
+        };
+
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsTextArea, string?>(
+            builder,
+            0,
+            model.Notes,
+            () => model.Notes,
+            EventCallback.Factory.Create<string?>(model, value => model.Notes = value),
+            (attributes, sequence) => attributes.AddAttribute(
+                sequence,
+                nameof(BzsTextArea.AdditionalAttributes),
+                additional)));
+
+        cut.Find("textarea").Input("Typing");
+
+        Assert.Equal(1, inputEvents);
+        Assert.Equal("Before", model.Notes);
     }
 
     [Fact]

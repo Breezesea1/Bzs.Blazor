@@ -23,7 +23,6 @@ public sealed class StandaloneTextInputTests(StandaloneWebAssemblyFixture server
                 element.dispatchEvent(new CompositionEvent("compositionstart", { bubbles: true }));
                 element.dispatchEvent(new Event("input", { bubbles: true }));
                 element.value = "你";
-                element.dispatchEvent(new Event("input", { bubbles: true }));
                 element.dispatchEvent(new CompositionEvent("compositionend", { bubbles: true, data: "你" }));
                 element.dispatchEvent(new Event("input", { bubbles: true }));
             }

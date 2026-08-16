@@ -6,7 +6,6 @@ namespace Bzs.Blazor;
 public sealed partial class BzsTextInput : BzsInputBase<string?>
 {
     private bool _isComposing;
-    private string? _composedValue;
     private string? _trailingCompositionValue;
 
     /// <summary>Gets or sets the constrained native text-family type.</summary>
@@ -15,8 +14,50 @@ public sealed partial class BzsTextInput : BzsInputBase<string?>
     /// <summary>Gets or sets when native changes commit the input value.</summary>
     [Parameter] public BzsInputUpdateMode UpdateMode { get; set; } = BzsInputUpdateMode.Change;
 
-    private IReadOnlyDictionary<string, object> InputAttributes =>
-        BuildInputAttributes("bzs-input bzs-text-input", GetNativeInputType());
+    private IReadOnlyDictionary<string, object> InputAttributes
+    {
+        get
+        {
+            var attributes = new Dictionary<string, object>(
+                BuildInputAttributes("bzs-input bzs-text-input", GetNativeInputType()),
+                StringComparer.OrdinalIgnoreCase);
+            attributes.Remove("oninput");
+            attributes.Remove("oncompositionstart");
+            attributes.Remove("oncompositionend");
+            attributes.Remove("onbzscompositionend");
+            if (UpdateMode == BzsInputUpdateMode.Input)
+            {
+                attributes["oncompositionstart"] = EventCallback.Factory.Create<EventArgs>(
+                    this,
+                    OnCompositionStarted);
+                attributes["onbzscompositionend"] = EventCallback.Factory.Create<ChangeEventArgs>(
+                    this,
+                    OnCompositionEnded);
+            }
+            return attributes;
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (!Enum.IsDefined(InputType))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(InputType),
+                InputType,
+                "The text input type is not supported.");
+        }
+
+        if (!Enum.IsDefined(UpdateMode))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(UpdateMode),
+                UpdateMode,
+                "The text input update mode is not supported.");
+        }
+    }
 
     /// <inheritdoc />
     protected override bool TryParseValueFromString(
@@ -39,7 +80,6 @@ public sealed partial class BzsTextInput : BzsInputBase<string?>
         var value = args.Value?.ToString();
         if (_isComposing)
         {
-            _composedValue = value;
             return;
         }
 
@@ -57,19 +97,15 @@ public sealed partial class BzsTextInput : BzsInputBase<string?>
     private void OnCompositionStarted(EventArgs _)
     {
         _isComposing = true;
-        _composedValue = null;
         _trailingCompositionValue = null;
     }
 
-    private void OnCompositionEnded(EventArgs _)
+    private void OnCompositionEnded(ChangeEventArgs args)
     {
         _isComposing = false;
-        if (_composedValue is not null)
-        {
-            _trailingCompositionValue = _composedValue;
-            Commit(_composedValue);
-        }
-        _composedValue = null;
+        var value = args.Value?.ToString();
+        _trailingCompositionValue = value;
+        Commit(value);
     }
 
     private void Commit(string? value)
