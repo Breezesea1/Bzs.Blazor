@@ -69,6 +69,13 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         var reviewGrid = Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" });
         await Expect(reviewGrid).ToBeVisibleAsync();
         await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(5);
+        await Expect(Page.GetByTestId("productivity-grid-refresh-status"))
+            .ToHaveTextAsync("The DataGrid is ready to refresh.");
+        await Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Refresh the current DataGrid request", Exact = true }).ClickAsync();
+        await Expect(Page.GetByTestId("productivity-grid-refresh-status"))
+            .ToHaveTextAsync("The DataGrid refreshed with the same provider request.");
         await Expect(reviewGrid.GetByRole(AriaRole.Combobox, new() { Name = "Rows per page" }))
             .ToHaveCountAsync(0);
         var selectAllRows = reviewGrid.GetByRole(

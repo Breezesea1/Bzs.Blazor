@@ -231,7 +231,9 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
             throw new InvalidOperationException("BzsDataGrid RefreshAsync requires Provider mode.");
         }
 
-        SupersedeRefresh(_pendingRefresh);
+        var pendingRefresh = _pendingRefresh;
+        _pendingRefresh = null;
+        SupersedeRefresh(pendingRefresh);
         SupersedeRefresh(_activeRefresh);
         var refresh = new ProviderRefresh(Provider, CreateProviderRequest());
         if (RendererInfo.IsInteractive)

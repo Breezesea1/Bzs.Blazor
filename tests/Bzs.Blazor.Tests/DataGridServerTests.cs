@@ -115,6 +115,30 @@ public sealed class DataGridServerTests
     }
 
     [Fact]
+    public async Task RefreshAsyncReflectsExternalMutationsWithoutReplacingTheProvider()
+    {
+        using var context = CreateContext();
+        var rows = new List<Row> { new(1, "Initial") };
+        var provider = new RecordingProvider(_ => new BzsDataGridResult<Row>(rows.ToArray(), rows.Count));
+        var cut = RenderProviderGrid(context, provider);
+        cut.WaitForAssertion(() => Assert.Contains("Initial", cut.Markup));
+
+        rows.Add(new Row(2, "Created"));
+        await cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Contains("Created", cut.Markup));
+
+        rows[0] = new Row(1, "Updated");
+        await cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Contains("Updated", cut.Markup));
+
+        rows.RemoveAt(1);
+        await cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.DoesNotContain("Created", cut.Markup));
+
+        Assert.Equal(4, provider.Calls.Count);
+    }
+
+    [Fact]
     public async Task RefreshAsyncFailureRetainsAcceptedRowsAndReportsThroughProviderFailed()
     {
         using var context = CreateContext();
@@ -244,6 +268,11 @@ public sealed class DataGridServerTests
         cut.WaitForAssertion(() => Assert.Contains("Replacement", cut.Find("tbody").TextContent));
         Assert.True(refreshCall.CancellationToken.IsCancellationRequested);
         refreshCall.Completion.SetResult(new BzsDataGridResult<Row>([new(1, "Stale")], false));
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Replacement", cut.Markup);
+            Assert.DoesNotContain("Stale", cut.Markup);
+        });
     }
 
     [Fact]
@@ -301,11 +330,33 @@ public sealed class DataGridServerTests
     }
 
     [Fact]
+    public async Task InteractiveRefreshSupersedesAQueuedStaticRefreshWithoutStartingIt()
+    {
+        using var context = CreateContext();
+        context.Renderer.SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var provider = new ControllableProvider();
+        var cut = RenderProviderGrid(context, provider);
+        var queuedRefresh = cut.Instance.RefreshAsync();
+
+        context.Renderer.SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var interactiveRefresh = cut.Instance.RefreshAsync();
+
+        await queuedRefresh;
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        provider.Calls.Single().Completion.SetResult(
+            new BzsDataGridResult<Row>([new(1, "Interactive refresh")], false));
+        await interactiveRefresh;
+        cut.WaitForAssertion(() => Assert.Contains("Interactive refresh", cut.Markup));
+        Assert.Single(provider.Calls);
+    }
+
+    [Fact]
     public async Task RefreshAsyncReconcilesSelectionByKeyWithoutRequestingASelectionChange()
     {
         using var context = CreateContext();
         var provider = new ControllableProvider();
         var selected = new Row(1, "Selected before refresh");
+        var offPageSelection = new Row(9, "Off page");
         var selectionChanges = new List<IReadOnlyList<Row>>();
         var cut = RenderProviderGrid(
             context,
@@ -314,23 +365,33 @@ public sealed class DataGridServerTests
             {
                 parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
                 parameters.Add(component => component.ItemKey, row => row.Id);
-                parameters.Add(component => component.SelectedItems, new[] { selected });
+                parameters.Add(component => component.SelectedItems, new[] { selected, offPageSelection });
                 parameters.Add(component => component.SelectedItemsChanged, selectionChanges.Add);
             });
         cut.WaitForAssertion(() => Assert.Single(provider.Calls));
         provider.Calls.Single().Completion.SetResult(
             new BzsDataGridResult<Row>([new(1, "Initial instance")], false));
-        cut.WaitForAssertion(() => Assert.True(cut.Find("tbody input[type='checkbox']").HasAttribute("checked")));
+        cut.WaitForAssertion(() => Assert.True(cut.Find("[aria-label='Select row 1']").HasAttribute("checked")));
 
         var refresh = cut.Instance.RefreshAsync();
         cut.WaitForAssertion(() => Assert.Equal(2, provider.Calls.Count));
+        var refreshedSelected = new Row(1, "Refreshed instance");
+        var refreshedAddition = new Row(2, "Refreshed addition");
         provider.Calls.Last().Completion.SetResult(
-            new BzsDataGridResult<Row>([new(1, "Refreshed instance")], false));
+            new BzsDataGridResult<Row>([refreshedSelected, refreshedAddition], false));
 
         await refresh;
         cut.WaitForAssertion(() => Assert.Contains("Refreshed instance", cut.Find("tbody").TextContent));
         Assert.Empty(selectionChanges);
-        Assert.True(cut.Find("tbody input[type='checkbox']").HasAttribute("checked"));
+        Assert.True(cut.Find("[aria-label='Select row 1']").HasAttribute("checked"));
+
+        cut.Find("[aria-label='Select row 2']").Change(true);
+
+        var requested = Assert.Single(selectionChanges);
+        Assert.Equal([1, 9, 2], requested.Select(static row => row.Id));
+        Assert.Same(refreshedSelected, requested[0]);
+        Assert.Same(offPageSelection, requested[1]);
+        Assert.Same(refreshedAddition, requested[2]);
     }
 
     [Fact]
