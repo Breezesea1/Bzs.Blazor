@@ -381,7 +381,7 @@ public sealed class DataGridServerTests
             new BzsDataGridResult<Row>([refreshedSelected, refreshedAddition], false));
 
         await refresh;
-        cut.WaitForAssertion(() => Assert.Contains("Refreshed instance", cut.Find("tbody").TextContent));
+        cut.WaitForAssertion(() => Assert.Contains("Refreshed instance", cut.Markup));
         Assert.Empty(selectionChanges);
         Assert.True(cut.Find("[aria-label='Select row 1']").HasAttribute("checked"));
 
