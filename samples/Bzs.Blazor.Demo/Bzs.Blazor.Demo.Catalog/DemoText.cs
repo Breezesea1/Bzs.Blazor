@@ -57,6 +57,8 @@ public static class DemoText
 
         public static string DemoUser => Get("演示用户", "Demo User");
 
+        public static string DemoUserAvatarInitial => Get("演", "D");
+
         public static string Administrator => Get("管理员", "Administrator");
 
         public static string Exit => Get("退出", "Exit");

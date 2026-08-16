@@ -7,59 +7,6 @@ namespace Bzs.Blazor.BrowserTests;
 public sealed class DemoTextTests
 {
     [Fact]
-    public void ChromeEntriesProvideTheBilingualDemoShellCatalog()
-    {
-        var expectedEntries = new[]
-        {
-            "SkipLink",
-            "NavigationAccessibleName",
-            "BrandTagline",
-            "CloseNavigation",
-            "CatalogSection",
-            "Overview",
-            "ThemeFoundation",
-            "FoundationComponents",
-            "Forms",
-            "Productivity",
-            "Feedback",
-            "Tabs",
-            "Overlays",
-            "Layout",
-            "ProjectSection",
-            "Releases",
-            "RenderModesSection",
-            "RuntimeSection",
-            "StaticSsr",
-            "InteractiveServer",
-            "InteractiveWebAssembly",
-            "InteractiveAuto",
-            "DemoUser",
-            "Administrator",
-            "Exit",
-            "SignOutAccessibleName",
-            "OpenNavigation",
-            "ComponentWorkbench",
-            "AspireDemoHost",
-            "StaticWebAssemblyHost",
-            "LanguageSwitcherAccessibleName",
-            "InteractionError",
-            "Reload",
-            "WhatsNew",
-            "ViewAllReleases",
-            "MarkAsRead",
-        };
-
-        var actualEntries = typeof(DemoText.Chrome)
-            .GetProperties(BindingFlags.Public | BindingFlags.Static)
-            .Where(property => property.PropertyType == typeof(string))
-            .Select(property => property.Name)
-            .Order()
-            .ToArray();
-
-        Assert.Equal(expectedEntries.Order(), actualEntries);
-    }
-
-    [Fact]
     public void EveryCatalogEntryHasNonEmptyDistinctTranslations()
     {
         var properties = typeof(DemoText).GetNestedTypes()

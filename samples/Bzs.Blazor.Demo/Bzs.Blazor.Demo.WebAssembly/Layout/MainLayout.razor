@@ -1,47 +1,14 @@
 @inherits LayoutComponentBase
 
-<BzsAppShell Id="demo-app-shell" Class="demo-shell">
-    <BzsNavigationDrawer Id="demo-navigation-drawer"
-                         Class="demo-sidebar"
-                         Open="true"
-                         Variant="BzsNavigationDrawerVariant.Responsive"
-                         Position="BzsNavigationDrawerPosition.Start"
-                         AccessibleName="@DemoText.Chrome.NavigationAccessibleName">
+<CatalogShell Status="@DemoText.Chrome.StaticWebAssemblyHost">
+    <NavigationContent>
         <NavMenu />
-    </BzsNavigationDrawer>
-
-    <BzsAppBar Id="demo-app-bar" Class="demo-header" Dense="true" Color="BzsAppBarColor.Surface">
-        <BzsButton Id="demo-navigation-open"
-                   Class="demo-navigation-toggle demo-navigation-toggle--open"
-                   Variant="BzsButtonVariant.Secondary"
-                   Size="BzsButtonSize.Small"
-                   StartIcon="@BzsIcons.Menu"
-                   AccessibleName="@DemoText.Chrome.OpenNavigation"
-                   data-demo-navigation-toggle="true"
-                   data-demo-navigation-toggle-mode="open"
-                   aria-controls="demo-navigation-drawer"
-                   aria-expanded="true" />
-        <p class="demo-header-context">
-            <span>Bzs.Blazor</span>
-            <span class="demo-header-separator" aria-hidden="true">/</span>
-            <strong>@DemoText.Chrome.ComponentWorkbench</strong>
-        </p>
-        <p class="demo-header-status">
-            <span class="demo-status-dot" aria-hidden="true"></span>
-            @DemoText.Chrome.StaticWebAssemblyHost
-        </p>
+    </NavigationContent>
+    <HeaderTools>
         <DemoReleaseAnnouncement />
         <DemoLanguageSwitcher UseStaticHostRootReload="true" />
-    </BzsAppBar>
-
-    <BzsMainContent Id="main-content" Class="demo-main">
-        <article class="demo-content">
-            @Body
-        </article>
-    </BzsMainContent>
-</BzsAppShell>
-
-<div id="blazor-error-ui" data-nosnippet>
-    @DemoText.Chrome.InteractionError
-    <a href=".">@DemoText.Chrome.Reload</a>
-</div>
+    </HeaderTools>
+    <Content>
+        @Body
+    </Content>
+</CatalogShell>

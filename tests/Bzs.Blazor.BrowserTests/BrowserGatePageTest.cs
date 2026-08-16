@@ -121,67 +121,7 @@ public abstract class BrowserGatePageTest : PageTest
 
     protected async Task AssertDemoChromeAsync(bool isChinese, bool includesServerRenderModes, string hostStatus)
     {
-        var chrome = isChinese
-            ? new DemoChromeText(
-                "跳至目录内容",
-                "Bzs.Blazor 目录",
-                "组件实验室",
-                "关闭导航",
-                "目录",
-                "概览",
-                "主题基础",
-                "基础组件",
-                "表单",
-                "生产力",
-                "反馈",
-                "选项卡",
-                "浮层",
-                "布局",
-                "项目",
-                "版本发布",
-                "渲染模式",
-                "运行时",
-                "静态 SSR",
-                "交互式服务器",
-                "交互式 WebAssembly",
-                "交互式自动",
-                "演示用户",
-                "管理员",
-                "退出",
-                "演示退出操作，返回概览",
-                "打开导航",
-                "组件工作台",
-                "目录语言")
-            : new DemoChromeText(
-                "Skip to catalog content",
-                "Bzs.Blazor catalog",
-                "Component lab",
-                "Close navigation",
-                "Catalog",
-                "Overview",
-                "Theme foundation",
-                "Foundation components",
-                "Forms",
-                "Productivity",
-                "Feedback",
-                "Tabs",
-                "Overlays",
-                "Layout",
-                "Project",
-                "Releases",
-                "Render modes",
-                "Runtime",
-                "Static SSR",
-                "Interactive Server",
-                "Interactive WebAssembly",
-                "Interactive Auto",
-                "Demo User",
-                "Administrator",
-                "Exit",
-                "Demo sign-out action, returns to overview",
-                "Open navigation",
-                "Component workbench",
-                "Catalog language");
+        var chrome = GetDemoChromeText(isChinese);
 
         await Expect(Page.Locator(".demo-skip-link")).ToHaveTextAsync(chrome.SkipLink);
         var navigation = Page.GetByRole(
@@ -231,6 +171,7 @@ public abstract class BrowserGatePageTest : PageTest
                 .ToBeVisibleAsync();
         }
 
+        await Expect(navigation.GetByText(chrome.DemoUserAvatarInitial, new() { Exact = true })).ToBeVisibleAsync();
         await Expect(navigation.GetByText(chrome.DemoUser, new() { Exact = true })).ToBeVisibleAsync();
         await Expect(navigation.GetByText(chrome.Administrator, new() { Exact = true })).ToBeVisibleAsync();
         await Expect(navigation.GetByRole(AriaRole.Link, new() { Name = chrome.SignOutAccessibleName, Exact = true }))
@@ -246,36 +187,136 @@ public abstract class BrowserGatePageTest : PageTest
         await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true })).ToBeVisibleAsync();
     }
 
-    private sealed record DemoChromeText(
-        string SkipLink,
-        string NavigationAccessibleName,
-        string BrandTagline,
-        string CloseNavigation,
-        string CatalogSection,
-        string Overview,
-        string ThemeFoundation,
-        string FoundationComponents,
-        string Forms,
-        string Productivity,
-        string Feedback,
-        string Tabs,
-        string Overlays,
-        string Layout,
-        string ProjectSection,
-        string Releases,
-        string RenderModesSection,
-        string RuntimeSection,
-        string StaticSsr,
-        string InteractiveServer,
-        string InteractiveWebAssembly,
-        string InteractiveAuto,
-        string DemoUser,
-        string Administrator,
-        string Exit,
-        string SignOutAccessibleName,
-        string OpenNavigation,
-        string ComponentWorkbench,
-        string LanguageSwitcherAccessibleName);
+    private static DemoChromeText GetDemoChromeText(bool isChinese) => isChinese
+        ? new()
+        {
+            SkipLink = "跳至目录内容",
+            NavigationAccessibleName = "Bzs.Blazor 目录",
+            BrandTagline = "组件实验室",
+            CloseNavigation = "关闭导航",
+            CatalogSection = "目录",
+            Overview = "概览",
+            ThemeFoundation = "主题基础",
+            FoundationComponents = "基础组件",
+            Forms = "表单",
+            Productivity = "生产力",
+            Feedback = "反馈",
+            Tabs = "选项卡",
+            Overlays = "浮层",
+            Layout = "布局",
+            ProjectSection = "项目",
+            Releases = "版本发布",
+            RenderModesSection = "渲染模式",
+            RuntimeSection = "运行时",
+            StaticSsr = "静态 SSR",
+            InteractiveServer = "交互式服务器",
+            InteractiveWebAssembly = "交互式 WebAssembly",
+            InteractiveAuto = "交互式自动",
+            DemoUser = "演示用户",
+            DemoUserAvatarInitial = "演",
+            Administrator = "管理员",
+            Exit = "退出",
+            SignOutAccessibleName = "演示退出操作，返回概览",
+            OpenNavigation = "打开导航",
+            ComponentWorkbench = "组件工作台",
+            LanguageSwitcherAccessibleName = "目录语言",
+        }
+        : new()
+        {
+            SkipLink = "Skip to catalog content",
+            NavigationAccessibleName = "Bzs.Blazor catalog",
+            BrandTagline = "Component lab",
+            CloseNavigation = "Close navigation",
+            CatalogSection = "Catalog",
+            Overview = "Overview",
+            ThemeFoundation = "Theme foundation",
+            FoundationComponents = "Foundation components",
+            Forms = "Forms",
+            Productivity = "Productivity",
+            Feedback = "Feedback",
+            Tabs = "Tabs",
+            Overlays = "Overlays",
+            Layout = "Layout",
+            ProjectSection = "Project",
+            Releases = "Releases",
+            RenderModesSection = "Render modes",
+            RuntimeSection = "Runtime",
+            StaticSsr = "Static SSR",
+            InteractiveServer = "Interactive Server",
+            InteractiveWebAssembly = "Interactive WebAssembly",
+            InteractiveAuto = "Interactive Auto",
+            DemoUser = "Demo User",
+            DemoUserAvatarInitial = "D",
+            Administrator = "Administrator",
+            Exit = "Exit",
+            SignOutAccessibleName = "Demo sign-out action, returns to overview",
+            OpenNavigation = "Open navigation",
+            ComponentWorkbench = "Component workbench",
+            LanguageSwitcherAccessibleName = "Catalog language",
+        };
+
+    private sealed class DemoChromeText
+    {
+        public required string SkipLink { get; init; }
+
+        public required string NavigationAccessibleName { get; init; }
+
+        public required string BrandTagline { get; init; }
+
+        public required string CloseNavigation { get; init; }
+
+        public required string CatalogSection { get; init; }
+
+        public required string Overview { get; init; }
+
+        public required string ThemeFoundation { get; init; }
+
+        public required string FoundationComponents { get; init; }
+
+        public required string Forms { get; init; }
+
+        public required string Productivity { get; init; }
+
+        public required string Feedback { get; init; }
+
+        public required string Tabs { get; init; }
+
+        public required string Overlays { get; init; }
+
+        public required string Layout { get; init; }
+
+        public required string ProjectSection { get; init; }
+
+        public required string Releases { get; init; }
+
+        public required string RenderModesSection { get; init; }
+
+        public required string RuntimeSection { get; init; }
+
+        public required string StaticSsr { get; init; }
+
+        public required string InteractiveServer { get; init; }
+
+        public required string InteractiveWebAssembly { get; init; }
+
+        public required string InteractiveAuto { get; init; }
+
+        public required string DemoUser { get; init; }
+
+        public required string DemoUserAvatarInitial { get; init; }
+
+        public required string Administrator { get; init; }
+
+        public required string Exit { get; init; }
+
+        public required string SignOutAccessibleName { get; init; }
+
+        public required string OpenNavigation { get; init; }
+
+        public required string ComponentWorkbench { get; init; }
+
+        public required string LanguageSwitcherAccessibleName { get; init; }
+    }
 
     private async Task ObserveContextAsync(IBrowserContext context)
     {
