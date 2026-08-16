@@ -48,6 +48,31 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     }
 
     [Theory]
+    [InlineData("")]
+    [InlineData("?culture=en-US")]
+    public async Task LandingPageRendersSectionsInOrder(string query)
+    {
+        BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
+        await AssertLandingPageSectionsAsync(server.BaseUrl, query);
+    }
+
+    [Fact]
+    public async Task LandingPageCopyFollowsCulture()
+    {
+        BeginBrowserGateTest();
+        await AssertLandingPageCopyFollowsCultureAsync(server.BaseUrl);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("?culture=en-US")]
+    public async Task LandingPageLiveStripInteractionsWork(string query)
+    {
+        BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
+        await AssertLandingLiveStripAsync(server.BaseUrl, query);
+    }
+
+    [Theory]
     [InlineData("", "目录主题", "浅色", "深色", "系统")]
     [InlineData("?culture=en-US", "Catalog theme", "Light", "Dark", "System")]
     public async Task GlobalThemeSwitchPersistsAndFollowsSystemPreference(
@@ -184,9 +209,8 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "概览", Exact = true })
             .ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/?culture=zh-Hans");
-        var componentGroups = Page.GetByRole(AriaRole.Region, new() { Name = "Component groups" });
-        await componentGroups.GetByRole(AriaRole.Link, new() { Name = "03 Forms", Exact = true })
-            .ClickAsync();
+        var componentGroups = Page.GetByTestId("landing-component-groups");
+        await componentGroups.GetByTestId("landing-group-forms").ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });

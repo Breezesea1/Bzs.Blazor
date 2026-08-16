@@ -1,0 +1,309 @@
+.demo-landing {
+    display: grid;
+    min-inline-size: 0;
+    gap: 2.5rem;
+}
+
+.demo-landing-hero {
+    display: grid;
+    justify-items: start;
+    gap: 0.875rem;
+    padding: 2.5rem;
+    border-radius: var(--demo-radius-overlay);
+    background: var(--demo-panel);
+    box-shadow: var(--demo-shadow-raised);
+}
+
+.demo-landing-hero-logo {
+    inline-size: 4.5rem;
+    block-size: 4.5rem;
+}
+
+.demo-landing-hero h1 {
+    margin: 0;
+    font-size: clamp(1.875rem, 4vw, 2.625rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+}
+
+.demo-landing-hero-summary {
+    margin: 0;
+    max-inline-size: 42rem;
+    color: var(--demo-muted);
+    font-size: 1.0625rem;
+}
+
+.demo-landing-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-block-start: 0.5rem;
+}
+
+.demo-landing-cta {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.5rem;
+    padding: 0.5rem 1.125rem;
+    border-radius: 0.625rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform var(--bzs-motion-normal) ease, box-shadow var(--bzs-motion-normal) ease;
+}
+
+.demo-landing-cta--primary {
+    background: var(--demo-accent);
+    color: var(--demo-canvas);
+    box-shadow: var(--demo-shadow-soft);
+}
+
+.demo-landing-cta--secondary {
+    background: var(--demo-panel-raised);
+    color: var(--demo-text);
+    box-shadow: var(--demo-shadow-raised);
+}
+
+.demo-landing-cta:hover {
+    transform: translateY(-1px);
+}
+
+.demo-landing-github {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--demo-muted);
+    text-decoration: none;
+}
+
+.demo-landing-github:hover {
+    color: var(--demo-accent-strong);
+}
+
+.demo-landing-section {
+    display: grid;
+    min-inline-size: 0;
+    gap: 1rem;
+    border-block-start: 1px solid var(--demo-border);
+    padding-block-start: 2rem;
+}
+
+.demo-landing-section-header {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.demo-landing-section-header h2,
+.demo-landing-section > h2 {
+    margin: 0;
+    font-size: 1.375rem;
+}
+
+.demo-landing-section-header p {
+    margin: 0;
+    color: var(--demo-muted);
+}
+
+.demo-landing-strip-grid {
+    display: grid;
+    min-inline-size: 0;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1rem;
+    align-items: start;
+}
+
+.demo-landing-strip-panel {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    border: 1px solid var(--demo-border);
+    border-radius: var(--demo-radius-overlay);
+    background: var(--demo-panel);
+}
+
+.demo-landing-strip-panel h3 {
+    margin: 0;
+    font-size: 0.9375rem;
+}
+
+.demo-landing-strip-form {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.demo-landing-install-card {
+    display: grid;
+    gap: 0.75rem;
+    max-inline-size: 44rem;
+}
+
+.demo-landing-snippet {
+    margin: 0;
+    padding: 1rem 1.25rem;
+    border-radius: var(--demo-radius-overlay);
+    background: var(--demo-panel-inset);
+    box-shadow: var(--demo-shadow-inset);
+    overflow-x: auto;
+    font-size: 0.875rem;
+    line-height: 1.7;
+}
+
+.demo-landing-install-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.demo-landing-copy-status {
+    color: var(--demo-success);
+    font-size: 0.8125rem;
+}
+
+.demo-landing-feature-grid {
+    display: grid;
+    min-inline-size: 0;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 1rem;
+}
+
+.demo-landing-feature {
+    display: grid;
+    justify-items: start;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    border-radius: var(--demo-radius-overlay);
+    background: var(--demo-panel-raised);
+    box-shadow: var(--demo-shadow-raised);
+}
+
+.demo-landing-feature-icon {
+    color: var(--demo-accent-strong);
+}
+
+.demo-landing-feature h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.demo-landing-feature p {
+    margin: 0;
+    color: var(--demo-muted);
+    font-size: 0.875rem;
+}
+
+.demo-landing-groups-grid {
+    display: grid;
+    min-inline-size: 0;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 1rem;
+}
+
+.demo-landing-group-card {
+    display: grid;
+    justify-items: start;
+    gap: 0.375rem;
+    padding: 1.125rem;
+    border: 1px solid var(--demo-border);
+    border-radius: var(--demo-radius-overlay);
+    background: var(--demo-panel);
+    color: var(--demo-text);
+    text-decoration: none;
+    transition: border-color var(--bzs-motion-normal) ease, transform var(--bzs-motion-normal) ease;
+}
+
+.demo-landing-group-card:hover {
+    border-color: var(--demo-accent);
+    transform: translateY(-1px);
+}
+
+.demo-landing-group-card .bzs-icon {
+    color: var(--demo-accent-strong);
+}
+
+.demo-landing-group-index {
+    color: var(--demo-muted);
+    font-family: var(--bzs-font-mono, monospace);
+    font-size: 0.75rem;
+}
+
+.demo-landing-group-card small {
+    color: var(--demo-muted);
+}
+
+.demo-landing-release-card {
+    display: grid;
+    gap: 0.75rem;
+    max-inline-size: 44rem;
+    padding: 1.5rem;
+    border-radius: var(--demo-radius-overlay);
+    background: var(--demo-panel);
+    box-shadow: var(--demo-shadow-soft);
+}
+
+.demo-landing-release-card h3,
+.demo-landing-release-card h4 {
+    margin: 0;
+}
+
+.demo-landing-release-card p {
+    margin: 0;
+    color: var(--demo-muted);
+}
+
+.demo-landing-release-card ul {
+    margin: 0;
+    padding-inline-start: 1.25rem;
+    color: var(--demo-muted);
+}
+
+.demo-landing-release-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    justify-self: start;
+    color: var(--demo-accent-strong);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.demo-landing-release-more:hover {
+    text-decoration: underline;
+}
+
+.demo-landing-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-block-start: 1px solid var(--demo-border);
+    padding-block-start: 1.5rem;
+    padding-block-end: 1rem;
+}
+
+.demo-landing-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+
+.demo-landing-footer-links a {
+    color: var(--demo-muted);
+    text-decoration: none;
+}
+
+.demo-landing-footer-links a:hover {
+    color: var(--demo-accent-strong);
+}
+
+.demo-landing-footer-note {
+    margin: 0;
+    color: var(--demo-muted);
+    font-size: 0.8125rem;
+}
+
+@media (max-width: 40rem) {
+    .demo-landing-hero {
+        padding: 1.5rem;
+    }
+}

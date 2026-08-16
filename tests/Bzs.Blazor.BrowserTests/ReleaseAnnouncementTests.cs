@@ -118,7 +118,11 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
         await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "标为已读", Exact = true }))
             .ToBeVisibleAsync();
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "查看所有版本", Exact = true }).ClickAsync();
+        await Page.GetByRole(
+            AriaRole.Dialog,
+            new() { Name = "Bzs.Blazor 0.2.1 更新内容", Exact = true })
+            .GetByRole(AriaRole.Link, new() { Name = "查看所有版本", Exact = true })
+            .ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/releases?culture=zh-Hans#v0.2.1");
         await Expect(Page.GetByRole(
             AriaRole.Dialog,

@@ -1,0 +1,224 @@
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject IBzsToastService Toasts
+@implements IAsyncDisposable
+
+<PageTitle>@DemoText.Landing.PageTitle</PageTitle>
+
+<section class="demo-page demo-landing"
+         aria-labelledby="landing-title"
+         data-testid="landing-page"
+         data-interactive="@(_isInteractive ? "true" : "false")">
+    <header class="demo-landing-hero" data-testid="landing-hero">
+        <img class="demo-landing-hero-logo"
+             src="_content/Bzs.Blazor.Demo.Catalog/demo-logo.svg"
+             alt="@DemoText.Landing.HeroLogoAccessibleName"
+             width="72"
+             height="72" />
+        <p class="demo-eyebrow">@DemoText.Landing.HeroEyebrow</p>
+        <h1 id="landing-title">@DemoText.Landing.HeroTitle</h1>
+        <p class="demo-landing-hero-summary">@DemoText.Landing.HeroSummary</p>
+        <div class="demo-landing-cta-row">
+            <a class="demo-landing-cta demo-landing-cta--primary"
+               href="#landing-install"
+               data-enhance-nav="false"
+               data-testid="landing-cta-install">@DemoText.Landing.InstallCta</a>
+            <a class="demo-landing-cta demo-landing-cta--secondary"
+               href="#landing-component-groups"
+               data-enhance-nav="false"
+               data-testid="landing-cta-groups">@DemoText.Landing.GroupsCta</a>
+            <a class="demo-landing-github"
+               href="https://github.com/Breezesea1/Bzs.Blazor"
+               target="_blank"
+               rel="noopener noreferrer">
+                @DemoText.Landing.GitHubLink
+                <BzsIcon Icon="BzsIcons.ChevronRight" />
+            </a>
+        </div>
+    </header>
+
+    <section class="demo-landing-section" aria-labelledby="landing-strip-title" data-testid="landing-demo-strip">
+        <header class="demo-landing-section-header">
+            <h2 id="landing-strip-title">@DemoText.Landing.StripHeading</h2>
+            <p>@DemoText.Landing.StripSummary</p>
+        </header>
+        <p class="demo-runtime-status" role="status" data-testid="landing-runtime-status">
+            @(_isInteractive ? DemoText.Landing.RuntimeReady : DemoText.Landing.RuntimeWaiting)
+        </p>
+        <div class="demo-landing-strip-grid">
+            <section class="demo-landing-strip-panel" aria-label="@DemoText.Landing.StripButtonsHeading">
+                <h3>@DemoText.Landing.StripButtonsHeading</h3>
+                <div class="demo-control-row">
+                    <BzsButton Variant="BzsButtonVariant.Primary">@DemoText.Landing.ButtonPrimary</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Secondary">@DemoText.Landing.ButtonSecondary</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Outline">@DemoText.Landing.ButtonOutline</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Ghost">@DemoText.Landing.ButtonGhost</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Danger">@DemoText.Landing.ButtonDanger</BzsButton>
+                </div>
+            </section>
+            <section class="demo-landing-strip-panel" aria-label="@DemoText.Landing.StripFormHeading">
+                <h3>@DemoText.Landing.StripFormHeading</h3>
+                <EditForm Model="_demoForm" FormName="landing-demo-strip" class="demo-landing-strip-form">
+                    <BzsTextInput Id="landing-demo-name"
+                                  @bind-Value="_demoForm.Name"
+                                  Label="@DemoText.Landing.NameLabel" />
+                    <BzsSelect TValue="string"
+                               Id="landing-demo-workspace"
+                               @bind-Value="_demoForm.Workspace"
+                               Options="WorkspaceOptions"
+                               Label="@DemoText.Landing.WorkspaceLabel" />
+                    <BzsToggle Id="landing-demo-notifications"
+                               @bind-Value="_demoForm.Notifications"
+                               Label="@DemoText.Landing.NotificationsLabel" />
+                </EditForm>
+            </section>
+            <section class="demo-landing-strip-panel" aria-label="@DemoText.Landing.StripOverlaysHeading">
+                <h3>@DemoText.Landing.StripOverlaysHeading</h3>
+                <div class="demo-control-row">
+                    <BzsButton Variant="BzsButtonVariant.Primary"
+                               Disabled="@(!_isInteractive)"
+                               Click="ShowToast"
+                               data-testid="landing-show-toast">@DemoText.Landing.ShowToast</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Outline"
+                               Disabled="@(!_isInteractive)"
+                               Click="OpenDialog"
+                               data-testid="landing-open-dialog">@DemoText.Landing.OpenDialog</BzsButton>
+                </div>
+            </section>
+        </div>
+    </section>
+
+    <section class="demo-landing-section" id="landing-install" aria-labelledby="landing-install-title" data-testid="landing-install">
+        <header class="demo-landing-section-header">
+            <h2 id="landing-install-title">@DemoText.Landing.InstallHeading</h2>
+            <p>@DemoText.Landing.InstallSummary</p>
+        </header>
+        <div class="demo-landing-install-card">
+            <pre class="demo-landing-snippet" data-testid="landing-install-snippet"><code>@InstallSnippet</code></pre>
+            <div class="demo-landing-install-actions">
+                <BzsButton Variant="BzsButtonVariant.Secondary"
+                           Size="BzsButtonSize.Small"
+                           Disabled="@(!_isInteractive)"
+                           Click="CopyInstallAsync"
+                           AccessibleName="@DemoText.Landing.CopyInstallAccessibleName"
+                           data-testid="landing-copy">@DemoText.Landing.CopyInstall</BzsButton>
+                <span class="demo-landing-copy-status" role="status" data-testid="landing-copy-status">@(_copied ? DemoText.Landing.Copied : string.Empty)</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="demo-landing-section" aria-labelledby="landing-features-title" data-testid="landing-features">
+        <header class="demo-landing-section-header">
+            <h2 id="landing-features-title">@DemoText.Landing.FeaturesHeading</h2>
+        </header>
+        <div class="demo-landing-feature-grid">
+            @foreach (var feature in Features)
+            {
+                <article class="demo-landing-feature" @key="feature.Key">
+                    <span class="demo-landing-feature-icon" aria-hidden="true">
+                        <BzsIcon Icon="@feature.Icon" />
+                    </span>
+                    <h3>@feature.Title</h3>
+                    <p>@feature.Body</p>
+                </article>
+            }
+        </div>
+    </section>
+
+    <section class="demo-landing-section" id="landing-component-groups" aria-labelledby="landing-groups-title" data-testid="landing-component-groups">
+        <header class="demo-landing-section-header">
+            <h2 id="landing-groups-title">@DemoText.Landing.GroupsHeading</h2>
+            <p>@DemoText.Landing.GroupsSummary</p>
+        </header>
+        <div class="demo-landing-groups-grid">
+            @for (var index = 0; index < Groups.Count; index++)
+            {
+                var group = Groups[index];
+                <a class="demo-landing-group-card"
+                   href="@RouteUrl(group.Route)"
+                   data-testid="@($"landing-group-{group.Route}")"
+                   @key="group.Route">
+                    <span class="demo-landing-group-index">@FormatGroupIndex(index)</span>
+                    <BzsIcon Icon="@group.Icon" />
+                    <strong>@group.Name</strong>
+                    <small>@group.Description</small>
+                </a>
+            }
+        </div>
+    </section>
+
+    <section class="demo-landing-section" aria-labelledby="landing-release-title" data-testid="landing-release">
+        <header class="demo-landing-section-header">
+            <h2 id="landing-release-title">@DemoText.Landing.ReleaseHeading</h2>
+        </header>
+        <article class="demo-landing-release-card">
+            <div class="demo-release-entry-meta">
+                <BzsBadge Severity="BzsMessageSeverity.Information">
+                    <span data-testid="landing-release-version">@Latest.Version</span>
+                </BzsBadge>
+                <strong>@Latest.Status.Resolve(IsChinese)</strong>
+                <time datetime="@Latest.PublishedAt.ToString("yyyy-MM-dd")">@FormatReleaseDate(Latest.PublishedAt)</time>
+            </div>
+            <h3>@Latest.Title.Resolve(IsChinese)</h3>
+            <p>@Latest.Summary.Resolve(IsChinese)</p>
+            <h4>@DemoText.Landing.HighlightsHeading</h4>
+            <ul>
+                @foreach (var highlight in Latest.Highlights)
+                {
+                    <li @key="highlight.English">@highlight.Resolve(IsChinese)</li>
+                }
+            </ul>
+            <a class="demo-landing-release-more" href="@RouteUrl("releases")" data-testid="landing-release-more">
+                @DemoText.Chrome.ViewAllReleases
+                <BzsIcon Icon="BzsIcons.ChevronRight" />
+            </a>
+        </article>
+    </section>
+
+    <section class="demo-landing-section" aria-labelledby="landing-routes-title" data-testid="landing-routes">
+        <h2 id="landing-routes-title">@(IncludesServerRenderModes ? DemoText.Chrome.RenderModesSection : DemoText.Chrome.RuntimeSection)</h2>
+        <ul class="demo-route-list">
+            @if (IncludesServerRenderModes)
+            {
+                <li><a href="@RouteUrl("render-modes/static")">@DemoText.Chrome.StaticSsr</a><span>@DemoText.Landing.StaticSsrDescription</span></li>
+                <li><a href="@RouteUrl("render-modes/server")">@DemoText.Chrome.InteractiveServer</a><span>@DemoText.Landing.InteractiveServerDescription</span></li>
+                <li><a href="@RouteUrl("render-modes/webassembly")">@DemoText.Chrome.InteractiveWebAssembly</a><span>@DemoText.Landing.InteractiveWebAssemblyDescription</span></li>
+                <li><a href="@RouteUrl("render-modes/auto")">@DemoText.Chrome.InteractiveAuto</a><span>@DemoText.Landing.InteractiveAutoDescription</span></li>
+            }
+            else
+            {
+                <li><a href="@RouteUrl("render-modes/webassembly")">@DemoText.Chrome.InteractiveWebAssembly</a><span>@DemoText.Landing.StandaloneRuntimeDescription</span></li>
+            }
+        </ul>
+    </section>
+
+    <footer class="demo-landing-footer" data-testid="landing-footer">
+        <nav class="demo-landing-footer-links" aria-label="@DemoText.Landing.FooterLinksAccessibleName">
+            <a href="https://www.nuget.org/packages/Bzs.Blazor" target="_blank" rel="noopener noreferrer">@DemoText.Landing.FooterNuGet</a>
+            <a href="https://github.com/Breezesea1/Bzs.Blazor" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://github.com/Breezesea1/Bzs.Blazor/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">@DemoText.Landing.FooterLicense</a>
+        </nav>
+        <p class="demo-landing-footer-note">@DemoText.Landing.FooterNote</p>
+    </footer>
+</section>
+
+<BzsDialog Open="_dialogOpen"
+           OpenChanged="SetDialogOpen"
+           Title="@DemoText.Landing.DialogTitle"
+           AccessibleName="@DemoText.Landing.DialogTitle"
+           Modal="true"
+           CloseOnEscape="true"
+           InitialFocusSelector="[data-testid='landing-dialog-close']"
+           data-testid="landing-dialog">
+    <ChildContent>
+        <p>@DemoText.Landing.DialogBody</p>
+    </ChildContent>
+    <FooterContent>
+        <BzsButton Variant="BzsButtonVariant.Primary"
+                   Size="BzsButtonSize.Small"
+                   Click="CloseDialog"
+                   data-testid="landing-dialog-close">@DemoText.Landing.DialogClose</BzsButton>
+    </FooterContent>
+</BzsDialog>
+
+<BzsOverlayHost data-testid="landing-overlay-host" />

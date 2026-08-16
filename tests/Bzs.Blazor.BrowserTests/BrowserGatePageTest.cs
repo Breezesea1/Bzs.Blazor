@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
 
@@ -235,6 +236,131 @@ public abstract class BrowserGatePageTest : PageTest
         await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Dark });
         await Expect(Page.GetByTestId("demo-global-theme-provider"))
             .ToHaveAttributeAsync("data-bzs-theme", "dark");
+    }
+
+    protected async Task AssertLandingPageSectionsAsync(string baseUrl, string query)
+    {
+        await Page.GotoAsync($"{baseUrl}{query}");
+
+        var expectedSections = new[]
+        {
+            "landing-hero",
+            "landing-demo-strip",
+            "landing-install",
+            "landing-features",
+            "landing-component-groups",
+            "landing-release",
+            "landing-routes",
+            "landing-footer",
+        };
+
+        foreach (var section in expectedSections)
+        {
+            await Expect(Page.GetByTestId(section)).ToBeVisibleAsync();
+        }
+
+        var order = await Page.GetByTestId("landing-page").EvaluateAsync<string[]>(
+            "root => [...root.querySelectorAll(':scope > [data-testid]')].map(element => element.getAttribute('data-testid'))");
+        Assert.Equal(expectedSections, order);
+    }
+
+    protected async Task AssertLandingPageCopyFollowsCultureAsync(string baseUrl)
+    {
+        await Page.GotoAsync(baseUrl);
+        var chineseHero = await Page.GetByTestId("landing-hero").Locator("h1").TextContentAsync();
+        Assert.False(string.IsNullOrWhiteSpace(chineseHero));
+
+        await Page.GotoAsync($"{baseUrl}?culture=en-US");
+        var englishHero = await Page.GetByTestId("landing-hero").Locator("h1").TextContentAsync();
+        Assert.False(string.IsNullOrWhiteSpace(englishHero));
+        Assert.NotEqual(chineseHero, englishHero);
+    }
+
+    protected async Task AssertLandingHeroCtasReachTheirSectionsAsync(string baseUrl, string query)
+    {
+        await Page.GotoAsync($"{baseUrl}{query}");
+        await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync("data-interactive", "true");
+
+        await Page.GetByTestId("landing-cta-install").ClickAsync();
+        await Expect(Page).ToHaveURLAsync(new Regex("#landing-install$"));
+        await Expect(Page.GetByTestId("landing-install")).ToBeInViewportAsync();
+
+        await Page.GetByTestId("landing-cta-groups").ClickAsync();
+        await Expect(Page).ToHaveURLAsync(new Regex("#landing-component-groups$"));
+        await Expect(Page.GetByTestId("landing-component-groups")).ToBeInViewportAsync();
+    }
+
+    protected async Task AssertLandingLiveStripAsync(string baseUrl, string query)
+    {
+        await Page.GotoAsync($"{baseUrl}{query}");
+        await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync("data-interactive", "true");
+
+        var strip = Page.GetByTestId("landing-demo-strip");
+
+        var name = strip.Locator("#landing-demo-name");
+        await name.FillAsync("Mei");
+        await Expect(name).ToHaveValueAsync("Mei");
+
+        await strip.Locator("#landing-demo-workspace").ClickAsync();
+        await strip.Locator("#landing-demo-workspace-option-1").ClickAsync();
+        await strip.Locator("#landing-demo-workspace").ClickAsync();
+        await Expect(strip.Locator("#landing-demo-workspace-option-1"))
+            .ToHaveAttributeAsync("aria-selected", "true");
+        await Page.Keyboard.PressAsync("Escape");
+
+        var notifications = strip.Locator("#landing-demo-notifications");
+        var initiallyChecked = await notifications.IsCheckedAsync();
+        await notifications.PressAsync("Space");
+        await Expect(notifications).ToBeCheckedAsync(new() { Checked = !initiallyChecked });
+
+        await strip.GetByTestId("landing-show-toast").ClickAsync();
+        var toast = Page.GetByTestId("landing-overlay-host").GetByRole(AriaRole.Status);
+        await Expect(toast).ToBeVisibleAsync();
+        await toast.GetByRole(AriaRole.Button).ClickAsync();
+        await Expect(toast).ToHaveCountAsync(0);
+
+        await strip.GetByTestId("landing-open-dialog").ClickAsync();
+        var dialog = Page.GetByRole(AriaRole.Dialog);
+        await Expect(dialog).ToBeVisibleAsync();
+        await Expect(Page.GetByTestId("landing-dialog-close")).ToBeFocusedAsync();
+        await Page.Keyboard.PressAsync("Escape");
+        await Expect(dialog).ToHaveCountAsync(0);
+    }
+
+    protected async Task AssertLandingInstallSnippetAsync(string baseUrl, string query)
+    {
+        await Page.GotoAsync($"{baseUrl}{query}");
+
+        var snippet = Page.GetByTestId("landing-install-snippet");
+        await Expect(snippet).ToContainTextAsync("dotnet add package Bzs.Blazor");
+        await Expect(snippet).ToContainTextAsync("AddBzsBlazor()");
+
+        await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync("data-interactive", "true");
+        await Page.GetByTestId("landing-copy").ClickAsync();
+        await Expect(Page.GetByTestId("landing-copy-status")).ToHaveTextAsync(new Regex(".+"));
+    }
+
+    protected async Task AssertLandingReleaseSummaryAsync(string baseUrl, string query)
+    {
+        await Page.GotoAsync($"{baseUrl}{query}");
+
+        var release = Page.GetByTestId("landing-release");
+        await Expect(release.GetByTestId("landing-release-version"))
+            .ToHaveTextAsync(new Regex(@"^\d+\.\d+\.\d+$"));
+
+        await release.GetByTestId("landing-release-more").ClickAsync();
+        await Expect(Page).ToHaveURLAsync(new Regex($"/releases{Regex.Escape(query)}$"));
+        await Expect(Page.GetByTestId("releases-page")).ToBeVisibleAsync();
+    }
+
+    protected async Task AssertLandingFooterAsync(string baseUrl, string query)
+    {
+        await Page.GotoAsync($"{baseUrl}{query}");
+
+        var footer = Page.GetByTestId("landing-footer");
+        await Expect(footer.Locator("a[href^='https://www.nuget.org/packages/']")).ToBeVisibleAsync();
+        await Expect(footer.Locator("a[href='https://github.com/Breezesea1/Bzs.Blazor']")).ToBeVisibleAsync();
+        await Expect(footer.Locator("a[href$='/LICENSE']")).ToBeVisibleAsync();
     }
 
     private static DemoChromeText GetDemoChromeText(bool isChinese) => isChinese

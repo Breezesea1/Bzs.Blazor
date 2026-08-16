@@ -259,23 +259,78 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     }
 
     [Theory]
-    [InlineData("01 Theme foundation", "theme-foundation", "Light, Dark, and System")]
-    [InlineData("02 Foundation", "foundation", "Icon, Surface, and Button")]
-    [InlineData("03 Forms", "forms", "Profile editor")]
-    [InlineData("04 Feedback", "feedback", "Status and notifications")]
-    [InlineData("05 Tabs", "tabs", "Tabs, language, and direction")]
-    [InlineData("06 Overlays", "overlays", "Dialog, Drawer, and Host")]
-    [InlineData("07 Layout", "layout", "App Shell, Grid, and Stack")]
-    public async Task CatalogComponentGroupLinksNavigateToTheirSamples(
-        string linkName,
+    [InlineData("")]
+    [InlineData("?culture=en-US")]
+    public async Task LandingPageRendersSectionsInOrder(string query)
+    {
+        BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
+        await AssertLandingPageSectionsAsync(server.BaseUrl, query);
+    }
+
+    [Fact]
+    public async Task LandingPageCopyFollowsCulture()
+    {
+        BeginBrowserGateTest();
+        await AssertLandingPageCopyFollowsCultureAsync(server.BaseUrl);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("?culture=en-US")]
+    public async Task LandingPageHeroCtasReachTheirSections(string query)
+    {
+        BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
+        await AssertLandingHeroCtasReachTheirSectionsAsync(server.BaseUrl, query);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("?culture=en-US")]
+    public async Task LandingPageLiveStripInteractionsWork(string query)
+    {
+        BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
+        await AssertLandingLiveStripAsync(server.BaseUrl, query);
+    }
+
+    [Fact]
+    public async Task LandingPageInstallSnippetIsCopyableAndMatchesReadme()
+    {
+        BeginBrowserGateTest();
+        await AssertLandingInstallSnippetAsync(server.BaseUrl, "?culture=en-US");
+    }
+
+    [Fact]
+    public async Task LandingPageReleaseSummaryRoutesToReleaseArchive()
+    {
+        BeginBrowserGateTest();
+        await AssertLandingReleaseSummaryAsync(server.BaseUrl, "?culture=en-US");
+    }
+
+    [Fact]
+    public async Task LandingPageFooterLinksToProjectResources()
+    {
+        BeginBrowserGateTest();
+        await AssertLandingFooterAsync(server.BaseUrl, "?culture=en-US");
+    }
+
+    [Theory]
+    [InlineData("theme-foundation", "Light, Dark, and System")]
+    [InlineData("foundation", "Icon, Surface, and Button")]
+    [InlineData("forms", "Profile editor")]
+    [InlineData("productivity", "Operational workbench")]
+    [InlineData("feedback", "Status and notifications")]
+    [InlineData("tabs", "Tabs, language, and direction")]
+    [InlineData("overlays", "Dialog, Drawer, and Host")]
+    [InlineData("layout", "App Shell, Grid, and Stack")]
+    public async Task LandingComponentGroupLinksNavigateToTheirSamples(
         string route,
         string pageHeading)
     {
-        BeginBrowserGateTest();
+        BeginBrowserGateTest(route);
         await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
 
-        var componentGroups = Page.GetByRole(AriaRole.Region, new() { Name = "Component groups" });
-        await componentGroups.GetByRole(AriaRole.Link, new() { Name = linkName, Exact = true }).ClickAsync();
+        var componentGroups = Page.GetByTestId("landing-component-groups");
+        await componentGroups.GetByTestId($"landing-group-{route}").ClickAsync();
 
         await Expect(Page).ToHaveURLAsync(new Regex($"/{Regex.Escape(route)}(?:\\?culture=en-US)?$"));
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = pageHeading }))

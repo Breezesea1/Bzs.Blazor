@@ -79,9 +79,8 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "概览", Exact = true })
             .ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/?culture=zh-Hans");
-        var componentGroups = Page.GetByRole(AriaRole.Region, new() { Name = "Component groups" });
-        await componentGroups.GetByRole(AriaRole.Link, new() { Name = "03 Forms", Exact = true })
-            .ClickAsync();
+        var componentGroups = Page.GetByTestId("landing-component-groups");
+        await componentGroups.GetByTestId("landing-group-forms").ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
