@@ -5,7 +5,6 @@ namespace Bzs.Blazor;
 /// </summary>
 public sealed partial class BzsNavigationDrawer : BzsComponentBase
 {
-    private const int InteropRetryLimit = 3;
     private static readonly TimeSpan InteropRetryDelay = TimeSpan.FromMilliseconds(100);
 
     private readonly string _overlayId = $"bzs-navigation-drawer-{Guid.NewGuid():N}";
@@ -20,7 +19,6 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
     private string? _lastInitialFocusSelector;
     private CancellationTokenSource? _interopRetryCancellation;
     private Task? _interopRetryTask;
-    private int _interopRetryAttempts;
     private bool _disposed;
 
     /// <summary>
@@ -147,7 +145,6 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
             || _lastInitialFocusSelector != initialFocusSelector)
         {
             CancelInteropRetry();
-            _interopRetryAttempts = 0;
             _interopSynchronizationPending = true;
         }
 
@@ -185,11 +182,7 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
                 _lastInitialFocusSelector,
                 VariantName);
             _interopSynchronizationPending = !synchronized;
-            if (synchronized)
-            {
-                _interopRetryAttempts = 0;
-            }
-            else
+            if (!synchronized)
             {
                 ScheduleInteropRetry();
             }
@@ -234,12 +227,11 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
 
     private void ScheduleInteropRetry()
     {
-        if (_disposed || _interopRetryTask is not null || _interopRetryAttempts >= InteropRetryLimit)
+        if (_disposed || _interopRetryTask is not null)
         {
             return;
         }
 
-        _interopRetryAttempts++;
         var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCancellation.Token);
         _interopRetryCancellation = cancellation;
         _interopRetryTask = RetryInteropSynchronizationAsync(cancellation);

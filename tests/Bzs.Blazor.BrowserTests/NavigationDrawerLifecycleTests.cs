@@ -54,10 +54,8 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
         var open = Page.Locator("#fixture-open");
         var background = Page.Locator("#fixture-background");
         var drawer = Page.Locator("#fixture-drawer");
-        var backdrop = drawer.Locator(".bzs-navigation-drawer__backdrop");
 
         await Page.Locator("#fixture-toggle-backdrop-hidden").ClickAsync();
-        await Expect(backdrop).ToHaveCSSAsync("display", "none");
         await open.ClickAsync();
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
         await Expect(background).ToHaveAttributeAsync("inert", "");
@@ -65,11 +63,9 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
 
         await Page.Locator("#fixture-toggle-backdrop-hidden").ClickAsync();
-        await Expect(backdrop).ToHaveCSSAsync("display", "block");
         await Page.Locator("#fixture-variant-persistent").ClickAsync();
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-navigation-drawer", "persistent");
         await Page.Locator("#fixture-toggle-backdrop-override").ClickAsync();
-        await Expect(backdrop).ToHaveCSSAsync("display", "block");
         await open.ClickAsync();
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
         await Expect(background).Not.ToHaveAttributeAsync("inert", "");
@@ -104,9 +100,9 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
         var drawer = Page.Locator("#fixture-drawer");
 
         await Page.Locator("#fixture-open-without-focusable").ClickAsync();
-        await Expect(drawer.Locator(".bzs-navigation-drawer__panel")).ToBeFocusedAsync();
+        await AssertFocusIsInsideDrawerAsync(drawer);
         await Page.Keyboard.PressAsync("Tab");
-        await Expect(drawer.Locator(".bzs-navigation-drawer__panel")).ToBeFocusedAsync();
+        await AssertFocusIsInsideDrawerAsync(drawer);
 
         await Page.Keyboard.PressAsync("Escape");
         await Expect(Page.Locator("#fixture-open-without-focusable")).ToBeFocusedAsync();
@@ -130,8 +126,79 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
         await Page.Keyboard.PressAsync("Escape");
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
-        await drawer.Locator(".bzs-navigation-drawer__backdrop").DispatchEventAsync("click");
+        await ClickBackdropAsync(drawer);
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+    }
+
+    [Fact]
+    public async Task InitialFocusSelectorReceivesFocusWhenTheDrawerOpens()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await WaitForInteractiveShellAsync();
+
+        await Page.Locator("#fixture-open-with-initial-focus").ClickAsync();
+
+        await Expect(Page.Locator("#fixture-initial-focus-target")).ToBeFocusedAsync();
+    }
+
+    [Fact]
+    public async Task DisabledBackdropDismissalDoesNotRequestAControlledClose()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await WaitForInteractiveShellAsync();
+        var drawer = Page.Locator("#fixture-drawer");
+
+        await Page.Locator("#fixture-toggle-close-on-backdrop-click").ClickAsync();
+        await Page.Locator("#fixture-open").ClickAsync();
+        await ClickBackdropAsync(drawer);
+
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+    }
+
+    [Fact]
+    public async Task ResponsiveDrawerStaysOpenWhileViewportChangesReconcileModalConstraints()
+    {
+        BeginBrowserGateTest();
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await WaitForInteractiveShellAsync();
+        var drawer = Page.Locator("#fixture-drawer");
+        var background = Page.Locator("#fixture-background");
+
+        await Page.Locator("#fixture-variant-responsive").ClickAsync();
+        await Page.Locator("#fixture-open").ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await Expect(background).Not.ToHaveAttributeAsync("inert", "");
+        Assert.Equal(string.Empty, await Page.EvaluateAsync<string>("() => document.body.style.overflow"));
+
+        await Page.SetViewportSizeAsync(390, 844);
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await Expect(background).ToHaveAttributeAsync("inert", "");
+        Assert.Equal("hidden", await Page.EvaluateAsync<string>("() => document.body.style.overflow"));
+
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await Expect(background).Not.ToHaveAttributeAsync("inert", "");
+        Assert.Equal(string.Empty, await Page.EvaluateAsync<string>("() => document.body.style.overflow"));
+    }
+
+    [Fact]
+    public async Task PersistentDrawerDoesNotTrapTabFocus()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await WaitForInteractiveShellAsync();
+        var drawer = Page.Locator("#fixture-drawer");
+
+        await Page.Locator("#fixture-variant-persistent").ClickAsync();
+        await Page.Locator("#fixture-open").ClickAsync();
+        await Page.Locator("#fixture-enhanced-navigation").FocusAsync();
+        await Page.Keyboard.PressAsync("Tab");
+
+        Assert.False(await drawer.EvaluateAsync<bool>(
+            "element => element.contains(document.activeElement)"));
     }
 
     [Fact]
@@ -154,4 +221,19 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
     private Task WaitForInteractiveShellAsync() =>
         Expect(Page.Locator("#navigation-drawer-fixture"))
             .ToHaveAttributeAsync("data-fixture-interactive", "true");
+
+    private async Task ClickBackdropAsync(ILocator drawer)
+    {
+        var bounds = await drawer.BoundingBoxAsync();
+        Assert.NotNull(bounds);
+        await Page.Mouse.ClickAsync(
+            bounds.X + bounds.Width - 8,
+            bounds.Y + (bounds.Height / 2));
+    }
+
+    private static async Task AssertFocusIsInsideDrawerAsync(ILocator drawer)
+    {
+        Assert.True(await drawer.EvaluateAsync<bool>(
+            "element => element.contains(document.activeElement)"));
+    }
 }

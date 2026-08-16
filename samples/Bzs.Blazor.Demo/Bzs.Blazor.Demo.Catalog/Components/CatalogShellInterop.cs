@@ -8,6 +8,7 @@ internal sealed class CatalogShellInterop(IJSRuntime js) : IAsyncDisposable
         "./_content/Bzs.Blazor.Demo.Catalog/Components/CatalogShell.razor.js";
     private Task<IJSObjectReference>? _moduleTask;
     private string? _shellId;
+    private string? _connectionId;
     private bool _disposed;
 
     internal async ValueTask<CatalogShellNavigationState> InitializeAsync(
@@ -16,7 +17,9 @@ internal sealed class CatalogShellInterop(IJSRuntime js) : IAsyncDisposable
     {
         _shellId = shellId;
         var module = await GetModuleAsync();
-        return await module.InvokeAsync<CatalogShellNavigationState>("initialize", shellId, callback);
+        var state = await module.InvokeAsync<CatalogShellNavigationState>("initialize", shellId, callback);
+        _connectionId = state.ConnectionId;
+        return state;
     }
 
     public async ValueTask DisposeAsync()
@@ -35,9 +38,9 @@ internal sealed class CatalogShellInterop(IJSRuntime js) : IAsyncDisposable
         try
         {
             var module = await _moduleTask;
-            if (_shellId is not null)
+            if (_shellId is not null && _connectionId is not null)
             {
-                await module.InvokeVoidAsync("dispose", _shellId);
+                await module.InvokeVoidAsync("dispose", _shellId, _connectionId);
             }
 
             await module.DisposeAsync();
@@ -60,4 +63,4 @@ internal sealed class CatalogShellInterop(IJSRuntime js) : IAsyncDisposable
     }
 }
 
-internal sealed record CatalogShellNavigationState(bool Open);
+internal sealed record CatalogShellNavigationState(bool Open, string ConnectionId);

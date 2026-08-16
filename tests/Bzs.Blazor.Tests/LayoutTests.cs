@@ -162,7 +162,33 @@ public sealed class LayoutTests
     }
 
     [Fact]
-    public async Task OpenNavigationDrawerRetriesThroughTwoTransientActivationFailures()
+    public void NavigationDrawerForwardsInitialFocusAndHonorsDisabledBackdropDismissal()
+    {
+        using var context = CreateInteractiveContext();
+        var module = context.JSInterop.SetupModule(BzsOverlayInterop.ModulePath);
+        module.SetupVoid(BzsOverlayInterop.ActivateNavigationDrawerMethod, _ => true)
+            .SetVoidResult();
+        bool? requestedOpen = null;
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.OpenChanged, open => requestedOpen = open)
+            .Add(component => component.CloseOnBackdropClick, false)
+            .Add(component => component.InitialFocusSelector, "  #primary-navigation  ")
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        var activation = Assert.Single(
+            module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod]);
+        Assert.Equal("#primary-navigation", activation.Arguments[4]);
+        Assert.False(cut.Instance.CloseOnBackdropClick);
+
+        cut.Find("button:not([hidden])").Click();
+
+        Assert.Null(requestedOpen);
+        Assert.Equal("true", cut.Find("nav").GetAttribute("data-bzs-open"));
+    }
+
+    [Fact]
+    public async Task OpenNavigationDrawerRetriesThroughFourTransientActivationFailures()
     {
         using var context = CreateInteractiveContext();
         var module = context.JSInterop.SetupModule(BzsOverlayInterop.ModulePath);
@@ -180,13 +206,13 @@ public sealed class LayoutTests
         activation.VerifyInvoke(BzsOverlayInterop.ActivateNavigationDrawerMethod, 1);
 
         await WaitUntilAsync(
-            () => module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod].Count == 2);
+            () => module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod].Count == 4);
         activation.SetVoidResult();
 
         await WaitUntilAsync(
-            () => module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod].Count == 3);
+            () => module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod].Count == 5);
 
-        activation.VerifyInvoke(BzsOverlayInterop.ActivateNavigationDrawerMethod, 3);
+        activation.VerifyInvoke(BzsOverlayInterop.ActivateNavigationDrawerMethod, 5);
     }
 
     [Fact]
