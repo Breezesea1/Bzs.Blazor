@@ -279,6 +279,17 @@ public static class DemoText
         public static string FooterNote => Get("基于 MIT 许可证发布。", "Released under the MIT license.");
     }
 
+    public static class Productivity
+    {
+        public static string RefreshGrid => Get("刷新数据网格", "Refresh DataGrid");
+
+        public static string RefreshGridAccessibleName => Get("刷新当前数据网格请求", "Refresh the current DataGrid request");
+
+        public static string GridRefreshReady => Get("数据网格已准备好刷新。", "The DataGrid is ready to refresh.");
+
+        public static string GridRefreshed => Get("数据网格已使用相同的提供程序请求刷新。", "The DataGrid refreshed with the same provider request.");
+    }
+
     private static string Get(string chinese, string english) =>
         DemoCulture.IsChinese(CultureInfo.CurrentUICulture.Name) ? chinese : english;
 }

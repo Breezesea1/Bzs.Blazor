@@ -23,6 +23,8 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     private HashSet<object?>? _selectedItemKeys;
     private BzsDataGridRequestCoordinator<TItem>? _requestCoordinator;
     private IBzsDataGridProvider<TItem>? _coordinatorProvider;
+    private ProviderRefresh? _pendingRefresh;
+    private ProviderRefresh? _activeRefresh;
     private BzsDataGridRequest? _lastStartedRequest;
     private BzsDataGridRequest? _acceptedRequest;
     private BzsDataGridResult<TItem>? _acceptedResult;
@@ -183,6 +185,49 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     /// <summary>Gets or sets a function that names each row-selection control.</summary>
     [Parameter]
     public Func<TItem, string>? RowAccessibleName { get; set; }
+
+    /// <summary>
+    /// Reloads the current provider request and completes when that request succeeds, fails, or is superseded.
+    /// </summary>
+    /// <remarks>
+    /// Provider failures remain available through <see cref="ProviderFailed" /> and the rendered error state.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">Thrown when the grid is configured with <see cref="Items" /> instead of <see cref="Provider" />.</exception>
+    public async Task RefreshAsync()
+    {
+        ProviderRefresh? refresh = null;
+        await InvokeAsync(() => { refresh = QueueRefresh(); });
+        if (refresh is not null)
+        {
+            await refresh.Completion.Task;
+        }
+    }
+
+    private ProviderRefresh? QueueRefresh()
+    {
+        if (_disposed)
+        {
+            return null;
+        }
+
+        if (Provider is null)
+        {
+            throw new InvalidOperationException("BzsDataGrid RefreshAsync requires Provider mode.");
+        }
+
+        SupersedeRefresh(_pendingRefresh);
+        SupersedeRefresh(_activeRefresh);
+        var refresh = new ProviderRefresh(Provider, CreateProviderRequest());
+        if (RendererInfo.IsInteractive)
+        {
+            StartRefresh(refresh);
+            return refresh;
+        }
+
+        _pendingRefresh = refresh;
+        StateHasChanged();
+        return refresh;
+    }
 
     internal IReadOnlyList<BzsDataGridColumn<TItem>> Columns => _columns;
 
@@ -378,11 +423,27 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         }
 
         var request = CreateProviderRequest();
+        if (_pendingRefresh is { } pendingRefresh)
+        {
+            _pendingRefresh = null;
+            if (!ReferenceEquals(pendingRefresh.Provider, Provider)
+                || !RequestsEqual(pendingRefresh.Request, request))
+            {
+                SupersedeRefresh(pendingRefresh);
+            }
+            else
+            {
+                StartRefresh(pendingRefresh);
+                return;
+            }
+        }
+
         if (RequestsEqual(_lastStartedRequest, request))
         {
             return;
         }
 
+        SupersedeRefresh(_activeRefresh);
         _lastStartedRequest = request;
         await LoadProviderAsync(request);
     }
@@ -394,6 +455,10 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
             return;
         }
 
+        SupersedeRefresh(_pendingRefresh);
+        SupersedeRefresh(_activeRefresh);
+        _pendingRefresh = null;
+        _activeRefresh = null;
         _requestCoordinator?.Dispose();
         _requestCoordinator = null;
         _coordinatorProvider = Provider;
@@ -474,6 +539,32 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         _providerError = null;
         _selectedItemKeys = CreateSelectedItemKeys();
         StateHasChanged();
+    }
+
+    private async Task LoadRefreshAsync(ProviderRefresh refresh)
+    {
+        _activeRefresh = refresh;
+        _lastStartedRequest = refresh.Request;
+        try
+        {
+            await LoadProviderAsync(refresh.Request);
+        }
+        finally
+        {
+            CompleteRefresh(refresh);
+        }
+    }
+
+    private async void StartRefresh(ProviderRefresh refresh)
+    {
+        try
+        {
+            await LoadRefreshAsync(refresh);
+        }
+        catch (Exception exception)
+        {
+            await DispatchExceptionAsync(exception);
+        }
     }
 
     private static void ValidateProviderResult(
@@ -848,6 +939,19 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         return Task.CompletedTask;
     }
 
+    private static void SupersedeRefresh(ProviderRefresh? refresh) =>
+        refresh?.Completion.TrySetResult();
+
+    private void CompleteRefresh(ProviderRefresh refresh)
+    {
+        if (ReferenceEquals(_activeRefresh, refresh))
+        {
+            _activeRefresh = null;
+        }
+
+        refresh.Completion.TrySetResult();
+    }
+
     private bool IsSelected(TItem item) => SelectionMode switch
     {
         BzsDataGridSelectionMode.Single => SelectedItem is not null && KeysEqual(SelectedItem, item),
@@ -1089,6 +1193,10 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         }
 
         _disposed = true;
+        SupersedeRefresh(_pendingRefresh);
+        SupersedeRefresh(_activeRefresh);
+        _pendingRefresh = null;
+        _activeRefresh = null;
         _requestCoordinator?.Dispose();
         _requestCoordinator = null;
         _coordinatorProvider = null;
@@ -1141,6 +1249,18 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
                     attributes
                         .OrderBy(static attribute => attribute.Key, StringComparer.OrdinalIgnoreCase)
                         .Select(static attribute => $"{attribute.Key}={attribute.Value}"));
+    }
+
+    private sealed class ProviderRefresh(
+        IBzsDataGridProvider<TItem> provider,
+        BzsDataGridRequest request)
+    {
+        internal IBzsDataGridProvider<TItem> Provider { get; } = provider;
+
+        internal BzsDataGridRequest Request { get; } = request;
+
+        internal TaskCompletionSource Completion { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     private sealed class RendererKey
