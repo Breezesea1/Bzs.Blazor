@@ -93,9 +93,9 @@ internal sealed class DemoThemeModeSwitchInterop(IJSRuntime js) : IAsyncDisposab
         }
     }
 
-    private static bool IsTransientInitializationFailure(Exception exception) =>
+    internal static bool IsTransientInitializationFailure(Exception exception) =>
         exception is JSDisconnectedException or InvalidOperationException or TaskCanceledException;
 
-    private static bool IsTransientDisposalFailure(Exception exception) =>
+    internal static bool IsTransientDisposalFailure(Exception exception) =>
         exception is JSDisconnectedException or TaskCanceledException;
 }

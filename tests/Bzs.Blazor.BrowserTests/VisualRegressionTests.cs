@@ -31,8 +31,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync(
             "Interactive runtime ready",
             new() { Timeout = InteractiveReadinessTimeout });
-        var theme = Page.GetByRole(AriaRole.Heading, new() { Name = "Icon, Surface, and Button" })
-            .Locator("xpath=ancestor::div[@data-bzs-theme][1]");
+        var theme = Page.GetByTestId("foundation-theme");
         await theme.GetByRole(AriaRole.Button, new() { Name = "Dark", Exact = true }).ClickAsync();
 
         await AssertMatchesBaselineAsync("foundation-dark-desktop.png");

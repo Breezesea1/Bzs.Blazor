@@ -53,46 +53,13 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         string systemLabel)
     {
         BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
-        await Page.AddInitScriptAsync(
-            """
-            if (!sessionStorage.getItem('bzs-demo-theme-mode-test-initialized')) {
-                localStorage.removeItem('bzs-demo-theme-mode');
-                sessionStorage.setItem('bzs-demo-theme-mode-test-initialized', 'true');
-            }
-            """);
-        await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Light });
-
-        await Page.GotoAsync($"{server.BaseUrl}{query}");
-
-        var provider = Page.GetByTestId("demo-global-theme-provider");
-        await Expect(provider).ToHaveAttributeAsync("data-bzs-demo-theme-mode", "light");
-        var themeSwitch = Page.GetByRole(AriaRole.Group, new() { Name = accessibleName, Exact = true });
-        await Expect(themeSwitch).ToBeVisibleAsync();
-        await Expect(themeSwitch.GetByRole(AriaRole.Button, new() { Name = lightLabel, Exact = true }))
-            .ToBeVisibleAsync();
-        var dark = themeSwitch.GetByRole(AriaRole.Button, new() { Name = darkLabel, Exact = true });
-        await Expect(dark).ToBeVisibleAsync();
-        var system = themeSwitch.GetByRole(AriaRole.Button, new() { Name = systemLabel, Exact = true });
-        await Expect(system).ToBeVisibleAsync();
-
-        await dark.ClickAsync();
-        await Expect(provider).ToHaveAttributeAsync("data-bzs-theme", "dark");
-
-        await Page.ReloadAsync();
-        await Expect(provider).ToHaveAttributeAsync("data-bzs-theme", "dark");
-
-        themeSwitch = Page.GetByRole(AriaRole.Group, new() { Name = accessibleName, Exact = true });
-        await themeSwitch.GetByRole(AriaRole.Button, new() { Name = systemLabel, Exact = true }).ClickAsync();
-        await Expect(Page.GetByTestId("demo-global-theme-provider"))
-            .ToHaveAttributeAsync("data-bzs-theme", "light");
-
-        await Page.GotoAsync($"{server.BaseUrl}/forms{query}");
-        await Expect(Page.GetByTestId("demo-global-theme-provider"))
-            .ToHaveAttributeAsync("data-bzs-theme", "light");
-
-        await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Dark });
-        await Expect(Page.GetByTestId("demo-global-theme-provider"))
-            .ToHaveAttributeAsync("data-bzs-theme", "dark");
+        await AssertGlobalThemeSwitchPersistsAndFollowsSystemPreferenceAsync(
+            server.BaseUrl,
+            query,
+            accessibleName,
+            lightLabel,
+            darkLabel,
+            systemLabel);
     }
 
     [Fact]
@@ -332,8 +299,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
             .Single(directive => directive.StartsWith("style-src", StringComparison.Ordinal));
         Assert.Equal("style-src 'self'", styleDirective);
 
-        var themeFoundation = Page.GetByRole(AriaRole.Heading, new() { Name = "Light, Dark, and System" })
-            .Locator("xpath=ancestor::div[@data-bzs-theme][1]");
+        var themeFoundation = Page.GetByTestId("theme-foundation-theme");
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Light, Dark, and System" }))
             .ToBeVisibleAsync();
         await Expect(themeFoundation).ToHaveAttributeAsync("data-bzs-theme", "light");
@@ -376,8 +342,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         var compactHeight = await Page.GetByRole(AriaRole.Button, new() { Name = "Primary action 2" })
             .EvaluateAsync<double>("element => element.getBoundingClientRect().height");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Comfortable density" }).ClickAsync();
-        var provider = Page.GetByRole(AriaRole.Heading, new() { Name = "Icon, Surface, and Button" })
-            .Locator("xpath=ancestor::div[@data-bzs-theme][1]");
+        var provider = Page.GetByTestId("foundation-theme");
         await Expect(provider).ToHaveAttributeAsync("data-bzs-density", "comfortable");
         var comfortableHeight = await Page.GetByRole(AriaRole.Button, new() { Name = "Primary action 2" })
             .EvaluateAsync<double>("element => element.getBoundingClientRect().height");

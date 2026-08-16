@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 
 namespace Bzs.Blazor.Demo.Client.Components;
 
@@ -25,7 +24,7 @@ public partial class DemoThemeModeSwitch : ComponentBase, IAsyncDisposable
             await _interop.InitializeAsync();
             _initialized = true;
         }
-        catch (Exception exception) when (IsTransientInitializationFailure(exception))
+        catch (Exception exception) when (DemoThemeModeSwitchInterop.IsTransientInitializationFailure(exception))
         {
         }
 
@@ -34,12 +33,6 @@ public partial class DemoThemeModeSwitch : ComponentBase, IAsyncDisposable
             await InvokeAsync(StateHasChanged);
         }
     }
-
-    private static bool IsTransientInitializationFailure(Exception exception) =>
-        exception is JSDisconnectedException or InvalidOperationException or TaskCanceledException;
-
-    private static bool IsTransientDisposalFailure(Exception exception) =>
-        exception is JSDisconnectedException or TaskCanceledException;
 
     public async ValueTask DisposeAsync()
     {
@@ -55,7 +48,7 @@ public partial class DemoThemeModeSwitch : ComponentBase, IAsyncDisposable
             {
                 await _interop.DisposeAsync();
             }
-            catch (Exception exception) when (IsTransientDisposalFailure(exception))
+            catch (Exception exception) when (DemoThemeModeSwitchInterop.IsTransientDisposalFailure(exception))
             {
             }
         }

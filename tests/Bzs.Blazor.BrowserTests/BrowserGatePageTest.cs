@@ -187,6 +187,56 @@ public abstract class BrowserGatePageTest : PageTest
         await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true })).ToBeVisibleAsync();
     }
 
+    protected async Task AssertGlobalThemeSwitchPersistsAndFollowsSystemPreferenceAsync(
+        string baseUrl,
+        string query,
+        string accessibleName,
+        string lightLabel,
+        string darkLabel,
+        string systemLabel)
+    {
+        await Page.AddInitScriptAsync(
+            """
+            if (!sessionStorage.getItem('bzs-demo-theme-mode-test-initialized')) {
+                localStorage.removeItem('bzs-demo-theme-mode');
+                sessionStorage.setItem('bzs-demo-theme-mode-test-initialized', 'true');
+            }
+            """);
+        await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Light });
+
+        await Page.GotoAsync($"{baseUrl}{query}");
+
+        var provider = Page.GetByTestId("demo-global-theme-provider");
+        await Expect(provider).ToHaveAttributeAsync("data-bzs-demo-theme-mode", "light");
+        var themeSwitch = Page.GetByRole(AriaRole.Group, new() { Name = accessibleName, Exact = true });
+        await Expect(themeSwitch).ToBeVisibleAsync();
+        await Expect(themeSwitch.GetByRole(AriaRole.Button, new() { Name = lightLabel, Exact = true }))
+            .ToBeVisibleAsync();
+        var dark = themeSwitch.GetByRole(AriaRole.Button, new() { Name = darkLabel, Exact = true });
+        await Expect(dark).ToBeVisibleAsync();
+        var system = themeSwitch.GetByRole(AriaRole.Button, new() { Name = systemLabel, Exact = true });
+        await Expect(system).ToBeVisibleAsync();
+
+        await dark.ClickAsync();
+        await Expect(provider).ToHaveAttributeAsync("data-bzs-theme", "dark");
+
+        await Page.ReloadAsync();
+        await Expect(provider).ToHaveAttributeAsync("data-bzs-theme", "dark");
+
+        themeSwitch = Page.GetByRole(AriaRole.Group, new() { Name = accessibleName, Exact = true });
+        await themeSwitch.GetByRole(AriaRole.Button, new() { Name = systemLabel, Exact = true }).ClickAsync();
+        await Expect(Page.GetByTestId("demo-global-theme-provider"))
+            .ToHaveAttributeAsync("data-bzs-theme", "light");
+
+        await Page.GotoAsync($"{baseUrl}/forms{query}");
+        await Expect(Page.GetByTestId("demo-global-theme-provider"))
+            .ToHaveAttributeAsync("data-bzs-theme", "light");
+
+        await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Dark });
+        await Expect(Page.GetByTestId("demo-global-theme-provider"))
+            .ToHaveAttributeAsync("data-bzs-theme", "dark");
+    }
+
     private static DemoChromeText GetDemoChromeText(bool isChinese) => isChinese
         ? new()
         {
