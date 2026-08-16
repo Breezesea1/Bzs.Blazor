@@ -93,6 +93,32 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     }
 
     [Fact]
+    public async Task LanguageSwitcherFallbackMatchesInteractiveSegmentedStyle()
+    {
+        BeginBrowserGateTest();
+        var page = await NewObservedPageAsync(new BrowserNewContextOptions
+        {
+            JavaScriptEnabled = false,
+        });
+
+        await page.GotoAsync($"{server.BaseUrl}/?culture=zh-Hans");
+
+        var language = page.GetByRole(
+            AriaRole.Navigation,
+            new() { Name = "目录语言", Exact = true });
+        var chinese = language.GetByRole(
+            AriaRole.Link,
+            new() { Name = "中文", Exact = true });
+
+        await Expect(chinese).ToHaveAttributeAsync("aria-current", "page");
+        await Expect(chinese).ToHaveCSSAsync("display", "flex");
+        await Expect(chinese).ToHaveCSSAsync("text-decoration-line", "none");
+        Assert.NotEqual(
+            "none",
+            await chinese.EvaluateAsync<string>("element => getComputedStyle(element).boxShadow"));
+    }
+
+    [Fact]
     public async Task CultureCookieCanonicalizesQuerylessAndUnsupportedHtmlGets()
     {
         BeginBrowserGateTest();
@@ -244,7 +270,11 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
-        var initialInputValue = await input.InputValueAsync();
+        var chineseCulture = CultureInfo.GetCultureInfo("zh-Hans");
+        var initialDate = new DateOnly(2026, 8, 30);
+        await input.FillAsync(initialDate.ToString("d", chineseCulture));
+        await input.PressAsync("Tab");
+        await Expect(input).ToHaveValueAsync(initialDate.ToString("d", chineseCulture));
         await input.FocusAsync();
         await input.PressAsync("ArrowDown");
 
@@ -252,12 +282,12 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await Expect(panel).ToBeVisibleAsync();
         var focusedDay = panel.Locator("[data-bzs-date-picker-day='true'][tabindex='0']");
         await Expect(focusedDay).ToBeFocusedAsync();
-        var initialDate = ParseNativeDate(await focusedDay.GetAttributeAsync("data-date"));
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", "2026-08-30");
 
         await focusedDay.PressAsync("ArrowRight");
         await Expect(focusedDay).ToBeFocusedAsync();
-        var nextDate = initialDate.AddDays(1);
-        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(nextDate));
+        var nextDate = new DateOnly(2026, 8, 31);
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", "2026-08-31");
 
         await focusedDay.PressAsync("ArrowLeft");
         await Expect(focusedDay).ToBeFocusedAsync();
@@ -277,26 +307,29 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
 
         await focusedDay.PressAsync("PageDown");
         await Expect(focusedDay).ToBeFocusedAsync();
-        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(nextDate.AddMonths(1)));
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", "2026-09-30");
 
         await focusedDay.PressAsync("PageUp");
         await Expect(focusedDay).ToBeFocusedAsync();
-        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(nextDate));
+        // Month navigation follows the currently focused day, so month-end clamping is not reversible.
+        var returnedMonthDate = new DateOnly(2026, 8, 30);
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", "2026-08-30");
 
-        var firstDayOfWeek = CultureInfo.GetCultureInfo("zh-Hans").DateTimeFormat.FirstDayOfWeek;
-        var daysSinceStartOfWeek = ((int)nextDate.DayOfWeek - (int)firstDayOfWeek + 7) % 7;
-        var expectedStartOfWeek = nextDate.AddDays(-daysSinceStartOfWeek);
+        var firstDayOfWeek = chineseCulture.DateTimeFormat.FirstDayOfWeek;
+        var daysSinceStartOfWeek = ((int)returnedMonthDate.DayOfWeek - (int)firstDayOfWeek + 7) % 7;
+        var expectedStartOfWeek = returnedMonthDate.AddDays(-daysSinceStartOfWeek);
         await focusedDay.PressAsync("Home");
         await Expect(focusedDay).ToBeFocusedAsync();
         await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(expectedStartOfWeek));
+        var expectedEndOfWeek = expectedStartOfWeek.AddDays(6);
         await focusedDay.PressAsync("End");
         await Expect(focusedDay).ToBeFocusedAsync();
-        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(expectedStartOfWeek.AddDays(6)));
+        await Expect(focusedDay).ToHaveAttributeAsync("data-date", FormatNativeDate(expectedEndOfWeek));
 
         await focusedDay.PressAsync("Enter");
         await Expect(panel).ToHaveCountAsync(0);
         await Expect(input).ToBeFocusedAsync();
-        await Expect(input).Not.ToHaveValueAsync(initialInputValue);
+        await Expect(input).ToHaveValueAsync(expectedEndOfWeek.ToString("d", chineseCulture));
     }
 
     [Fact]
@@ -856,12 +889,6 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     private static bool IsZeroDuration(string duration) =>
         string.Equals(duration, "0s", StringComparison.Ordinal)
         || string.Equals(duration, "0ms", StringComparison.Ordinal);
-
-    private static DateOnly ParseNativeDate(string? value)
-    {
-        Assert.NotNull(value);
-        return DateOnly.ParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-    }
 
     private static string FormatNativeDate(DateOnly value) =>
         value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);

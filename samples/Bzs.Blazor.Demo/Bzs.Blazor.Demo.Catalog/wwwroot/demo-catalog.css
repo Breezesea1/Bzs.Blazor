@@ -194,21 +194,55 @@ h1[tabindex="-1"]:focus {
 
 .demo-language-fallback {
     display: inline-flex;
+    box-sizing: border-box;
     align-items: center;
-    gap: 0.75rem;
-    min-block-size: var(--bzs-control-height);
-    color: var(--demo-muted);
-    font-size: 0.75rem;
-    font-weight: 650;
+    gap: 0.25rem;
+    max-inline-size: 100%;
+    padding: 0.25rem;
+    overflow-x: auto;
+    border-radius: var(--bzs-radius-control);
+    background-color: var(--bzs-surface-inset);
+    box-shadow: var(--bzs-shadow-inset);
+    color: var(--bzs-text);
+    font-family: var(--bzs-font-family);
+    font-size: var(--bzs-font-size);
+    line-height: var(--bzs-line-height);
 }
 
 .demo-language-fallback a {
-    color: inherit;
+    display: flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-inline-size: 3.75rem;
+    min-block-size: calc(var(--bzs-control-height) - 0.5rem);
+    padding: 0.375rem var(--bzs-control-padding-inline);
+    border-radius: calc(var(--bzs-radius-control) - 0.25rem);
+    color: var(--bzs-text-muted);
+    font-weight: var(--bzs-font-weight-medium);
+    text-align: center;
+    text-decoration: none;
+    transition: background-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        box-shadow var(--bzs-motion-fast) var(--bzs-motion-easing),
+        color var(--bzs-motion-fast) var(--bzs-motion-easing);
+}
+
+.demo-language-fallback a:not([aria-current="page"]):hover {
+    background-color: var(--bzs-surface);
+    color: var(--bzs-primary);
 }
 
 .demo-language-fallback a[aria-current="page"] {
-    color: var(--demo-text);
-    font-weight: 700;
+    background-color: var(--bzs-surface-raised);
+    box-shadow: var(--bzs-shadow-raised);
+    color: var(--bzs-primary);
+}
+
+.demo-language-fallback a:focus-visible {
+    outline: 2px solid var(--bzs-focus-ring);
+    outline-offset: -2px;
+    box-shadow: var(--bzs-shadow-focus);
 }
 
 .demo-status-dot {
@@ -786,7 +820,8 @@ h1[tabindex="-1"]:focus {
 @media (prefers-reduced-motion: reduce) {
     .demo-navigation-toggle,
     .demo-nav .demo-nav-link,
-    .demo-overview-card {
+    .demo-overview-card,
+    .demo-language-fallback a {
         transition: none;
     }
 
@@ -802,6 +837,21 @@ h1[tabindex="-1"]:focus {
         box-shadow: none;
         color: ButtonText;
         outline: 1px solid ButtonText;
+    }
+
+    .demo-language-fallback {
+        border: var(--bzs-border-width) solid CanvasText;
+        box-shadow: none;
+    }
+
+    .demo-language-fallback a[aria-current="page"] {
+        background-color: Highlight;
+        box-shadow: none;
+        color: HighlightText;
+    }
+
+    .demo-language-fallback a:focus-visible {
+        outline-color: CanvasText;
     }
 }
 
@@ -851,7 +901,11 @@ h1[tabindex="-1"]:focus {
     }
 
     .demo-language-fallback {
-        gap: 0.5rem;
+        inline-size: 100%;
+    }
+
+    .demo-language-fallback a {
+        flex: 1 1 0;
     }
 
     .demo-header-language .bzs-radio-group {

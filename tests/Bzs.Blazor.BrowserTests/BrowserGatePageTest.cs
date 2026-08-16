@@ -314,12 +314,15 @@ public abstract class BrowserGatePageTest : PageTest
         await name.FillAsync("Mei");
         await Expect(name).ToHaveValueAsync("Mei");
 
-        await strip.Locator("#landing-demo-workspace").ClickAsync();
+        var workspace = strip.Locator("#landing-demo-workspace");
+        await workspace.ClickAsync();
         await strip.Locator("#landing-demo-workspace-option-1").ClickAsync();
-        await strip.Locator("#landing-demo-workspace").ClickAsync();
+        await workspace.ClickAsync();
         await Expect(strip.Locator("#landing-demo-workspace-option-1"))
             .ToHaveAttributeAsync("aria-selected", "true");
         await Page.Keyboard.PressAsync("Escape");
+        await Expect(workspace).ToHaveAttributeAsync("aria-expanded", "false");
+        await Expect(workspace).ToBeFocusedAsync();
 
         var notifications = strip.Locator("#landing-demo-notifications");
         var initiallyChecked = await notifications.IsCheckedAsync();
@@ -346,6 +349,7 @@ public abstract class BrowserGatePageTest : PageTest
 
         var snippet = Page.GetByTestId("landing-install-snippet");
         await Expect(snippet).ToContainTextAsync("dotnet add package Bzs.Blazor");
+        await Expect(snippet).ToContainTextAsync("--version 0.2.3");
         await Expect(snippet).ToContainTextAsync("AddBzsBlazor()");
 
         await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync("data-interactive", "true");

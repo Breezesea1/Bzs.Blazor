@@ -25,6 +25,109 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.2.3",
+            "0.2.3",
+            new DateTimeOffset(2026, 8, 17, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Patch release", "补丁版本"),
+            new DemoLocalizedText(
+                "Bilingual Demo and shared landing page",
+                "双语 Demo 与共享首页"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.2.3 improves Demo discovery with Chinese-first bilingual navigation, persistent theming, and a shared release-aware landing page while preserving the runtime API surface.",
+                "Bzs.Blazor 0.2.3 通过中文优先的双语导航、持久化主题和共享版本首页改善 Demo 探索体验，同时保持运行时 API 不变。"),
+            [
+                new DemoLocalizedText(
+                    "A Chinese-first catalog shell keeps the selected culture across Demo navigation.",
+                    "中文优先的目录外壳会在 Demo 导航期间保留所选语言。"),
+                new DemoLocalizedText(
+                    "Light, dark, and system theme choices persist across the Demo hosts.",
+                    "浅色、深色和跟随系统主题会在各 Demo 宿主间持久保存。"),
+                new DemoLocalizedText(
+                    "A shared responsive landing page presents installation, component previews, and release details.",
+                    "共享响应式首页集中展示安装方式、组件预览和版本详情。"),
+                new DemoLocalizedText(
+                    "The static language fallback now matches the interactive segmented control before interactivity is ready.",
+                    "静态语言 fallback 在交互就绪前也与分段选择控件保持一致。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Demo experience", "Demo 体验"),
+                    [
+                        new DemoLocalizedText(
+                            "The catalog shell, navigation, release surfaces, and landing content are shared across hosted and standalone Demo modes.",
+                            "目录外壳、导航、版本界面和首页内容在托管与独立 Demo 模式间共享。"),
+                        new DemoLocalizedText(
+                            "Logo and favicon assets provide a consistent Bzs.Blazor identity across the Demo.",
+                            "Logo 与 favicon 资源为整个 Demo 提供一致的 Bzs.Blazor 品牌识别。"),
+                        new DemoLocalizedText(
+                            "Theme selection is persisted while consumer applications remain responsible for their own theme policy.",
+                            "Demo 会持久保存主题选择，而使用方应用仍负责自身的主题策略。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Reliability and delivery", "可靠性与交付"),
+                    [
+                        new DemoLocalizedText(
+                            "Static SSR language links retain segmented styling with hover, focus, forced-colors, and reduced-motion behavior.",
+                            "静态 SSR 语言链接保留分段样式，并覆盖悬停、焦点、强制颜色和减少动画模式。"),
+                        new DemoLocalizedText(
+                            "Browser coverage verifies the language fallback with JavaScript disabled.",
+                            "浏览器测试会在禁用 JavaScript 时验证语言 fallback。"),
+                        new DemoLocalizedText(
+                            "DatePicker keyboard coverage now reflects standards-aligned month-end clamping.",
+                            "DatePicker 键盘测试现在正确反映符合标准的月末截断行为。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "No breaking changes and no new runtime APIs; this release focuses on the Demo and release experience.",
+                "没有破坏性变更，也没有新增运行时 API；本次发布聚焦 Demo 与版本体验。")),
+        new(
+            "v0.2.2",
+            "0.2.2",
+            new DateTimeOffset(2026, 8, 15, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Patch release", "补丁版本"),
+            new DemoLocalizedText(
+                "Anchored overlay lifecycle hardening",
+                "锚定浮层生命周期加固"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.2.2 consolidates anchored overlay state behind a shared session and fixes concurrency, focus restoration, retry, and disposal behavior.",
+                "Bzs.Blazor 0.2.2 通过共享会话统一锚定浮层状态，并修复并发、焦点恢复、重试和释放行为。"),
+            [
+                new DemoLocalizedText(
+                    "Popover, Tooltip, Menu, ContextMenu, and Autocomplete share one internal overlay lifecycle.",
+                    "Popover、Tooltip、Menu、ContextMenu 和 Autocomplete 共享同一套内部浮层生命周期。"),
+                new DemoLocalizedText(
+                    "Concurrent close requests coalesce into one controlled transition.",
+                    "并发关闭请求会合并为一次受控状态转换。"),
+                new DemoLocalizedText(
+                    "Focus restoration survives controlled renders and transient JavaScript retries.",
+                    "焦点恢复可跨越受控重渲染和瞬时 JavaScript 重试。"),
+                new DemoLocalizedText(
+                    "Disposal and rejected context-menu invocations no longer leak stale overlay state.",
+                    "释放流程和被拒绝的上下文菜单调用不再遗留过期浮层状态。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Concurrency and focus", "并发与焦点"),
+                    [
+                        new DemoLocalizedText(
+                            "Latest-state-wins synchronization serializes initialization, retries, and close callbacks.",
+                            "最新状态优先的同步机制会串行处理初始化、重试和关闭回调。"),
+                        new DemoLocalizedText(
+                            "Accepted closes preserve focus intent even when a controlled parent replays an intermediate open render.",
+                            "即使受控父组件重放中间打开状态，已接受的关闭操作仍会保留焦点意图。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Compatibility", "兼容性"),
+                    [
+                        new DemoLocalizedText(
+                            "Razor markup, CSS, JavaScript module paths, export names, and public APIs remain unchanged.",
+                            "Razor 标记、CSS、JavaScript 模块路径、导出名称和公共 API 均保持不变。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "No breaking changes to previously published APIs or supported render modes.",
+                "对已发布 API 和支持的渲染模式没有破坏性变更。")),
+        new(
             "v0.2.1",
             "0.2.1",
             new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero),

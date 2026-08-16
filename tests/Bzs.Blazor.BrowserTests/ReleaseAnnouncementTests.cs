@@ -21,13 +21,19 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
         response.EnsureSuccessStatusCode();
         Assert.Contains("data-testid=\"releases-page\"", html, StringComparison.Ordinal);
         Assert.Contains("Release announcements", html, StringComparison.Ordinal);
-        Assert.Contains("0.2.1", html, StringComparison.Ordinal);
+        Assert.Contains("0.2.3", html, StringComparison.Ordinal);
+        Assert.Contains("0.2.2", html, StringComparison.Ordinal);
+        Assert.Contains("Demo experience", html, StringComparison.Ordinal);
         Assert.Contains("Fixes and accessibility", html, StringComparison.Ordinal);
         Assert.Contains("New public contracts", html, StringComparison.Ordinal);
         Assert.Contains("Deliberately deferred", html, StringComparison.Ordinal);
         Assert.Contains("data-testid=\"demo-release-fallback\"", html, StringComparison.Ordinal);
         Assert.Contains("href=\"/releases?culture=en-US\"", html, StringComparison.Ordinal);
         Assert.Contains("title=\"What&#x27;s new\"", html, StringComparison.Ordinal);
+        var release023Index = html.IndexOf("data-testid=\"release-0.2.3\"", StringComparison.Ordinal);
+        var release022Index = html.IndexOf("data-testid=\"release-0.2.2\"", StringComparison.Ordinal);
+        var release021Index = html.IndexOf("data-testid=\"release-0.2.1\"", StringComparison.Ordinal);
+        Assert.True(release023Index < release022Index && release022Index < release021Index);
     }
 
     [Fact]
@@ -57,9 +63,9 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
         await trigger.ClickAsync();
         var dialog = Page.GetByRole(
             AriaRole.Dialog,
-            new() { Name = "What's new in Bzs.Blazor 0.2.1", Exact = true });
+            new() { Name = "What's new in Bzs.Blazor 0.2.3", Exact = true });
         await Expect(dialog).ToBeVisibleAsync();
-        await Expect(dialog.GetByText("Release announcement and UI hardening", new() { Exact = true }))
+        await Expect(dialog.GetByText("Bilingual Demo and shared landing page", new() { Exact = true }))
             .ToBeVisibleAsync();
 
         await Page.Keyboard.PressAsync("Escape");
@@ -76,7 +82,7 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
 
         var storedIds = await Page.EvaluateAsync<string[]>(
             $"JSON.parse(localStorage.getItem('{StorageKey}') ?? '[]')");
-        Assert.Equal(["v0.2.1"], storedIds);
+        Assert.Equal(["v0.2.3"], storedIds);
 
         await Page.ReloadAsync();
         trigger = Page.GetByTestId("demo-release-trigger");
@@ -89,6 +95,8 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
             AriaRole.Heading,
             new() { Name = "Release announcements", Exact = true }))
             .ToBeVisibleAsync();
+        await Expect(Page.GetByTestId("release-0.2.3")).ToBeVisibleAsync();
+        await Expect(Page.GetByTestId("release-0.2.2")).ToBeVisibleAsync();
         await Expect(Page.GetByTestId("release-0.2.1")).ToBeVisibleAsync();
         await Expect(Page.GetByTestId("release-0.2.0")).ToBeVisibleAsync();
         await Expect(Page.GetByRole(
@@ -99,6 +107,10 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
             AriaRole.Heading,
             new() { Name = "Deliberately deferred", Exact = true }))
             .ToBeVisibleAsync();
+        var releaseEntries = Page.Locator(".demo-release-entry");
+        await Expect(releaseEntries.Nth(0)).ToHaveAttributeAsync("data-testid", "release-0.2.3");
+        await Expect(releaseEntries.Nth(1)).ToHaveAttributeAsync("data-testid", "release-0.2.2");
+        await Expect(releaseEntries.Nth(2)).ToHaveAttributeAsync("data-testid", "release-0.2.1");
     }
 
     [Fact]
@@ -113,20 +125,20 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
         await trigger.ClickAsync();
         await Expect(Page.GetByRole(
             AriaRole.Dialog,
-            new() { Name = "Bzs.Blazor 0.2.1 更新内容", Exact = true }))
+            new() { Name = "Bzs.Blazor 0.2.3 更新内容", Exact = true }))
             .ToBeVisibleAsync();
         await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "标为已读", Exact = true }))
             .ToBeVisibleAsync();
 
         await Page.GetByRole(
             AriaRole.Dialog,
-            new() { Name = "Bzs.Blazor 0.2.1 更新内容", Exact = true })
+            new() { Name = "Bzs.Blazor 0.2.3 更新内容", Exact = true })
             .GetByRole(AriaRole.Link, new() { Name = "查看所有版本", Exact = true })
             .ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/releases?culture=zh-Hans#v0.2.1");
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/releases?culture=zh-Hans#v0.2.3");
         await Expect(Page.GetByRole(
             AriaRole.Dialog,
-            new() { Name = "Bzs.Blazor 0.2.1 更新内容", Exact = true }))
+            new() { Name = "Bzs.Blazor 0.2.3 更新内容", Exact = true }))
             .ToHaveCountAsync(0);
         await Expect(Page.GetByRole(
             AriaRole.Heading,
@@ -134,7 +146,7 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
             .ToBeVisibleAsync();
         await Expect(Page.GetByRole(
             AriaRole.Heading,
-            new() { Name = "修复与可访问性", Exact = true }))
+            new() { Name = "Demo 体验", Exact = true }))
             .ToBeVisibleAsync();
     }
 }
