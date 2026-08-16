@@ -100,7 +100,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
         var drawer = Page.Locator("#fixture-drawer");
 
         await Page.Locator("#fixture-open-without-focusable").ClickAsync();
-        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await Expect(drawer).Not.ToHaveAttributeAsync("aria-hidden", "true");
         await AssertFocusIsInsideDrawerAsync(drawer);
         await Page.Keyboard.PressAsync("Tab");
         await AssertFocusIsInsideDrawerAsync(drawer);
