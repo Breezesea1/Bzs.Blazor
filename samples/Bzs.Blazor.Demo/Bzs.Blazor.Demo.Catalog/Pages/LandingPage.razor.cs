@@ -1,6 +1,5 @@
 using System.Globalization;
 using Bzs.Blazor;
-using Bzs.Blazor.Demo.Client.Components;
 using Microsoft.AspNetCore.Components;
 
 namespace Bzs.Blazor.Demo.Client.Pages;
@@ -117,7 +116,8 @@ public partial class LandingPage : ComponentBase, IAsyncDisposable
         {
             copied = await _interop.CopyTextAsync(InstallSnippet);
         }
-        catch (Exception exception) when (DemoThemeModeSwitchInterop.IsTransientInitializationFailure(exception))
+        catch (Exception exception) when (DemoJsInteropExceptions.IsTransientInitializationFailure(exception)
+            || exception is ObjectDisposedException)
         {
         }
 
@@ -150,7 +150,7 @@ public partial class LandingPage : ComponentBase, IAsyncDisposable
             {
                 await _interop.DisposeAsync();
             }
-            catch (Exception exception) when (DemoThemeModeSwitchInterop.IsTransientDisposalFailure(exception))
+            catch (Exception exception) when (DemoJsInteropExceptions.IsTransientDisposalFailure(exception))
             {
             }
         }

@@ -293,7 +293,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     }
 
     [Fact]
-    public async Task LandingPageInstallSnippetIsCopyableAndMatchesReadme()
+    public async Task LandingPageInstallSnippetRendersAndCopies()
     {
         BeginBrowserGateTest();
         await AssertLandingInstallSnippetAsync(server.BaseUrl, "?culture=en-US");

@@ -117,8 +117,8 @@ public static class DemoText
         public static string HeroTitle => Get("为 Blazor 而生的紧凑组件库", "A compact component library for Blazor");
 
         public static string HeroSummary => Get(
-            "49 个公开组件、克制的新拟态主题和全部四种渲染模式，来自一个零第三方 UI 依赖的包。",
-            "49 public components, restrained neumorphic themes, and all four render modes from one package with zero third-party UI dependencies.");
+            "50 个公开组件、克制的新拟态主题和全部四种渲染模式，来自一个零第三方 UI 依赖的包。",
+            "50 public components, restrained neumorphic themes, and all four render modes from one package with zero third-party UI dependencies.");
 
         public static string HeroLogoAccessibleName => Get("Bzs.Blazor 徽标", "Bzs.Blazor logo");
 

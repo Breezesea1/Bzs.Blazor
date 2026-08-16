@@ -30,7 +30,7 @@ internal sealed class DemoThemeModeSwitchInterop(IJSRuntime js) : IAsyncDisposab
             ObjectDisposedException.ThrowIf(_disposed, this);
             return module;
         }
-        catch (Exception exception) when (IsTransientInitializationFailure(exception))
+        catch (Exception exception) when (DemoJsInteropExceptions.IsTransientInitializationFailure(exception))
         {
             if (ReferenceEquals(_moduleTask, moduleTask))
             {
@@ -64,7 +64,7 @@ internal sealed class DemoThemeModeSwitchInterop(IJSRuntime js) : IAsyncDisposab
                 await module.InvokeVoidAsync(DisposeMethod, _instanceToken);
             }
         }
-        catch (Exception exception) when (IsTransientDisposalFailure(exception))
+        catch (Exception exception) when (DemoJsInteropExceptions.IsTransientDisposalFailure(exception))
         {
         }
         catch (Exception exception)
@@ -78,7 +78,7 @@ internal sealed class DemoThemeModeSwitchInterop(IJSRuntime js) : IAsyncDisposab
             {
                 await module.DisposeAsync();
             }
-            catch (Exception exception) when (IsTransientDisposalFailure(exception))
+            catch (Exception exception) when (DemoJsInteropExceptions.IsTransientDisposalFailure(exception))
             {
             }
             catch (Exception exception)
@@ -92,10 +92,4 @@ internal sealed class DemoThemeModeSwitchInterop(IJSRuntime js) : IAsyncDisposab
             ExceptionDispatchInfo.Capture(disposalException).Throw();
         }
     }
-
-    internal static bool IsTransientInitializationFailure(Exception exception) =>
-        exception is JSDisconnectedException or InvalidOperationException or TaskCanceledException;
-
-    internal static bool IsTransientDisposalFailure(Exception exception) =>
-        exception is JSDisconnectedException or TaskCanceledException;
 }

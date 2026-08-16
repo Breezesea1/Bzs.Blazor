@@ -267,13 +267,26 @@ public abstract class BrowserGatePageTest : PageTest
     protected async Task AssertLandingPageCopyFollowsCultureAsync(string baseUrl)
     {
         await Page.GotoAsync(baseUrl);
-        var chineseHero = await Page.GetByTestId("landing-hero").Locator("h1").TextContentAsync();
-        Assert.False(string.IsNullOrWhiteSpace(chineseHero));
+        await Expect(Page.GetByTestId("landing-hero").Locator("h1"))
+            .ToHaveTextAsync("为 Blazor 而生的紧凑组件库");
+        await Expect(Page.GetByTestId("landing-install").GetByRole(
+            AriaRole.Heading, new() { Name = "安装", Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.GetByTestId("landing-features").GetByRole(
+            AriaRole.Heading, new() { Name = "为什么是 Bzs.Blazor", Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.GetByTestId("landing-release").GetByRole(
+            AriaRole.Heading, new() { Name = "最新版本", Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.GetByTestId("landing-footer")).ToContainTextAsync("基于 MIT 许可证发布。");
 
         await Page.GotoAsync($"{baseUrl}?culture=en-US");
-        var englishHero = await Page.GetByTestId("landing-hero").Locator("h1").TextContentAsync();
-        Assert.False(string.IsNullOrWhiteSpace(englishHero));
-        Assert.NotEqual(chineseHero, englishHero);
+        await Expect(Page.GetByTestId("landing-hero").Locator("h1"))
+            .ToHaveTextAsync("A compact component library for Blazor");
+        await Expect(Page.GetByTestId("landing-install").GetByRole(
+            AriaRole.Heading, new() { Name = "Installation", Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.GetByTestId("landing-features").GetByRole(
+            AriaRole.Heading, new() { Name = "Why Bzs.Blazor", Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.GetByTestId("landing-release").GetByRole(
+            AriaRole.Heading, new() { Name = "Latest release", Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.GetByTestId("landing-footer")).ToContainTextAsync("Released under the MIT license.");
     }
 
     protected async Task AssertLandingHeroCtasReachTheirSectionsAsync(string baseUrl, string query)

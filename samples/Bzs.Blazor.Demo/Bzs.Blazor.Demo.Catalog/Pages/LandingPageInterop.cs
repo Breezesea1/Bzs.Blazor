@@ -1,4 +1,3 @@
-using Bzs.Blazor.Demo.Client.Components;
 using Microsoft.JSInterop;
 
 namespace Bzs.Blazor.Demo.Client.Pages;
@@ -27,7 +26,7 @@ internal sealed class LandingPageInterop(IJSRuntime js) : IAsyncDisposable
             ObjectDisposedException.ThrowIf(_disposed, this);
             return module;
         }
-        catch (Exception exception) when (DemoThemeModeSwitchInterop.IsTransientInitializationFailure(exception))
+        catch (Exception exception) when (DemoJsInteropExceptions.IsTransientInitializationFailure(exception))
         {
             if (ReferenceEquals(_moduleTask, moduleTask))
             {
@@ -56,7 +55,7 @@ internal sealed class LandingPageInterop(IJSRuntime js) : IAsyncDisposable
             var module = await _moduleTask;
             await module.DisposeAsync();
         }
-        catch (Exception exception) when (DemoThemeModeSwitchInterop.IsTransientDisposalFailure(exception))
+        catch (Exception exception) when (DemoJsInteropExceptions.IsTransientDisposalFailure(exception))
         {
         }
     }

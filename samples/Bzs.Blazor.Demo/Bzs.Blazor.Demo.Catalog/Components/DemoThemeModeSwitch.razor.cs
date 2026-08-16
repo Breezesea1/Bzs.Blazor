@@ -24,7 +24,7 @@ public partial class DemoThemeModeSwitch : ComponentBase, IAsyncDisposable
             await _interop.InitializeAsync();
             _initialized = true;
         }
-        catch (Exception exception) when (DemoThemeModeSwitchInterop.IsTransientInitializationFailure(exception))
+        catch (Exception exception) when (DemoJsInteropExceptions.IsTransientInitializationFailure(exception))
         {
         }
 
@@ -48,7 +48,7 @@ public partial class DemoThemeModeSwitch : ComponentBase, IAsyncDisposable
             {
                 await _interop.DisposeAsync();
             }
-            catch (Exception exception) when (DemoThemeModeSwitchInterop.IsTransientDisposalFailure(exception))
+            catch (Exception exception) when (DemoJsInteropExceptions.IsTransientDisposalFailure(exception))
             {
             }
         }
