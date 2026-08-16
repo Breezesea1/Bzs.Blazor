@@ -183,7 +183,9 @@ public sealed class PackageConsumerSmokeTests
         "Components/Dialog/BzsDialog.razor.js",
         "Components/Form/BzsAutocomplete.razor.js",
         "Components/Form/BzsDateInput.razor.js",
+        "Components/Form/BzsPasswordInput.razor.js",
         "Components/Form/BzsSelect.razor.js",
+        "Components/DataGrid/BzsDataGrid.razor.js",
         "Components/Popover/BzsPopover.razor.js",
     };
 
@@ -264,6 +266,20 @@ public sealed class PackageConsumerSmokeTests
         var expectedCulture = runtime is "server" or "aot" ? "zh-Hans" : "en-US";
         await Expect(page.GetByTestId($"{runtime}-culture")).ToHaveTextAsync(expectedCulture);
 
+        var search = page.GetByTestId($"{runtime}-search");
+        await Expect(search).ToHaveAttributeAsync("type", "search");
+        await search.FillAsync("release");
+        await Expect(page.GetByTestId($"{runtime}-search-value")).ToHaveTextAsync("release");
+
+        var password = page.GetByTestId($"{runtime}-password");
+        await password.FillAsync("Secret42!");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Show package password" })
+            .ClickAsync();
+        await Expect(password).ToHaveAttributeAsync("type", "text");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Hide package password" })
+            .ClickAsync();
+        await Expect(password).ToHaveAttributeAsync("type", "password");
+
         await page.GetByRole(AriaRole.Button, new() { Name = "Use dark theme" }).ClickAsync();
         await Expect(page.GetByTestId($"{runtime}-theme")).ToHaveAttributeAsync("data-bzs-theme", "dark");
 
@@ -314,6 +330,14 @@ public sealed class PackageConsumerSmokeTests
         var grid = page.GetByTestId($"{runtime}-grid");
         var table = grid.GetByRole(AriaRole.Table, new() { Name = "Package work items" });
         await Expect(table.Locator("tbody tr")).ToHaveCountAsync(3);
+        await Expect(grid.GetByRole(AriaRole.Combobox)).ToHaveCountAsync(0);
+        await grid.GetByRole(
+                AriaRole.Checkbox,
+                new() { Name = "Select current package page", Exact = true })
+            .CheckAsync();
+        await Expect(page.GetByTestId($"{runtime}-selected-count")).ToHaveTextAsync("3");
+        await page.GetByTestId($"{runtime}-refresh-grid").ClickAsync();
+        await Expect(table).ToContainTextAsync("Package verification v2");
         await table.GetByRole(AriaRole.Button, new() { Name = "Work item", Exact = true }).ClickAsync();
         await Expect(table.Locator("th[aria-sort]"))
             .ToHaveAttributeAsync("aria-sort", "ascending");
@@ -331,6 +355,15 @@ public sealed class PackageConsumerSmokeTests
         await dialog.GetByRole(AriaRole.Button, new() { Name = "Complete package dialog" }).ClickAsync();
         await Expect(dialog).ToHaveCountAsync(0);
         await Expect(page.GetByTestId($"{runtime}-dialog-result")).ToHaveTextAsync("Completed: true");
+
+        var drawerOpener = page.GetByTestId($"{runtime}-open-drawer");
+        var drawer = page.GetByTestId($"{runtime}-drawer");
+        await drawerOpener.ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await Expect(page.GetByTestId($"{runtime}-drawer-focus")).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("Escape");
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+        await Expect(drawerOpener).ToBeFocusedAsync();
     }
 
     private static async Task ExerciseStaticPostAsync(IPage page, string baseUrl)
@@ -392,6 +425,10 @@ public sealed class PackageConsumerSmokeTests
 
             var prerender = await CaptureRelationshipsAsync(page, "auto");
             AssertRelationshipsResolve(prerender);
+            await Expect(page.GetByTestId("auto-search")).ToHaveAttributeAsync("type", "search");
+            await Expect(page.GetByTestId("auto-password")).ToHaveAttributeAsync("type", "password");
+            await Expect(page.GetByTestId("auto-drawer"))
+                .ToHaveAttributeAsync("data-bzs-open", "false");
             await page.GetByTestId("auto-number").FocusAsync();
             await Expect(page.GetByTestId("auto-number")).ToBeFocusedAsync();
 

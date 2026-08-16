@@ -12,6 +12,17 @@
     <BzsButton Variant="BzsButtonVariant.Outline" Click="UseDarkTheme">Use dark theme</BzsButton>
 
     <EditForm Model="_model" FormName="@($"{Runtime}-form")">
+        <BzsTextInput @bind-Value="_model.Search"
+                      Label="Package search"
+                      InputType="BzsTextInputType.Search"
+                      UpdateMode="BzsInputUpdateMode.Input"
+                      data-testid="@($"{Runtime}-search")" />
+        <BzsPasswordInput @bind-Value="_model.Password"
+                          Label="Package password"
+                          Revealable="true"
+                          ShowPasswordText="Show package password"
+                          HidePasswordText="Hide package password"
+                          data-testid="@($"{Runtime}-password")" />
         <BzsNumberInput TValue="int"
                         @bind-Value="_model.ReviewerCount"
                         Label="Reviewer count"
@@ -26,6 +37,7 @@
                    Label="Stage"
                    data-testid="@($"{Runtime}-select")" />
     </EditForm>
+    <p data-testid="@($"{Runtime}-search-value")">@_model.Search</p>
     <p data-testid="@($"{Runtime}-date-value")">
         @_model.ReleaseDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
     </p>
@@ -57,7 +69,8 @@
     </EditForm>
     <p data-testid="@($"{Runtime}-owner-value")">@_model.Owner</p>
 
-    <BzsDataGrid TItem="SmokeRow"
+    <BzsDataGrid @ref="_grid"
+                 TItem="SmokeRow"
                  Provider="_gridProvider"
                  Page="_gridPage"
                  PageChanged="value => _gridPage = value"
@@ -66,6 +79,13 @@
                  Sort="_gridSort"
                  SortChanged="value => _gridSort = value"
                  ItemKey="row => row.Id"
+                 SelectionMode="BzsDataGridSelectionMode.Multiple"
+                 ShowSelectAll="true"
+                 SelectAllText="Select current package page"
+                 SelectedItems="_selectedRows"
+                 SelectedItemsChanged="SetSelectedRows"
+                 ShowPageSizeSelector="false"
+                 ShowPagination="false"
                  Caption="Package work items"
                  AccessibleName="Package work items"
                  data-testid="@($"{Runtime}-grid")">
@@ -79,6 +99,10 @@
                            Title="Owner"
                            ValueSelector="row => row.Owner" />
     </BzsDataGrid>
+    <BzsButton Click="RefreshGridAsync" data-testid="@($"{Runtime}-refresh-grid")">
+        Refresh package grid
+    </BzsButton>
+    <p data-testid="@($"{Runtime}-selected-count")">@_selectedRows.Count</p>
 
     <BzsTabs AccessibleName="Package tabs" data-testid="@($"{Runtime}-tabs")">
         <BzsTabItem Value="summary" Title="Summary">Summary package content.</BzsTabItem>
@@ -90,6 +114,24 @@
     </BzsButton>
     <p data-testid="@($"{Runtime}-dialog-result")">@_dialogResult</p>
     <BzsOverlayHost data-testid="@($"{Runtime}-overlay-host")" />
+
+    <BzsButton Click="OpenDrawer" data-testid="@($"{Runtime}-open-drawer")">
+        Open package navigation
+    </BzsButton>
+    <BzsNavigationDrawer Id="@($"{Runtime}-drawer")"
+                         Style="position: fixed; inset: 0;"
+                         Open="_drawerOpen"
+                         OpenChanged="SetDrawerOpen"
+                         Variant="BzsNavigationDrawerVariant.Temporary"
+                         InitialFocusSelector="@($"#{Runtime}-drawer-focus")"
+                         AccessibleName="Package navigation"
+                         data-testid="@($"{Runtime}-drawer")">
+        <button id="@($"{Runtime}-drawer-focus")"
+                type="button"
+                data-testid="@($"{Runtime}-drawer-focus")">
+            Package navigation target
+        </button>
+    </BzsNavigationDrawer>
 </BzsThemeProvider>
 
 @code {
@@ -102,11 +144,14 @@
     private readonly SmokeModel _model = new();
     private readonly OwnerProvider _ownerProvider = new();
     private readonly GridProvider _gridProvider = new();
+    private BzsDataGrid<SmokeRow>? _grid;
     private BzsThemeMode _mode = BzsThemeMode.System;
     private BzsDataGridSort? _gridSort;
     private int _gridPage = 1;
     private bool _popoverOpen;
+    private bool _drawerOpen;
     private bool _ready;
+    private IReadOnlyList<SmokeRow> _selectedRows = Array.Empty<SmokeRow>();
     private string _dialogResult = "No dialog result.";
     private static readonly IReadOnlyList<int> GridPageSizes = [3];
 
@@ -130,6 +175,29 @@
 
     private Task UseDarkTheme() => SetMode(BzsThemeMode.Dark);
 
+    private void OpenDrawer() => _drawerOpen = true;
+
+    private Task SetDrawerOpen(bool open)
+    {
+        _drawerOpen = open;
+        return Task.CompletedTask;
+    }
+
+    private Task SetSelectedRows(IReadOnlyList<SmokeRow> rows)
+    {
+        _selectedRows = rows;
+        return Task.CompletedTask;
+    }
+
+    private async Task RefreshGridAsync()
+    {
+        _gridProvider.Advance();
+        if (_grid is not null)
+        {
+            await _grid.RefreshAsync();
+        }
+    }
+
     private async Task OpenDialogAsync()
     {
         var result = await DialogService.ShowAsync<PackageDialog, bool>(
@@ -150,6 +218,10 @@
 
     private sealed class SmokeModel
     {
+        public string? Search { get; set; }
+
+        public string? Password { get; set; }
+
         public int ReviewerCount { get; set; } = 2;
 
         public DateOnly ReleaseDate { get; set; } = new(2026, 7, 17);
@@ -189,15 +261,21 @@
             new(3, "AOT smoke", "Mei Lin"),
             new(4, "Release notes", "Alicia Santos"),
         ];
+        private int _revision = 1;
+
+        public void Advance() => _revision++;
 
         public async ValueTask<BzsDataGridResult<SmokeRow>> GetItemsAsync(
             BzsDataGridRequest request,
             CancellationToken cancellationToken)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(25), cancellationToken);
+            var rows = Rows.Select(row => row.Id == 2
+                ? row with { Title = $"Package verification v{_revision}" }
+                : row);
             var query = request.Sort?.Direction == BzsDataGridSortDirection.Descending
-                ? Rows.OrderByDescending(row => row.Title, StringComparer.Ordinal)
-                : Rows.OrderBy(row => row.Title, StringComparer.Ordinal);
+                ? rows.OrderByDescending(row => row.Title, StringComparer.Ordinal)
+                : rows.OrderBy(row => row.Title, StringComparer.Ordinal);
             var items = query
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
