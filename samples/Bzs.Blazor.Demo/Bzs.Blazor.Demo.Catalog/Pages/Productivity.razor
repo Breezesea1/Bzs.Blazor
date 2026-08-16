@@ -162,6 +162,7 @@
                      SortChanged="value => _gridSort = value"
                      Filters="@_gridFilters"
                      FiltersChanged="value => _gridFilters = value"
+                     ShowPageSizeSelector="false"
                      ItemKey="row => row.Id"
                      SelectionMode="BzsDataGridSelectionMode.Multiple"
                      SelectedItems="@_selectedRows"
@@ -186,6 +187,26 @@
                                ValueSelector="row => row.Priority"
                                Sortable="true" />
         </BzsDataGrid>
+        <h3>@DemoText.Productivity.CompactGridTitle</h3>
+        <p>@DemoText.Productivity.CompactGridDescription</p>
+        <BzsDataGrid TItem="ReviewRow"
+                     Items="@_compactGridRows"
+                     PageSize="5"
+                     PageSizeOptions="@_gridPageSizeOptions"
+                     ShowPageSizeSelector="false"
+                     ShowPagination="false"
+                     Caption="@DemoText.Productivity.CompactGridTitle"
+                     AccessibleName="@DemoText.Productivity.CompactGridTitle"
+                     data-testid="productivity-compact-grid">
+            <BzsDataGridColumn TItem="ReviewRow"
+                               Key="title"
+                               Title="@DemoText.Productivity.CompactGridReviewColumn"
+                               ValueSelector="row => row.Title" />
+            <BzsDataGridColumn TItem="ReviewRow"
+                               Key="owner"
+                               Title="@DemoText.Productivity.CompactGridOwnerColumn"
+                               ValueSelector="row => row.Owner" />
+        </BzsDataGrid>
     </section>
 </section>
 
@@ -197,6 +218,11 @@
     ];
     private readonly OwnerProvider _ownerProvider = new();
     private readonly DemoGridProvider _gridProvider = new();
+    private readonly IReadOnlyList<ReviewRow> _compactGridRows =
+    [
+        new(901, "Release notes", "Mei", "Normal"),
+        new(902, "Keyboard audit", "Alicia", "High"),
+    ];
     private readonly WorkbenchForm _form = new();
     private bool _chipSelected = true;
     private bool _chipVisible = true;

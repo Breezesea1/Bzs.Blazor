@@ -98,6 +98,14 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     [Parameter]
     public bool CompactPagination { get; set; }
 
+    /// <summary>Gets or sets whether the footer displays the page-size selector.</summary>
+    [Parameter]
+    public bool ShowPageSizeSelector { get; set; } = true;
+
+    /// <summary>Gets or sets whether the footer displays pagination controls.</summary>
+    [Parameter]
+    public bool ShowPagination { get; set; } = true;
+
     /// <summary>Gets or sets the controlled single-column sort.</summary>
     [Parameter]
     public BzsDataGridSort? Sort { get; set; }

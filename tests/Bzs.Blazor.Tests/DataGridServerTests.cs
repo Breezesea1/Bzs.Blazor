@@ -11,6 +11,36 @@ namespace Bzs.Blazor.Tests;
 
 public sealed class DataGridServerTests
 {
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public void ProviderFooterControlsDoNotChangePagingRequests(
+        bool showPageSizeSelector,
+        bool showPagination)
+    {
+        using var context = CreateContext();
+        var provider = new RecordingProvider(request =>
+            new BzsDataGridResult<Row>([new(request.Page, "Current")], hasNextPage: true));
+        var cut = RenderProviderGrid(
+            context,
+            provider,
+            page: 2,
+            configure: parameters =>
+            {
+                parameters.Add(component => component.PageSize, 25);
+                parameters.Add(component => component.ShowPageSizeSelector, showPageSizeSelector);
+                parameters.Add(component => component.ShowPagination, showPagination);
+            });
+
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        Assert.Equal(2, provider.Calls.Single().Page);
+        Assert.Equal(25, provider.Calls.Single().PageSize);
+        Assert.Equal(showPageSizeSelector, cut.FindAll("label > select").Count == 1);
+        Assert.Equal(showPagination, cut.FindAll("nav[aria-label='Data pages']").Count == 1);
+    }
+
     [Fact]
     public void ProviderRequestLoadsAcceptedKnownTotalRows()
     {

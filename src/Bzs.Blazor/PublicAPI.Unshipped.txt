@@ -226,6 +226,10 @@ Bzs.Blazor.BzsDataGrid<TItem>.SelectionColumnText.get -> string?
 Bzs.Blazor.BzsDataGrid<TItem>.SelectionColumnText.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectionMode.get -> Bzs.Blazor.BzsDataGridSelectionMode
 Bzs.Blazor.BzsDataGrid<TItem>.SelectionMode.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ShowPageSizeSelector.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ShowPageSizeSelector.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ShowPagination.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ShowPagination.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.Sort.get -> Bzs.Blazor.BzsDataGridSort?
 Bzs.Blazor.BzsDataGrid<TItem>.Sort.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SortChanged.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsDataGridSort?>

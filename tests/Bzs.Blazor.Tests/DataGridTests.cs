@@ -45,10 +45,35 @@ public sealed class DataGridTests
 
         var table = cut.Find("table");
         Assert.Equal("Data grid", table.GetAttribute("aria-label"));
+        Assert.True(cut.Instance.ShowPageSizeSelector);
+        Assert.True(cut.Instance.ShowPagination);
         Assert.Equal(new[] { "Name", "Score" }, cut.FindAll("th").Select(header => header.TextContent.Trim()));
         Assert.Equal("Alpha", cut.Find("tbody td:first-child").TextContent.Trim());
         Assert.Equal("42 points", cut.Find("tbody strong").TextContent.Trim());
         Assert.Equal("Rows per page", cut.Find("label > span").TextContent.Trim());
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public void ClientFooterControlsFollowIndependentVisibilityParameters(
+        bool showPageSizeSelector,
+        bool showPagination)
+    {
+        using var context = CreateContext();
+        var cut = RenderGrid(
+            context,
+            [new(1, "Alpha", 42)],
+            parameters =>
+            {
+                parameters.Add(component => component.ShowPageSizeSelector, showPageSizeSelector);
+                parameters.Add(component => component.ShowPagination, showPagination);
+            });
+
+        Assert.Equal(showPageSizeSelector, cut.FindAll("label > select").Count == 1);
+        Assert.Equal(showPagination, cut.FindAll("nav[aria-label='Data pages']").Count == 1);
     }
 
     [Fact]

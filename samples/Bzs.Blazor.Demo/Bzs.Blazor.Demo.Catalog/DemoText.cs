@@ -288,6 +288,16 @@ public static class DemoText
         public static string GridRefreshReady => Get("数据网格已准备好刷新。", "The DataGrid is ready to refresh.");
 
         public static string GridRefreshed => Get("数据网格已使用相同的提供程序请求刷新。", "The DataGrid refreshed with the same provider request.");
+
+        public static string CompactGridTitle => Get("紧凑数据网格", "Compact DataGrid");
+
+        public static string CompactGridDescription => Get(
+            "分页仍由受控参数决定，而页脚控件可以独立隐藏。",
+            "Paging remains controlled while footer controls can be hidden independently.");
+
+        public static string CompactGridReviewColumn => Get("评审", "Review");
+
+        public static string CompactGridOwnerColumn => Get("负责人", "Owner");
     }
 
     private static string Get(string chinese, string english) =>
