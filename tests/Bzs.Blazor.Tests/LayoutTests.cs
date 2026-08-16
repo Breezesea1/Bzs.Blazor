@@ -160,6 +160,41 @@ public sealed class LayoutTests
     }
 
     [Fact]
+    public void NavigationDrawerEscapeHonorsTheControlledDismissalContract()
+    {
+        using var context = new BunitContext();
+        bool? requestedOpen = null;
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.CloseOnEscape, false)
+            .Add(component => component.OpenChanged, open => requestedOpen = open)
+            .Add(component => component.Variant, BzsNavigationDrawerVariant.Temporary)
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        cut.Find("nav").KeyDown("Escape");
+
+        Assert.Null(requestedOpen);
+    }
+
+    [Fact]
+    public void NavigationDrawerEscapeRequestsControlledCloseByDefault()
+    {
+        using var context = new BunitContext();
+        bool? requestedOpen = null;
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.OpenChanged, open => requestedOpen = open)
+            .Add(component => component.Variant, BzsNavigationDrawerVariant.Temporary)
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        cut.Find("nav").KeyDown("Escape");
+
+        Assert.True(cut.Instance.CloseOnEscape);
+        Assert.False(requestedOpen);
+        Assert.Equal("true", cut.Find("nav").GetAttribute("data-bzs-open"));
+    }
+
+    [Fact]
     public void ClosedNavigationDrawerIsRemovedFromKeyboardAndAccessibilityNavigation()
     {
         using var context = new BunitContext();

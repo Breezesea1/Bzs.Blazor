@@ -540,3 +540,8 @@ static Bzs.Blazor.BzsBreadcrumbItem.operator !=(Bzs.Blazor.BzsBreadcrumbItem? le
 static Bzs.Blazor.BzsBreadcrumbItem.operator ==(Bzs.Blazor.BzsBreadcrumbItem? left, Bzs.Blazor.BzsBreadcrumbItem? right) -> bool
 static Bzs.Blazor.BzsDataGridSort.operator !=(Bzs.Blazor.BzsDataGridSort? left, Bzs.Blazor.BzsDataGridSort? right) -> bool
 static Bzs.Blazor.BzsDataGridSort.operator ==(Bzs.Blazor.BzsDataGridSort? left, Bzs.Blazor.BzsDataGridSort? right) -> bool
+Bzs.Blazor.BzsNavigationDrawer.CloseOnEscape.get -> bool
+Bzs.Blazor.BzsNavigationDrawer.CloseOnEscape.set -> void
+Bzs.Blazor.BzsNavigationDrawer.InitialFocusSelector.get -> string?
+Bzs.Blazor.BzsNavigationDrawer.InitialFocusSelector.set -> void
+Bzs.Blazor.BzsNavigationDrawer.DisposeAsync() -> System.Threading.Tasks.ValueTask

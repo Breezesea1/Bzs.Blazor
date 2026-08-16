@@ -4,6 +4,14 @@ let bodyOverflow = null;
 let keydownListenerAttached = false;
 let lastInteractionTarget = null;
 
+document.addEventListener('enhancedload', () => {
+    for (const [id, overlay] of overlays) {
+        if (overlay.navigationDrawer && !overlay.root?.isConnected) {
+            deactivate(id);
+        }
+    }
+});
+
 const focusableSelector = [
     'a[href]',
     'area[href]',
@@ -18,17 +26,9 @@ const focusableSelector = [
 export function activate(id, panel, modal, initialFocusSelector) {
     const existing = overlays.get(id);
     if (existing) {
-        if (existing.modal !== modal) {
-            if (existing.modal) {
-                unlockBody();
-            } else if (modal) {
-                lockBody();
-            }
-        }
-
         existing.panel = panel;
-        existing.modal = modal;
         existing.initialFocusSelector = initialFocusSelector;
+        updateModalState(existing, modal);
         return;
     }
 
@@ -39,19 +39,59 @@ export function activate(id, panel, modal, initialFocusSelector) {
         panel,
         modal,
         initialFocusSelector,
-        previousFocus
+        previousFocus,
+        root: null,
+        navigationDrawer: false,
+        observer: null,
+        backgroundTargets: []
     };
     overlays.set(id, overlay);
     if (modal) {
         lockBody();
+        queueMicrotask(() => {
+            if (overlays.get(id) === overlay) {
+                focusInitial(overlay);
+            }
+        });
     }
 
     attachKeydownListener();
-    queueMicrotask(() => {
-        if (overlays.get(id) === overlay) {
-            focusInitial(overlay);
-        }
+}
+
+export function activateNavigationDrawer(id, root, panel, initialFocusSelector) {
+    const existing = overlays.get(id);
+    if (existing) {
+        existing.root = root;
+        existing.panel = panel;
+        existing.initialFocusSelector = initialFocusSelector;
+        synchronizeNavigationDrawer(existing);
+        return;
+    }
+
+    const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousFocus = lastInteractionTarget?.isConnected ? lastInteractionTarget : activeElement;
+    lastInteractionTarget = null;
+    const overlay = {
+        root,
+        panel,
+        modal: false,
+        initialFocusSelector,
+        previousFocus,
+        navigationDrawer: true,
+        observer: null,
+        backgroundTargets: []
+    };
+    overlays.set(id, overlay);
+    overlay.observer = new MutationObserver(() => synchronizeNavigationDrawer(overlay));
+    overlay.observer.observe(root, {
+        attributes: true,
+        attributeFilter: ['class', 'data-bzs-open', 'style']
     });
+    const resizeObserver = new ResizeObserver(() => synchronizeNavigationDrawer(overlay));
+    resizeObserver.observe(root);
+    overlay.resizeObserver = resizeObserver;
+    synchronizeNavigationDrawer(overlay);
+    attachKeydownListener();
 }
 
 export function deactivate(id) {
@@ -61,22 +101,107 @@ export function deactivate(id) {
     }
 
     overlays.delete(id);
+    overlay.observer?.disconnect();
+    overlay.resizeObserver?.disconnect();
     if (overlay.modal) {
+        releaseBackground(overlay);
         unlockBody();
     }
 
-    const topOverlay = getTopOverlay();
+    const topOverlay = getTopModalOverlay();
     if (topOverlay) {
         if (overlay.previousFocus?.isConnected && topOverlay.panel.contains(overlay.previousFocus)) {
             overlay.previousFocus.focus({ preventScroll: true });
         } else {
             focusInitial(topOverlay);
         }
-    } else {
+    } else if (!overlay.navigationDrawer || overlay.modal) {
         restoreFocus(overlay.previousFocus);
     }
 
     detachKeydownListenerWhenUnused();
+}
+
+function synchronizeNavigationDrawer(overlay) {
+    if (!overlay.root?.isConnected || overlay.root.dataset.bzsOpen !== 'true') {
+        return;
+    }
+
+    const backdrop = overlay.root.querySelector('.bzs-navigation-drawer__backdrop');
+    const backdropStyle = backdrop instanceof HTMLElement ? getComputedStyle(backdrop) : null;
+    const modal = backdropStyle !== null
+        && backdropStyle.display !== 'none'
+        && backdropStyle.visibility !== 'hidden'
+        && backdropStyle.pointerEvents !== 'none';
+    updateModalState(overlay, modal);
+}
+
+function updateModalState(overlay, modal) {
+    if (overlay.modal === modal) {
+        return;
+    }
+
+    overlay.modal = modal;
+    if (modal) {
+        const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        if (activeElement && !overlay.panel.contains(activeElement)) {
+            overlay.previousFocus = lastInteractionTarget?.isConnected ? lastInteractionTarget : activeElement;
+            lastInteractionTarget = null;
+        }
+
+        lockBody();
+        makeBackgroundInert(overlay);
+        queueMicrotask(() => {
+            if (!Array.from(overlays.values()).includes(overlay)) {
+                return;
+            }
+
+            if (!overlay.panel.contains(document.activeElement)) {
+                focusInitial(overlay);
+            }
+        });
+    } else {
+        releaseBackground(overlay);
+        unlockBody();
+    }
+}
+
+function makeBackgroundInert(overlay) {
+    const parent = overlay.root?.parentElement;
+    if (!parent || overlay.backgroundTargets.length !== 0) {
+        return;
+    }
+
+    overlay.backgroundTargets = Array.from(parent.children)
+        .filter(element => element !== overlay.root && element instanceof HTMLElement);
+    for (const target of overlay.backgroundTargets) {
+        const count = Number.parseInt(target.dataset.bzsOverlayInertCount ?? '0', 10);
+        if (count === 0) {
+            target.dataset.bzsOverlayWasInert = target.hasAttribute('inert') ? 'true' : 'false';
+        }
+
+        target.dataset.bzsOverlayInertCount = String(count + 1);
+        target.setAttribute('inert', '');
+    }
+}
+
+function releaseBackground(overlay) {
+    for (const target of overlay.backgroundTargets) {
+        const count = Number.parseInt(target.dataset.bzsOverlayInertCount ?? '1', 10) - 1;
+        if (count > 0) {
+            target.dataset.bzsOverlayInertCount = String(count);
+            continue;
+        }
+
+        if (target.dataset.bzsOverlayWasInert !== 'true') {
+            target.removeAttribute('inert');
+        }
+
+        delete target.dataset.bzsOverlayInertCount;
+        delete target.dataset.bzsOverlayWasInert;
+    }
+
+    overlay.backgroundTargets = [];
 }
 
 function lockBody() {
@@ -129,7 +254,7 @@ function handleKeydown(event) {
         lastInteractionTarget = event.target.closest(focusableSelector) ?? event.target;
     }
 
-    const overlay = getTopOverlay();
+    const overlay = getTopModalOverlay();
     if (event.key === 'Escape') {
         if (overlay && !overlay.panel.contains(event.target)) {
             event.preventDefault();
@@ -174,10 +299,12 @@ function handleKeydown(event) {
     }
 }
 
-function getTopOverlay() {
+function getTopModalOverlay() {
     let overlay = null;
     for (const value of overlays.values()) {
-        overlay = value;
+        if (value.modal) {
+            overlay = value;
+        }
     }
 
     return overlay;

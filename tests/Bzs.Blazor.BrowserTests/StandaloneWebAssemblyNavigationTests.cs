@@ -130,6 +130,13 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await openNavigation.ClickAsync();
         await Expect(appBar).ToHaveAttributeAsync("inert", "");
         await Expect(mainContent).ToHaveAttributeAsync("inert", "");
+        var closeNavigation = Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Close navigation", Exact = true });
+        await Expect(closeNavigation).ToBeFocusedAsync();
+        await Page.Keyboard.PressAsync("Tab");
+        Assert.True(await Page.EvaluateAsync<bool>(
+            "() => document.querySelector('#demo-navigation-drawer')?.contains(document.activeElement) ?? false"));
         await Page.Keyboard.PressAsync("Escape");
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
         await Expect(openNavigation).ToBeFocusedAsync();

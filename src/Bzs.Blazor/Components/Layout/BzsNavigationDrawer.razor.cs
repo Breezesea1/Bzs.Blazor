@@ -5,6 +5,16 @@ namespace Bzs.Blazor;
 /// </summary>
 public sealed partial class BzsNavigationDrawer : BzsComponentBase
 {
+    private readonly string _overlayId = $"bzs-navigation-drawer-{Guid.NewGuid():N}";
+    private BzsOverlayInterop? _interop;
+    private ElementReference _rootElement;
+    private ElementReference _panelElement;
+    private bool _interopSynchronizationPending = true;
+    private bool _lastOpen;
+    private BzsNavigationDrawerVariant _lastVariant;
+    private string? _lastInitialFocusSelector;
+    private bool _disposed;
+
     /// <summary>
     /// Gets or sets whether the navigation drawer is open.
     /// </summary>
@@ -34,6 +44,18 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
     /// </summary>
     [Parameter]
     public bool CloseOnBackdropClick { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets whether Escape requests that the navigation drawer close while it is modal.
+    /// </summary>
+    [Parameter]
+    public bool CloseOnEscape { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the selector used for initial focus while the navigation drawer is modal.
+    /// </summary>
+    [Parameter]
+    public string? InitialFocusSelector { get; set; }
 
     /// <summary>
     /// Gets or sets the accessible name of the navigation landmark.
@@ -110,6 +132,42 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
         {
             throw new ArgumentOutOfRangeException(nameof(Position), Position, "The navigation drawer position is not supported.");
         }
+
+        var initialFocusSelector = Normalize(InitialFocusSelector);
+        if (_lastOpen != Open
+            || _lastVariant != Variant
+            || _lastInitialFocusSelector != initialFocusSelector)
+        {
+            _interopSynchronizationPending = true;
+        }
+
+        _lastOpen = Open;
+        _lastVariant = Variant;
+        _lastInitialFocusSelector = initialFocusSelector;
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_disposed || (!_interopSynchronizationPending && !firstRender))
+        {
+            return;
+        }
+
+        _interopSynchronizationPending = false;
+        if (Open)
+        {
+            _interop ??= new BzsOverlayInterop(JS);
+            await _interop.ActivateNavigationDrawerAsync(
+                _overlayId,
+                _rootElement,
+                _panelElement,
+                _lastInitialFocusSelector);
+        }
+        else if (_interop is not null)
+        {
+            await _interop.DeactivateAsync(_overlayId);
+        }
     }
 
     private async Task HandleBackdropClickAsync()
@@ -120,5 +178,30 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
         }
 
         await OpenChanged.InvokeAsync(false);
+    }
+
+    private Task HandleKeyDownAsync(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs eventArgs)
+    {
+        return Open && CloseOnEscape && string.Equals(eventArgs.Key, "Escape", StringComparison.Ordinal)
+            ? OpenChanged.InvokeAsync(false)
+            : Task.CompletedTask;
+    }
+
+    private static string? Normalize(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        if (_interop is not null)
+        {
+            await _interop.DisposeAsync(_overlayId);
+        }
     }
 }
