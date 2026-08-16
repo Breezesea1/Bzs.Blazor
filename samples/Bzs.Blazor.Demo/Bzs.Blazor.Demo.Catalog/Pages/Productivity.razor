@@ -191,7 +191,7 @@
         <h3>@DemoText.Productivity.CompactGridTitle</h3>
         <p>@DemoText.Productivity.CompactGridDescription</p>
         <BzsDataGrid TItem="ReviewRow"
-                     Items="@_compactGridRows"
+                     Items="@CompactGridRows"
                      PageSize="5"
                      PageSizeOptions="@_gridPageSizeOptions"
                      ShowPageSizeSelector="false"
@@ -222,10 +222,18 @@
     ];
     private readonly OwnerProvider _ownerProvider = new();
     private readonly DemoGridProvider _gridProvider = new();
-    private readonly IReadOnlyList<ReviewRow> _compactGridRows =
+    private IReadOnlyList<ReviewRow> CompactGridRows =>
     [
-        new(901, "Release notes", "Mei", "Normal"),
-        new(902, "Keyboard audit", "Alicia", "High"),
+        new(
+            901,
+            DemoText.Productivity.CompactGridReleaseNotes,
+            "Mei",
+            DemoText.Productivity.CompactGridNormalPriority),
+        new(
+            902,
+            DemoText.Productivity.CompactGridKeyboardAudit,
+            "Alicia",
+            DemoText.Productivity.CompactGridHighPriority),
     ];
     private readonly WorkbenchForm _form = new();
     private bool _chipSelected = true;

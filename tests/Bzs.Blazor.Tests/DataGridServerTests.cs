@@ -44,8 +44,8 @@ public sealed class DataGridServerTests
         cut.WaitForAssertion(() => Assert.Single(provider.Calls));
         Assert.Equal(2, provider.Calls.Single().Page);
         Assert.Equal(25, provider.Calls.Single().PageSize);
-        Assert.Equal(showPageSizeSelector, cut.FindAll("label > select").Count == 1);
-        Assert.Equal(showPagination, cut.FindAll("nav[aria-label='Data pages']").Count == 1);
+        Assert.Equal(showPageSizeSelector, cut.FindAll("[aria-label='Rows per page']").Count == 1);
+        Assert.Equal(showPagination, cut.FindAll("[aria-label='Data pages']").Count == 1);
     }
 
     [Fact]

@@ -278,6 +278,7 @@
                 <label class="bzs-data-grid__page-size" for="@PageSizeInputId">
                     <span>@EffectivePageSizeText</span>
                     <select id="@PageSizeInputId"
+                            aria-label="@EffectivePageSizeText"
                             value="@PageSize"
                             disabled="@ControlsDisabled"
                             @onchange="RequestPageSizeAsync">

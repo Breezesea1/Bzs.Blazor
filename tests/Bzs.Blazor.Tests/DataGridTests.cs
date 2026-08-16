@@ -73,8 +73,8 @@ public sealed class DataGridTests
                 parameters.Add(component => component.ShowPagination, showPagination);
             });
 
-        Assert.Equal(showPageSizeSelector, cut.FindAll("label > select").Count == 1);
-        Assert.Equal(showPagination, cut.FindAll("nav[aria-label='Data pages']").Count == 1);
+        Assert.Equal(showPageSizeSelector, cut.FindAll("[aria-label='Rows per page']").Count == 1);
+        Assert.Equal(showPagination, cut.FindAll("[aria-label='Data pages']").Count == 1);
     }
 
     [Fact]
@@ -661,7 +661,7 @@ public sealed class DataGridTests
 
         Assert.Equal("Data grid", document.QuerySelector("table")?.GetAttribute("aria-label"));
         Assert.Equal("Alpha", document.QuerySelector("tbody td")?.TextContent.Trim());
-        Assert.Empty(document.QuerySelectorAll("label, nav[aria-label='Data pages']"));
+        Assert.Empty(document.QuerySelectorAll("[aria-label='Rows per page'], [aria-label='Data pages']"));
     }
 
     private static BunitContext CreateContext()

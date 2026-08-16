@@ -298,6 +298,14 @@ public static class DemoText
         public static string CompactGridReviewColumn => Get("评审", "Review");
 
         public static string CompactGridOwnerColumn => Get("负责人", "Owner");
+
+        public static string CompactGridReleaseNotes => Get("发布说明", "Release notes");
+
+        public static string CompactGridKeyboardAudit => Get("键盘审计", "Keyboard audit");
+
+        public static string CompactGridNormalPriority => Get("普通", "Normal");
+
+        public static string CompactGridHighPriority => Get("高", "High");
     }
 
     private static string Get(string chinese, string english) =>

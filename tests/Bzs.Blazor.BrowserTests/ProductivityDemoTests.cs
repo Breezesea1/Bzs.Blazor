@@ -29,6 +29,23 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         Assert.DoesNotContain("role=\"tooltip\"", html, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task CompactGridRowsUseTheSelectedCatalogLanguage()
+    {
+        BeginBrowserGateTest("static-zh-Hans");
+        using var client = new HttpClient();
+        var response = await client.GetAsync(
+            $"{server.BaseUrl}/productivity/static?culture=zh-Hans");
+        var html = System.Net.WebUtility.HtmlDecode(
+            await response.Content.ReadAsStringAsync());
+
+        response.EnsureSuccessStatusCode();
+        Assert.Contains("发布说明", html, StringComparison.Ordinal);
+        Assert.Contains("键盘审计", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("Release notes", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("Keyboard audit", html, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("server")]
     [InlineData("webassembly")]
