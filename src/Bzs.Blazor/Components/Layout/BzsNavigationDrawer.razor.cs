@@ -5,7 +5,11 @@ namespace Bzs.Blazor;
 /// </summary>
 public sealed partial class BzsNavigationDrawer : BzsComponentBase
 {
+    private const int InteropRetryLimit = 3;
+    private static readonly TimeSpan InteropRetryDelay = TimeSpan.FromMilliseconds(100);
+
     private readonly string _overlayId = $"bzs-navigation-drawer-{Guid.NewGuid():N}";
+    private readonly CancellationTokenSource _lifetimeCancellation = new();
     private BzsOverlayInterop? _interop;
     private ElementReference _rootElement;
     private ElementReference _panelElement;
@@ -14,6 +18,9 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
     private bool _lastOpen;
     private BzsNavigationDrawerVariant _lastVariant;
     private string? _lastInitialFocusSelector;
+    private CancellationTokenSource? _interopRetryCancellation;
+    private Task? _interopRetryTask;
+    private int _interopRetryAttempts;
     private bool _disposed;
 
     /// <summary>
@@ -139,6 +146,8 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
             || _lastVariant != Variant
             || _lastInitialFocusSelector != initialFocusSelector)
         {
+            CancelInteropRetry();
+            _interopRetryAttempts = 0;
             _interopSynchronizationPending = true;
         }
 
@@ -155,20 +164,44 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
             return;
         }
 
-        _interopSynchronizationPending = false;
+        await SynchronizeInteropAsync();
+    }
+
+    private async Task SynchronizeInteropAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
         if (Open)
         {
             _interop ??= new BzsOverlayInterop(JS);
-            await _interop.ActivateNavigationDrawerAsync(
+            var synchronized = await _interop.ActivateNavigationDrawerAsync(
                 _overlayId,
                 _rootElement,
                 _panelElement,
                 _escapeTriggerElement,
-                _lastInitialFocusSelector);
+                _lastInitialFocusSelector,
+                VariantName);
+            _interopSynchronizationPending = !synchronized;
+            if (synchronized)
+            {
+                _interopRetryAttempts = 0;
+            }
+            else
+            {
+                ScheduleInteropRetry();
+            }
         }
         else if (_interop is not null)
         {
+            _interopSynchronizationPending = false;
             await _interop.DeactivateAsync(_overlayId);
+        }
+        else
+        {
+            _interopSynchronizationPending = false;
         }
     }
 
@@ -199,6 +232,54 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
     private static string? Normalize(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
+    private void ScheduleInteropRetry()
+    {
+        if (_disposed || _interopRetryTask is not null || _interopRetryAttempts >= InteropRetryLimit)
+        {
+            return;
+        }
+
+        _interopRetryAttempts++;
+        var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCancellation.Token);
+        _interopRetryCancellation = cancellation;
+        _interopRetryTask = RetryInteropSynchronizationAsync(cancellation);
+    }
+
+    private async Task RetryInteropSynchronizationAsync(CancellationTokenSource cancellation)
+    {
+        try
+        {
+            await Task.Delay(InteropRetryDelay, cancellation.Token);
+            if (ReferenceEquals(_interopRetryCancellation, cancellation))
+            {
+                _interopRetryCancellation = null;
+                _interopRetryTask = null;
+            }
+
+            await InvokeAsync(SynchronizeInteropAsync);
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            if (ReferenceEquals(_interopRetryCancellation, cancellation))
+            {
+                _interopRetryCancellation = null;
+                _interopRetryTask = null;
+            }
+
+            cancellation.Dispose();
+        }
+    }
+
+    private void CancelInteropRetry()
+    {
+        _interopRetryCancellation?.Cancel();
+        _interopRetryCancellation = null;
+        _interopRetryTask = null;
+    }
+
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
@@ -208,9 +289,13 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
         }
 
         _disposed = true;
+        _lifetimeCancellation.Cancel();
+        CancelInteropRetry();
         if (_interop is not null)
         {
             await _interop.DisposeAsync(_overlayId);
         }
+
+        _lifetimeCancellation.Dispose();
     }
 }

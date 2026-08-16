@@ -10,14 +10,22 @@ export function initialize(shellId, callback) {
     dispose(shellId);
 
     const mobileQuery = window.matchMedia('(width < 48rem)');
+    let desktopOpen = null;
     const readDesktopOpen = () => {
-        try {
-            return window.localStorage.getItem(storageKey) !== '1';
-        } catch {
-            return true;
+        if (desktopOpen !== null) {
+            return desktopOpen;
         }
+
+        try {
+            desktopOpen = window.localStorage.getItem(storageKey) !== '1';
+        } catch {
+            desktopOpen = true;
+        }
+
+        return desktopOpen;
     };
     const writeDesktopOpen = open => {
+        desktopOpen = open;
         try {
             window.localStorage.setItem(storageKey, open ? '0' : '1');
         } catch {

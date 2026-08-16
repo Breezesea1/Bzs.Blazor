@@ -143,6 +143,53 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     }
 
     [Fact]
+    public async Task NavigationRetainsDesktopChoiceWhenStorageIsUnavailable()
+    {
+        BeginBrowserGateTest();
+        await Page.AddInitScriptAsync(
+            """
+            Object.defineProperties(Storage.prototype, {
+                getItem: {
+                    configurable: true,
+                    value: () => { throw new DOMException('Storage unavailable', 'SecurityError'); },
+                },
+                setItem: {
+                    configurable: true,
+                    value: () => { throw new DOMException('Storage unavailable', 'SecurityError'); },
+                },
+            });
+            """);
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+
+        var drawer = Page.Locator("#demo-navigation-drawer");
+        var closeNavigation = Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Close navigation", Exact = true });
+        var openNavigation = Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Open navigation", Exact = true });
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+
+        await closeNavigation.ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+
+        await Page.SetViewportSizeAsync(390, 844);
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+        await openNavigation.ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await closeNavigation.ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+        await openNavigation.ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await closeNavigation.ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+    }
+
+    [Fact]
     public async Task BrandBlockShowsLogoAndFaviconResolvesToServedAsset()
     {
         BeginBrowserGateTest();

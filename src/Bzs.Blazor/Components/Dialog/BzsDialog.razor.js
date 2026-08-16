@@ -58,13 +58,14 @@ export function activate(id, panel, modal, initialFocusSelector) {
     });
 }
 
-export function activateNavigationDrawer(id, root, panel, escapeTrigger, initialFocusSelector) {
+export function activateNavigationDrawer(id, root, panel, escapeTrigger, initialFocusSelector, variant) {
     const existing = overlays.get(id);
     if (existing) {
         existing.root = root;
         existing.panel = panel;
         existing.escapeTrigger = escapeTrigger;
         existing.initialFocusSelector = initialFocusSelector;
+        existing.variant = variant;
         synchronizeNavigationDrawer(existing);
         return;
     }
@@ -77,10 +78,13 @@ export function activateNavigationDrawer(id, root, panel, escapeTrigger, initial
         panel,
         escapeTrigger,
         modal: false,
+        variant,
         initialFocusSelector,
         previousFocus,
         navigationDrawer: true,
         observer: null,
+        backgroundObserver: null,
+        backgroundParent: null,
         backgroundTargets: []
     };
     overlays.set(id, overlay);
@@ -105,6 +109,7 @@ export function deactivate(id) {
     overlays.delete(id);
     overlay.observer?.disconnect();
     overlay.resizeObserver?.disconnect();
+    overlay.backgroundObserver?.disconnect();
     if (overlay.modal) {
         releaseBackground(overlay);
         unlockBody();
@@ -129,13 +134,21 @@ function synchronizeNavigationDrawer(overlay) {
         return;
     }
 
-    const backdrop = overlay.root.querySelector('.bzs-navigation-drawer__backdrop');
+    const modal = overlay.variant === 'temporary'
+        ? true
+        : overlay.variant === 'persistent'
+            ? false
+            : isNavigationDrawerBackdropModal(overlay.root);
+    updateModalState(overlay, modal);
+}
+
+function isNavigationDrawerBackdropModal(root) {
+    const backdrop = root.querySelector('.bzs-navigation-drawer__backdrop');
     const backdropStyle = backdrop instanceof HTMLElement ? getComputedStyle(backdrop) : null;
-    const modal = backdropStyle !== null
+    return backdropStyle !== null
         && backdropStyle.display !== 'none'
         && backdropStyle.visibility !== 'hidden'
         && backdropStyle.pointerEvents !== 'none';
-    updateModalState(overlay, modal);
 }
 
 function updateModalState(overlay, modal) {
@@ -169,41 +182,78 @@ function updateModalState(overlay, modal) {
 }
 
 function makeBackgroundInert(overlay) {
-    const parent = overlay.root?.parentElement;
-    if (!parent || overlay.backgroundTargets.length !== 0) {
+    reconcileBackground(overlay);
+}
+
+function reconcileBackground(overlay) {
+    if (!overlay.modal) {
         return;
     }
 
-    overlay.backgroundTargets = Array.from(parent.children)
+    const parent = overlay.root?.parentElement;
+    if (!parent) {
+        releaseBackground(overlay);
+        return;
+    }
+
+    if (overlay.backgroundParent !== parent) {
+        overlay.backgroundObserver?.disconnect();
+        overlay.backgroundParent = parent;
+        overlay.backgroundObserver = new MutationObserver(() => reconcileBackground(overlay));
+        overlay.backgroundObserver.observe(parent, { childList: true });
+    }
+
+    const nextTargets = Array.from(parent.children)
         .filter(element => element !== overlay.root && element instanceof HTMLElement);
     for (const target of overlay.backgroundTargets) {
-        const count = Number.parseInt(target.dataset.bzsOverlayInertCount ?? '0', 10);
-        if (count === 0) {
-            target.dataset.bzsOverlayWasInert = target.hasAttribute('inert') ? 'true' : 'false';
+        if (!nextTargets.includes(target)) {
+            releaseBackgroundTarget(target);
         }
-
-        target.dataset.bzsOverlayInertCount = String(count + 1);
-        target.setAttribute('inert', '');
     }
+
+    for (const target of nextTargets) {
+        if (!overlay.backgroundTargets.includes(target)) {
+            makeBackgroundTargetInert(target);
+        }
+    }
+
+    overlay.backgroundTargets = nextTargets;
+}
+
+function makeBackgroundTargetInert(target) {
+    const count = Number.parseInt(target.dataset.bzsOverlayInertCount ?? '0', 10);
+    if (count === 0) {
+        target.dataset.bzsOverlayWasInert = target.hasAttribute('inert') ? 'true' : 'false';
+    }
+
+    target.dataset.bzsOverlayInertCount = String(count + 1);
+    target.setAttribute('inert', '');
 }
 
 function releaseBackground(overlay) {
     for (const target of overlay.backgroundTargets) {
-        const count = Number.parseInt(target.dataset.bzsOverlayInertCount ?? '1', 10) - 1;
-        if (count > 0) {
-            target.dataset.bzsOverlayInertCount = String(count);
-            continue;
-        }
-
-        if (target.dataset.bzsOverlayWasInert !== 'true') {
-            target.removeAttribute('inert');
-        }
-
-        delete target.dataset.bzsOverlayInertCount;
-        delete target.dataset.bzsOverlayWasInert;
+        releaseBackgroundTarget(target);
     }
 
     overlay.backgroundTargets = [];
+    overlay.backgroundObserver?.disconnect();
+    overlay.backgroundObserver = null;
+    overlay.backgroundParent = null;
+}
+
+function releaseBackgroundTarget(target) {
+    const count = Number.parseInt(target.dataset.bzsOverlayInertCount ?? '1', 10) - 1;
+    if (count > 0) {
+        target.dataset.bzsOverlayInertCount = String(count);
+        return;
+    }
+
+    if (target.dataset.bzsOverlayWasInert !== 'true') {
+        target.removeAttribute('inert');
+    }
+
+    delete target.dataset.bzsOverlayInertCount;
+    delete target.dataset.bzsOverlayWasInert;
 }
 
 function lockBody() {

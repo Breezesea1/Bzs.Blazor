@@ -1,4 +1,6 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace Bzs.Blazor.Tests;
 
@@ -160,6 +162,34 @@ public sealed class LayoutTests
     }
 
     [Fact]
+    public async Task OpenNavigationDrawerRetriesThroughTwoTransientActivationFailures()
+    {
+        using var context = CreateInteractiveContext();
+        var module = context.JSInterop.SetupModule(BzsOverlayInterop.ModulePath);
+        var activation = module.SetupVoid(
+                BzsOverlayInterop.ActivateNavigationDrawerMethod,
+                _ => true)
+            .SetException(new JSDisconnectedException("The circuit is reconnecting."));
+        module.SetupVoid(BzsOverlayInterop.DeactivateMethod, _ => true).SetVoidResult();
+
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.Variant, BzsNavigationDrawerVariant.Temporary)
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        activation.VerifyInvoke(BzsOverlayInterop.ActivateNavigationDrawerMethod, 1);
+
+        await WaitUntilAsync(
+            () => module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod].Count == 2);
+        activation.SetVoidResult();
+
+        await WaitUntilAsync(
+            () => module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod].Count == 3);
+
+        activation.VerifyInvoke(BzsOverlayInterop.ActivateNavigationDrawerMethod, 3);
+    }
+
+    [Fact]
     public void NavigationDrawerEscapeHonorsTheControlledDismissalContract()
     {
         using var context = CreateInteractiveContext();
@@ -287,7 +317,22 @@ public sealed class LayoutTests
     private static BunitContext CreateInteractiveContext()
     {
         var context = new BunitContext();
+        context.Renderer.SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         context.JSInterop.Mode = JSRuntimeMode.Loose;
         return context;
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> condition)
+    {
+        var timeout = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+        while (!condition())
+        {
+            if (DateTime.UtcNow >= timeout)
+            {
+                throw new TimeoutException("The expected JavaScript invocation did not occur.");
+            }
+
+            await Task.Delay(10);
+        }
     }
 }

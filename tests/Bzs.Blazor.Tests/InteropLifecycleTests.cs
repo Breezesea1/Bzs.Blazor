@@ -87,6 +87,38 @@ public sealed class InteropLifecycleTests
     }
 
     [Fact]
+    public async Task NavigationDrawerActivationReportsTransientFailureThenSucceeds()
+    {
+        var runtime = new LifecycleJsRuntime();
+        runtime.Module.FailNextOperation[BzsOverlayInterop.ActivateNavigationDrawerMethod] =
+            new JSDisconnectedException("The circuit is reconnecting.");
+        var interop = new BzsOverlayInterop(runtime);
+
+        var firstActivation = await interop.ActivateNavigationDrawerAsync(
+            "navigation",
+            default,
+            default,
+            default,
+            "#first",
+            "temporary");
+        var secondActivation = await interop.ActivateNavigationDrawerAsync(
+            "navigation",
+            default,
+            default,
+            default,
+            "#first",
+            "temporary");
+
+        Assert.False(firstActivation);
+        Assert.True(secondActivation);
+        Assert.Equal(
+            [BzsOverlayInterop.ActivateNavigationDrawerMethod, BzsOverlayInterop.ActivateNavigationDrawerMethod],
+            runtime.Module.Invocations);
+
+        await interop.DisposeAsync("navigation");
+    }
+
+    [Fact]
     public async Task ThemeDisposeDuringImportProducesComponentRecoverableTransientFailure()
     {
         var runtime = new LifecycleJsRuntime { BlockImport = true };
@@ -264,6 +296,8 @@ public sealed class InteropLifecycleTests
 
         internal ConcurrentDictionary<string, Exception> OperationFailures { get; } = [];
 
+        internal ConcurrentDictionary<string, Exception> FailNextOperation { get; } = [];
+
         internal ConcurrentDictionary<string, object?> Results { get; } = [];
 
         internal Exception? DisposeFailure { get; set; }
@@ -282,6 +316,11 @@ public sealed class InteropLifecycleTests
             object?[]? args)
         {
             Invocations.Enqueue(identifier);
+            if (FailNextOperation.TryRemove(identifier, out var transientFailure))
+            {
+                return ValueTask.FromException<TValue>(transientFailure);
+            }
+
             if (OperationFailures.TryGetValue(identifier, out var exception))
             {
                 return ValueTask.FromException<TValue>(exception);

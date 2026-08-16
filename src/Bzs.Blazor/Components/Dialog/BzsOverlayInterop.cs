@@ -28,20 +28,22 @@ internal sealed class BzsOverlayInterop
             initialFocusSelector);
     }
 
-    public async ValueTask ActivateNavigationDrawerAsync(
+    public ValueTask<bool> ActivateNavigationDrawerAsync(
         string overlayId,
         ElementReference root,
         ElementReference panel,
         ElementReference escapeTrigger,
-        string? initialFocusSelector)
+        string? initialFocusSelector,
+        string variant)
     {
-        await _module.TryInvokeVoidAsync(
+        return _module.TryInvokeVoidAsync(
             ActivateNavigationDrawerMethod,
             overlayId,
             root,
             panel,
             escapeTrigger,
-            initialFocusSelector);
+            initialFocusSelector,
+            variant);
     }
 
     public async ValueTask DeactivateAsync(string overlayId)
