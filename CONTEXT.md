@@ -23,3 +23,11 @@ _Avoid_: Stored theme, application preference, color scheme setting
 **Anchored Overlay**:
 Transient content positioned relative to an on-page anchor or invocation point, including popovers, tooltips, menus, context menus, and autocomplete suggestions.
 _Avoid_: Floating panel, popover infrastructure, portal
+
+**Demo Catalog**:
+The shared set of demonstration pages and chrome, hosted in `Bzs.Blazor.Demo.Catalog` and reused by the standalone WebAssembly and server demo hosts, through which visitors explore the component library. All visitor-facing copy is bilingual: zh-Hans is the default culture and en-US is available through the language switcher.
+_Avoid_: Demo app, sample site, playground
+
+**Landing Page**:
+The `/` route of the Demo Catalog, which introduces Bzs.Blazor to first-time visitors and routes them toward installation, the component groups, and releases. Its copy is bilingual (zh-Hans and en-US) with zh-Hans as the primary language.
+_Avoid_: Home page, overview page, dashboard
