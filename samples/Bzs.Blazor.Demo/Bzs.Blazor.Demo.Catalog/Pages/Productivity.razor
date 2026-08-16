@@ -167,7 +167,7 @@
                      SelectionMode="BzsDataGridSelectionMode.Multiple"
                      ShowSelectAll="true"
                      SelectedItems="@_selectedRows"
-                     SelectedItemsChanged="value => _selectedRows = value"
+                     SelectedItemsChanged="HandleGridSelectionChanged"
                      Caption="Review queue"
                      AccessibleName="Review queue data"
                      data-testid="productivity-grid">
@@ -212,6 +212,9 @@
 </section>
 
 @code {
+    [SupplyParameterFromQuery(Name = "rejectGridSelection")]
+    public bool RejectGridSelection { get; set; }
+
     private IReadOnlyList<BzsBreadcrumbItem> BreadcrumbItems =>
     [
         new("Home", RouteUrl("./")),
@@ -271,6 +274,14 @@
 
         await _grid.RefreshAsync();
         _gridRefreshed = true;
+    }
+
+    private void HandleGridSelectionChanged(IReadOnlyList<ReviewRow> value)
+    {
+        if (!RejectGridSelection)
+        {
+            _selectedRows = value;
+        }
     }
 
     private sealed class OwnerProvider : IBzsAutocompleteProvider<string>

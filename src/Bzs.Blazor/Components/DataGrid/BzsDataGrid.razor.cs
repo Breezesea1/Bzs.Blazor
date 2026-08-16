@@ -12,6 +12,7 @@ namespace Bzs.Blazor;
 /// <typeparam name="TItem">The row item type.</typeparam>
 public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 {
+    private const string ModulePath = "./_content/Bzs.Blazor/Components/DataGrid/BzsDataGrid.razor.js";
     private static readonly IReadOnlyList<int> DefaultPageSizeOptions =
         Array.AsReadOnly(new[] { 10, 25, 50 });
     private readonly string _instanceId = $"bzs-data-grid-{Guid.NewGuid():N}";
@@ -20,6 +21,8 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     private readonly Dictionary<string, string> _filterDrafts = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _filterOperatorDrafts = new(StringComparer.Ordinal);
     private readonly Dictionary<string, BzsDataGridFilter> _observedFilters = new(StringComparer.Ordinal);
+    private ElementReference _selectAllReference;
+    private BzsJsModule? _selectAllInterop;
     private HashSet<object?>? _selectedItemKeys;
     private BzsDataGridRequestCoordinator<TItem>? _requestCoordinator;
     private IBzsDataGridProvider<TItem>? _coordinatorProvider;
@@ -37,6 +40,9 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 
     [Inject]
     private IStringLocalizer<BzsBlazorResources> Localizer { get; set; } = default!;
+
+    [Inject]
+    private IJSRuntime JsRuntime { get; set; } = default!;
 
     /// <summary>Gets or sets the complete in-memory item collection.</summary>
     [Parameter]
@@ -434,8 +440,17 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_disposed
-            || Provider is null
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (ShowCurrentPageSelectAll && RendererInfo.IsInteractive)
+        {
+            await SynchronizeSelectAllAsync();
+        }
+
+        if (Provider is null
             || !RendererInfo.IsInteractive
             || _interactionBatchDepth > 0)
         {
@@ -1052,6 +1067,23 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         return AreAllCurrentRowsSelected(rows) ? "true" : "mixed";
     }
 
+    private ValueTask<bool> SynchronizeSelectAllAsync()
+    {
+        var rows = Rows;
+        var allSelected = AreAllCurrentRowsSelected(rows);
+        var indeterminate = !allSelected && rows.Any(IsSelectedMultiple);
+        return GetSelectAllInterop().TryInvokeVoidAsync(
+            "synchronize",
+            _selectAllReference,
+            allSelected,
+            indeterminate);
+    }
+
+    private BzsJsModule GetSelectAllInterop() => _selectAllInterop ??= new BzsJsModule(
+        JsRuntime,
+        ModulePath,
+        options: new BzsJsModuleOptions(TreatInvalidOperationDuringImportAsTransient: true));
+
     private bool KeysEqual(TItem left, TItem right) =>
         KeyComparer.Equals(GetItemKey(left), GetItemKey(right));
 
@@ -1275,11 +1307,11 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         };
 
     /// <inheritdoc />
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed)
         {
-            return ValueTask.CompletedTask;
+            return;
         }
 
         _disposed = true;
@@ -1290,7 +1322,10 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         _requestCoordinator?.Dispose();
         _requestCoordinator = null;
         _coordinatorProvider = null;
-        return ValueTask.CompletedTask;
+        if (_selectAllInterop is not null)
+        {
+            await _selectAllInterop.DisposeAsync();
+        }
     }
 
     private static string? Normalize(string? value) =>

@@ -32,6 +32,7 @@
                             @if (ShowCurrentPageSelectAll)
                             {
                                 <input type="checkbox"
+                                       @ref="_selectAllReference"
                                        checked="@AreAllCurrentRowsSelected(rows)"
                                        disabled="@(rows.Count == 0)"
                                        aria-checked="@GetCurrentPageSelectAllState(rows)"

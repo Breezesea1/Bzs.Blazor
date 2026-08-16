@@ -1,6 +1,7 @@
 using System.Globalization;
 using AngleSharp.Html.Parser;
 using Bunit;
+using Bunit.JSInterop;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
@@ -667,6 +668,8 @@ public sealed class DataGridTests
     {
         var context = new BunitContext();
         context.Services.AddBzsBlazor();
+        context.Renderer.SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        context.JSInterop.Mode = JSRuntimeMode.Loose;
         return context;
     }
 

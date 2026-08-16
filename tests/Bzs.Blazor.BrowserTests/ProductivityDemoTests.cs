@@ -82,6 +82,11 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
             AriaRole.Checkbox,
             new() { Name = "Select all rows on this page", Exact = true });
         await Expect(selectAllRows).Not.ToBeCheckedAsync();
+        await reviewGrid.GetByRole(
+            AriaRole.Checkbox,
+            new() { Name = "Select row 1", Exact = true }).ClickAsync();
+        await Expect(selectAllRows).ToHaveAttributeAsync("aria-checked", "mixed");
+        await Expect(selectAllRows).ToHaveJSPropertyAsync("indeterminate", true);
         await selectAllRows.FocusAsync();
         await selectAllRows.PressAsync("Space");
         await Expect(selectAllRows).ToBeCheckedAsync();
@@ -127,6 +132,31 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(3);
         await Expect(selectAllRows).Not.ToBeCheckedAsync();
         AssertNoUnexpectedBrowserErrors($"productivity {renderMode} workflow");
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("webassembly")]
+    [InlineData("auto")]
+    public async Task ControlledSelectAllRestoresStateWhenTheParentRejectsTheChange(string renderMode)
+    {
+        BeginBrowserGateTest(renderMode);
+        var response = await Page.GotoAsync(
+            $"{server.BaseUrl}/productivity/{renderMode}?culture=en-US&rejectGridSelection=true");
+        Assert.True(response?.Ok ?? false);
+
+        await Expect(Page.GetByTestId("productivity-workbench"))
+            .ToHaveAttributeAsync("data-bzs-interactive", "true");
+        var selectAllRows = Page.GetByRole(
+            AriaRole.Table,
+            new() { Name = "Review queue" }).GetByRole(
+                AriaRole.Checkbox,
+                new() { Name = "Select all rows on this page", Exact = true });
+
+        await selectAllRows.ClickAsync();
+
+        await Expect(selectAllRows).Not.ToBeCheckedAsync();
+        await Expect(selectAllRows).ToHaveJSPropertyAsync("indeterminate", false);
     }
 
     [Fact]
