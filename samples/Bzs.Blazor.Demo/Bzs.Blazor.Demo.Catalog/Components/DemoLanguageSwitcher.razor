@@ -7,12 +7,12 @@
                        ValueExpression="@(() => SelectedCulture)"
                        Options="LanguageOptions"
                        Variant="BzsRadioGroupVariant.Segmented"
-                       aria-label="Date picker language" />
+                       aria-label="@DemoText.Chrome.LanguageSwitcherAccessibleName" />
     </div>
 }
 else
 {
-    <nav class="demo-header-language demo-language-fallback" aria-label="Date picker language">
+    <nav class="demo-header-language demo-language-fallback" aria-label="@DemoText.Chrome.LanguageSwitcherAccessibleName">
         <a href="@GetCultureUrl(EnglishCulture)"
            aria-current="@(SelectedCulture == EnglishCulture ? "page" : null)"
            data-enhance-nav="false">English</a>

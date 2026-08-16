@@ -20,10 +20,31 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await Expect(Page.Locator("html")).ToHaveAttributeAsync("lang", "en-US");
         var language = Page.GetByRole(
             AriaRole.Radiogroup,
-            new() { Name = "Date picker language", Exact = true });
+            new() { Name = "Catalog language", Exact = true });
         await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
         await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "English", Exact = true }))
             .ToBeCheckedAsync();
+    }
+
+    [Theory]
+    [InlineData("", true)]
+    [InlineData("?culture=en-US", false)]
+    public async Task CatalogChromeUsesTheRequestedCulture(string query, bool isChinese)
+    {
+        BeginBrowserGateTest(isChinese ? "zh-Hans" : "en-US");
+
+        await Page.GotoAsync($"{server.BaseUrl}{query}");
+
+        await AssertDemoChromeAsync(
+            isChinese,
+            includesServerRenderModes: false,
+            isChinese ? "静态 WebAssembly 主机" : "Static WebAssembly host");
+
+        await Page.SetViewportSizeAsync(390, 844);
+        await Expect(Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = isChinese ? "打开导航" : "Open navigation", Exact = true }))
+            .ToBeVisibleAsync();
     }
 
     [Fact]
@@ -33,8 +54,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await Page.AddInitScriptAsync(
             "localStorage.removeItem('bzs-demo-sidebar-collapsed')");
         await Page.SetViewportSizeAsync(1280, 900);
-        await Page.GotoAsync(server.BaseUrl);
-
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
         var shell = Page.Locator("#demo-app-shell");
         var drawer = Page.Locator("#demo-navigation-drawer");
         var appBar = Page.Locator("#demo-app-bar");
@@ -100,7 +120,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         var language = Page.GetByRole(
             AriaRole.Radiogroup,
-            new() { Name = "Date picker language", Exact = true });
+            new() { Name = "Catalog language", Exact = true });
         var english = language.GetByRole(AriaRole.Radio, new() { Name = "English", Exact = true });
         var chinese = language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true });
         await Expect(english).ToBeCheckedAsync();
@@ -114,6 +134,10 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await language.GetByText("中文", new() { Exact = true }).ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+        language = Page.GetByRole(
+            AriaRole.Radiogroup,
+            new() { Name = "目录语言", Exact = true });
+        chinese = language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true });
         await Expect(chinese).ToBeCheckedAsync();
 
         input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
@@ -124,11 +148,11 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
 
         var catalogNavigation = Page.GetByRole(
             AriaRole.Navigation,
-            new() { Name = "Bzs.Blazor catalog", Exact = true });
-        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Feedback", Exact = true })
+            new() { Name = "Bzs.Blazor 目录", Exact = true });
+        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "反馈", Exact = true })
             .ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/feedback?culture=zh-Hans");
-        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Forms", Exact = true })
+        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "表单", Exact = true })
             .ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
@@ -137,7 +161,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await Expect(Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" })).ToBeVisibleAsync();
         await input.PressAsync("Escape");
 
-        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Overview", Exact = true })
+        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "概览", Exact = true })
             .ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/?culture=zh-Hans");
         var componentGroups = Page.GetByRole(AriaRole.Region, new() { Name = "Component groups" });
@@ -168,7 +192,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         };
         Page.PageError += (_, error) => pageErrors.Enqueue(error);
 
-        var response = await Page.GotoAsync($"{server.BaseUrl}/render-modes/webassembly");
+        var response = await Page.GotoAsync($"{server.BaseUrl}/render-modes/webassembly?culture=en-US");
 
         Assert.NotNull(response);
         Assert.True(response.Ok);

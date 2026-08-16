@@ -21,6 +21,27 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         await Expect(Page.Locator(".demo-skip-link")).ToHaveTextAsync("Skip to catalog content");
     }
 
+    [Theory]
+    [InlineData("", true)]
+    [InlineData("?culture=en-US", false)]
+    public async Task CatalogChromeUsesTheRequestedCulture(string query, bool isChinese)
+    {
+        BeginBrowserGateTest(isChinese ? "zh-Hans" : "en-US");
+
+        await Page.GotoAsync($"{server.BaseUrl}{query}");
+
+        await AssertDemoChromeAsync(
+            isChinese,
+            includesServerRenderModes: true,
+            isChinese ? "Aspire 演示主机" : "Aspire demo host");
+
+        await Page.SetViewportSizeAsync(390, 844);
+        await Expect(Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = isChinese ? "打开导航" : "Open navigation", Exact = true }))
+            .ToBeVisibleAsync();
+    }
+
     [Fact]
     public async Task HostShellUsesBzsLayoutAcrossViewports()
     {
@@ -28,8 +49,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         await Page.AddInitScriptAsync(
             "localStorage.removeItem('bzs-demo-sidebar-collapsed')");
         await Page.SetViewportSizeAsync(1280, 900);
-        await Page.GotoAsync(server.BaseUrl);
-
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
         var shell = Page.Locator("#demo-app-shell");
         var drawer = Page.Locator("#demo-navigation-drawer");
         var appBar = Page.Locator("#demo-app-bar");
@@ -117,7 +137,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1280, 900);
-        await Page.GotoAsync(server.BaseUrl);
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
         await Page.EvaluateAsync("localStorage.removeItem('bzs-demo-sidebar-collapsed')");
         await Page.ReloadAsync();
 
@@ -196,7 +216,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     public async Task CatalogExposesTheRenderModeRoutes()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync(server.BaseUrl);
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
 
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Bzs.Blazor" }))
             .ToBeVisibleAsync();
@@ -232,12 +252,12 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         string pageHeading)
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync(server.BaseUrl);
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
 
         var componentGroups = Page.GetByRole(AriaRole.Region, new() { Name = "Component groups" });
         await componentGroups.GetByRole(AriaRole.Link, new() { Name = linkName, Exact = true }).ClickAsync();
 
-        await Expect(Page).ToHaveURLAsync(new Regex($"/{Regex.Escape(route)}$"));
+        await Expect(Page).ToHaveURLAsync(new Regex($"/{Regex.Escape(route)}(?:\\?culture=en-US)?$"));
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = pageHeading }))
             .ToBeVisibleAsync();
     }

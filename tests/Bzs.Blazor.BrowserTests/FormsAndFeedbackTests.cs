@@ -27,7 +27,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await Page.GotoAsync($"{server.BaseUrl}/forms?next=culture=zh-Hans&culture=en-US");
         var language = Page.GetByRole(
             AriaRole.Radiogroup,
-            new() { Name = "Date picker language", Exact = true });
+            new() { Name = "Catalog language", Exact = true });
         var english = language.GetByRole(AriaRole.Radio, new() { Name = "English", Exact = true });
         var chinese = language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true });
         await Expect(english).ToBeCheckedAsync();
@@ -46,6 +46,10 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await language.GetByText("中文", new() { Exact = true }).ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?next=x&culture=zh-Hans");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+        language = Page.GetByRole(
+            AriaRole.Radiogroup,
+            new() { Name = "目录语言", Exact = true });
+        chinese = language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true });
         await Expect(chinese).ToBeCheckedAsync();
 
         input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
@@ -57,13 +61,13 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
 
         var catalogNavigation = Page.GetByRole(
             AriaRole.Navigation,
-            new() { Name = "Bzs.Blazor catalog", Exact = true });
-        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Feedback", Exact = true })
+            new() { Name = "Bzs.Blazor 目录", Exact = true });
+        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "反馈", Exact = true })
             .ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/feedback?culture=zh-Hans");
         await Expect(chinese).ToBeCheckedAsync();
 
-        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Forms", Exact = true })
+        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "表单", Exact = true })
             .ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
@@ -72,7 +76,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await Expect(Page.GetByRole(AriaRole.Dialog, new() { Name = "选择日期" })).ToBeVisibleAsync();
         await input.PressAsync("Escape");
 
-        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "Overview", Exact = true })
+        await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "概览", Exact = true })
             .ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/?culture=zh-Hans");
         var componentGroups = Page.GetByRole(AriaRole.Region, new() { Name = "Component groups" });
@@ -103,7 +107,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
         var language = Page.GetByRole(
             AriaRole.Radiogroup,
-            new() { Name = "Date picker language", Exact = true });
+            new() { Name = "目录语言", Exact = true });
         await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true }))
             .ToBeCheckedAsync();
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();

@@ -6,7 +6,7 @@
                          Open="true"
                          Variant="BzsNavigationDrawerVariant.Responsive"
                          Position="BzsNavigationDrawerPosition.Start"
-                         AccessibleName="Bzs.Blazor catalog">
+                         AccessibleName="@DemoText.Chrome.NavigationAccessibleName">
         <NavMenu />
     </BzsNavigationDrawer>
 
@@ -16,7 +16,7 @@
                    Variant="BzsButtonVariant.Secondary"
                    Size="BzsButtonSize.Small"
                    StartIcon="@BzsIcons.Menu"
-                   AccessibleName="Open navigation"
+                   AccessibleName="@DemoText.Chrome.OpenNavigation"
                    data-demo-navigation-toggle="true"
                    data-demo-navigation-toggle-mode="open"
                    aria-controls="demo-navigation-drawer"
@@ -24,11 +24,11 @@
         <p class="demo-header-context">
             <span>Bzs.Blazor</span>
             <span class="demo-header-separator" aria-hidden="true">/</span>
-            <strong>Component workbench</strong>
+            <strong>@DemoText.Chrome.ComponentWorkbench</strong>
         </p>
         <p class="demo-header-status">
             <span class="demo-status-dot" aria-hidden="true"></span>
-            Static WebAssembly host
+            @DemoText.Chrome.StaticWebAssemblyHost
         </p>
         <DemoReleaseAnnouncement />
         <DemoLanguageSwitcher UseStaticHostRootReload="true" />
@@ -42,6 +42,6 @@
 </BzsAppShell>
 
 <div id="blazor-error-ui" data-nosnippet>
-    The catalog could not complete this interaction.
-    <a href=".">Reload</a>
+    @DemoText.Chrome.InteractionError
+    <a href=".">@DemoText.Chrome.Reload</a>
 </div>

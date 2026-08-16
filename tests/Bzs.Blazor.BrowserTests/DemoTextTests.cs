@@ -7,10 +7,56 @@ namespace Bzs.Blazor.BrowserTests;
 public sealed class DemoTextTests
 {
     [Fact]
-    public void ChromeSkipLinkFollowsTheCurrentUiCulture()
+    public void ChromeEntriesProvideTheBilingualDemoShellCatalog()
     {
-        Assert.Equal("跳至目录内容", EvaluateUnderCulture("zh-Hans", () => DemoText.Chrome.SkipLink));
-        Assert.Equal("Skip to catalog content", EvaluateUnderCulture("en-US", () => DemoText.Chrome.SkipLink));
+        var expectedEntries = new[]
+        {
+            "SkipLink",
+            "NavigationAccessibleName",
+            "BrandTagline",
+            "CloseNavigation",
+            "CatalogSection",
+            "Overview",
+            "ThemeFoundation",
+            "FoundationComponents",
+            "Forms",
+            "Productivity",
+            "Feedback",
+            "Tabs",
+            "Overlays",
+            "Layout",
+            "ProjectSection",
+            "Releases",
+            "RenderModesSection",
+            "RuntimeSection",
+            "StaticSsr",
+            "InteractiveServer",
+            "InteractiveWebAssembly",
+            "InteractiveAuto",
+            "DemoUser",
+            "Administrator",
+            "Exit",
+            "SignOutAccessibleName",
+            "OpenNavigation",
+            "ComponentWorkbench",
+            "AspireDemoHost",
+            "StaticWebAssemblyHost",
+            "LanguageSwitcherAccessibleName",
+            "InteractionError",
+            "Reload",
+            "WhatsNew",
+            "ViewAllReleases",
+            "MarkAsRead",
+        };
+
+        var actualEntries = typeof(DemoText.Chrome)
+            .GetProperties(BindingFlags.Public | BindingFlags.Static)
+            .Where(property => property.PropertyType == typeof(string))
+            .Select(property => property.Name)
+            .Order()
+            .ToArray();
+
+        Assert.Equal(expectedEntries.Order(), actualEntries);
     }
 
     [Fact]

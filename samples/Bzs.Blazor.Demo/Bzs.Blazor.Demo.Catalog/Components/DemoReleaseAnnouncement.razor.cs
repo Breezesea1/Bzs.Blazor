@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -21,29 +20,21 @@ public partial class DemoReleaseAnnouncement : ComponentBase, IAsyncDisposable
 
     private bool IsChinese => DemoCulture.IsChinese(new Uri(Navigation.Uri));
 
-    private string WhatsNewLabel => IsChinese ? "更新公告" : "What's new";
+    private string WhatsNewLabel => DemoText.Chrome.WhatsNew;
 
-    private string DialogTitle => IsChinese
-        ? $"Bzs.Blazor {Latest.Version} 更新内容"
-        : $"What's new in Bzs.Blazor {Latest.Version}";
+    private string DialogTitle => DemoText.Chrome.ReleaseDialogTitle(Latest.Version);
 
-    private string ViewAllReleasesLabel => IsChinese ? "查看所有版本" : "View all releases";
+    private string ViewAllReleasesLabel => DemoText.Chrome.ViewAllReleases;
 
-    private string MarkAsReadLabel => IsChinese ? "标为已读" : "Mark as read";
+    private string MarkAsReadLabel => DemoText.Chrome.MarkAsRead;
 
     private string PublishedDate => Latest.PublishedAt.ToString(
         "D",
         DemoCulture.Resolve(IsChinese ? "zh-Hans" : "en-US"));
 
-    private string TriggerAccessibleName => _unreadCount > 0
-        ? IsChinese
-            ? $"更新公告，{_unreadCount.ToString(CultureInfo.CurrentCulture)} 个未读版本"
-            : $"What's new, {_unreadCount.ToString(CultureInfo.CurrentCulture)} unread release announcement{(_unreadCount == 1 ? string.Empty : "s")}"
-        : WhatsNewLabel;
+    private string TriggerAccessibleName => DemoText.Chrome.ReleaseAnnouncementTriggerAccessibleName(_unreadCount);
 
-    private string UnreadBadgeAccessibleName => IsChinese
-        ? $"{_unreadCount.ToString(CultureInfo.CurrentCulture)} 个未读版本公告"
-        : $"{_unreadCount.ToString(CultureInfo.CurrentCulture)} unread release announcement{(_unreadCount == 1 ? string.Empty : "s")}";
+    private string UnreadBadgeAccessibleName => DemoText.Chrome.UnreadReleaseAnnouncement(_unreadCount);
 
     private string ReleasesUrl => RouteUrl("releases");
 

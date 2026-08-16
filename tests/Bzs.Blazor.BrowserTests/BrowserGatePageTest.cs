@@ -85,7 +85,7 @@ public abstract class BrowserGatePageTest : PageTest
     {
         var navigation = Page.GetByRole(
             AriaRole.Navigation,
-            new() { Name = "Bzs.Blazor catalog", Exact = true });
+            new() { Name = "Bzs.Blazor 目录", Exact = true });
         await Expect(navigation).ToBeVisibleAsync();
 
         var brandLink = navigation.GetByRole(
@@ -118,6 +118,164 @@ public abstract class BrowserGatePageTest : PageTest
         var iconResponse = await Page.Context.APIRequest.GetAsync(resolvedIconHref);
         Assert.True(iconResponse.Ok, $"The favicon '{resolvedIconHref}' was not served successfully.");
     }
+
+    protected async Task AssertDemoChromeAsync(bool isChinese, bool includesServerRenderModes, string hostStatus)
+    {
+        var chrome = isChinese
+            ? new DemoChromeText(
+                "跳至目录内容",
+                "Bzs.Blazor 目录",
+                "组件实验室",
+                "关闭导航",
+                "目录",
+                "概览",
+                "主题基础",
+                "基础组件",
+                "表单",
+                "生产力",
+                "反馈",
+                "选项卡",
+                "浮层",
+                "布局",
+                "项目",
+                "版本发布",
+                "渲染模式",
+                "运行时",
+                "静态 SSR",
+                "交互式服务器",
+                "交互式 WebAssembly",
+                "交互式自动",
+                "演示用户",
+                "管理员",
+                "退出",
+                "演示退出操作，返回概览",
+                "打开导航",
+                "组件工作台",
+                "目录语言")
+            : new DemoChromeText(
+                "Skip to catalog content",
+                "Bzs.Blazor catalog",
+                "Component lab",
+                "Close navigation",
+                "Catalog",
+                "Overview",
+                "Theme foundation",
+                "Foundation components",
+                "Forms",
+                "Productivity",
+                "Feedback",
+                "Tabs",
+                "Overlays",
+                "Layout",
+                "Project",
+                "Releases",
+                "Render modes",
+                "Runtime",
+                "Static SSR",
+                "Interactive Server",
+                "Interactive WebAssembly",
+                "Interactive Auto",
+                "Demo User",
+                "Administrator",
+                "Exit",
+                "Demo sign-out action, returns to overview",
+                "Open navigation",
+                "Component workbench",
+                "Catalog language");
+
+        await Expect(Page.Locator(".demo-skip-link")).ToHaveTextAsync(chrome.SkipLink);
+        var navigation = Page.GetByRole(
+            AriaRole.Navigation,
+            new() { Name = chrome.NavigationAccessibleName, Exact = true });
+        await Expect(navigation).ToBeVisibleAsync();
+        await Expect(navigation.GetByRole(AriaRole.Link, new() { Name = $"Bzs.Blazor {chrome.BrandTagline}", Exact = true }))
+            .ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Button, new() { Name = chrome.CloseNavigation, Exact = true }))
+            .ToBeVisibleAsync();
+
+        foreach (var section in new[]
+        {
+            chrome.CatalogSection,
+            chrome.ProjectSection,
+            includesServerRenderModes ? chrome.RenderModesSection : chrome.RuntimeSection,
+        })
+        {
+            await Expect(navigation.GetByText(section, new() { Exact = true })).ToBeVisibleAsync();
+        }
+
+        foreach (var link in new[]
+        {
+            chrome.Overview,
+            chrome.ThemeFoundation,
+            chrome.FoundationComponents,
+            chrome.Forms,
+            chrome.Productivity,
+            chrome.Feedback,
+            chrome.Tabs,
+            chrome.Overlays,
+            chrome.Layout,
+            chrome.Releases,
+            chrome.InteractiveWebAssembly,
+        })
+        {
+            await Expect(navigation.GetByRole(AriaRole.Link, new() { Name = link, Exact = true })).ToBeVisibleAsync();
+        }
+
+        if (includesServerRenderModes)
+        {
+            await Expect(navigation.GetByRole(AriaRole.Link, new() { Name = chrome.StaticSsr, Exact = true }))
+                .ToBeVisibleAsync();
+            await Expect(navigation.GetByRole(AriaRole.Link, new() { Name = chrome.InteractiveServer, Exact = true }))
+                .ToBeVisibleAsync();
+            await Expect(navigation.GetByRole(AriaRole.Link, new() { Name = chrome.InteractiveAuto, Exact = true }))
+                .ToBeVisibleAsync();
+        }
+
+        await Expect(navigation.GetByText(chrome.DemoUser, new() { Exact = true })).ToBeVisibleAsync();
+        await Expect(navigation.GetByText(chrome.Administrator, new() { Exact = true })).ToBeVisibleAsync();
+        await Expect(navigation.GetByRole(AriaRole.Link, new() { Name = chrome.SignOutAccessibleName, Exact = true }))
+            .ToBeVisibleAsync();
+        await Expect(Page.GetByText(chrome.ComponentWorkbench, new() { Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.GetByText(hostStatus, new() { Exact = true })).ToBeVisibleAsync();
+
+        var language = Page.GetByRole(
+            AriaRole.Radiogroup,
+            new() { Name = chrome.LanguageSwitcherAccessibleName, Exact = true });
+        await Expect(language).ToBeVisibleAsync();
+        await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "English", Exact = true })).ToBeVisibleAsync();
+        await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true })).ToBeVisibleAsync();
+    }
+
+    private sealed record DemoChromeText(
+        string SkipLink,
+        string NavigationAccessibleName,
+        string BrandTagline,
+        string CloseNavigation,
+        string CatalogSection,
+        string Overview,
+        string ThemeFoundation,
+        string FoundationComponents,
+        string Forms,
+        string Productivity,
+        string Feedback,
+        string Tabs,
+        string Overlays,
+        string Layout,
+        string ProjectSection,
+        string Releases,
+        string RenderModesSection,
+        string RuntimeSection,
+        string StaticSsr,
+        string InteractiveServer,
+        string InteractiveWebAssembly,
+        string InteractiveAuto,
+        string DemoUser,
+        string Administrator,
+        string Exit,
+        string SignOutAccessibleName,
+        string OpenNavigation,
+        string ComponentWorkbench,
+        string LanguageSwitcherAccessibleName);
 
     private async Task ObserveContextAsync(IBrowserContext context)
     {
