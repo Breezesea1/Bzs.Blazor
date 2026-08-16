@@ -79,11 +79,87 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         await AssertMatchesBaselineAsync("productivity-light-desktop.png");
     }
 
-    private async Task AssertMatchesBaselineAsync(string fileName)
+    [Fact]
+    public async Task LandingChineseLightDesktopMatchesBaseline()
+    {
+        BeginBrowserGateTest();
+        await Page.SetViewportSizeAsync(1440, 900);
+        await PrepareLandingVisualAsync();
+        await Page.GotoAsync(server.BaseUrl);
+        await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync(
+            "data-interactive",
+            "true",
+            new() { Timeout = InteractiveReadinessTimeout });
+
+        await AssertMatchesBaselineAsync("landing-zh-hans-light-desktop.png", "目录语言");
+    }
+
+    [Fact]
+    public async Task LandingChineseDarkDesktopMatchesBaseline()
+    {
+        BeginBrowserGateTest();
+        await Page.SetViewportSizeAsync(1440, 900);
+        await PrepareLandingVisualAsync();
+        await Page.GotoAsync(server.BaseUrl);
+        await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync(
+            "data-interactive",
+            "true",
+            new() { Timeout = InteractiveReadinessTimeout });
+        var themeSwitch = Page.GetByRole(AriaRole.Group, new() { Name = "目录主题", Exact = true });
+        await themeSwitch.GetByRole(AriaRole.Button, new() { Name = "深色", Exact = true }).ClickAsync();
+        await Expect(Page.GetByTestId("demo-global-theme-provider"))
+            .ToHaveAttributeAsync("data-bzs-theme", "dark");
+
+        await AssertMatchesBaselineAsync("landing-zh-hans-dark-desktop.png", "目录语言");
+    }
+
+    [Fact]
+    public async Task LandingEnglishLightDesktopMatchesBaseline()
+    {
+        BeginBrowserGateTest();
+        await Page.SetViewportSizeAsync(1440, 900);
+        await PrepareLandingVisualAsync();
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync(
+            "data-interactive",
+            "true",
+            new() { Timeout = InteractiveReadinessTimeout });
+
+        await AssertMatchesBaselineAsync("landing-en-us-light-desktop.png");
+    }
+
+    [Fact]
+    public async Task LandingEnglishDarkDesktopMatchesBaseline()
+    {
+        BeginBrowserGateTest();
+        await Page.SetViewportSizeAsync(1440, 900);
+        await PrepareLandingVisualAsync();
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync(
+            "data-interactive",
+            "true",
+            new() { Timeout = InteractiveReadinessTimeout });
+        var themeSwitch = Page.GetByRole(AriaRole.Group, new() { Name = "Catalog theme", Exact = true });
+        await themeSwitch.GetByRole(AriaRole.Button, new() { Name = "Dark", Exact = true }).ClickAsync();
+        await Expect(Page.GetByTestId("demo-global-theme-provider"))
+            .ToHaveAttributeAsync("data-bzs-theme", "dark");
+
+        await AssertMatchesBaselineAsync("landing-en-us-dark-desktop.png");
+    }
+
+    private async Task PrepareLandingVisualAsync()
+    {
+        await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Light });
+        await Page.AddInitScriptAsync("localStorage.removeItem('bzs-demo-theme-mode')");
+    }
+
+    private async Task AssertMatchesBaselineAsync(
+        string fileName,
+        string languageSwitcherAccessibleName = "Catalog language")
     {
         await Expect(Page.GetByRole(
             AriaRole.Radiogroup,
-            new() { Name = "Catalog language", Exact = true })).ToBeVisibleAsync();
+            new() { Name = languageSwitcherAccessibleName, Exact = true })).ToBeVisibleAsync();
         await Page.EvaluateAsync("() => document.activeElement instanceof HTMLElement && document.activeElement.blur()");
         var repositoryRoot = FindRepositoryRoot();
         var baselineDirectory = Path.Combine(

@@ -1,0 +1,3 @@
+# Default the Demo Catalog to zh-Hans while keeping all visitor copy bilingual
+
+The Demo Catalog defaults to zh-Hans because the library is personally maintained for a Chinese-first audience and its primary examples should be immediately useful to that audience, while every visitor-facing string also ships in en-US and culture-preserving URLs keep the international experience complete and shareable. This deliberately departs from the open-source convention of defaulting to English: some international visitors must switch language on first arrival, but choosing English as the default would instead make the maintainer's primary audience pay that cost and weaken the catalog's Chinese-first identity.
