@@ -689,7 +689,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
 
         await Expect(workspace).ToContainTextAsync("Review");
         await Expect(workspace).ToHaveAttributeAsync("aria-expanded", "false");
-        await Expect(Page.GetByRole(AriaRole.Status).Last).ToHaveTextAsync("Ready to validate the profile.");
+        await Expect(Page.GetByTestId("profile-form-status")).ToHaveTextAsync("Ready to validate the profile.");
     }
 
     [Fact]
@@ -743,7 +743,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         var workspace = Page.GetByRole(AriaRole.Combobox, new() { Name = "Workspace" });
         await Page.GetByRole(AriaRole.Button, new() { Name = "Validate profile" }).ClickAsync();
         await Expect(workspace).ToBeFocusedAsync();
-        await Expect(Page.GetByRole(AriaRole.Status).Last)
+        await Expect(Page.GetByTestId("profile-form-status"))
             .ToHaveTextAsync("Ready to validate the profile.");
 
         var selectedWorkflow = Page.Locator("#profile-workflow-option-2");
