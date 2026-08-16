@@ -58,11 +58,12 @@ export function activate(id, panel, modal, initialFocusSelector) {
     attachKeydownListener();
 }
 
-export function activateNavigationDrawer(id, root, panel, initialFocusSelector) {
+export function activateNavigationDrawer(id, root, panel, escapeTrigger, initialFocusSelector) {
     const existing = overlays.get(id);
     if (existing) {
         existing.root = root;
         existing.panel = panel;
+        existing.escapeTrigger = escapeTrigger;
         existing.initialFocusSelector = initialFocusSelector;
         synchronizeNavigationDrawer(existing);
         return;
@@ -74,6 +75,7 @@ export function activateNavigationDrawer(id, root, panel, initialFocusSelector) 
     const overlay = {
         root,
         panel,
+        escapeTrigger,
         modal: false,
         initialFocusSelector,
         previousFocus,
@@ -254,9 +256,13 @@ function handleKeydown(event) {
         lastInteractionTarget = event.target.closest(focusableSelector) ?? event.target;
     }
 
-    const overlay = getTopModalOverlay();
     if (event.key === 'Escape') {
-        if (overlay && !overlay.panel.contains(event.target)) {
+        const overlay = getTopEscapeOverlay();
+        if (overlay?.navigationDrawer && overlay.modal) {
+            event.preventDefault();
+            event.stopPropagation();
+            overlay.escapeTrigger?.click();
+        } else if (overlay && !overlay.panel.contains(event.target)) {
             event.preventDefault();
             event.stopPropagation();
             overlay.panel.dispatchEvent(new KeyboardEvent('keydown', {
@@ -271,6 +277,7 @@ function handleKeydown(event) {
         return;
     }
 
+    const overlay = getTopModalOverlay();
     if (!overlay?.modal) {
         return;
     }
@@ -297,6 +304,17 @@ function handleKeydown(event) {
         event.preventDefault();
         first.focus({ preventScroll: true });
     }
+}
+
+function getTopEscapeOverlay() {
+    let overlay = null;
+    for (const value of overlays.values()) {
+        if (!value.navigationDrawer || value.modal) {
+            overlay = value;
+        }
+    }
+
+    return overlay;
 }
 
 function getTopModalOverlay() {

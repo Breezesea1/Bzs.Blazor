@@ -9,6 +9,7 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
     private BzsOverlayInterop? _interop;
     private ElementReference _rootElement;
     private ElementReference _panelElement;
+    private ElementReference _escapeTriggerElement;
     private bool _interopSynchronizationPending = true;
     private bool _lastOpen;
     private BzsNavigationDrawerVariant _lastVariant;
@@ -162,6 +163,7 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
                 _overlayId,
                 _rootElement,
                 _panelElement,
+                _escapeTriggerElement,
                 _lastInitialFocusSelector);
         }
         else if (_interop is not null)
@@ -182,10 +184,17 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
 
     private Task HandleKeyDownAsync(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs eventArgs)
     {
-        return Open && CloseOnEscape && string.Equals(eventArgs.Key, "Escape", StringComparison.Ordinal)
+        return Open
+            && Variant == BzsNavigationDrawerVariant.Temporary
+            && CloseOnEscape
+            && string.Equals(eventArgs.Key, "Escape", StringComparison.Ordinal)
             ? OpenChanged.InvokeAsync(false)
             : Task.CompletedTask;
     }
+
+    private Task HandleModalEscapeAsync() => Open && CloseOnEscape
+        ? OpenChanged.InvokeAsync(false)
+        : Task.CompletedTask;
 
     private static string? Normalize(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();

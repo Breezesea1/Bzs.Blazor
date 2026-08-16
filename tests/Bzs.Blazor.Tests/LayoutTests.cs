@@ -138,7 +138,7 @@ public sealed class LayoutTests
     [Fact]
     public void NavigationDrawerRequestsCloseWithoutMutatingControlledState()
     {
-        using var context = new BunitContext();
+        using var context = CreateInteractiveContext();
         bool? requestedOpen = null;
         var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
             .Add(component => component.Id, "workspace-navigation")
@@ -162,7 +162,7 @@ public sealed class LayoutTests
     [Fact]
     public void NavigationDrawerEscapeHonorsTheControlledDismissalContract()
     {
-        using var context = new BunitContext();
+        using var context = CreateInteractiveContext();
         bool? requestedOpen = null;
         var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
             .Add(component => component.Open, true)
@@ -179,7 +179,7 @@ public sealed class LayoutTests
     [Fact]
     public void NavigationDrawerEscapeRequestsControlledCloseByDefault()
     {
-        using var context = new BunitContext();
+        using var context = CreateInteractiveContext();
         bool? requestedOpen = null;
         var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
             .Add(component => component.Open, true)
@@ -192,6 +192,25 @@ public sealed class LayoutTests
         Assert.True(cut.Instance.CloseOnEscape);
         Assert.False(requestedOpen);
         Assert.Equal("true", cut.Find("nav").GetAttribute("data-bzs-open"));
+    }
+
+    [Theory]
+    [InlineData(BzsNavigationDrawerVariant.Persistent)]
+    [InlineData(BzsNavigationDrawerVariant.Responsive)]
+    public void NonmodalNavigationDrawerDoesNotRequestCloseOnNativeEscape(
+        BzsNavigationDrawerVariant variant)
+    {
+        using var context = CreateInteractiveContext();
+        bool? requestedOpen = null;
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.OpenChanged, open => requestedOpen = open)
+            .Add(component => component.Variant, variant)
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        cut.Find("nav").KeyDown("Escape");
+
+        Assert.Null(requestedOpen);
     }
 
     [Fact]
@@ -263,5 +282,12 @@ public sealed class LayoutTests
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             context.Render<BzsNavigationDrawer>(parameters => parameters
                 .Add(component => component.Position, (BzsNavigationDrawerPosition)999)));
+    }
+
+    private static BunitContext CreateInteractiveContext()
+    {
+        var context = new BunitContext();
+        context.JSInterop.Mode = JSRuntimeMode.Loose;
+        return context;
     }
 }

@@ -32,6 +32,7 @@ internal sealed class BzsOverlayInterop
         string overlayId,
         ElementReference root,
         ElementReference panel,
+        ElementReference escapeTrigger,
         string? initialFocusSelector)
     {
         await _module.TryInvokeVoidAsync(
@@ -39,6 +40,7 @@ internal sealed class BzsOverlayInterop
             overlayId,
             root,
             panel,
+            escapeTrigger,
             initialFocusSelector);
     }
 

@@ -17,4 +17,10 @@
          tabindex="-1">
         @ChildContent
     </div>
+    <button @ref="_escapeTriggerElement"
+            type="button"
+            hidden
+            tabindex="-1"
+            aria-hidden="true"
+            @onclick="HandleModalEscapeAsync"></button>
 </nav>
