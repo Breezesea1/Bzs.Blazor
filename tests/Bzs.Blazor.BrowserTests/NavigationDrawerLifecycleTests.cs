@@ -234,7 +234,9 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
 
     private static async Task AssertFocusIsInsideDrawerAsync(ILocator drawer)
     {
-        await Microsoft.Playwright.Assertions.Expect(drawer.Locator(":focus"))
-            .ToHaveCountAsync(1);
+        var focusedElement = drawer.Locator(":focus");
+        await Microsoft.Playwright.Assertions.Expect(focusedElement).ToHaveCountAsync(1);
+        await Microsoft.Playwright.Assertions.Expect(focusedElement).Not
+            .ToHaveAttributeAsync("aria-hidden", "true");
     }
 }

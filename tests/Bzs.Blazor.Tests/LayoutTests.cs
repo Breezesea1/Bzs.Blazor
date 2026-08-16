@@ -216,6 +216,31 @@ public sealed class LayoutTests
     }
 
     [Fact]
+    public async Task OpenNavigationDrawerBacksOffDuringExtendedInteropUnavailability()
+    {
+        using var context = CreateInteractiveContext();
+        var module = context.JSInterop.SetupModule(BzsOverlayInterop.ModulePath);
+        module.SetupVoid(
+                BzsOverlayInterop.ActivateNavigationDrawerMethod,
+                _ => true)
+            .SetException(new JSDisconnectedException("The circuit is reconnecting."));
+
+        context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.Variant, BzsNavigationDrawerVariant.Temporary)
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        await WaitUntilAsync(
+            () => module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod].Count >= 3);
+        await Task.Delay(500);
+
+        Assert.InRange(
+            module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod].Count,
+            3,
+            4);
+    }
+
+    [Fact]
     public void NavigationDrawerEscapeHonorsTheControlledDismissalContract()
     {
         using var context = CreateInteractiveContext();
