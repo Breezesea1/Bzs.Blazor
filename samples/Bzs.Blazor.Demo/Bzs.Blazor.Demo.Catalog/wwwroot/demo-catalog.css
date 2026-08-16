@@ -237,18 +237,10 @@ h1[tabindex="-1"]:focus {
 }
 
 .demo-brand-mark {
-    display: inline-grid;
     width: 2.25rem;
     height: 2.25rem;
     flex: 0 0 auto;
-    place-items: center;
-    border: 0;
     border-radius: var(--demo-radius-control);
-    background: var(--demo-accent);
-    box-shadow: 0 0.4rem 0.85rem color-mix(in srgb, var(--demo-accent) 30%, transparent);
-    color: #ffffff;
-    font-size: 0.875rem;
-    font-weight: 750;
 }
 
 .demo-brand-copy {
