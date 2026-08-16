@@ -1,0 +1,17 @@
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="demo-theme-switch" role="group" aria-label="@DemoText.Chrome.ThemeSwitcherAccessibleName">
+    <button type="button"
+            class="demo-theme-switch-option"
+            aria-pressed="true"
+            data-demo-theme-mode="light">@DemoText.Chrome.ThemeLight</button>
+    <button type="button"
+            class="demo-theme-switch-option"
+            aria-pressed="false"
+            data-demo-theme-mode="dark">@DemoText.Chrome.ThemeDark</button>
+    <button type="button"
+            class="demo-theme-switch-option"
+            aria-pressed="false"
+            data-demo-theme-mode="system">@DemoText.Chrome.ThemeSystem</button>
+</div>

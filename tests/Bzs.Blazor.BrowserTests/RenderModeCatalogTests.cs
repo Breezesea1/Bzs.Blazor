@@ -76,7 +76,7 @@ public sealed class RenderModeCatalogTests(DemoServerFixture server) : BrowserGa
         await Expect(Page.GetByTestId($"{testId}-counter")).ToHaveTextAsync("Interaction count: 1");
 
         var theme = Page.GetByTestId($"{testId}-theme");
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Dark" }).ClickAsync();
+        await theme.GetByRole(AriaRole.Button, new() { Name = "Dark", Exact = true }).ClickAsync();
         await Expect(theme).ToHaveAttributeAsync("data-bzs-theme", "dark");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Comfortable" }).ClickAsync();
         await Expect(theme).ToHaveAttributeAsync("data-bzs-density", "comfortable");

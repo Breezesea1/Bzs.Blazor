@@ -31,7 +31,9 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync(
             "Interactive runtime ready",
             new() { Timeout = InteractiveReadinessTimeout });
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Dark" }).ClickAsync();
+        var theme = Page.GetByRole(AriaRole.Heading, new() { Name = "Icon, Surface, and Button" })
+            .Locator("xpath=ancestor::div[@data-bzs-theme][1]");
+        await theme.GetByRole(AriaRole.Button, new() { Name = "Dark", Exact = true }).ClickAsync();
 
         await AssertMatchesBaselineAsync("foundation-dark-desktop.png");
     }
@@ -59,7 +61,8 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
             .ToHaveTextAsync(
                 "Interactive runtime ready",
                 new() { Timeout = InteractiveReadinessTimeout });
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Dark" }).ClickAsync();
+        var theme = Page.GetByTestId("render-mode-auto-theme");
+        await theme.GetByRole(AriaRole.Button, new() { Name = "Dark", Exact = true }).ClickAsync();
 
         await AssertMatchesBaselineAsync("auto-dark-mobile.png");
     }

@@ -75,6 +75,14 @@ public static class DemoText
 
         public static string LanguageSwitcherAccessibleName => Get("目录语言", "Catalog language");
 
+        public static string ThemeSwitcherAccessibleName => Get("目录主题", "Catalog theme");
+
+        public static string ThemeLight => Get("浅色", "Light");
+
+        public static string ThemeDark => Get("深色", "Dark");
+
+        public static string ThemeSystem => Get("系统", "System");
+
         public static string InteractionError => Get("目录无法完成此交互。", "The catalog could not complete this interaction.");
 
         public static string Reload => Get("重新加载", "Reload");
