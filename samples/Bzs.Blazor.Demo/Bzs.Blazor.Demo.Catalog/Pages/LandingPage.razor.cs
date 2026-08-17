@@ -7,7 +7,7 @@ namespace Bzs.Blazor.Demo.Client.Pages;
 public partial class LandingPage : ComponentBase, IAsyncDisposable
 {
     private const string InstallSnippet =
-        "dotnet add package Bzs.Blazor --version 0.2.3\nbuilder.Services.AddBzsBlazor();";
+        "dotnet add package Bzs.Blazor --version 0.3.0\nbuilder.Services.AddBzsBlazor();";
 
     private readonly LandingDemoForm _demoForm = new();
     private LandingPageInterop? _interop;

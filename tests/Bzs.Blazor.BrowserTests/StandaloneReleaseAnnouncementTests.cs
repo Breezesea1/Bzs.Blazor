@@ -24,18 +24,14 @@ public sealed class StandaloneReleaseAnnouncementTests(StandaloneWebAssemblyFixt
 
         var dialog = Page.GetByRole(
             AriaRole.Dialog,
-            new() { Name = "What's new in Bzs.Blazor 0.2.3", Exact = true });
+            new() { Name = "What's new in Bzs.Blazor 0.3.0", Exact = true });
         await Expect(dialog).ToBeVisibleAsync();
         await dialog.GetByRole(AriaRole.Link, new() { Name = "View all releases", Exact = true })
             .ClickAsync();
 
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/releases?culture=en-US#v0.2.3");
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/releases?culture=en-US#v0.3.0");
         await Expect(dialog).ToHaveCountAsync(0);
         await Expect(Page.GetByTestId("releases-page")).ToBeVisibleAsync();
-        await Expect(Page.GetByTestId("release-0.2.3")).ToBeVisibleAsync();
-        await Expect(Page.GetByTestId("release-0.2.2")).ToBeVisibleAsync();
-        var releaseEntries = Page.Locator(".demo-release-entry");
-        await Expect(releaseEntries.Nth(0)).ToHaveAttributeAsync("data-testid", "release-0.2.3");
-        await Expect(releaseEntries.Nth(1)).ToHaveAttributeAsync("data-testid", "release-0.2.2");
+        await AssertLatestReleaseHistoryAsync();
     }
 }

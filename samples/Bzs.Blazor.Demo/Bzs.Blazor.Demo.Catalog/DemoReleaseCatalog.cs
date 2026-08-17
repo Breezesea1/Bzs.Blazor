@@ -25,6 +25,59 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.3.0",
+            "0.3.0",
+            new DateTimeOffset(2026, 8, 17, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Feature release", "功能版本"),
+            new DemoLocalizedText(
+                "Forms, data workflows, and navigation drawers",
+                "表单、数据工作流与导航抽屉"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.3.0 expands text and password input behavior, adds explicit DataGrid refresh and selection controls, and completes the modal navigation-drawer lifecycle across supported render modes.",
+                "Bzs.Blazor 0.3.0 扩展文本与密码输入行为，新增显式 DataGrid 刷新和选择控制，并在所有受支持的渲染模式中完善模态导航抽屉生命周期。"),
+            [
+                new DemoLocalizedText(
+                    "TextInput supports semantic input types and configurable change or input update timing.",
+                    "TextInput 支持语义化输入类型，以及可配置的 change 或 input 更新时机。"),
+                new DemoLocalizedText(
+                    "PasswordInput adds an accessible, optional reveal control without changing EditForm integration.",
+                    "PasswordInput 新增可访问且可选的明文显示控件，同时保持 EditForm 集成。"),
+                new DemoLocalizedText(
+                    "DataGrid can refresh providers explicitly, hide footer controls independently, and select the current page.",
+                    "DataGrid 可显式刷新数据提供器、独立隐藏页脚控件，并选择当前页。"),
+                new DemoLocalizedText(
+                    "Modal navigation drawers now manage focus, Escape, background isolation, scroll locking, and responsive cleanup.",
+                    "模态导航抽屉现在会管理焦点、Escape、背景隔离、滚动锁定和响应式清理。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Forms and data workflows", "表单与数据工作流"),
+                    [
+                        new DemoLocalizedText(
+                            "TextInput exposes Text, Email, and Search types with Change and Input update modes.",
+                            "TextInput 提供 Text、Email 和 Search 类型，以及 Change 和 Input 更新模式。"),
+                        new DemoLocalizedText(
+                            "PasswordInput supports localized reveal and conceal labels while preserving controlled value flow.",
+                            "PasswordInput 支持本地化的显示与隐藏标签，同时保留受控值流。"),
+                        new DemoLocalizedText(
+                            "DataGrid RefreshAsync, footer visibility options, and current-page select-all work with in-memory and provider-backed data.",
+                            "DataGrid 的 RefreshAsync、页脚可见性选项和当前页全选同时适用于内存数据与提供器数据。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Navigation and delivery", "导航与交付"),
+                    [
+                        new DemoLocalizedText(
+                            "Modal drawers coordinate focus restoration, background inertness, scroll locking, and viewport changes without leaking browser state.",
+                            "模态抽屉会协调焦点恢复、背景 inert 状态、滚动锁定和视口变化，且不会泄漏浏览器状态。"),
+                        new DemoLocalizedText(
+                            "Package consumers verify the new capabilities in Server, WebAssembly, Auto, trimming, and WebAssembly AOT paths.",
+                            "包使用方测试会在 Server、WebAssembly、Auto、裁剪和 WebAssembly AOT 路径中验证这些新能力。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "No breaking changes to previously published APIs; this feature release adds public components, options, and methods.",
+                "对既有已发布 API 没有破坏性变更；本功能版本新增了公共组件、选项和方法。")),
+        new(
             "v0.2.3",
             "0.2.3",
             new DateTimeOffset(2026, 8, 17, 0, 0, 0, TimeSpan.Zero),

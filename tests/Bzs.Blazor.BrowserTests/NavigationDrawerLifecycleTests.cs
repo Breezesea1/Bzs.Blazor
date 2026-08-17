@@ -15,8 +15,9 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
         var drawerDialogTrigger = Page.Locator("#fixture-open-service-dialog");
 
         await Page.Locator("#fixture-open").ClickAsync();
+        await Expect(Page.Locator("#fixture-close")).ToBeFocusedAsync();
         await drawerDialogTrigger.FocusAsync();
-        await drawerDialogTrigger.DispatchEventAsync("click");
+        await drawerDialogTrigger.PressAsync("Enter");
 
         var serviceDialog = Page.GetByRole(
             AriaRole.Dialog,
