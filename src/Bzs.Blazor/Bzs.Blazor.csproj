@@ -7,14 +7,14 @@
     <RootNamespace>Bzs.Blazor</RootNamespace>
     <AssemblyName>Bzs.Blazor</AssemblyName>
     <PackageId>Bzs.Blazor</PackageId>
-    <Version>0.2.3</Version>
+    <Version>0.3.0</Version>
     <Authors>tongyu</Authors>
     <Description>A compact, accessible Blazor component library with restrained neumorphic light and dark themes.</Description>
     <PackageTags>blazor;components;ui;neumorphism;wasm</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageCopyright>Copyright (c) 2026 tongyu</PackageCopyright>
-    <PackageReleaseNotes>Improve the bilingual Demo with persistent theming, a shared release-aware landing page, and a styled static language fallback. See docs/releases/0.2.3.md in the repository.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add semantic text input modes, a revealable password input, explicit DataGrid refresh and selection controls, and a complete modal navigation-drawer lifecycle. See docs/releases/0.3.0.md in the repository.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

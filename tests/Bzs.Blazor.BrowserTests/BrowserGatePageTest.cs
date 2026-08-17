@@ -349,7 +349,7 @@ public abstract class BrowserGatePageTest : PageTest
 
         var snippet = Page.GetByTestId("landing-install-snippet");
         await Expect(snippet).ToContainTextAsync("dotnet add package Bzs.Blazor");
-        await Expect(snippet).ToContainTextAsync("--version 0.2.3");
+        await Expect(snippet).ToContainTextAsync("--version 0.3.0");
         await Expect(snippet).ToContainTextAsync("AddBzsBlazor()");
 
         await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync("data-interactive", "true");
@@ -368,6 +368,21 @@ public abstract class BrowserGatePageTest : PageTest
         await release.GetByTestId("landing-release-more").ClickAsync();
         await Expect(Page).ToHaveURLAsync(new Regex($"/releases{Regex.Escape(query)}$"));
         await Expect(Page.GetByTestId("releases-page")).ToBeVisibleAsync();
+    }
+
+    protected async Task AssertLatestReleaseHistoryAsync()
+    {
+        var releaseHeadings = await Page.GetByRole(
+            AriaRole.Heading,
+            new() { Level = 2 }).AllTextContentsAsync();
+
+        Assert.Equal(
+            [
+                "Forms, data workflows, and navigation drawers",
+                "Bilingual Demo and shared landing page",
+                "Anchored overlay lifecycle hardening",
+            ],
+            releaseHeadings.Take(3));
     }
 
     protected async Task AssertLandingFooterAsync(string baseUrl, string query)
