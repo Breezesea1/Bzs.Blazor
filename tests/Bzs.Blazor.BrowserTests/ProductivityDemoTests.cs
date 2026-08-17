@@ -76,6 +76,20 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         await reviewQueueDisclosure.Locator("summary").ClickAsync();
         await Expect(reviewQueueDisclosure).ToHaveAttributeAsync("data-bzs-open", "false");
 
+        var reviewFilter = Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Needs review", Exact = true });
+        var selectedReviewFilterBox = await reviewFilter.BoundingBoxAsync();
+        Assert.NotNull(selectedReviewFilterBox);
+        await reviewFilter.ClickAsync();
+        await Expect(reviewFilter).ToHaveAttributeAsync("aria-pressed", "false");
+        var unselectedReviewFilterBox = await reviewFilter.BoundingBoxAsync();
+        Assert.NotNull(unselectedReviewFilterBox);
+        Assert.InRange(
+            Math.Abs(selectedReviewFilterBox.Width - unselectedReviewFilterBox.Width),
+            0,
+            0.5f);
+
         var removeReviewFilter = Page.GetByRole(
             AriaRole.Button,
             new() { Name = "Remove review filter", Exact = true });

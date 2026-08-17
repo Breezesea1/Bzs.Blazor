@@ -10,10 +10,7 @@
                 disabled="@Disabled"
                 data-bzs-chip-command="select"
                 @onclick="RequestSelectionChangeAsync">
-            @if (Selected)
-            {
-                <BzsIcon Icon="BzsIcons.Check" Class="bzs-chip__state-icon" />
-            }
+            <BzsIcon Icon="BzsIcons.Check" Class="bzs-chip__state-icon" />
             @if (StartIcon is not null)
             {
                 <BzsIcon Icon="StartIcon" Class="bzs-chip__icon" />

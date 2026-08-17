@@ -92,6 +92,15 @@
     flex: 0 0 auto;
 }
 
+.bzs-chip ::deep .bzs-chip__state-icon {
+    opacity: 0;
+    transition: opacity var(--bzs-motion-fast) var(--bzs-motion-easing);
+}
+
+.bzs-chip[data-bzs-chip-selected="true"] ::deep .bzs-chip__state-icon {
+    opacity: 1;
+}
+
 .bzs-chip[aria-disabled="true"] {
     border-color: var(--bzs-border);
     background-color: var(--bzs-disabled-surface);
