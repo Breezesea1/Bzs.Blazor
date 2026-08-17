@@ -27,12 +27,14 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1440, 900);
+        await Page.EmulateMediaAsync(new() { ReducedMotion = ReducedMotion.Reduce });
         await Page.GotoAsync($"{server.BaseUrl}/foundation?culture=en-US");
         await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync(
             "Interactive runtime ready",
             new() { Timeout = InteractiveReadinessTimeout });
         var theme = Page.GetByTestId("foundation-theme");
         await theme.GetByRole(AriaRole.Button, new() { Name = "Dark", Exact = true }).ClickAsync();
+        await Expect(theme).ToHaveAttributeAsync("data-bzs-theme", "dark");
 
         await AssertMatchesBaselineAsync("foundation-dark-desktop.png");
     }
@@ -55,6 +57,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(390, 844);
+        await Page.EmulateMediaAsync(new() { ReducedMotion = ReducedMotion.Reduce });
         await Page.GotoAsync($"{server.BaseUrl}/render-modes/auto?culture=en-US");
         await Expect(Page.GetByTestId("render-mode-auto-runtime-readiness"))
             .ToHaveTextAsync(
@@ -62,6 +65,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
                 new() { Timeout = InteractiveReadinessTimeout });
         var theme = Page.GetByTestId("render-mode-auto-theme");
         await theme.GetByRole(AriaRole.Button, new() { Name = "Dark", Exact = true }).ClickAsync();
+        await Expect(theme).ToHaveAttributeAsync("data-bzs-theme", "dark");
 
         await AssertMatchesBaselineAsync("auto-dark-mobile.png");
     }
@@ -149,7 +153,11 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
 
     private async Task PrepareLandingVisualAsync()
     {
-        await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Light });
+        await Page.EmulateMediaAsync(new()
+        {
+            ColorScheme = ColorScheme.Light,
+            ReducedMotion = ReducedMotion.Reduce,
+        });
         await Page.AddInitScriptAsync("localStorage.removeItem('bzs-demo-theme-mode')");
     }
 
