@@ -29,7 +29,20 @@
                     @if (SelectionMode != BzsDataGridSelectionMode.None)
                     {
                         <th class="bzs-data-grid__selection-header" scope="col">
-                            <span class="bzs-visually-hidden">@EffectiveSelectionColumnText</span>
+                            @if (ShowCurrentPageSelectAll)
+                            {
+                                <input type="checkbox"
+                                       @ref="_selectAllReference"
+                                       checked="@AreAllCurrentRowsSelected(rows)"
+                                       disabled="@(rows.Count == 0)"
+                                       aria-checked="@GetCurrentPageSelectAllState(rows)"
+                                       aria-label="@EffectiveSelectAllText"
+                                       @onchange="RequestCurrentPageSelectionAsync" />
+                            }
+                            else
+                            {
+                                <span class="bzs-visually-hidden">@EffectiveSelectionColumnText</span>
+                            }
                         </th>
                     }
                     @foreach (var column in Columns)
@@ -257,56 +270,66 @@
         </div>
     }
 
-    <div class="bzs-data-grid__footer">
-        <label class="bzs-data-grid__page-size" for="@PageSizeInputId">
-            <span>@EffectivePageSizeText</span>
-            <select id="@PageSizeInputId"
-                    value="@PageSize"
-                    disabled="@ControlsDisabled"
-                    @onchange="RequestPageSizeAsync">
-                @foreach (var option in PageSizeOptions)
+    @if (ShowPageSizeSelector || ShowPagination)
+    {
+        <div class="bzs-data-grid__footer">
+            @if (ShowPageSizeSelector)
+            {
+                <label class="bzs-data-grid__page-size" for="@PageSizeInputId">
+                    <span>@EffectivePageSizeText</span>
+                    <select id="@PageSizeInputId"
+                            aria-label="@EffectivePageSizeText"
+                            value="@PageSize"
+                            disabled="@ControlsDisabled"
+                            @onchange="RequestPageSizeAsync">
+                        @foreach (var option in PageSizeOptions)
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </select>
+                </label>
+            }
+            @if (ShowPagination)
+            {
+                @if (Provider is null)
                 {
-                    <option value="@option">@option</option>
+                    <BzsPagination Page="@Page"
+                                   PageChanged="@PageChanged"
+                                   PageCount="@PageCount"
+                                   Compact="@CompactPagination"
+                                   Disabled="@ControlsDisabled"
+                                   AccessibleName="@EffectivePaginationAccessibleName" />
                 }
-            </select>
-        </label>
-        @if (Provider is null)
-        {
-            <BzsPagination Page="@Page"
-                           PageChanged="@PageChanged"
-                           PageCount="@PageCount"
-                           Compact="@CompactPagination"
-                           Disabled="@ControlsDisabled"
-                           AccessibleName="@EffectivePaginationAccessibleName" />
-        }
-        else if (AcceptedTotalCount is not null)
-        {
-            <BzsPagination Page="@AcceptedPage"
-                           PageChanged="@RequestPageAsync"
-                           PageCount="@AcceptedPageCount"
-                           Compact="@CompactPagination"
-                           Disabled="@ControlsDisabled"
-                           AccessibleName="@EffectivePaginationAccessibleName" />
-        }
-        else
-        {
-            <nav class="bzs-data-grid__unknown-pagination" aria-label="@EffectivePaginationAccessibleName">
-                <button type="button"
-                        aria-label="@EffectivePreviousPageText"
-                        title="@EffectivePreviousPageText"
-                        disabled="@(ControlsDisabled || AcceptedPage <= 1)"
-                        @onclick="() => RequestPageAsync(AcceptedPage - 1)">
-                    <BzsIcon Icon="BzsIcons.ChevronLeft" />
-                </button>
-                <span>@Localize("DataGridCurrentPageText", AcceptedPage)</span>
-                <button type="button"
-                        aria-label="@EffectiveNextPageText"
-                        title="@EffectiveNextPageText"
-                        disabled="@(ControlsDisabled || !AcceptedHasNextPage)"
-                        @onclick="() => RequestPageAsync(AcceptedPage + 1)">
-                    <BzsIcon Icon="BzsIcons.ChevronRight" />
-                </button>
-            </nav>
-        }
-    </div>
+                else if (AcceptedTotalCount is not null)
+                {
+                    <BzsPagination Page="@AcceptedPage"
+                                   PageChanged="@RequestPageAsync"
+                                   PageCount="@AcceptedPageCount"
+                                   Compact="@CompactPagination"
+                                   Disabled="@ControlsDisabled"
+                                   AccessibleName="@EffectivePaginationAccessibleName" />
+                }
+                else
+                {
+                    <nav class="bzs-data-grid__unknown-pagination" aria-label="@EffectivePaginationAccessibleName">
+                        <button type="button"
+                                aria-label="@EffectivePreviousPageText"
+                                title="@EffectivePreviousPageText"
+                                disabled="@(ControlsDisabled || AcceptedPage <= 1)"
+                                @onclick="() => RequestPageAsync(AcceptedPage - 1)">
+                            <BzsIcon Icon="BzsIcons.ChevronLeft" />
+                        </button>
+                        <span>@Localize("DataGridCurrentPageText", AcceptedPage)</span>
+                        <button type="button"
+                                aria-label="@EffectiveNextPageText"
+                                title="@EffectiveNextPageText"
+                                disabled="@(ControlsDisabled || !AcceptedHasNextPage)"
+                                @onclick="() => RequestPageAsync(AcceptedPage + 1)">
+                            <BzsIcon Icon="BzsIcons.ChevronRight" />
+                        </button>
+                    </nav>
+                }
+            }
+        </div>
+    }
 </div>

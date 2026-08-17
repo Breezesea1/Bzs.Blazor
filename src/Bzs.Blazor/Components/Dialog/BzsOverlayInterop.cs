@@ -4,6 +4,7 @@ internal sealed class BzsOverlayInterop
 {
     internal const string ModulePath = "./_content/Bzs.Blazor/Components/Dialog/BzsDialog.razor.js";
     internal const string ActivateMethod = "activate";
+    internal const string ActivateNavigationDrawerMethod = "activateNavigationDrawer";
     internal const string DeactivateMethod = "deactivate";
 
     private readonly BzsJsModule _module;
@@ -25,6 +26,24 @@ internal sealed class BzsOverlayInterop
             panel,
             modal,
             initialFocusSelector);
+    }
+
+    public ValueTask<bool> ActivateNavigationDrawerAsync(
+        string overlayId,
+        ElementReference root,
+        ElementReference panel,
+        ElementReference escapeTrigger,
+        string? initialFocusSelector,
+        string variant)
+    {
+        return _module.TryInvokeVoidAsync(
+            ActivateNavigationDrawerMethod,
+            overlayId,
+            root,
+            panel,
+            escapeTrigger,
+            initialFocusSelector,
+            variant);
     }
 
     public async ValueTask DeactivateAsync(string overlayId)

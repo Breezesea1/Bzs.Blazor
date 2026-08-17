@@ -130,9 +130,63 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await openNavigation.ClickAsync();
         await Expect(appBar).ToHaveAttributeAsync("inert", "");
         await Expect(mainContent).ToHaveAttributeAsync("inert", "");
+        var closeNavigation = Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Close navigation", Exact = true });
+        await Expect(closeNavigation).ToBeFocusedAsync();
+        await Page.Keyboard.PressAsync("Tab");
+        Assert.True(await Page.EvaluateAsync<bool>(
+            "() => document.querySelector('#demo-navigation-drawer')?.contains(document.activeElement) ?? false"));
         await Page.Keyboard.PressAsync("Escape");
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
         await Expect(openNavigation).ToBeFocusedAsync();
+    }
+
+    [Fact]
+    public async Task NavigationRetainsDesktopChoiceWhenStorageIsUnavailable()
+    {
+        BeginBrowserGateTest();
+        await Page.AddInitScriptAsync(
+            """
+            Object.defineProperties(Storage.prototype, {
+                getItem: {
+                    configurable: true,
+                    value: () => { throw new DOMException('Storage unavailable', 'SecurityError'); },
+                },
+                setItem: {
+                    configurable: true,
+                    value: () => { throw new DOMException('Storage unavailable', 'SecurityError'); },
+                },
+            });
+            """);
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+
+        var drawer = Page.Locator("#demo-navigation-drawer");
+        var closeNavigation = Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Close navigation", Exact = true });
+        var openNavigation = Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Open navigation", Exact = true });
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+
+        await closeNavigation.ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+
+        await Page.SetViewportSizeAsync(390, 844);
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+        await openNavigation.ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await closeNavigation.ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+        await openNavigation.ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await closeNavigation.ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
     }
 
     [Fact]

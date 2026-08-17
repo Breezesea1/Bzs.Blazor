@@ -5,6 +5,24 @@ namespace Bzs.Blazor;
 /// </summary>
 public sealed partial class BzsNavigationDrawer : BzsComponentBase
 {
+    private static readonly TimeSpan InteropRetryInitialDelay = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan InteropRetryMaximumDelay = TimeSpan.FromSeconds(5);
+
+    private readonly string _overlayId = $"bzs-navigation-drawer-{Guid.NewGuid():N}";
+    private readonly CancellationTokenSource _lifetimeCancellation = new();
+    private BzsOverlayInterop? _interop;
+    private ElementReference _rootElement;
+    private ElementReference _panelElement;
+    private ElementReference _escapeTriggerElement;
+    private bool _interopSynchronizationPending = true;
+    private bool _lastOpen;
+    private BzsNavigationDrawerVariant _lastVariant;
+    private string? _lastInitialFocusSelector;
+    private CancellationTokenSource? _interopRetryCancellation;
+    private Task? _interopRetryTask;
+    private int _interopRetryAttempts;
+    private bool _disposed;
+
     /// <summary>
     /// Gets or sets whether the navigation drawer is open.
     /// </summary>
@@ -34,6 +52,18 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
     /// </summary>
     [Parameter]
     public bool CloseOnBackdropClick { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets whether Escape requests that the navigation drawer close while it is modal.
+    /// </summary>
+    [Parameter]
+    public bool CloseOnEscape { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the selector used for initial focus while the navigation drawer is modal.
+    /// </summary>
+    [Parameter]
+    public string? InitialFocusSelector { get; set; }
 
     /// <summary>
     /// Gets or sets the accessible name of the navigation landmark.
@@ -110,6 +140,70 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
         {
             throw new ArgumentOutOfRangeException(nameof(Position), Position, "The navigation drawer position is not supported.");
         }
+
+        var initialFocusSelector = Normalize(InitialFocusSelector);
+        if (_lastOpen != Open
+            || _lastVariant != Variant
+            || _lastInitialFocusSelector != initialFocusSelector)
+        {
+            CancelInteropRetry();
+            _interopRetryAttempts = 0;
+            _interopSynchronizationPending = true;
+        }
+
+        _lastOpen = Open;
+        _lastVariant = Variant;
+        _lastInitialFocusSelector = initialFocusSelector;
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_disposed || (!_interopSynchronizationPending && !firstRender))
+        {
+            return;
+        }
+
+        await SynchronizeInteropAsync();
+    }
+
+    private async Task SynchronizeInteropAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (Open)
+        {
+            _interop ??= new BzsOverlayInterop(JS);
+            var synchronized = await _interop.ActivateNavigationDrawerAsync(
+                _overlayId,
+                _rootElement,
+                _panelElement,
+                _escapeTriggerElement,
+                _lastInitialFocusSelector,
+                VariantName);
+            _interopSynchronizationPending = !synchronized;
+            if (synchronized)
+            {
+                CancelInteropRetry();
+                _interopRetryAttempts = 0;
+            }
+            else
+            {
+                ScheduleInteropRetry();
+            }
+        }
+        else if (_interop is not null)
+        {
+            _interopSynchronizationPending = false;
+            await _interop.DeactivateAsync(_overlayId);
+        }
+        else
+        {
+            _interopSynchronizationPending = false;
+        }
     }
 
     private async Task HandleBackdropClickAsync()
@@ -120,5 +214,101 @@ public sealed partial class BzsNavigationDrawer : BzsComponentBase
         }
 
         await OpenChanged.InvokeAsync(false);
+    }
+
+    private Task HandleKeyDownAsync(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs eventArgs)
+    {
+        return Open
+            && Variant == BzsNavigationDrawerVariant.Temporary
+            && CloseOnEscape
+            && string.Equals(eventArgs.Key, "Escape", StringComparison.Ordinal)
+            ? OpenChanged.InvokeAsync(false)
+            : Task.CompletedTask;
+    }
+
+    private Task HandleModalEscapeAsync() => Open && CloseOnEscape
+        ? OpenChanged.InvokeAsync(false)
+        : Task.CompletedTask;
+
+    private static string? Normalize(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private void ScheduleInteropRetry()
+    {
+        if (_disposed || _interopRetryTask is not null)
+        {
+            return;
+        }
+
+        var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCancellation.Token);
+        var retryDelay = GetInteropRetryDelay();
+        _interopRetryCancellation = cancellation;
+        _interopRetryTask = RetryInteropSynchronizationAsync(cancellation, retryDelay);
+    }
+
+    private async Task RetryInteropSynchronizationAsync(
+        CancellationTokenSource cancellation,
+        TimeSpan retryDelay)
+    {
+        try
+        {
+            await Task.Delay(retryDelay, cancellation.Token);
+            if (ReferenceEquals(_interopRetryCancellation, cancellation))
+            {
+                _interopRetryCancellation = null;
+                _interopRetryTask = null;
+            }
+
+            await InvokeAsync(SynchronizeInteropAsync);
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            if (ReferenceEquals(_interopRetryCancellation, cancellation))
+            {
+                _interopRetryCancellation = null;
+                _interopRetryTask = null;
+            }
+
+            cancellation.Dispose();
+        }
+    }
+
+    private TimeSpan GetInteropRetryDelay()
+    {
+        var exponent = Math.Min(_interopRetryAttempts, 6);
+        var delayMilliseconds = Math.Min(
+            InteropRetryInitialDelay.TotalMilliseconds * (1 << exponent),
+            InteropRetryMaximumDelay.TotalMilliseconds);
+        _interopRetryAttempts = Math.Min(_interopRetryAttempts + 1, 6);
+        return TimeSpan.FromMilliseconds(delayMilliseconds);
+    }
+
+    private void CancelInteropRetry()
+    {
+        _interopRetryCancellation?.Cancel();
+        _interopRetryCancellation = null;
+        _interopRetryTask = null;
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        _lifetimeCancellation.Cancel();
+        CancelInteropRetry();
+        if (_interop is not null)
+        {
+            await _interop.DisposeAsync(_overlayId);
+        }
+
+        _lifetimeCancellation.Dispose();
     }
 }

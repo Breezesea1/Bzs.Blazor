@@ -11,6 +11,43 @@ namespace Bzs.Blazor.Tests;
 
 public sealed class DataGridServerTests
 {
+    [Theory]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(false, false, false)]
+    [InlineData(true, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(false, true, true)]
+    [InlineData(false, false, true)]
+    public void ProviderFooterControlsDoNotChangePagingRequests(
+        bool showPageSizeSelector,
+        bool showPagination,
+        bool hasKnownTotal)
+    {
+        using var context = CreateContext();
+        var provider = new RecordingProvider(request =>
+            hasKnownTotal
+                ? new BzsDataGridResult<Row>([new(request.Page, "Current")], totalCount: 50)
+                : new BzsDataGridResult<Row>([new(request.Page, "Current")], hasNextPage: true));
+        var cut = RenderProviderGrid(
+            context,
+            provider,
+            page: 2,
+            configure: parameters =>
+            {
+                parameters.Add(component => component.PageSize, 25);
+                parameters.Add(component => component.ShowPageSizeSelector, showPageSizeSelector);
+                parameters.Add(component => component.ShowPagination, showPagination);
+            });
+
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        Assert.Equal(2, provider.Calls.Single().Page);
+        Assert.Equal(25, provider.Calls.Single().PageSize);
+        Assert.Equal(showPageSizeSelector, cut.FindAll("[aria-label='Rows per page']").Count == 1);
+        Assert.Equal(showPagination, cut.FindAll("[aria-label='Data pages']").Count == 1);
+    }
+
     [Fact]
     public void ProviderRequestLoadsAcceptedKnownTotalRows()
     {
@@ -49,6 +86,413 @@ public sealed class DataGridServerTests
             new BzsDataGridFilter[] { new BzsDataGridTextFilter("name", "Ada") }));
 
         Assert.Single(provider.Calls);
+    }
+
+    [Fact]
+    public async Task RefreshAsyncReloadsTheCurrentProviderRequest()
+    {
+        using var context = CreateContext();
+        var provider = new RecordingProvider(request =>
+            new BzsDataGridResult<Row>([new(request.Page, "Current")], false));
+        var sort = new BzsDataGridSort("name", BzsDataGridSortDirection.Descending);
+        var filters = new BzsDataGridFilter[] { new BzsDataGridTextFilter("name", "Ada") };
+        var cut = RenderProviderGrid(
+            context,
+            provider,
+            page: 2,
+            filters: filters,
+            configure: parameters => parameters.Add(component => component.Sort, sort));
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+
+        await cut.Instance.RefreshAsync();
+
+        Assert.Equal(2, provider.Calls.Count);
+        var refresh = provider.Calls.Last();
+        Assert.Equal(2, refresh.Page);
+        Assert.Equal(10, refresh.PageSize);
+        Assert.Equal(sort, refresh.Sort);
+        Assert.Equal(filters, refresh.Filters);
+    }
+
+    [Fact]
+    public async Task RefreshAsyncReflectsExternalMutationsWithoutReplacingTheProvider()
+    {
+        using var context = CreateContext();
+        var rows = new List<Row> { new(1, "Initial") };
+        var provider = new RecordingProvider(_ => new BzsDataGridResult<Row>(rows.ToArray(), rows.Count));
+        var cut = RenderProviderGrid(context, provider);
+        cut.WaitForAssertion(() => Assert.Contains("Initial", cut.Markup));
+
+        rows.Add(new Row(2, "Created"));
+        await cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Contains("Created", cut.Markup));
+
+        rows[0] = new Row(1, "Updated");
+        await cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Contains("Updated", cut.Markup));
+
+        rows.RemoveAt(1);
+        await cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.DoesNotContain("Created", cut.Markup));
+
+        Assert.Equal(4, provider.Calls.Count);
+    }
+
+    [Fact]
+    public async Task RefreshAsyncFailureRetainsAcceptedRowsAndReportsThroughProviderFailed()
+    {
+        using var context = CreateContext();
+        var provider = new ControllableProvider();
+        var failures = new List<Exception>();
+        var cut = RenderProviderGrid(
+            context,
+            provider,
+            configure: parameters => parameters.Add(component => component.ProviderFailed, failures.Add));
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        provider.Calls.Single().Completion.SetResult(
+            new BzsDataGridResult<Row>([new(1, "Accepted")], false));
+        cut.WaitForAssertion(() => Assert.Contains("Accepted", cut.Find("tbody").TextContent));
+
+        var refresh = cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Equal(2, provider.Calls.Count));
+        Assert.Contains("Accepted", cut.Find("tbody").TextContent);
+        provider.Calls.Last().Completion.SetException(new InvalidOperationException("refresh failed"));
+
+        await refresh;
+        cut.WaitForAssertion(() => Assert.Single(failures));
+        Assert.Contains("Accepted", cut.Find("tbody").TextContent);
+    }
+
+    [Fact]
+    public async Task RefreshAsyncInvalidResultRetainsAcceptedRowsAndReportsThroughProviderFailed()
+    {
+        using var context = CreateContext();
+        var callCount = 0;
+        var provider = new RecordingProvider(_ => ++callCount == 1
+            ? new BzsDataGridResult<Row>([new(1, "Accepted")], false)
+            : new BzsDataGridResult<Row>(
+                Enumerable.Range(1, 11).Select(index => new Row(index, $"Invalid {index}")).ToArray(),
+                hasNextPage: false));
+        var failures = new List<Exception>();
+        var cut = RenderProviderGrid(
+            context,
+            provider,
+            configure: parameters => parameters.Add(component => component.ProviderFailed, failures.Add));
+        cut.WaitForAssertion(() => Assert.Contains("Accepted", cut.Find("tbody").TextContent));
+
+        await cut.Instance.RefreshAsync();
+
+        cut.WaitForAssertion(() => Assert.Single(failures));
+        Assert.Contains("Accepted", cut.Find("tbody").TextContent);
+    }
+
+    [Fact]
+    public async Task ConcurrentRefreshAsyncCallsUseOnlyTheLatestResult()
+    {
+        using var context = CreateContext();
+        var provider = new ControllableProvider();
+        var cut = RenderProviderGrid(context, provider);
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        provider.Calls.Single().Completion.SetResult(
+            new BzsDataGridResult<Row>([new(1, "Accepted")], false));
+        cut.WaitForAssertion(() => Assert.Contains("Accepted", cut.Find("tbody").TextContent));
+
+        var firstRefresh = cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Equal(2, provider.Calls.Count));
+        var firstRefreshCall = provider.Calls.Last();
+        var secondRefresh = cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Equal(3, provider.Calls.Count));
+        var secondRefreshCall = provider.Calls.Last();
+
+        await firstRefresh;
+        Assert.True(firstRefreshCall.CancellationToken.IsCancellationRequested);
+        secondRefreshCall.Completion.SetResult(
+            new BzsDataGridResult<Row>([new(3, "Current")], false));
+        await secondRefresh;
+        firstRefreshCall.Completion.SetResult(
+            new BzsDataGridResult<Row>([new(2, "Stale")], false));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Current", cut.Find("tbody").TextContent);
+            Assert.DoesNotContain("Stale", cut.Find("tbody").TextContent);
+        });
+    }
+
+    [Fact]
+    public async Task ParameterChangeSupersedesRefreshAsyncAndUsesTheNewRequest()
+    {
+        using var context = CreateContext();
+        var provider = new ControllableProvider();
+        var cut = RenderProviderGrid(context, provider);
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        provider.Calls.Single().Completion.SetResult(
+            new BzsDataGridResult<Row>([new(1, "Accepted")], false));
+        cut.WaitForAssertion(() => Assert.Contains("Accepted", cut.Find("tbody").TextContent));
+
+        var refresh = cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Equal(2, provider.Calls.Count));
+        var refreshCall = provider.Calls.Last();
+        cut.Render(parameters => parameters.Add(component => component.Page, 2));
+        cut.WaitForAssertion(() => Assert.Equal(3, provider.Calls.Count));
+
+        await refresh;
+        Assert.True(refreshCall.CancellationToken.IsCancellationRequested);
+        provider.Calls.Last().Completion.SetResult(
+            new BzsDataGridResult<Row>([new(2, "Page two")], false));
+        refreshCall.Completion.SetResult(
+            new BzsDataGridResult<Row>([new(1, "Stale")], false));
+
+        cut.WaitForAssertion(() => Assert.Contains("Page two", cut.Find("tbody").TextContent));
+    }
+
+    [Fact]
+    public async Task ReplacingTheProviderSupersedesRefreshAsync()
+    {
+        using var context = CreateContext();
+        var firstProvider = new ControllableProvider();
+        var secondProvider = new RecordingProvider(request =>
+            new BzsDataGridResult<Row>([new(request.Page, "Replacement")], false));
+        var cut = RenderProviderGrid(context, firstProvider);
+        cut.WaitForAssertion(() => Assert.Single(firstProvider.Calls));
+        firstProvider.Calls.Single().Completion.SetResult(
+            new BzsDataGridResult<Row>([new(1, "Accepted")], false));
+        cut.WaitForAssertion(() => Assert.Contains("Accepted", cut.Find("tbody").TextContent));
+
+        var refresh = cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Equal(2, firstProvider.Calls.Count));
+        var refreshCall = firstProvider.Calls.Last();
+        cut.Render(parameters => parameters.Add(component => component.Provider, secondProvider));
+
+        await refresh;
+        cut.WaitForAssertion(() => Assert.Contains("Replacement", cut.Find("tbody").TextContent));
+        Assert.True(refreshCall.CancellationToken.IsCancellationRequested);
+        refreshCall.Completion.SetResult(new BzsDataGridResult<Row>([new(1, "Stale")], false));
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Replacement", cut.Markup);
+            Assert.DoesNotContain("Stale", cut.Markup);
+        });
+    }
+
+    [Fact]
+    public async Task RefreshAsyncFailsFastInItemsMode()
+    {
+        using var context = CreateContext();
+        var cut = context.Render<BzsDataGrid<Row>>(parameters =>
+        {
+            parameters.Add(component => component.Items, new[] { new Row(1, "Local") });
+            parameters.Add(component => component.ChildContent, BuildColumns());
+        });
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await cut.Instance.RefreshAsync());
+
+        Assert.Contains("Provider mode", exception.Message);
+    }
+
+    [Fact]
+    public async Task RefreshAsyncAfterDisposalCompletesWithoutProviderWork()
+    {
+        using var context = CreateContext();
+        var provider = new RecordingProvider(request =>
+            new BzsDataGridResult<Row>([new(request.Page, "Loaded")], false));
+        var cut = RenderProviderGrid(context, provider);
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+
+        await cut.Instance.DisposeAsync();
+        await cut.Instance.RefreshAsync();
+
+        Assert.Single(provider.Calls);
+    }
+
+    [Fact]
+    public async Task RefreshAsyncBeforeInteractivityQueuesItsCurrentRequest()
+    {
+        using var context = CreateContext();
+        context.Renderer.SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var provider = new ControllableProvider();
+        var cut = RenderProviderGrid(context, provider, page: 2);
+
+        Assert.Empty(provider.Calls);
+        var refresh = cut.Instance.RefreshAsync();
+        Assert.False(refresh.IsCompleted);
+
+        context.Renderer.SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        cut.Render(parameters => parameters.Add(component => component.Page, 2));
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        Assert.Equal(2, provider.Calls.Single().Request.Page);
+        provider.Calls.Single().Completion.SetResult(
+            new BzsDataGridResult<Row>([new(2, "Interactive")], false));
+
+        await refresh;
+        cut.WaitForAssertion(() => Assert.Contains("Interactive", cut.Find("tbody").TextContent));
+    }
+
+    [Fact]
+    public async Task InteractiveRefreshSupersedesAQueuedStaticRefreshWithoutStartingIt()
+    {
+        using var context = CreateContext();
+        context.Renderer.SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var provider = new ControllableProvider();
+        var cut = RenderProviderGrid(context, provider);
+        var queuedRefresh = cut.Instance.RefreshAsync();
+
+        context.Renderer.SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var interactiveRefresh = cut.Instance.RefreshAsync();
+
+        await queuedRefresh;
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        provider.Calls.Single().Completion.SetResult(
+            new BzsDataGridResult<Row>([new(1, "Interactive refresh")], false));
+        await interactiveRefresh;
+        cut.WaitForAssertion(() => Assert.Contains("Interactive refresh", cut.Markup));
+        Assert.Single(provider.Calls);
+    }
+
+    [Fact]
+    public async Task RefreshAsyncReconcilesSelectionByKeyWithoutRequestingASelectionChange()
+    {
+        using var context = CreateContext();
+        var provider = new ControllableProvider();
+        var selected = new Row(1, "Selected before refresh");
+        var offPageSelection = new Row(9, "Off page");
+        var selectionChanges = new List<IReadOnlyList<Row>>();
+        var cut = RenderProviderGrid(
+            context,
+            provider,
+            configure: parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+                parameters.Add(component => component.SelectedItems, new[] { selected, offPageSelection });
+                parameters.Add(component => component.SelectedItemsChanged, selectionChanges.Add);
+            });
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        provider.Calls.Single().Completion.SetResult(
+            new BzsDataGridResult<Row>([new(1, "Initial instance")], false));
+        cut.WaitForAssertion(() => Assert.True(cut.Find("[aria-label='Select row 1']").HasAttribute("checked")));
+
+        var refresh = cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Equal(2, provider.Calls.Count));
+        var refreshedSelected = new Row(1, "Refreshed instance");
+        var refreshedAddition = new Row(2, "Refreshed addition");
+        provider.Calls.Last().Completion.SetResult(
+            new BzsDataGridResult<Row>([refreshedSelected, refreshedAddition], false));
+
+        await refresh;
+        cut.WaitForAssertion(() => Assert.Contains("Refreshed instance", cut.Markup));
+        Assert.Empty(selectionChanges);
+        Assert.True(cut.Find("[aria-label='Select row 1']").HasAttribute("checked"));
+
+        cut.Find("[aria-label='Select row 2']").Change(true);
+
+        var requested = Assert.Single(selectionChanges);
+        Assert.Equal([1, 9, 2], requested.Select(static row => row.Id));
+        Assert.Same(refreshedSelected, requested[0]);
+        Assert.Same(offPageSelection, requested[1]);
+        Assert.Same(refreshedAddition, requested[2]);
+    }
+
+    [Fact]
+    public async Task CurrentPageSelectAllUsesRefreshedProviderInstancesAndPreservesOffPageSelections()
+    {
+        using var context = CreateContext();
+        var provider = new ControllableProvider();
+        var selectedBeforeRefresh = new Row(1, "Selected before refresh");
+        var offPageSelection = new Row(9, "Off page");
+        IReadOnlyList<Row>? requested = null;
+        var cut = RenderProviderGrid(
+            context,
+            provider,
+            configure: parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+                parameters.Add(component => component.SelectedItems, new[] { selectedBeforeRefresh, offPageSelection });
+                parameters.Add(component => component.SelectedItemsChanged, value => requested = value);
+            });
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        provider.Calls.Single().Completion.SetResult(
+            new BzsDataGridResult<Row>([new(1, "Initial instance")], false));
+        cut.WaitForAssertion(() => Assert.Equal("true", SelectAll(cut).GetAttribute("aria-checked")));
+
+        var refresh = cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Equal(2, provider.Calls.Count));
+        var refreshedFirst = new Row(1, "Refreshed instance");
+        var refreshedSecond = new Row(2, "Refreshed addition");
+        provider.Calls.Last().Completion.SetResult(
+            new BzsDataGridResult<Row>([refreshedFirst, refreshedSecond], false));
+        await refresh;
+        cut.WaitForAssertion(() => Assert.Equal("mixed", SelectAll(cut).GetAttribute("aria-checked")));
+
+        SelectAll(cut).Change(true);
+
+        var selection = Assert.IsAssignableFrom<IReadOnlyList<Row>>(requested);
+        Assert.Equal([1, 9, 2], selection.Select(static row => row.Id));
+        Assert.Same(refreshedFirst, selection[0]);
+        Assert.Same(offPageSelection, selection[1]);
+        Assert.Same(refreshedSecond, selection[2]);
+    }
+
+    [Fact]
+    public async Task CurrentPageSelectAllUsesRetainedProviderRowsDuringAndAfterAFailedRefresh()
+    {
+        using var context = CreateContext();
+        var provider = new ControllableProvider();
+        var selectedBeforeRefresh = new Row(1, "Selected before refresh");
+        IReadOnlyList<Row>? requested = null;
+        var cut = RenderProviderGrid(
+            context,
+            provider,
+            configure: parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+                parameters.Add(component => component.SelectedItems, new[] { selectedBeforeRefresh });
+                parameters.Add(component => component.SelectedItemsChanged, value => requested = value);
+            });
+        cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+        var acceptedFirst = new Row(1, "Accepted first");
+        var acceptedSecond = new Row(2, "Accepted second");
+        provider.Calls.Single().Completion.SetResult(
+            new BzsDataGridResult<Row>([acceptedFirst, acceptedSecond], false));
+        cut.WaitForAssertion(() => Assert.Equal("mixed", SelectAll(cut).GetAttribute("aria-checked")));
+
+        var refresh = cut.Instance.RefreshAsync();
+        cut.WaitForAssertion(() => Assert.Equal(2, provider.Calls.Count));
+        Assert.Equal("mixed", SelectAll(cut).GetAttribute("aria-checked"));
+        provider.Calls.Last().Completion.SetException(new InvalidOperationException("refresh failed"));
+        await refresh;
+        cut.WaitForAssertion(() => Assert.Equal("mixed", SelectAll(cut).GetAttribute("aria-checked")));
+
+        SelectAll(cut).Change(true);
+
+        var selection = Assert.IsAssignableFrom<IReadOnlyList<Row>>(requested);
+        Assert.Equal([1, 2], selection.Select(static row => row.Id));
+        Assert.Same(acceptedFirst, selection[0]);
+        Assert.Same(acceptedSecond, selection[1]);
+    }
+
+    [Fact]
+    public void CurrentPageSelectAllIsDisabledForAnAcceptedEmptyProviderPage()
+    {
+        using var context = CreateContext();
+        var provider = new RecordingProvider(_ => new BzsDataGridResult<Row>([], hasNextPage: false));
+        var cut = RenderProviderGrid(
+            context,
+            provider,
+            configure: parameters =>
+            {
+                parameters.Add(component => component.SelectionMode, BzsDataGridSelectionMode.Multiple);
+                parameters.Add(component => component.ShowSelectAll, true);
+                parameters.Add(component => component.ItemKey, row => row.Id);
+            });
+
+        cut.WaitForAssertion(() => Assert.True(SelectAll(cut).HasAttribute("disabled")));
+        Assert.Equal("false", SelectAll(cut).GetAttribute("aria-checked"));
     }
 
     [Fact]
@@ -544,6 +988,9 @@ public sealed class DataGridServerTests
             parameters.Add(component => component.ChildContent, BuildColumns());
             configure?.Invoke(parameters);
         });
+
+    private static AngleSharp.Dom.IElement SelectAll(IRenderedComponent<BzsDataGrid<Row>> cut) =>
+        cut.Find("thead input[type='checkbox']");
 
     private static RenderFragment BuildColumns() => builder =>
     {

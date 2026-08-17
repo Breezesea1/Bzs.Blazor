@@ -4,6 +4,14 @@ let bodyOverflow = null;
 let keydownListenerAttached = false;
 let lastInteractionTarget = null;
 
+document.addEventListener('enhancedload', () => {
+    for (const [id, overlay] of overlays) {
+        if (overlay.navigationDrawer && !overlay.root?.isConnected) {
+            deactivate(id);
+        }
+    }
+});
+
 const focusableSelector = [
     'a[href]',
     'area[href]',
@@ -18,17 +26,9 @@ const focusableSelector = [
 export function activate(id, panel, modal, initialFocusSelector) {
     const existing = overlays.get(id);
     if (existing) {
-        if (existing.modal !== modal) {
-            if (existing.modal) {
-                unlockBody();
-            } else if (modal) {
-                lockBody();
-            }
-        }
-
         existing.panel = panel;
-        existing.modal = modal;
         existing.initialFocusSelector = initialFocusSelector;
+        updateModalState(existing, modal);
         return;
     }
 
@@ -39,7 +39,11 @@ export function activate(id, panel, modal, initialFocusSelector) {
         panel,
         modal,
         initialFocusSelector,
-        previousFocus
+        previousFocus,
+        root: null,
+        navigationDrawer: false,
+        observer: null,
+        backgroundTargets: []
     };
     overlays.set(id, overlay);
     if (modal) {
@@ -54,6 +58,48 @@ export function activate(id, panel, modal, initialFocusSelector) {
     });
 }
 
+export function activateNavigationDrawer(id, root, panel, escapeTrigger, initialFocusSelector, variant) {
+    const existing = overlays.get(id);
+    if (existing) {
+        existing.root = root;
+        existing.panel = panel;
+        existing.escapeTrigger = escapeTrigger;
+        existing.initialFocusSelector = initialFocusSelector;
+        existing.variant = variant;
+        synchronizeNavigationDrawer(existing);
+        return;
+    }
+
+    const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousFocus = lastInteractionTarget?.isConnected ? lastInteractionTarget : activeElement;
+    lastInteractionTarget = null;
+    const overlay = {
+        root,
+        panel,
+        escapeTrigger,
+        modal: false,
+        variant,
+        initialFocusSelector,
+        previousFocus,
+        navigationDrawer: true,
+        observer: null,
+        backgroundObserver: null,
+        backgroundParent: null,
+        backgroundTargets: []
+    };
+    overlays.set(id, overlay);
+    overlay.observer = new MutationObserver(() => synchronizeNavigationDrawer(overlay));
+    overlay.observer.observe(root, {
+        attributes: true,
+        attributeFilter: ['class', 'data-bzs-open', 'style']
+    });
+    const resizeObserver = new ResizeObserver(() => synchronizeNavigationDrawer(overlay));
+    resizeObserver.observe(root);
+    overlay.resizeObserver = resizeObserver;
+    synchronizeNavigationDrawer(overlay);
+    attachKeydownListener();
+}
+
 export function deactivate(id) {
     const overlay = overlays.get(id);
     if (!overlay) {
@@ -61,22 +107,155 @@ export function deactivate(id) {
     }
 
     overlays.delete(id);
+    overlay.observer?.disconnect();
+    overlay.resizeObserver?.disconnect();
+    overlay.backgroundObserver?.disconnect();
     if (overlay.modal) {
+        releaseBackground(overlay);
         unlockBody();
     }
 
-    const topOverlay = getTopOverlay();
+    const topOverlay = getTopModalOverlay();
     if (topOverlay) {
         if (overlay.previousFocus?.isConnected && topOverlay.panel.contains(overlay.previousFocus)) {
             overlay.previousFocus.focus({ preventScroll: true });
         } else {
             focusInitial(topOverlay);
         }
-    } else {
+    } else if (!overlay.navigationDrawer || overlay.modal) {
         restoreFocus(overlay.previousFocus);
     }
 
     detachKeydownListenerWhenUnused();
+}
+
+function synchronizeNavigationDrawer(overlay) {
+    if (!overlay.root?.isConnected || overlay.root.dataset.bzsOpen !== 'true') {
+        return;
+    }
+
+    const modal = overlay.variant === 'temporary'
+        ? true
+        : overlay.variant === 'persistent'
+            ? false
+            : isNavigationDrawerBackdropModal(overlay.root);
+    updateModalState(overlay, modal);
+}
+
+function isNavigationDrawerBackdropModal(root) {
+    const backdrop = root.querySelector('.bzs-navigation-drawer__backdrop');
+    const backdropStyle = backdrop instanceof HTMLElement ? getComputedStyle(backdrop) : null;
+    return backdropStyle !== null
+        && backdropStyle.display !== 'none'
+        && backdropStyle.visibility !== 'hidden'
+        && backdropStyle.pointerEvents !== 'none';
+}
+
+function updateModalState(overlay, modal) {
+    if (overlay.modal === modal) {
+        return;
+    }
+
+    overlay.modal = modal;
+    if (modal) {
+        const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        if (activeElement && !overlay.panel.contains(activeElement)) {
+            overlay.previousFocus = lastInteractionTarget?.isConnected ? lastInteractionTarget : activeElement;
+            lastInteractionTarget = null;
+        }
+
+        lockBody();
+        makeBackgroundInert(overlay);
+        queueMicrotask(() => {
+            if (!Array.from(overlays.values()).includes(overlay)) {
+                return;
+            }
+
+            if (!overlay.panel.contains(document.activeElement)) {
+                focusInitial(overlay);
+            }
+        });
+    } else {
+        releaseBackground(overlay);
+        unlockBody();
+    }
+}
+
+function makeBackgroundInert(overlay) {
+    reconcileBackground(overlay);
+}
+
+function reconcileBackground(overlay) {
+    if (!overlay.modal) {
+        return;
+    }
+
+    const parent = overlay.root?.parentElement;
+    if (!parent) {
+        releaseBackground(overlay);
+        return;
+    }
+
+    if (overlay.backgroundParent !== parent) {
+        overlay.backgroundObserver?.disconnect();
+        overlay.backgroundParent = parent;
+        overlay.backgroundObserver = new MutationObserver(() => reconcileBackground(overlay));
+        overlay.backgroundObserver.observe(parent, { childList: true });
+    }
+
+    const nextTargets = Array.from(parent.children)
+        .filter(element => element !== overlay.root
+            && element instanceof HTMLElement
+            && element.dataset.bzsOverlayHost !== 'true');
+    for (const target of overlay.backgroundTargets) {
+        if (!nextTargets.includes(target)) {
+            releaseBackgroundTarget(target);
+        }
+    }
+
+    for (const target of nextTargets) {
+        if (!overlay.backgroundTargets.includes(target)) {
+            makeBackgroundTargetInert(target);
+        }
+    }
+
+    overlay.backgroundTargets = nextTargets;
+}
+
+function makeBackgroundTargetInert(target) {
+    const count = Number.parseInt(target.dataset.bzsOverlayInertCount ?? '0', 10);
+    if (count === 0) {
+        target.dataset.bzsOverlayWasInert = target.hasAttribute('inert') ? 'true' : 'false';
+    }
+
+    target.dataset.bzsOverlayInertCount = String(count + 1);
+    target.setAttribute('inert', '');
+}
+
+function releaseBackground(overlay) {
+    for (const target of overlay.backgroundTargets) {
+        releaseBackgroundTarget(target);
+    }
+
+    overlay.backgroundTargets = [];
+    overlay.backgroundObserver?.disconnect();
+    overlay.backgroundObserver = null;
+    overlay.backgroundParent = null;
+}
+
+function releaseBackgroundTarget(target) {
+    const count = Number.parseInt(target.dataset.bzsOverlayInertCount ?? '1', 10) - 1;
+    if (count > 0) {
+        target.dataset.bzsOverlayInertCount = String(count);
+        return;
+    }
+
+    if (target.dataset.bzsOverlayWasInert !== 'true') {
+        target.removeAttribute('inert');
+    }
+
+    delete target.dataset.bzsOverlayInertCount;
+    delete target.dataset.bzsOverlayWasInert;
 }
 
 function lockBody() {
@@ -129,9 +308,13 @@ function handleKeydown(event) {
         lastInteractionTarget = event.target.closest(focusableSelector) ?? event.target;
     }
 
-    const overlay = getTopOverlay();
     if (event.key === 'Escape') {
-        if (overlay && !overlay.panel.contains(event.target)) {
+        const overlay = getTopEscapeOverlay();
+        if (overlay?.navigationDrawer && overlay.modal) {
+            event.preventDefault();
+            event.stopPropagation();
+            overlay.escapeTrigger?.click();
+        } else if (overlay && !overlay.panel.contains(event.target)) {
             event.preventDefault();
             event.stopPropagation();
             overlay.panel.dispatchEvent(new KeyboardEvent('keydown', {
@@ -146,6 +329,7 @@ function handleKeydown(event) {
         return;
     }
 
+    const overlay = getTopModalOverlay();
     if (!overlay?.modal) {
         return;
     }
@@ -174,10 +358,23 @@ function handleKeydown(event) {
     }
 }
 
-function getTopOverlay() {
+function getTopEscapeOverlay() {
     let overlay = null;
     for (const value of overlays.values()) {
-        overlay = value;
+        if (!value.navigationDrawer || value.modal) {
+            overlay = value;
+        }
+    }
+
+    return overlay;
+}
+
+function getTopModalOverlay() {
+    let overlay = null;
+    for (const value of overlays.values()) {
+        if (value.modal) {
+            overlay = value;
+        }
     }
 
     return overlay;

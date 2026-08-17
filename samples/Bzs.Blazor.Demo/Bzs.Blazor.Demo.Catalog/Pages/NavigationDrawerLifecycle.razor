@@ -1,0 +1,139 @@
+@inject IBzsDialogService DialogService
+
+<section id="navigation-drawer-fixture"
+         data-fixture-interactive="@(_interactive ? "true" : "false")"
+         @onkeydown="RecordAncestorKeyDown">
+    <output id="fixture-ancestor-key-count">@_ancestorKeyCount</output>
+    <button id="fixture-open" type="button" @onclick="OpenDrawer">Open drawer</button>
+    <button id="fixture-open-with-initial-focus" type="button" @onclick="OpenWithInitialFocus">Open drawer with initial focus</button>
+    <button id="fixture-close-external" type="button" @onclick="CloseDrawer">Close drawer externally</button>
+    <button id="fixture-open-without-focusable" type="button" @onclick="OpenWithoutFocusable">Open without focusable content</button>
+    <button id="fixture-variant-temporary" type="button" @onclick="SetTemporary">Temporary</button>
+    <button id="fixture-variant-persistent" type="button" @onclick="SetPersistent">Persistent</button>
+    <button id="fixture-variant-responsive" type="button" @onclick="SetResponsive">Responsive</button>
+    <button id="fixture-toggle-backdrop-override" type="button" @onclick="ToggleBackdropOverride">Toggle backdrop override</button>
+    <button id="fixture-toggle-backdrop-hidden" type="button" @onclick="ToggleHiddenBackdrop">Toggle hidden backdrop</button>
+    <button id="fixture-toggle-close-on-backdrop-click" type="button" @onclick="ToggleCloseOnBackdropClick">Toggle close on backdrop click</button>
+    <button id="fixture-reject-close" type="button" @onclick="RejectClose">Reject close</button>
+    <button id="fixture-accept-close" type="button" @onclick="AcceptClose">Accept close</button>
+
+    <BzsOverlayHost id="fixture-overlay-host" />
+    <output id="fixture-service-dialog-status">@_serviceDialogStatus</output>
+
+    <BzsNavigationDrawer Id="fixture-drawer"
+                         Class="@DrawerClass"
+                         Style="position: fixed; inset: 0;"
+                         Open="@_open"
+                         OpenChanged="OnOpenChanged"
+                         Variant="@_variant"
+                         CloseOnBackdropClick="@_closeOnBackdropClick"
+                         InitialFocusSelector="@_initialFocusSelector"
+                         AccessibleName="Lifecycle navigation">
+        @if (_showFocusableContent)
+        {
+            <button id="fixture-close" type="button" @onclick="CloseDrawer">Close drawer</button>
+            <button id="fixture-initial-focus-target" type="button">Initial focus target</button>
+            <button id="fixture-open-service-dialog" type="button" @onclick="OpenServiceDialogAsync">Open service dialog</button>
+            <a id="fixture-enhanced-navigation" href="/layout">Navigate</a>
+        }
+    </BzsNavigationDrawer>
+
+    <main id="fixture-background" tabindex="0">Background</main>
+</section>
+
+@code {
+    private bool _acceptClose = true;
+    private int _ancestorKeyCount;
+    private bool _closeOnBackdropClick = true;
+    private bool _forceBackdrop;
+    private bool _hideBackdrop;
+    private string? _initialFocusSelector;
+    private bool _interactive;
+    private bool _open;
+    private string _serviceDialogStatus = "Not opened";
+    private bool _showFocusableContent = true;
+    private BzsNavigationDrawerVariant _variant = BzsNavigationDrawerVariant.Temporary;
+
+    private Task OnOpenChanged(bool open)
+    {
+        if (open || _acceptClose)
+        {
+            _open = open;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void OpenDrawer()
+    {
+        _initialFocusSelector = null;
+        _showFocusableContent = true;
+        _open = true;
+    }
+
+    private void OpenWithInitialFocus()
+    {
+        _initialFocusSelector = "#fixture-initial-focus-target";
+        _showFocusableContent = true;
+        _open = true;
+    }
+
+    private async Task OpenWithoutFocusable()
+    {
+        await Task.Delay(100);
+        _showFocusableContent = false;
+        _open = true;
+    }
+
+    private void CloseDrawer() => _open = false;
+
+    private void SetTemporary() => _variant = BzsNavigationDrawerVariant.Temporary;
+
+    private void SetPersistent() => _variant = BzsNavigationDrawerVariant.Persistent;
+
+    private void SetResponsive() => _variant = BzsNavigationDrawerVariant.Responsive;
+
+    private void ToggleBackdropOverride() => _forceBackdrop = !_forceBackdrop;
+
+    private void ToggleHiddenBackdrop() => _hideBackdrop = !_hideBackdrop;
+
+    private void ToggleCloseOnBackdropClick() => _closeOnBackdropClick = !_closeOnBackdropClick;
+
+    private void RejectClose() => _acceptClose = false;
+
+    private void AcceptClose() => _acceptClose = true;
+
+    private async Task OpenServiceDialogAsync()
+    {
+        var result = await DialogService.ShowAsync<OverlayResultDialog, bool>(
+            parameters => parameters.Add(
+                component => component.Prompt,
+                "Complete the drawer workflow?"),
+            new BzsDialogOptions
+            {
+                Title = "Drawer service dialog",
+                AccessibleName = "Drawer service dialog",
+                InitialFocusSelector = "#service-dialog-complete",
+            });
+
+        _serviceDialogStatus = result.IsCompleted
+            ? "Completed"
+            : $"Result: {result.Kind}";
+    }
+
+    private void RecordAncestorKeyDown() => _ancestorKeyCount++;
+
+    private string? DrawerClass => string.Join(
+        ' ',
+        _forceBackdrop ? "fixture-force-backdrop" : null,
+        _hideBackdrop ? "fixture-hide-backdrop" : null).Trim();
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _interactive = true;
+            StateHasChanged();
+        }
+    }
+}

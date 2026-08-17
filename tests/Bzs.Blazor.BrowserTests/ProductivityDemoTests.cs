@@ -29,6 +29,23 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         Assert.DoesNotContain("role=\"tooltip\"", html, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task CompactGridRowsUseTheSelectedCatalogLanguage()
+    {
+        BeginBrowserGateTest("static-zh-Hans");
+        using var client = new HttpClient();
+        var response = await client.GetAsync(
+            $"{server.BaseUrl}/productivity/static?culture=zh-Hans");
+        var html = System.Net.WebUtility.HtmlDecode(
+            await response.Content.ReadAsStringAsync());
+
+        response.EnsureSuccessStatusCode();
+        Assert.Contains("发布说明", html, StringComparison.Ordinal);
+        Assert.Contains("键盘审计", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("Release notes", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("Keyboard audit", html, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("server")]
     [InlineData("webassembly")]
@@ -69,13 +86,27 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         var reviewGrid = Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" });
         await Expect(reviewGrid).ToBeVisibleAsync();
         await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(5);
-        var pageSize = Page.GetByRole(AriaRole.Combobox, new() { Name = "Rows per page" });
-        await pageSize.SelectOptionAsync("10");
-        await Expect(pageSize).ToHaveValueAsync("10");
-        await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(8);
-        await pageSize.SelectOptionAsync("5");
-        await Expect(pageSize).ToHaveValueAsync("5");
-        await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(5);
+        await Expect(Page.GetByTestId("productivity-grid-refresh-status"))
+            .ToHaveTextAsync("The DataGrid is ready to refresh.");
+        await Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Refresh the current DataGrid request", Exact = true }).ClickAsync();
+        await Expect(Page.GetByTestId("productivity-grid-refresh-status"))
+            .ToHaveTextAsync("The DataGrid refreshed with the same provider request.");
+        await Expect(reviewGrid.GetByRole(AriaRole.Combobox, new() { Name = "Rows per page" }))
+            .ToHaveCountAsync(0);
+        var selectAllRows = reviewGrid.GetByRole(
+            AriaRole.Checkbox,
+            new() { Name = "Select all rows on this page", Exact = true });
+        await Expect(selectAllRows).Not.ToBeCheckedAsync();
+        await reviewGrid.GetByRole(
+            AriaRole.Checkbox,
+            new() { Name = "Select row 1", Exact = true }).ClickAsync();
+        await Expect(selectAllRows).ToHaveAttributeAsync("aria-checked", "mixed");
+        await Expect(selectAllRows).ToHaveJSPropertyAsync("indeterminate", true);
+        await selectAllRows.FocusAsync();
+        await selectAllRows.PressAsync("Space");
+        await Expect(selectAllRows).ToBeCheckedAsync();
 
         var tooltipTrigger = Page.GetByRole(AriaRole.Button, new() { Name = "Focus me" });
         await tooltipTrigger.FocusAsync();
@@ -116,7 +147,33 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         await Page.GetByRole(AriaRole.Button, new() { Name = "Go to next page" }).Last.ClickAsync();
         await Expect(Page).ToHaveURLAsync(new Regex($"/productivity/{renderMode}(?:\\?|$)"));
         await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(3);
+        await Expect(selectAllRows).Not.ToBeCheckedAsync();
         AssertNoUnexpectedBrowserErrors($"productivity {renderMode} workflow");
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("webassembly")]
+    [InlineData("auto")]
+    public async Task ControlledSelectAllRestoresStateWhenTheParentRejectsTheChange(string renderMode)
+    {
+        BeginBrowserGateTest(renderMode);
+        var response = await Page.GotoAsync(
+            $"{server.BaseUrl}/productivity/{renderMode}?culture=en-US&rejectGridSelection=true");
+        Assert.True(response?.Ok ?? false);
+
+        await Expect(Page.GetByTestId("productivity-workbench"))
+            .ToHaveAttributeAsync("data-bzs-interactive", "true");
+        var selectAllRows = Page.GetByRole(
+            AriaRole.Table,
+            new() { Name = "Review queue" }).GetByRole(
+                AriaRole.Checkbox,
+                new() { Name = "Select all rows on this page", Exact = true });
+
+        await selectAllRows.ClickAsync();
+
+        await Expect(selectAllRows).Not.ToBeCheckedAsync();
+        await Expect(selectAllRows).ToHaveJSPropertyAsync("indeterminate", false);
     }
 
     [Fact]

@@ -1,4 +1,6 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace Bzs.Blazor.Tests;
 
@@ -138,7 +140,7 @@ public sealed class LayoutTests
     [Fact]
     public void NavigationDrawerRequestsCloseWithoutMutatingControlledState()
     {
-        using var context = new BunitContext();
+        using var context = CreateInteractiveContext();
         bool? requestedOpen = null;
         var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
             .Add(component => component.Id, "workspace-navigation")
@@ -157,6 +159,139 @@ public sealed class LayoutTests
 
         Assert.False(requestedOpen);
         Assert.Equal("true", navigation.GetAttribute("data-bzs-open"));
+    }
+
+    [Fact]
+    public void NavigationDrawerForwardsInitialFocusAndHonorsDisabledBackdropDismissal()
+    {
+        using var context = CreateInteractiveContext();
+        var module = context.JSInterop.SetupModule(BzsOverlayInterop.ModulePath);
+        module.SetupVoid(BzsOverlayInterop.ActivateNavigationDrawerMethod, _ => true)
+            .SetVoidResult();
+        bool? requestedOpen = null;
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.OpenChanged, open => requestedOpen = open)
+            .Add(component => component.CloseOnBackdropClick, false)
+            .Add(component => component.InitialFocusSelector, "  #primary-navigation  ")
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        var activation = Assert.Single(
+            module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod]);
+        Assert.Equal("#primary-navigation", activation.Arguments[4]);
+        Assert.False(cut.Instance.CloseOnBackdropClick);
+
+        cut.Find("button:not([hidden])").Click();
+
+        Assert.Null(requestedOpen);
+        Assert.Equal("true", cut.Find("nav").GetAttribute("data-bzs-open"));
+    }
+
+    [Fact]
+    public async Task OpenNavigationDrawerRetriesThroughFourTransientActivationFailures()
+    {
+        using var context = CreateInteractiveContext();
+        var module = context.JSInterop.SetupModule(BzsOverlayInterop.ModulePath);
+        var activation = module.SetupVoid(
+                BzsOverlayInterop.ActivateNavigationDrawerMethod,
+                _ => true)
+            .SetException(new JSDisconnectedException("The circuit is reconnecting."));
+        module.SetupVoid(BzsOverlayInterop.DeactivateMethod, _ => true).SetVoidResult();
+
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.Variant, BzsNavigationDrawerVariant.Temporary)
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        activation.VerifyInvoke(BzsOverlayInterop.ActivateNavigationDrawerMethod, 1);
+
+        await WaitUntilAsync(
+            () => module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod].Count == 4);
+        activation.SetVoidResult();
+
+        await WaitUntilAsync(
+            () => module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod].Count == 5);
+
+        activation.VerifyInvoke(BzsOverlayInterop.ActivateNavigationDrawerMethod, 5);
+    }
+
+    [Fact]
+    public async Task OpenNavigationDrawerBacksOffDuringExtendedInteropUnavailability()
+    {
+        using var context = CreateInteractiveContext();
+        var module = context.JSInterop.SetupModule(BzsOverlayInterop.ModulePath);
+        module.SetupVoid(
+                BzsOverlayInterop.ActivateNavigationDrawerMethod,
+                _ => true)
+            .SetException(new JSDisconnectedException("The circuit is reconnecting."));
+
+        context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.Variant, BzsNavigationDrawerVariant.Temporary)
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        await WaitUntilAsync(
+            () => module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod].Count >= 3);
+        await Task.Delay(500);
+
+        Assert.InRange(
+            module.Invocations[BzsOverlayInterop.ActivateNavigationDrawerMethod].Count,
+            3,
+            4);
+    }
+
+    [Fact]
+    public void NavigationDrawerEscapeHonorsTheControlledDismissalContract()
+    {
+        using var context = CreateInteractiveContext();
+        bool? requestedOpen = null;
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.CloseOnEscape, false)
+            .Add(component => component.OpenChanged, open => requestedOpen = open)
+            .Add(component => component.Variant, BzsNavigationDrawerVariant.Temporary)
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        cut.Find("nav").KeyDown("Escape");
+
+        Assert.Null(requestedOpen);
+    }
+
+    [Fact]
+    public void NavigationDrawerEscapeRequestsControlledCloseByDefault()
+    {
+        using var context = CreateInteractiveContext();
+        bool? requestedOpen = null;
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.OpenChanged, open => requestedOpen = open)
+            .Add(component => component.Variant, BzsNavigationDrawerVariant.Temporary)
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        cut.Find("nav").KeyDown("Escape");
+
+        Assert.True(cut.Instance.CloseOnEscape);
+        Assert.False(requestedOpen);
+        Assert.Equal("true", cut.Find("nav").GetAttribute("data-bzs-open"));
+    }
+
+    [Theory]
+    [InlineData(BzsNavigationDrawerVariant.Persistent)]
+    [InlineData(BzsNavigationDrawerVariant.Responsive)]
+    public void NonmodalNavigationDrawerDoesNotRequestCloseOnNativeEscape(
+        BzsNavigationDrawerVariant variant)
+    {
+        using var context = CreateInteractiveContext();
+        bool? requestedOpen = null;
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.OpenChanged, open => requestedOpen = open)
+            .Add(component => component.Variant, variant)
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        cut.Find("nav").KeyDown("Escape");
+
+        Assert.Null(requestedOpen);
     }
 
     [Fact]
@@ -228,5 +363,27 @@ public sealed class LayoutTests
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             context.Render<BzsNavigationDrawer>(parameters => parameters
                 .Add(component => component.Position, (BzsNavigationDrawerPosition)999)));
+    }
+
+    private static BunitContext CreateInteractiveContext()
+    {
+        var context = new BunitContext();
+        context.Renderer.SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        context.JSInterop.Mode = JSRuntimeMode.Loose;
+        return context;
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> condition)
+    {
+        var timeout = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+        while (!condition())
+        {
+            if (DateTime.UtcNow >= timeout)
+            {
+                throw new TimeoutException("The expected JavaScript invocation did not occur.");
+            }
+
+            await Task.Delay(10);
+        }
     }
 }

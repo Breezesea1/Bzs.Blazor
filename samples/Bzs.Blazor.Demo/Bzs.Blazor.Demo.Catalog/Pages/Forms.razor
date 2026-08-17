@@ -53,6 +53,13 @@
                                   Label="Work email"
                                   Description="Used for approval notifications."
                                   Required="true" />
+                    <BzsPasswordInput Id="password-input-example"
+                                      @bind-Value="ActiveProfile.Password"
+                                      Label="@(IsChinese ? "访问密码" : "Access password")"
+                                      Description="@(IsChinese ? "显示按钮仅在交互式运行时切换原生输入类型。" : "The reveal action changes only the native input type while interactive.")"
+                                      Revealable="true"
+                                      autocomplete="new-password"
+                                      data-testid="password-input-example" />
                     <BzsNumberInput TValue="int"
                                     Id="profile-seat-count"
                                     @bind-Value="ActiveProfile.SeatCount"
@@ -108,8 +115,33 @@
 
                 <div class="demo-form-actions">
                     <BzsButton Type="BzsButtonType.Submit">Validate profile</BzsButton>
-                    <p role="status">@_formStatus</p>
+                    <p role="status" data-testid="profile-form-status">@_formStatus</p>
                 </div>
+            </section>
+
+            <section class="demo-form-section" aria-labelledby="text-input-modes-title">
+                <header class="demo-form-section-header">
+                    <h2 id="text-input-modes-title">@(IsChinese ? "文本输入类型和更新模式" : "Text input types and update modes")</h2>
+                    <p>@(IsChinese ? "电子邮件和搜索输入保留原生语义。实时搜索会在每次已提交输入后更新，并在输入法组合期间等待最终文本。" : "Email and search inputs retain native semantics. Live search updates after each committed input and waits for final IME text during composition.")</p>
+                </header>
+
+                <div class="demo-form-grid">
+                    <BzsTextInput Id="text-input-email-example"
+                                  @bind-Value="_emailExample"
+                                  InputType="BzsTextInputType.Email"
+                                  Label="@(IsChinese ? "联系邮箱" : "Contact email")"
+                                  autocomplete="email"
+                                  inputmode="email" />
+                    <BzsTextInput Id="text-input-ime-example"
+                                  @bind-Value="_liveSearchText"
+                                  InputType="BzsTextInputType.Search"
+                                  UpdateMode="BzsInputUpdateMode.Input"
+                                  Label="@(IsChinese ? "实时搜索" : "Live search")"
+                                  Placeholder="@(IsChinese ? "输入以筛选" : "Type to filter")"
+                                  inputmode="search"
+                                  data-testid="text-input-ime-example" />
+                </div>
+                <p role="status" data-testid="text-input-ime-value">@LiveSearchStatus</p>
             </section>
 
             <section class="demo-form-section" aria-labelledby="state-examples-title">
@@ -177,6 +209,8 @@
 
     private CultureInfo DatePickerCulture => DemoCulture.Resolve(CultureName);
 
+    private bool IsChinese => DemoCulture.IsChinese(CultureName);
+
     private static readonly IReadOnlyList<BzsSelectOption<string>> WorkspaceOptions =
     [
         new("production", "Production") { Description = "Default delivery workspace", Icon = BzsIcons.Package },
@@ -201,6 +235,12 @@
     private BzsDensity _density = BzsDensity.Compact;
     private bool _isInteractive;
     private string _formStatus = "Ready to validate the profile.";
+    private string? _emailExample = "alicia@example.com";
+    private string? _liveSearchText;
+
+    private string LiveSearchStatus => string.IsNullOrEmpty(_liveSearchText)
+        ? (IsChinese ? "尚无实时搜索文本。" : "No live search text yet.")
+        : (IsChinese ? $"已提交的实时搜索：{_liveSearchText}" : $"Committed live search: {_liveSearchText}");
 
     protected override void OnInitialized()
     {
@@ -208,6 +248,7 @@
         {
             FullName = "Alicia Santos",
             WorkEmail = "alicia@example.com",
+            Password = "catalog-secret",
             SeatCount = 8,
             DeliveryDate = DateOnly.FromDateTime(DateTime.Today.AddDays(14)),
             Workspace = "production",
@@ -256,6 +297,8 @@
         [Required(ErrorMessage = "Enter a work email.")]
         [EmailAddress(ErrorMessage = "Enter a valid work email.")]
         public string? WorkEmail { get; set; }
+
+        public string? Password { get; set; }
 
         [Range(1, 99, ErrorMessage = "Choose between 1 and 99 seats.")]
         public int SeatCount { get; set; }

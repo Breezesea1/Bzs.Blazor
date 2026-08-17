@@ -12,6 +12,253 @@ namespace Bzs.Blazor.Tests;
 public sealed class FormsTests
 {
     [Fact]
+    public void PasswordInputDefaultsToNativePasswordAndUpdatesTheControlledFormValue()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Before" };
+        var editContext = new EditContext(model);
+
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsPasswordInput, string?>(
+            builder,
+            0,
+            model.Text,
+            () => model.Text,
+            EventCallback.Factory.Create<string?>(model, value => model.Text = value)));
+
+        var input = cut.Find("input");
+        input.Change("After");
+
+        Assert.Equal("password", input.GetAttribute("type"));
+        Assert.Equal("After", model.Text);
+        Assert.Empty(cut.FindAll("button"));
+    }
+
+    [Fact]
+    public void RevealablePasswordInputSwitchesNativeTypeAndUsesLocalizedOrOverriddenActionLabels()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Secret" };
+        var valueExpression = (Expression<Func<string?>>)(() => model.Text);
+
+        var cut = context.Render<BzsPasswordInput>(parameters => parameters
+            .Add(component => component.Value, model.Text)
+            .Add(component => component.ValueExpression, valueExpression)
+            .Add(component => component.Revealable, true)
+            .Add(component => component.ShowPasswordText, "Reveal credential")
+            .Add(component => component.HidePasswordText, "Conceal credential"));
+
+        var input = cut.Find("input");
+        var button = cut.Find("button");
+        Assert.Equal("password", input.GetAttribute("type"));
+        Assert.Equal("Reveal credential", button.GetAttribute("aria-label"));
+        Assert.False(button.HasAttribute("disabled"));
+
+        button.Click();
+
+        cut.WaitForAssertion(() => Assert.Equal("text", cut.Find("input").GetAttribute("type")));
+        Assert.Equal("Conceal credential", cut.Find("button").GetAttribute("aria-label"));
+        var invocations = context.JSInterop.Invocations
+            .Where(candidate => candidate.Identifier is "captureSelection" or "restoreFocusAndSelection")
+            .ToArray();
+        Assert.Equal(2, invocations.Length);
+        Assert.All(invocations, invocation =>
+        {
+            Assert.Single(invocation.Arguments);
+            Assert.IsType<ElementReference>(invocation.Arguments[0]);
+        });
+    }
+
+    [Fact]
+    public void PasswordInputUsesSimplifiedChineseRevealLabelByDefault()
+    {
+        using var culture = new CultureScope("zh-Hans");
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Secret" };
+        var valueExpression = (Expression<Func<string?>>)(() => model.Text);
+
+        var cut = context.Render<BzsPasswordInput>(parameters => parameters
+            .Add(component => component.Value, model.Text)
+            .Add(component => component.ValueExpression, valueExpression)
+            .Add(component => component.Revealable, true));
+
+        Assert.Equal("显示密码", cut.Find("button").GetAttribute("aria-label"));
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void PasswordInputHonorsDisabledAndReadOnlySemantics(bool disabled, bool readOnly)
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Secret" };
+        var editContext = new EditContext(model);
+
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsPasswordInput, string?>(
+            builder,
+            0,
+            model.Text,
+            () => model.Text,
+            EventCallback.Factory.Create<string?>(model, value => model.Text = value),
+            (attributes, sequence) =>
+            {
+                attributes.AddAttribute(sequence, nameof(BzsPasswordInput.Revealable), true);
+                attributes.AddAttribute(sequence + 1, nameof(BzsPasswordInput.Disabled), disabled);
+                attributes.AddAttribute(sequence + 2, nameof(BzsPasswordInput.ReadOnly), readOnly);
+            }));
+
+        var input = cut.Find("input");
+        input.Change("Changed");
+        cut.Find("button").Click();
+
+        if (readOnly)
+        {
+            cut.WaitForAssertion(() => Assert.Equal("text", cut.Find("input").GetAttribute("type")));
+        }
+
+        Assert.Equal("Secret", model.Text);
+        Assert.Equal(disabled, input.HasAttribute("disabled"));
+        Assert.Equal(readOnly ? "readonly" : null, input.GetAttribute("readonly"));
+        Assert.Equal(disabled, cut.Find("button").HasAttribute("disabled"));
+        Assert.Equal(readOnly ? "text" : "password", cut.Find("input").GetAttribute("type"));
+    }
+
+    [Fact]
+    public void PasswordInputForwardsAllowedAttributesAndProvidesStableStaticFormOutput()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Secret" };
+        var editContext = new EditContext(model);
+        var additional = new Dictionary<string, object>
+        {
+            ["autocomplete"] = "current-password",
+            ["data-form-field"] = "profile-password",
+            ["type"] = "text",
+        };
+
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsPasswordInput, string?>(
+            builder,
+            0,
+            model.Text,
+            () => model.Text,
+            EventCallback.Factory.Create<string?>(model, value => model.Text = value),
+            (attributes, sequence) =>
+            {
+                attributes.AddAttribute(sequence, nameof(BzsPasswordInput.Name), "profile.password");
+                attributes.AddAttribute(sequence + 1, nameof(BzsPasswordInput.Placeholder), "Enter access password");
+                attributes.AddAttribute(sequence + 2, nameof(BzsPasswordInput.AdditionalAttributes), additional);
+            }));
+
+        var input = cut.Find("input");
+        Assert.Equal("password", input.GetAttribute("type"));
+        Assert.Equal("profile.password", input.GetAttribute("name"));
+        Assert.Equal("Secret", input.GetAttribute("value"));
+        Assert.Equal("Enter access password", input.GetAttribute("placeholder"));
+        Assert.Equal("current-password", input.GetAttribute("autocomplete"));
+        Assert.Equal("profile-password", input.GetAttribute("data-form-field"));
+    }
+
+    [Fact]
+    public async Task PasswordInputConnectsFieldRelationshipsAndValidationErrors()
+    {
+        using var context = CreateContext();
+        var model = new FormModel();
+        var editContext = new EditContext(model);
+
+        var cut = RenderForm(context, editContext, builder =>
+        {
+            builder.OpenComponent<DataAnnotationsValidator>(0);
+            builder.CloseComponent();
+            AddInput<BzsPasswordInput, string?>(
+                builder,
+                10,
+                model.Text,
+                () => model.Text,
+                EventCallback.Factory.Create<string?>(model, value => model.Text = value),
+                (attributes, sequence) =>
+                {
+                    attributes.AddAttribute(sequence, nameof(BzsPasswordInput.Id), "profile-password");
+                    attributes.AddAttribute(sequence + 1, nameof(BzsPasswordInput.Label), "Access password");
+                    attributes.AddAttribute(sequence + 2, nameof(BzsPasswordInput.Description), "Used to sign in.");
+                    attributes.AddAttribute(sequence + 3, nameof(BzsPasswordInput.Required), true);
+                });
+        });
+
+        await cut.InvokeAsync(editContext.Validate);
+
+        var input = cut.Find("input");
+        Assert.Equal("profile-password", cut.Find("label").GetAttribute("for"));
+        Assert.Equal("true", input.GetAttribute("aria-required"));
+        Assert.Equal("true", input.GetAttribute("aria-invalid"));
+        Assert.Equal("profile-password-description profile-password-error", input.GetAttribute("aria-describedby"));
+        Assert.Equal("Profile name is required.", cut.Find("[role=alert]").TextContent);
+    }
+
+    [Theory]
+    [InlineData(BzsTextInputType.Text, BzsInputUpdateMode.Change, "text")]
+    [InlineData(BzsTextInputType.Text, BzsInputUpdateMode.Input, "text")]
+    [InlineData(BzsTextInputType.Email, BzsInputUpdateMode.Change, "email")]
+    [InlineData(BzsTextInputType.Email, BzsInputUpdateMode.Input, "email")]
+    [InlineData(BzsTextInputType.Search, BzsInputUpdateMode.Change, "search")]
+    [InlineData(BzsTextInputType.Search, BzsInputUpdateMode.Input, "search")]
+    public void TextInputRendersEveryNativeTypeAndUpdateModeCombination(
+        BzsTextInputType inputType,
+        BzsInputUpdateMode updateMode,
+        string nativeType)
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Source" };
+        var valueExpression = (Expression<Func<string?>>)(() => model.Text);
+
+        var cut = context.Render<BzsTextInput>(parameters => parameters
+            .Add(component => component.Value, model.Text)
+            .Add(component => component.ValueExpression, valueExpression)
+            .Add(component => component.InputType, inputType)
+            .Add(component => component.UpdateMode, updateMode));
+
+        Assert.Equal(nativeType, cut.Find("input").GetAttribute("type"));
+        Assert.Equal(updateMode, cut.Instance.UpdateMode);
+    }
+
+    [Theory]
+    [InlineData((BzsTextInputType)99, BzsInputUpdateMode.Change, "InputType")]
+    [InlineData(BzsTextInputType.Text, (BzsInputUpdateMode)99, "UpdateMode")]
+    public void TextInputRejectsUnsupportedEnums(
+        BzsTextInputType inputType,
+        BzsInputUpdateMode updateMode,
+        string parameterName)
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Source" };
+        var valueExpression = (Expression<Func<string?>>)(() => model.Text);
+
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            context.Render<BzsTextInput>(parameters => parameters
+                .Add(component => component.Value, model.Text)
+                .Add(component => component.ValueExpression, valueExpression)
+                .Add(component => component.InputType, inputType)
+                .Add(component => component.UpdateMode, updateMode)));
+
+        Assert.Equal(parameterName, exception.ParamName);
+    }
+
+    [Fact]
+    public void TextInputDefaultsToTextAndChangeUpdates()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Source" };
+        var valueExpression = (Expression<Func<string?>>)(() => model.Text);
+
+        var cut = context.Render<BzsTextInput>(parameters => parameters
+            .Add(component => component.Value, model.Text)
+            .Add(component => component.ValueExpression, valueExpression));
+
+        Assert.Equal(BzsTextInputType.Text, cut.Instance.InputType);
+        Assert.Equal(BzsInputUpdateMode.Change, cut.Instance.UpdateMode);
+        Assert.Equal("text", cut.Find("input").GetAttribute("type"));
+        Assert.Equal("Source", cut.Find("input").GetAttribute("value"));
+    }
+
+    [Fact]
     public void TextInputUpdatesTheControlledValueAndNotifiesItsEditContextField()
     {
         using var context = CreateContext();
@@ -31,6 +278,97 @@ public sealed class FormsTests
 
         Assert.Equal("After", model.Text);
         Assert.Equal(editContext.Field(nameof(FormModel.Text)), Assert.Single(changedFields));
+    }
+
+    [Fact]
+    public void TextInputInputModeUpdatesTheControlledValueAndNotifiesItsEditContextField()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Before" };
+        var editContext = new EditContext(model);
+        var changedFields = new List<FieldIdentifier>();
+        editContext.OnFieldChanged += (_, args) => changedFields.Add(args.FieldIdentifier);
+
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsTextInput, string?>(
+            builder,
+            0,
+            model.Text,
+            () => model.Text,
+            EventCallback.Factory.Create<string?>(model, value => model.Text = value),
+            (attributes, sequence) => attributes.AddAttribute(
+                sequence,
+                nameof(BzsTextInput.UpdateMode),
+                BzsInputUpdateMode.Input)));
+
+        cut.Find("input").Input("After");
+
+        Assert.Equal("After", model.Text);
+        Assert.Equal(editContext.Field(nameof(FormModel.Text)), Assert.Single(changedFields));
+    }
+
+    [Fact]
+    public void TextInputCompositionEndCommitsTheFinalDomValueOnceAndSuppressesTheTrailingInput()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Text = "Before" };
+        var editContext = new EditContext(model);
+        var committedValues = new List<string?>();
+        var changedFields = new List<FieldIdentifier>();
+        editContext.OnFieldChanged += (_, args) => changedFields.Add(args.FieldIdentifier);
+
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsTextInput, string?>(
+            builder,
+            0,
+            model.Text,
+            () => model.Text,
+            EventCallback.Factory.Create<string?>(model, value =>
+            {
+                model.Text = value;
+                committedValues.Add(value);
+            }),
+            (attributes, sequence) => attributes.AddAttribute(
+                sequence,
+                nameof(BzsTextInput.UpdateMode),
+                BzsInputUpdateMode.Input)));
+
+        var input = cut.Find("input");
+        input.TriggerEvent("oncompositionstart", EventArgs.Empty);
+        input.Input("n");
+        input.TriggerEvent("onbzscompositionend", new ChangeEventArgs { Value = "\u4f60" });
+        input.Input("\u4f60");
+
+        Assert.Equal("\u4f60", model.Text);
+        Assert.Equal(["\u4f60"], committedValues);
+        Assert.Equal(editContext.Field(nameof(FormModel.Text)), Assert.Single(changedFields));
+    }
+
+    [Fact]
+    public void TextAreaContinuesToForwardAConsumerInputHandler()
+    {
+        using var context = CreateContext();
+        var model = new FormModel { Notes = "Before" };
+        var editContext = new EditContext(model);
+        var inputEvents = 0;
+        var additional = new Dictionary<string, object>
+        {
+            ["oninput"] = EventCallback.Factory.Create<ChangeEventArgs>(model, _ => inputEvents++),
+        };
+
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsTextArea, string?>(
+            builder,
+            0,
+            model.Notes,
+            () => model.Notes,
+            EventCallback.Factory.Create<string?>(model, value => model.Notes = value),
+            (attributes, sequence) => attributes.AddAttribute(
+                sequence,
+                nameof(BzsTextArea.AdditionalAttributes),
+                additional)));
+
+        cut.Find("textarea").Input("Typing");
+
+        Assert.Equal(1, inputEvents);
+        Assert.Equal("Before", model.Notes);
     }
 
     [Fact]
@@ -1028,9 +1366,14 @@ public sealed class FormsTests
     }
 
     [Theory]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    public void DisabledOrReadOnlyTextInputSuppressesChanges(bool disabled, bool readOnly)
+    [InlineData(true, false, BzsInputUpdateMode.Change)]
+    [InlineData(false, true, BzsInputUpdateMode.Change)]
+    [InlineData(true, false, BzsInputUpdateMode.Input)]
+    [InlineData(false, true, BzsInputUpdateMode.Input)]
+    public void DisabledOrReadOnlyTextInputSuppressesChanges(
+        bool disabled,
+        bool readOnly,
+        BzsInputUpdateMode updateMode)
     {
         using var context = CreateContext();
         var model = new FormModel { Text = "Source" };
@@ -1046,10 +1389,18 @@ public sealed class FormsTests
             {
                 attributes.AddAttribute(sequence, nameof(BzsTextInput.Disabled), disabled);
                 attributes.AddAttribute(sequence + 1, nameof(BzsTextInput.ReadOnly), readOnly);
+                attributes.AddAttribute(sequence + 2, nameof(BzsTextInput.UpdateMode), updateMode);
             }));
 
         var input = cut.Find("input");
-        input.Change("Changed");
+        if (updateMode == BzsInputUpdateMode.Input)
+        {
+            input.Input("Changed");
+        }
+        else
+        {
+            input.Change("Changed");
+        }
 
         Assert.Equal("Source", model.Text);
         Assert.Equal(disabled, input.HasAttribute("disabled"));
@@ -1111,6 +1462,9 @@ public sealed class FormsTests
             ["name"] = "untrusted-name",
             ["type"] = "email",
             ["value"] = "untrusted-value",
+            ["oninput"] = "untrusted-input-handler",
+            ["oncompositionstart"] = "untrusted-composition-handler",
+            ["oncompositionend"] = "untrusted-composition-handler",
         };
 
         var cut = RenderForm(context, editContext, builder => AddInput<BzsTextInput, string?>(
@@ -1251,6 +1605,9 @@ public sealed class FormsTests
         module.SetupVoid("initialize", _ => true);
         module.SetupVoid("setOpen", _ => true);
         module.SetupVoid("dispose", _ => true);
+        var passwordModule = context.JSInterop.SetupModule("./_content/Bzs.Blazor/Components/Form/BzsPasswordInput.razor.js");
+        passwordModule.SetupVoid("captureSelection", _ => true).SetVoidResult();
+        passwordModule.SetupVoid("restoreFocusAndSelection", _ => true).SetVoidResult();
         var dateModule = context.JSInterop.SetupModule("./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js");
         dateModule.Setup<string>("initialize", _ => true).SetResult("2031-02-03");
         dateModule.SetupVoid("setOpen", _ => true);

@@ -1,0 +1,8 @@
+::deep .fixture-force-backdrop .bzs-navigation-drawer__backdrop {
+    display: block !important;
+    pointer-events: auto;
+}
+
+::deep .fixture-hide-backdrop .bzs-navigation-drawer__backdrop {
+    display: none !important;
+}

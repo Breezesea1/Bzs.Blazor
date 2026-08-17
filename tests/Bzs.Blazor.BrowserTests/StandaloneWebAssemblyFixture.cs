@@ -144,6 +144,7 @@ public sealed class StandaloneWebAssemblyFixture : IAsyncLifetime
             UseShellExecute = false,
             CreateNoWindow = true,
         };
+        startInfo.Environment["MSBUILDDISABLENODEREUSE"] = "1";
         startInfo.ArgumentList.Add("publish");
         startInfo.ArgumentList.Add(projectPath);
         startInfo.ArgumentList.Add("--configuration");

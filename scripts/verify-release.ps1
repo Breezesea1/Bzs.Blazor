@@ -90,6 +90,66 @@ function Reset-Directory {
     return $fullPath
 }
 
+function Compress-PackageForSizeBudget {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $fullPath = Assert-RepositoryPath $Path
+    $temporaryPath = "$fullPath.smallest"
+    if (Test-Path -LiteralPath $temporaryPath) {
+        Remove-Item -LiteralPath $temporaryPath -Force
+    }
+
+    $inputStream = $null
+    $outputStream = $null
+    $source = $null
+    $destination = $null
+    $completed = $false
+    try {
+        $inputStream = [IO.File]::OpenRead($fullPath)
+        $outputStream = [IO.File]::Create($temporaryPath)
+        $source = [IO.Compression.ZipArchive]::new(
+            $inputStream,
+            [IO.Compression.ZipArchiveMode]::Read,
+            $true)
+        $destination = [IO.Compression.ZipArchive]::new(
+            $outputStream,
+            [IO.Compression.ZipArchiveMode]::Create,
+            $true)
+        foreach ($entry in $source.Entries) {
+            $compressedEntry = $destination.CreateEntry(
+                $entry.FullName,
+                [IO.Compression.CompressionLevel]::SmallestSize)
+            $compressedEntry.LastWriteTime = $entry.LastWriteTime
+            $compressedEntry.ExternalAttributes = $entry.ExternalAttributes
+            $sourceEntryStream = $entry.Open()
+            $destinationEntryStream = $compressedEntry.Open()
+            try {
+                $sourceEntryStream.CopyTo($destinationEntryStream)
+            }
+            finally {
+                $destinationEntryStream.Dispose()
+                $sourceEntryStream.Dispose()
+            }
+        }
+        $destination.Dispose()
+        $destination = $null
+        $source.Dispose()
+        $source = $null
+        $completed = $true
+    }
+    finally {
+        if ($null -ne $destination) { $destination.Dispose() }
+        if ($null -ne $source) { $source.Dispose() }
+        if ($null -ne $outputStream) { $outputStream.Dispose() }
+        if ($null -ne $inputStream) { $inputStream.Dispose() }
+        if (-not $completed -and (Test-Path -LiteralPath $temporaryPath)) {
+            Remove-Item -LiteralPath $temporaryPath -Force
+        }
+    }
+
+    Move-Item -LiteralPath $temporaryPath -Destination $fullPath -Force
+}
+
 function Invoke-DotNet {
     param(
         [Parameter(Mandatory = $true)][string[]]$Arguments,
@@ -635,6 +695,7 @@ Invoke-DotNet @(
 
 $packagePath = Join-Path $packageDirectory "Bzs.Blazor.$Version.nupkg"
 $symbolPackagePath = Join-Path $packageDirectory "Bzs.Blazor.$Version.snupkg"
+Compress-PackageForSizeBudget $packagePath
 Assert-PackageContents $packagePath $symbolPackagePath $Version
 $packageSizeBytes = Assert-FileSizeBudget `
     -Path $packagePath `

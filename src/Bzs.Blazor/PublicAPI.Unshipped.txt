@@ -1,4 +1,26 @@
 #nullable enable
+Bzs.Blazor.BzsPasswordInput
+Bzs.Blazor.BzsPasswordInput.BzsPasswordInput() -> void
+Bzs.Blazor.BzsPasswordInput.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsPasswordInput.HidePasswordText.get -> string?
+Bzs.Blazor.BzsPasswordInput.HidePasswordText.set -> void
+Bzs.Blazor.BzsPasswordInput.Revealable.get -> bool
+Bzs.Blazor.BzsPasswordInput.Revealable.set -> void
+Bzs.Blazor.BzsPasswordInput.ShowPasswordText.get -> string?
+Bzs.Blazor.BzsPasswordInput.ShowPasswordText.set -> void
+static Bzs.Blazor.BzsIcons.Eye.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.EyeOff.get -> Bzs.Blazor.BzsIconData!
+Bzs.Blazor.BzsInputUpdateMode
+Bzs.Blazor.BzsInputUpdateMode.Change = 0 -> Bzs.Blazor.BzsInputUpdateMode
+Bzs.Blazor.BzsInputUpdateMode.Input = 1 -> Bzs.Blazor.BzsInputUpdateMode
+Bzs.Blazor.BzsTextInput.InputType.get -> Bzs.Blazor.BzsTextInputType
+Bzs.Blazor.BzsTextInput.InputType.set -> void
+Bzs.Blazor.BzsTextInput.UpdateMode.get -> Bzs.Blazor.BzsInputUpdateMode
+Bzs.Blazor.BzsTextInput.UpdateMode.set -> void
+Bzs.Blazor.BzsTextInputType
+Bzs.Blazor.BzsTextInputType.Email = 1 -> Bzs.Blazor.BzsTextInputType
+Bzs.Blazor.BzsTextInputType.Search = 2 -> Bzs.Blazor.BzsTextInputType
+Bzs.Blazor.BzsTextInputType.Text = 0 -> Bzs.Blazor.BzsTextInputType
 Bzs.Blazor.BzsAutocomplete<TValue>
 Bzs.Blazor.BzsAutocomplete<TValue>.BzsAutocomplete() -> void
 Bzs.Blazor.BzsAutocomplete<TValue>.ClearText.get -> string?
@@ -187,6 +209,7 @@ Bzs.Blazor.BzsDataGrid<TItem>.Provider.get -> Bzs.Blazor.IBzsDataGridProvider<TI
 Bzs.Blazor.BzsDataGrid<TItem>.Provider.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ProviderFailed.get -> Microsoft.AspNetCore.Components.EventCallback<System.Exception!>
 Bzs.Blazor.BzsDataGrid<TItem>.ProviderFailed.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.RefreshAsync() -> System.Threading.Tasks.Task!
 Bzs.Blazor.BzsDataGrid<TItem>.RetryText.get -> string?
 Bzs.Blazor.BzsDataGrid<TItem>.RetryText.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.RowAccessibleName.get -> System.Func<TItem, string!>?
@@ -195,6 +218,8 @@ Bzs.Blazor.BzsDataGrid<TItem>.SelectedItem.get -> TItem?
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItem.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemChanged.get -> Microsoft.AspNetCore.Components.EventCallback<TItem?>
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemChanged.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SelectAllText.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.SelectAllText.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItems.get -> System.Collections.Generic.IReadOnlyList<TItem>!
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItems.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemsChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<TItem>!>
@@ -203,6 +228,12 @@ Bzs.Blazor.BzsDataGrid<TItem>.SelectionColumnText.get -> string?
 Bzs.Blazor.BzsDataGrid<TItem>.SelectionColumnText.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectionMode.get -> Bzs.Blazor.BzsDataGridSelectionMode
 Bzs.Blazor.BzsDataGrid<TItem>.SelectionMode.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ShowPageSizeSelector.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ShowPageSizeSelector.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ShowPagination.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ShowPagination.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ShowSelectAll.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ShowSelectAll.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.Sort.get -> Bzs.Blazor.BzsDataGridSort?
 Bzs.Blazor.BzsDataGrid<TItem>.Sort.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SortChanged.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsDataGridSort?>
@@ -528,3 +559,8 @@ static Bzs.Blazor.BzsBreadcrumbItem.operator !=(Bzs.Blazor.BzsBreadcrumbItem? le
 static Bzs.Blazor.BzsBreadcrumbItem.operator ==(Bzs.Blazor.BzsBreadcrumbItem? left, Bzs.Blazor.BzsBreadcrumbItem? right) -> bool
 static Bzs.Blazor.BzsDataGridSort.operator !=(Bzs.Blazor.BzsDataGridSort? left, Bzs.Blazor.BzsDataGridSort? right) -> bool
 static Bzs.Blazor.BzsDataGridSort.operator ==(Bzs.Blazor.BzsDataGridSort? left, Bzs.Blazor.BzsDataGridSort? right) -> bool
+Bzs.Blazor.BzsNavigationDrawer.CloseOnEscape.get -> bool
+Bzs.Blazor.BzsNavigationDrawer.CloseOnEscape.set -> void
+Bzs.Blazor.BzsNavigationDrawer.InitialFocusSelector.get -> string?
+Bzs.Blazor.BzsNavigationDrawer.InitialFocusSelector.set -> void
+Bzs.Blazor.BzsNavigationDrawer.DisposeAsync() -> System.Threading.Tasks.ValueTask

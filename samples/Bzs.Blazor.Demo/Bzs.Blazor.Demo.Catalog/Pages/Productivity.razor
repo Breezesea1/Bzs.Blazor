@@ -143,7 +143,15 @@
             <h2 id="grid-specimen-title">Typed provider DataGrid</h2>
             <p>Page, sort, filter, loading, empty, error, retry, and row identity stay in the public contract.</p>
         </header>
+        <div class="demo-control-row">
+            <BzsButton Variant="BzsButtonVariant.Outline"
+                       Click="RefreshGridAsync"
+                       AccessibleName="@DemoText.Productivity.RefreshGridAccessibleName"
+                       data-testid="productivity-grid-refresh">@DemoText.Productivity.RefreshGrid</BzsButton>
+            <span class="demo-runtime-status" role="status" data-testid="productivity-grid-refresh-status">@GridRefreshStatus</span>
+        </div>
         <BzsDataGrid TItem="ReviewRow"
+                     @ref="_grid"
                      Provider="@_gridProvider"
                      Page="@_gridPage"
                      PageChanged="value => _gridPage = value"
@@ -154,10 +162,12 @@
                      SortChanged="value => _gridSort = value"
                      Filters="@_gridFilters"
                      FiltersChanged="value => _gridFilters = value"
+                     ShowPageSizeSelector="false"
                      ItemKey="row => row.Id"
                      SelectionMode="BzsDataGridSelectionMode.Multiple"
+                     ShowSelectAll="true"
                      SelectedItems="@_selectedRows"
-                     SelectedItemsChanged="value => _selectedRows = value"
+                     SelectedItemsChanged="HandleGridSelectionChanged"
                      Caption="Review queue"
                      AccessibleName="Review queue data"
                      data-testid="productivity-grid">
@@ -178,10 +188,33 @@
                                ValueSelector="row => row.Priority"
                                Sortable="true" />
         </BzsDataGrid>
+        <h3>@DemoText.Productivity.CompactGridTitle</h3>
+        <p>@DemoText.Productivity.CompactGridDescription</p>
+        <BzsDataGrid TItem="ReviewRow"
+                     Items="@CompactGridRows"
+                     PageSize="5"
+                     PageSizeOptions="@_gridPageSizeOptions"
+                     ShowPageSizeSelector="false"
+                     ShowPagination="false"
+                     Caption="@DemoText.Productivity.CompactGridTitle"
+                     AccessibleName="@DemoText.Productivity.CompactGridTitle"
+                     data-testid="productivity-compact-grid">
+            <BzsDataGridColumn TItem="ReviewRow"
+                               Key="title"
+                               Title="@DemoText.Productivity.CompactGridReviewColumn"
+                               ValueSelector="row => row.Title" />
+            <BzsDataGridColumn TItem="ReviewRow"
+                               Key="owner"
+                               Title="@DemoText.Productivity.CompactGridOwnerColumn"
+                               ValueSelector="row => row.Owner" />
+        </BzsDataGrid>
     </section>
 </section>
 
 @code {
+    [SupplyParameterFromQuery(Name = "rejectGridSelection")]
+    public bool RejectGridSelection { get; set; }
+
     private IReadOnlyList<BzsBreadcrumbItem> BreadcrumbItems =>
     [
         new("Home", RouteUrl("./")),
@@ -189,6 +222,19 @@
     ];
     private readonly OwnerProvider _ownerProvider = new();
     private readonly DemoGridProvider _gridProvider = new();
+    private IReadOnlyList<ReviewRow> CompactGridRows =>
+    [
+        new(
+            901,
+            DemoText.Productivity.CompactGridReleaseNotes,
+            "Mei",
+            DemoText.Productivity.CompactGridNormalPriority),
+        new(
+            902,
+            DemoText.Productivity.CompactGridKeyboardAudit,
+            "Alicia",
+            DemoText.Productivity.CompactGridHighPriority),
+    ];
     private readonly WorkbenchForm _form = new();
     private bool _chipSelected = true;
     private bool _chipVisible = true;
@@ -204,6 +250,12 @@
     private BzsDataGridSort? _gridSort;
     private IReadOnlyList<BzsDataGridFilter> _gridFilters = Array.Empty<BzsDataGridFilter>();
     private IReadOnlyList<ReviewRow> _selectedRows = Array.Empty<ReviewRow>();
+    private BzsDataGrid<ReviewRow>? _grid;
+    private bool _gridRefreshed;
+
+    private string GridRefreshStatus => _gridRefreshed
+        ? DemoText.Productivity.GridRefreshed
+        : DemoText.Productivity.GridRefreshReady;
 
     private Task RemoveChip(MouseEventArgs _)
     {
@@ -220,6 +272,25 @@
     private Task AssignReviewer() { _commandStatus = "Reviewer assignment opened."; return Task.CompletedTask; }
     private Task OpenReview() { _commandStatus = "Review opened."; return Task.CompletedTask; }
     private Task CopyReviewLink() { _commandStatus = "Review link copied."; return Task.CompletedTask; }
+
+    private async Task RefreshGridAsync()
+    {
+        if (_grid is null)
+        {
+            return;
+        }
+
+        await _grid.RefreshAsync();
+        _gridRefreshed = true;
+    }
+
+    private void HandleGridSelectionChanged(IReadOnlyList<ReviewRow> value)
+    {
+        if (!RejectGridSelection)
+        {
+            _selectedRows = value;
+        }
+    }
 
     private sealed class OwnerProvider : IBzsAutocompleteProvider<string>
     {

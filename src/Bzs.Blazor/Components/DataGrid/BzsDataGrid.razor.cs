@@ -12,6 +12,7 @@ namespace Bzs.Blazor;
 /// <typeparam name="TItem">The row item type.</typeparam>
 public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 {
+    private const string ModulePath = "./_content/Bzs.Blazor/Components/DataGrid/BzsDataGrid.razor.js";
     private static readonly IReadOnlyList<int> DefaultPageSizeOptions =
         Array.AsReadOnly(new[] { 10, 25, 50 });
     private readonly string _instanceId = $"bzs-data-grid-{Guid.NewGuid():N}";
@@ -20,9 +21,13 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     private readonly Dictionary<string, string> _filterDrafts = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _filterOperatorDrafts = new(StringComparer.Ordinal);
     private readonly Dictionary<string, BzsDataGridFilter> _observedFilters = new(StringComparer.Ordinal);
+    private ElementReference _selectAllReference;
+    private BzsJsModule? _selectAllInterop;
     private HashSet<object?>? _selectedItemKeys;
     private BzsDataGridRequestCoordinator<TItem>? _requestCoordinator;
     private IBzsDataGridProvider<TItem>? _coordinatorProvider;
+    private ProviderRefresh? _pendingRefresh;
+    private ProviderRefresh? _activeRefresh;
     private BzsDataGridRequest? _lastStartedRequest;
     private BzsDataGridRequest? _acceptedRequest;
     private BzsDataGridResult<TItem>? _acceptedResult;
@@ -35,6 +40,9 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 
     [Inject]
     private IStringLocalizer<BzsBlazorResources> Localizer { get; set; } = default!;
+
+    [Inject]
+    private IJSRuntime JsRuntime { get; set; } = default!;
 
     /// <summary>Gets or sets the complete in-memory item collection.</summary>
     [Parameter]
@@ -96,6 +104,14 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     [Parameter]
     public bool CompactPagination { get; set; }
 
+    /// <summary>Gets or sets whether the footer displays the page-size selector.</summary>
+    [Parameter]
+    public bool ShowPageSizeSelector { get; set; } = true;
+
+    /// <summary>Gets or sets whether the footer displays pagination controls.</summary>
+    [Parameter]
+    public bool ShowPagination { get; set; } = true;
+
     /// <summary>Gets or sets the controlled single-column sort.</summary>
     [Parameter]
     public BzsDataGridSort? Sort { get; set; }
@@ -107,6 +123,14 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     /// <summary>Gets or sets the controlled row-selection mode.</summary>
     [Parameter]
     public BzsDataGridSelectionMode SelectionMode { get; set; }
+
+    /// <summary>Gets or sets whether multiple selection includes a current-page select-all control.</summary>
+    [Parameter]
+    public bool ShowSelectAll { get; set; }
+
+    /// <summary>Gets or sets the accessible label for the current-page select-all control.</summary>
+    [Parameter]
+    public string? SelectAllText { get; set; }
 
     /// <summary>Gets or sets the stable row-key selector required by row selection.</summary>
     [Parameter]
@@ -184,6 +208,51 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     [Parameter]
     public Func<TItem, string>? RowAccessibleName { get; set; }
 
+    /// <summary>
+    /// Reloads the current provider request and completes when that request succeeds, fails, or is superseded.
+    /// </summary>
+    /// <remarks>
+    /// Provider failures remain available through <see cref="ProviderFailed" /> and the rendered error state.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">Thrown when the grid is configured with <see cref="Items" /> instead of <see cref="Provider" />.</exception>
+    public async Task RefreshAsync()
+    {
+        ProviderRefresh? refresh = null;
+        await InvokeAsync(() => { refresh = QueueRefresh(); });
+        if (refresh is not null)
+        {
+            await refresh.Completion.Task;
+        }
+    }
+
+    private ProviderRefresh? QueueRefresh()
+    {
+        if (_disposed)
+        {
+            return null;
+        }
+
+        if (Provider is null)
+        {
+            throw new InvalidOperationException("BzsDataGrid RefreshAsync requires Provider mode.");
+        }
+
+        var pendingRefresh = _pendingRefresh;
+        _pendingRefresh = null;
+        SupersedeRefresh(pendingRefresh);
+        SupersedeRefresh(_activeRefresh);
+        var refresh = new ProviderRefresh(Provider, CreateProviderRequest());
+        if (RendererInfo.IsInteractive)
+        {
+            StartRefresh(refresh);
+            return refresh;
+        }
+
+        _pendingRefresh = refresh;
+        StateHasChanged();
+        return refresh;
+    }
+
     internal IReadOnlyList<BzsDataGridColumn<TItem>> Columns => _columns;
 
     private IReadOnlyList<TItem> SourceItems => Provider is null
@@ -255,6 +324,8 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         Normalize(PaginationAccessibleName) ?? Localize("DataGridPaginationAccessibleName");
     private string EffectiveSelectionColumnText =>
         Normalize(SelectionColumnText) ?? Localize("DataGridSelectionColumnText");
+    private string EffectiveSelectAllText =>
+        Normalize(SelectAllText) ?? Localize("DataGridSelectAllText");
     private string EffectiveSortAscendingText => Localize("DataGridSortAscendingText");
     private string EffectiveSortDescendingText => Localize("DataGridSortDescendingText");
     private string EffectiveClearSortText => Localize("DataGridClearSortText");
@@ -369,8 +440,17 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_disposed
-            || Provider is null
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (ShowCurrentPageSelectAll && RendererInfo.IsInteractive)
+        {
+            await SynchronizeSelectAllAsync();
+        }
+
+        if (Provider is null
             || !RendererInfo.IsInteractive
             || _interactionBatchDepth > 0)
         {
@@ -378,11 +458,27 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         }
 
         var request = CreateProviderRequest();
+        if (_pendingRefresh is { } pendingRefresh)
+        {
+            _pendingRefresh = null;
+            if (!ReferenceEquals(pendingRefresh.Provider, Provider)
+                || !RequestsEqual(pendingRefresh.Request, request))
+            {
+                SupersedeRefresh(pendingRefresh);
+            }
+            else
+            {
+                StartRefresh(pendingRefresh);
+                return;
+            }
+        }
+
         if (RequestsEqual(_lastStartedRequest, request))
         {
             return;
         }
 
+        SupersedeRefresh(_activeRefresh);
         _lastStartedRequest = request;
         await LoadProviderAsync(request);
     }
@@ -394,6 +490,10 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
             return;
         }
 
+        SupersedeRefresh(_pendingRefresh);
+        SupersedeRefresh(_activeRefresh);
+        _pendingRefresh = null;
+        _activeRefresh = null;
         _requestCoordinator?.Dispose();
         _requestCoordinator = null;
         _coordinatorProvider = Provider;
@@ -474,6 +574,32 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         _providerError = null;
         _selectedItemKeys = CreateSelectedItemKeys();
         StateHasChanged();
+    }
+
+    private async Task LoadRefreshAsync(ProviderRefresh refresh)
+    {
+        _activeRefresh = refresh;
+        _lastStartedRequest = refresh.Request;
+        try
+        {
+            await LoadProviderAsync(refresh.Request);
+        }
+        finally
+        {
+            CompleteRefresh(refresh);
+        }
+    }
+
+    private async void StartRefresh(ProviderRefresh refresh)
+    {
+        try
+        {
+            await LoadRefreshAsync(refresh);
+        }
+        catch (Exception exception)
+        {
+            await DispatchExceptionAsync(exception);
+        }
     }
 
     private static void ValidateProviderResult(
@@ -686,6 +812,60 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         await SelectedItemsChanged.InvokeAsync(selected);
     }
 
+    private async Task RequestCurrentPageSelectionAsync(ChangeEventArgs args)
+    {
+        if (!ShowCurrentPageSelectAll)
+        {
+            return;
+        }
+
+        var rows = Rows;
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        var selectCurrentPage = args.Value is bool isChecked
+            ? isChecked
+            : !AreAllCurrentRowsSelected(rows);
+        var currentItemsByKey = new Dictionary<object, TItem>(KeyComparer);
+        foreach (var row in rows)
+        {
+            currentItemsByKey.Add(GetItemKey(row), row);
+        }
+
+        var selected = new List<TItem>(SelectedItems.Count + rows.Count);
+        var selectedCurrentPageKeys = new HashSet<object?>(KeyComparer);
+        foreach (var selectedItem in SelectedItems)
+        {
+            var selectedKey = GetItemKey(selectedItem);
+            if (currentItemsByKey.TryGetValue(selectedKey, out var currentItem))
+            {
+                if (selectCurrentPage && selectedCurrentPageKeys.Add(selectedKey))
+                {
+                    selected.Add(currentItem);
+                }
+
+                continue;
+            }
+
+            selected.Add(selectedItem);
+        }
+
+        if (selectCurrentPage)
+        {
+            foreach (var row in rows)
+            {
+                if (selectedCurrentPageKeys.Add(GetItemKey(row)))
+                {
+                    selected.Add(row);
+                }
+            }
+        }
+
+        await SelectedItemsChanged.InvokeAsync(selected);
+    }
+
     private bool IsColumnMenuOpen(BzsDataGridColumn<TItem> column) =>
         string.Equals(_openColumnMenuKey, column.EffectiveKey, StringComparison.Ordinal);
 
@@ -848,6 +1028,19 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         return Task.CompletedTask;
     }
 
+    private static void SupersedeRefresh(ProviderRefresh? refresh) =>
+        refresh?.Completion.TrySetResult();
+
+    private void CompleteRefresh(ProviderRefresh refresh)
+    {
+        if (ReferenceEquals(_activeRefresh, refresh))
+        {
+            _activeRefresh = null;
+        }
+
+        refresh.Completion.TrySetResult();
+    }
+
     private bool IsSelected(TItem item) => SelectionMode switch
     {
         BzsDataGridSelectionMode.Single => SelectedItem is not null && KeysEqual(SelectedItem, item),
@@ -857,6 +1050,39 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 
     private bool IsSelectedMultiple(TItem item) =>
         _selectedItemKeys?.Contains(GetItemKey(item)) == true;
+
+    private bool ShowCurrentPageSelectAll =>
+        ShowSelectAll && SelectionMode == BzsDataGridSelectionMode.Multiple;
+
+    private bool AreAllCurrentRowsSelected(IReadOnlyList<TItem> rows) =>
+        rows.Count > 0 && rows.All(IsSelectedMultiple);
+
+    private string GetCurrentPageSelectAllState(IReadOnlyList<TItem> rows)
+    {
+        if (rows.Count == 0 || !rows.Any(IsSelectedMultiple))
+        {
+            return "false";
+        }
+
+        return AreAllCurrentRowsSelected(rows) ? "true" : "mixed";
+    }
+
+    private ValueTask<bool> SynchronizeSelectAllAsync()
+    {
+        var rows = Rows;
+        var allSelected = AreAllCurrentRowsSelected(rows);
+        var indeterminate = !allSelected && rows.Any(IsSelectedMultiple);
+        return GetSelectAllInterop().TryInvokeVoidAsync(
+            "synchronize",
+            _selectAllReference,
+            allSelected,
+            indeterminate);
+    }
+
+    private BzsJsModule GetSelectAllInterop() => _selectAllInterop ??= new BzsJsModule(
+        JsRuntime,
+        ModulePath,
+        options: new BzsJsModuleOptions(TreatInvalidOperationDuringImportAsTransient: true));
 
     private bool KeysEqual(TItem left, TItem right) =>
         KeyComparer.Equals(GetItemKey(left), GetItemKey(right));
@@ -1081,18 +1307,25 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         };
 
     /// <inheritdoc />
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed)
         {
-            return ValueTask.CompletedTask;
+            return;
         }
 
         _disposed = true;
+        SupersedeRefresh(_pendingRefresh);
+        SupersedeRefresh(_activeRefresh);
+        _pendingRefresh = null;
+        _activeRefresh = null;
         _requestCoordinator?.Dispose();
         _requestCoordinator = null;
         _coordinatorProvider = null;
-        return ValueTask.CompletedTask;
+        if (_selectAllInterop is not null)
+        {
+            await _selectAllInterop.DisposeAsync();
+        }
     }
 
     private static string? Normalize(string? value) =>
@@ -1141,6 +1374,18 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
                     attributes
                         .OrderBy(static attribute => attribute.Key, StringComparer.OrdinalIgnoreCase)
                         .Select(static attribute => $"{attribute.Key}={attribute.Value}"));
+    }
+
+    private sealed class ProviderRefresh(
+        IBzsDataGridProvider<TItem> provider,
+        BzsDataGridRequest request)
+    {
+        internal IBzsDataGridProvider<TItem> Provider { get; } = provider;
+
+        internal BzsDataGridRequest Request { get; } = request;
+
+        internal TaskCompletionSource Completion { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     private sealed class RendererKey

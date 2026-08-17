@@ -9,8 +9,12 @@ The general-purpose component library and visual system developed in this reposi
 _Avoid_: CoreApi UI package, DY3D-only design system, Radzen replacement project
 
 **Reference Application**:
-An existing application whose proven UI behavior and components may inform Bzs.Blazor without becoming a runtime, domain, or project dependency. CoreApi and CoreApi.Client are the initial reference applications.
+An existing application whose proven UI behavior and components may inform Bzs.Blazor without becoming a runtime, domain, or project dependency. Its needs are evidence for capability candidates, not implementation commitments; CoreApi and CoreApi.Client are the initial reference applications.
 _Avoid_: Host application, source project, required dependency
+
+**Capability Candidate**:
+A general-purpose Bzs.Blazor capability proposed from reference demand or framework analysis and awaiting an Adopt, Hold, Reject, or Merge decision.
+_Avoid_: Migration blocker, required feature, parity gap
 
 **Neumorphic Surface**:
 A semantic surface treatment that uses restrained highlight and shadow to communicate raised, inset, or overlay depth while preserving contrast and information density.

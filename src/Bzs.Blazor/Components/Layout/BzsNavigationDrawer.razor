@@ -1,13 +1,25 @@
 @namespace Bzs.Blazor
 @inherits BzsComponentBase
+@implements IAsyncDisposable
+@inject IJSRuntime JS
 
-<nav @attributes="RootAttributes">
+<nav @ref="_rootElement"
+     @attributes="RootAttributes"
+     @onkeydown="HandleKeyDownAsync">
     <button type="button"
             class="bzs-navigation-drawer__backdrop"
             tabindex="-1"
             aria-hidden="true"
             @onclick="HandleBackdropClickAsync"></button>
-    <div class="bzs-navigation-drawer__panel">
+    <div @ref="_panelElement"
+         class="bzs-navigation-drawer__panel"
+         tabindex="-1">
         @ChildContent
     </div>
+    <button @ref="_escapeTriggerElement"
+            type="button"
+            hidden
+            tabindex="-1"
+            aria-hidden="true"
+            @onclick="HandleModalEscapeAsync"></button>
 </nav>

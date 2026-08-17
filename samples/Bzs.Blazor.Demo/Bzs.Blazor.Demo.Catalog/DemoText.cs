@@ -279,6 +279,35 @@ public static class DemoText
         public static string FooterNote => Get("基于 MIT 许可证发布。", "Released under the MIT license.");
     }
 
+    public static class Productivity
+    {
+        public static string RefreshGrid => Get("刷新数据网格", "Refresh DataGrid");
+
+        public static string RefreshGridAccessibleName => Get("刷新当前数据网格请求", "Refresh the current DataGrid request");
+
+        public static string GridRefreshReady => Get("数据网格已准备好刷新。", "The DataGrid is ready to refresh.");
+
+        public static string GridRefreshed => Get("数据网格已使用相同的提供程序请求刷新。", "The DataGrid refreshed with the same provider request.");
+
+        public static string CompactGridTitle => Get("紧凑数据网格", "Compact DataGrid");
+
+        public static string CompactGridDescription => Get(
+            "分页仍由受控参数决定，而页脚控件可以独立隐藏。",
+            "Paging remains controlled while footer controls can be hidden independently.");
+
+        public static string CompactGridReviewColumn => Get("评审", "Review");
+
+        public static string CompactGridOwnerColumn => Get("负责人", "Owner");
+
+        public static string CompactGridReleaseNotes => Get("发布说明", "Release notes");
+
+        public static string CompactGridKeyboardAudit => Get("键盘审计", "Keyboard audit");
+
+        public static string CompactGridNormalPriority => Get("普通", "Normal");
+
+        public static string CompactGridHighPriority => Get("高", "High");
+    }
+
     private static string Get(string chinese, string english) =>
         DemoCulture.IsChinese(CultureInfo.CurrentUICulture.Name) ? chinese : english;
 }
