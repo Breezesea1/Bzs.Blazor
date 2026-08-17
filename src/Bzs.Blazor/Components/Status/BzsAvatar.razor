@@ -2,15 +2,22 @@
 @inherits BzsComponentBase
 
 <span @attributes="RootAttributes">
-    <span class="bzs-avatar__fallback" aria-hidden="true">
-        @FallbackContent
+    <span class="bzs-avatar__visual" aria-hidden="true">
+        <span class="bzs-avatar__fallback">
+            @FallbackContent
+        </span>
+        @if (HasImage)
+        {
+            <img class="bzs-avatar__image"
+                 src="@ImageUrl!.Trim()"
+                 alt=""
+                 aria-hidden="true"
+                 draggable="false" />
+        }
     </span>
-    @if (HasImage)
+    @if (HasName)
     {
-        <img class="bzs-avatar__image"
-             src="@ImageUrl!.Trim()"
-             alt=""
-             aria-hidden="true"
-             draggable="false" />
+        <span class="bzs-avatar__name"
+              aria-hidden="@(HasExplicitAccessibleName ? "true" : null)">@NormalizedName</span>
     }
 </span>

@@ -46,6 +46,72 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         Assert.DoesNotContain("Keyboard audit", html, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task NamedAvatarShowsACompactTruncatableIdentity()
+    {
+        BeginBrowserGateTest("named-avatar");
+        await Page.SetViewportSizeAsync(360, 800);
+        var response = await Page.GotoAsync(
+            $"{server.BaseUrl}/productivity/auto?culture=en-US");
+        Assert.True(response?.Ok ?? false);
+        await Expect(Page.GetByTestId("productivity-workbench"))
+            .ToHaveAttributeAsync("data-bzs-interactive", "true");
+
+        var statusRow = Page.Locator("[aria-label='Status primitives']:visible");
+        ILocator? name = null;
+        foreach (var candidate in await statusRow.Locator("span").AllAsync())
+        {
+            if (string.Equals(
+                    (await candidate.TextContentAsync())?.Trim(),
+                    "Alicia Santos",
+                    StringComparison.Ordinal)
+                && await candidate.IsVisibleAsync())
+            {
+                name = candidate;
+                break;
+            }
+        }
+
+        Assert.NotNull(name);
+        await Expect(name).ToBeVisibleAsync();
+        await Expect(name).ToHaveCSSAsync("white-space", "nowrap");
+        await Expect(name).ToHaveCSSAsync("text-overflow", "ellipsis");
+
+        var identity = name.Locator("..");
+        await identity.EvaluateAsync(
+            "element => element.style.setProperty('max-inline-size', '6rem')");
+        var overflowMetrics = await name.EvaluateAsync<int[]>(
+            "element => [element.scrollWidth, element.clientWidth]");
+        var identityMetrics = await identity.EvaluateAsync<int[]>(
+            "element => [element.scrollWidth, element.clientWidth, parseInt(getComputedStyle(element).maxInlineSize)]");
+        Assert.True(
+            overflowMetrics[0] > overflowMetrics[1],
+            $"Expected the name to overflow, but its scroll/client widths were {overflowMetrics[0]}/{overflowMetrics[1]}px "
+            + $"and the identity scroll/client/max widths were {identityMetrics[0]}/{identityMetrics[1]}/{identityMetrics[2]}px.");
+
+        await identity.EvaluateAsync(
+            "element => {"
+            + " element.style.setProperty('--bzs-radius-control', '3px');"
+            + " element.style.setProperty('--bzs-radius-container', '13px');"
+            + " }");
+        await Expect(identity.Locator(".bzs-avatar__visual"))
+            .ToHaveCSSAsync("border-top-left-radius", "13px");
+
+        var identityBox = await identity.BoundingBoxAsync();
+        var statusRowBox = await statusRow.BoundingBoxAsync();
+        Assert.NotNull(identityBox);
+        Assert.NotNull(statusRowBox);
+        Assert.True(identityBox.Width <= statusRowBox.Width + 0.5f);
+
+        await Page.SetViewportSizeAsync(320, 800);
+        await identity.EvaluateAsync(
+            "element => element.style.setProperty('max-inline-size', '7rem')");
+        await Expect(name).ToHaveCSSAsync("white-space", "normal");
+        Assert.False(await name.EvaluateAsync<bool>(
+            "element => element.scrollWidth > element.clientWidth"));
+        AssertNoUnexpectedBrowserErrors("Named avatar");
+    }
+
     [Theory]
     [InlineData("server")]
     [InlineData("webassembly")]
@@ -67,7 +133,8 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
             AriaRole.Navigation,
             new() { Name = "Workbench navigation" });
         await Expect(workbenchNavigation).ToBeVisibleAsync();
-        await Expect(Page.GetByRole(AriaRole.Img, new() { Name = "Alicia Santos" }))
+        await Expect(Page.Locator("[aria-label='Status primitives']")
+            .GetByText("Alicia Santos", new() { Exact = true }))
             .ToBeVisibleAsync();
         await Expect(Page.GetByText("7", new() { Exact = true })).ToBeVisibleAsync();
 

@@ -168,6 +168,39 @@ public sealed class StatusPrimitiveTests
     }
 
     [Fact]
+    public void AvatarRendersItsVisibleNameAsAccessibleIdentityText()
+    {
+        using var context = new BunitContext();
+
+        var cut = context.Render<BzsAvatar>(parameters => parameters
+            .Add(component => component.Initials, "AL")
+            .Add(component => component.Name, "  Ada Lovelace  "));
+
+        var name = cut.FindAll("span")
+            .Single(element => element.TextContent == "Ada Lovelace");
+        Assert.False(name.HasAttribute("aria-hidden"));
+        Assert.Null(cut.Find("span.bzs-avatar").GetAttribute("aria-hidden"));
+    }
+
+    [Fact]
+    public void AvatarAccessibleNameOverridesVisibleNameWithoutDuplicateAnnouncement()
+    {
+        using var context = new BunitContext();
+
+        var cut = context.Render<BzsAvatar>(parameters => parameters
+            .Add(component => component.Initials, "AL")
+            .Add(component => component.Name, "Ada Lovelace")
+            .Add(component => component.AccessibleName, "Account owner Ada Lovelace"));
+
+        var avatar = cut.Find("span.bzs-avatar");
+        Assert.Equal("group", avatar.GetAttribute("role"));
+        Assert.Equal("Account owner Ada Lovelace", avatar.GetAttribute("aria-label"));
+        var name = cut.FindAll("span")
+            .Single(element => element.TextContent == "Ada Lovelace");
+        Assert.Equal("true", name.GetAttribute("aria-hidden"));
+    }
+
+    [Fact]
     public void AvatarRendersNativeImageFallbackWithoutChangingItsRootDimensions()
     {
         using var context = new BunitContext();

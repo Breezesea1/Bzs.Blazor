@@ -69,6 +69,8 @@ Bzs.Blazor.BzsAvatar.ImageUrl.get -> string?
 Bzs.Blazor.BzsAvatar.ImageUrl.set -> void
 Bzs.Blazor.BzsAvatar.Initials.get -> string?
 Bzs.Blazor.BzsAvatar.Initials.set -> void
+Bzs.Blazor.BzsAvatar.Name.get -> string?
+Bzs.Blazor.BzsAvatar.Name.set -> void
 Bzs.Blazor.BzsAvatar.Shape.get -> Bzs.Blazor.BzsAvatarShape
 Bzs.Blazor.BzsAvatar.Shape.set -> void
 Bzs.Blazor.BzsAvatar.Size.get -> Bzs.Blazor.BzsAvatarSize

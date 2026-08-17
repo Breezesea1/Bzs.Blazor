@@ -1,7 +1,7 @@
 namespace Bzs.Blazor;
 
 /// <summary>
-/// Renders a fixed-size identity image with initials or icon fallback content.
+/// Renders a compact identity avatar with initials or icon fallback content and an optional visible name.
 /// </summary>
 public sealed partial class BzsAvatar : BzsComponentBase
 {
@@ -19,6 +19,12 @@ public sealed partial class BzsAvatar : BzsComponentBase
     /// </summary>
     [Parameter]
     public string? Initials { get; set; }
+
+    /// <summary>
+    /// Gets or sets the optional visible identity name rendered beside the avatar.
+    /// </summary>
+    [Parameter]
+    public string? Name { get; set; }
 
     /// <summary>
     /// Gets or sets the icon rendered when no initials are available.
@@ -39,12 +45,20 @@ public sealed partial class BzsAvatar : BzsComponentBase
     public BzsAvatarShape Shape { get; set; } = BzsAvatarShape.Circle;
 
     /// <summary>
-    /// Gets or sets the accessible identity name. When omitted, the avatar is decorative.
+    /// Gets or sets the accessible identity name. When omitted, <see cref="Name" /> supplies the accessible
+    /// identity text; an avatar without either name is decorative.
     /// </summary>
     [Parameter]
     public string? AccessibleName { get; set; }
 
     private bool HasImage => !string.IsNullOrWhiteSpace(ImageUrl);
+
+    private bool HasName => !string.IsNullOrWhiteSpace(Name);
+
+    private bool HasExplicitAccessibleName => !string.IsNullOrWhiteSpace(AccessibleName)
+        || HasAdditionalAccessibleName();
+
+    private string NormalizedName => Name?.Trim() ?? string.Empty;
 
     private string SizeName => Size switch
     {
@@ -91,7 +105,28 @@ public sealed partial class BzsAvatar : BzsComponentBase
                 ["data-bzs-avatar-shape"] = ShapeName,
             };
 
-            if (!string.IsNullOrWhiteSpace(AccessibleName))
+            if (HasName)
+            {
+                attributes["data-bzs-avatar-has-name"] = "true";
+                attributes.Remove("aria-hidden");
+
+                if (!string.IsNullOrWhiteSpace(AccessibleName))
+                {
+                    attributes["role"] = "group";
+                    attributes["aria-label"] = AccessibleName.Trim();
+                }
+                else if (HasAdditionalAccessibleName())
+                {
+                    attributes["role"] = "group";
+                }
+                else
+                {
+                    attributes.Remove("role");
+                    attributes.Remove("aria-label");
+                    attributes.Remove("aria-labelledby");
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(AccessibleName))
             {
                 attributes.Remove("aria-hidden");
                 attributes["role"] = "img";
