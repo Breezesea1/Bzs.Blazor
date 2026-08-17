@@ -1,3 +1,5 @@
+@inject IBzsDialogService DialogService
+
 <section id="navigation-drawer-fixture"
          data-fixture-interactive="@(_interactive ? "true" : "false")"
          @onkeydown="RecordAncestorKeyDown">
@@ -15,6 +17,9 @@
     <button id="fixture-reject-close" type="button" @onclick="RejectClose">Reject close</button>
     <button id="fixture-accept-close" type="button" @onclick="AcceptClose">Accept close</button>
 
+    <BzsOverlayHost id="fixture-overlay-host" />
+    <output id="fixture-service-dialog-status">@_serviceDialogStatus</output>
+
     <BzsNavigationDrawer Id="fixture-drawer"
                          Class="@DrawerClass"
                          Style="position: fixed; inset: 0;"
@@ -28,6 +33,7 @@
         {
             <button id="fixture-close" type="button" @onclick="CloseDrawer">Close drawer</button>
             <button id="fixture-initial-focus-target" type="button">Initial focus target</button>
+            <button id="fixture-open-service-dialog" type="button" @onclick="OpenServiceDialogAsync">Open service dialog</button>
             <a id="fixture-enhanced-navigation" href="/layout">Navigate</a>
         }
     </BzsNavigationDrawer>
@@ -44,6 +50,7 @@
     private string? _initialFocusSelector;
     private bool _interactive;
     private bool _open;
+    private string _serviceDialogStatus = "Not opened";
     private bool _showFocusableContent = true;
     private BzsNavigationDrawerVariant _variant = BzsNavigationDrawerVariant.Temporary;
 
@@ -95,6 +102,24 @@
     private void RejectClose() => _acceptClose = false;
 
     private void AcceptClose() => _acceptClose = true;
+
+    private async Task OpenServiceDialogAsync()
+    {
+        var result = await DialogService.ShowAsync<OverlayResultDialog, bool>(
+            parameters => parameters.Add(
+                component => component.Prompt,
+                "Complete the drawer workflow?"),
+            new BzsDialogOptions
+            {
+                Title = "Drawer service dialog",
+                AccessibleName = "Drawer service dialog",
+                InitialFocusSelector = "#service-dialog-complete",
+            });
+
+        _serviceDialogStatus = result.IsCompleted
+            ? "Completed"
+            : $"Result: {result.Kind}";
+    }
 
     private void RecordAncestorKeyDown() => _ancestorKeyCount++;
 

@@ -204,7 +204,9 @@ function reconcileBackground(overlay) {
     }
 
     const nextTargets = Array.from(parent.children)
-        .filter(element => element !== overlay.root && element instanceof HTMLElement);
+        .filter(element => element !== overlay.root
+            && element instanceof HTMLElement
+            && element.dataset.bzsOverlayHost !== 'true');
     for (const target of overlay.backgroundTargets) {
         if (!nextTargets.includes(target)) {
             releaseBackgroundTarget(target);

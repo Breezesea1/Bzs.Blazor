@@ -7,6 +7,30 @@ namespace Bzs.Blazor.BrowserTests;
 public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : BrowserGatePageTest
 {
     [Fact]
+    public async Task ServiceDialogOpenedFromModalDrawerRemainsInteractive()
+    {
+        BeginBrowserGateTest();
+        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await WaitForInteractiveShellAsync();
+        var drawerDialogTrigger = Page.Locator("#fixture-open-service-dialog");
+
+        await Page.Locator("#fixture-open").ClickAsync();
+        await drawerDialogTrigger.FocusAsync();
+        await drawerDialogTrigger.DispatchEventAsync("click");
+
+        var serviceDialog = Page.GetByRole(
+            AriaRole.Dialog,
+            new() { Name = "Drawer service dialog", Exact = true });
+        var complete = serviceDialog.GetByTestId("service-dialog-complete");
+        await Expect(Page.Locator("#fixture-overlay-host")).Not.ToHaveAttributeAsync("inert", "");
+        await Expect(complete).ToBeFocusedAsync();
+        await complete.ClickAsync();
+        await Expect(serviceDialog).ToHaveCountAsync(0);
+        await Expect(Page.Locator("#fixture-service-dialog-status")).ToHaveTextAsync("Completed");
+        await Expect(drawerDialogTrigger).ToBeFocusedAsync();
+    }
+
+    [Fact]
     public async Task ModalDrawerReconcilesNewAndReplacedBackgroundSiblings()
     {
         BeginBrowserGateTest();
