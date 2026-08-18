@@ -53,7 +53,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     public async Task LandingPageRendersSectionsInOrder(string query)
     {
         BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
-        await AssertLandingPageSectionsAsync(server.BaseUrl, query);
+        await AssertLandingPageSectionsAsync(server.BaseUrl, query, includesServerRenderModes: false);
     }
 
     [Fact]

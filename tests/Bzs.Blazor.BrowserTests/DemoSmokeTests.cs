@@ -316,7 +316,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     public async Task LandingPageRendersSectionsInOrder(string query)
     {
         BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
-        await AssertLandingPageSectionsAsync(server.BaseUrl, query);
+        await AssertLandingPageSectionsAsync(server.BaseUrl, query, includesServerRenderModes: true);
     }
 
     [Fact]

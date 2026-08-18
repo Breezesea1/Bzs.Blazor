@@ -246,7 +246,10 @@ public abstract class BrowserGatePageTest : PageTest
             .ToHaveAttributeAsync("data-bzs-theme", "dark");
     }
 
-    protected async Task AssertLandingPageSectionsAsync(string baseUrl, string query)
+    protected async Task AssertLandingPageSectionsAsync(
+        string baseUrl,
+        string query,
+        bool includesServerRenderModes)
     {
         await Page.GotoAsync($"{baseUrl}{query}");
 
@@ -270,6 +273,19 @@ public abstract class BrowserGatePageTest : PageTest
         var order = await Page.GetByTestId("landing-page").EvaluateAsync<string[]>(
             "root => [...root.querySelectorAll(':scope > [data-testid]')].map(element => element.getAttribute('data-testid'))");
         Assert.Equal(expectedSections, order);
+
+        var isChinese = !query.Contains("culture=en-US", StringComparison.OrdinalIgnoreCase);
+        var expectedRuntimeLinks = includesServerRenderModes
+            ? isChinese
+                ? new[] { "静态 SSR", "交互式服务器", "交互式 WebAssembly", "交互式自动" }
+                : ["Static SSR", "Interactive Server", "Interactive WebAssembly", "Interactive Auto"]
+            : isChinese
+                ? ["交互式 WebAssembly"]
+                : ["Interactive WebAssembly"];
+        var actualRuntimeLinks = await Page.GetByTestId("landing-routes")
+            .GetByRole(AriaRole.Link)
+            .AllTextContentsAsync();
+        Assert.Equal(expectedRuntimeLinks, actualRuntimeLinks.Select(text => text.Trim()));
     }
 
     protected async Task AssertLandingPageCopyFollowsCultureAsync(string baseUrl)

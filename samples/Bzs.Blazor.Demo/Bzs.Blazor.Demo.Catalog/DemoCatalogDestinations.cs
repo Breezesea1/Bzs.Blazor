@@ -149,7 +149,7 @@ public static class DemoCatalogDestinations
         DemoNavIcons.AutoRender,
         availability: DemoCatalogHostCapabilities.FullRenderModes);
 
-    internal static IReadOnlyList<DemoCatalogDestination> CapabilityCandidates { get; } =
+    internal static IReadOnlyList<DemoCatalogDestination> ComponentGroupDestinations { get; } =
     [
         ThemeFoundation,
         Foundation,
@@ -165,10 +165,10 @@ public static class DemoCatalogDestinations
     private static IReadOnlyList<DemoCatalogDestination> CatalogNavigation { get; } =
     [
         Overview,
-        .. CapabilityCandidates,
+        .. ComponentGroupDestinations,
     ];
 
-    private static IReadOnlyList<DemoCatalogDestination> FullRenderModes { get; } =
+    private static IReadOnlyList<DemoCatalogDestination> RuntimeDestinations { get; } =
     [
         StaticSsr,
         InteractiveServer,
@@ -183,7 +183,7 @@ public static class DemoCatalogDestinations
             capabilities.HasFlag(DemoCatalogHostCapabilities.FullRenderModes)
                 ? DemoText.Chrome.RenderModesSection
                 : DemoText.Chrome.RuntimeSection,
-            Available(FullRenderModes, capabilities));
+            GetRuntimeDestinations(capabilities));
 
         return
         [
@@ -192,6 +192,10 @@ public static class DemoCatalogDestinations
             runtimeSection,
         ];
     }
+
+    internal static IReadOnlyList<DemoCatalogDestination> GetRuntimeDestinations(
+        DemoCatalogHostCapabilities capabilities) =>
+        Available(RuntimeDestinations, capabilities);
 
     private static IReadOnlyList<DemoCatalogDestination> Available(
         IEnumerable<DemoCatalogDestination> destinations,

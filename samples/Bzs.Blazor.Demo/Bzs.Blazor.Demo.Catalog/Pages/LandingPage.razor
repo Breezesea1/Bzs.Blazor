@@ -176,18 +176,11 @@
     </section>
 
     <section class="demo-landing-section" aria-labelledby="landing-routes-title" data-testid="landing-routes">
-        <h2 id="landing-routes-title">@(IncludesServerRenderModes ? DemoText.Chrome.RenderModesSection : DemoText.Chrome.RuntimeSection)</h2>
+        <h2 id="landing-routes-title">@RuntimeSectionName</h2>
         <ul class="demo-route-list">
-            @if (IncludesServerRenderModes)
+            @foreach (var destination in RuntimeDestinations)
             {
-                <li><a href="@DestinationUrl(DemoCatalogDestinations.StaticSsr)">@DemoCatalogDestinations.StaticSsr.Name</a><span>@DemoText.Landing.StaticSsrDescription</span></li>
-                <li><a href="@DestinationUrl(DemoCatalogDestinations.InteractiveServer)">@DemoCatalogDestinations.InteractiveServer.Name</a><span>@DemoText.Landing.InteractiveServerDescription</span></li>
-                <li><a href="@DestinationUrl(DemoCatalogDestinations.InteractiveWebAssembly)">@DemoCatalogDestinations.InteractiveWebAssembly.Name</a><span>@DemoText.Landing.InteractiveWebAssemblyDescription</span></li>
-                <li><a href="@DestinationUrl(DemoCatalogDestinations.InteractiveAuto)">@DemoCatalogDestinations.InteractiveAuto.Name</a><span>@DemoText.Landing.InteractiveAutoDescription</span></li>
-            }
-            else
-            {
-                <li><a href="@DestinationUrl(DemoCatalogDestinations.InteractiveWebAssembly)">@DemoCatalogDestinations.InteractiveWebAssembly.Name</a><span>@DemoText.Landing.StandaloneRuntimeDescription</span></li>
+                <li @key="destination.Id"><a href="@DestinationUrl(destination)">@destination.Name</a><span>@RuntimeDescription(destination)</span></li>
             }
         </ul>
     </section>

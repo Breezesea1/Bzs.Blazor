@@ -44,6 +44,23 @@ public sealed class DemoCatalogDestinationTests
     }
 
     [Fact]
+    public void RuntimeDestinationsFollowHostCapabilities()
+    {
+        Assert.Equal(
+            ["static-ssr", "interactive-server", "interactive-webassembly", "interactive-auto"],
+            DemoCatalogDestinations.GetRuntimeDestinations(
+                    DemoCatalogHostCapabilities.SharedCatalog
+                    | DemoCatalogHostCapabilities.FullRenderModes)
+                .Select(destination => destination.Id));
+        Assert.Equal(
+            ["interactive-webassembly"],
+            DemoCatalogDestinations.GetRuntimeDestinations(
+                    DemoCatalogHostCapabilities.SharedCatalog
+                    | DemoCatalogHostCapabilities.StandaloneRuntime)
+                .Select(destination => destination.Id));
+    }
+
+    [Fact]
     public void HrefPreservesBasePathCultureQueryAndFragment()
     {
         var navigation = new TestNavigationManager(
