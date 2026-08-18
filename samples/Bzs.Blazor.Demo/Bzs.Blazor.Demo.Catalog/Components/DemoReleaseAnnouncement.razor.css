@@ -23,6 +23,7 @@
     box-shadow: var(--bzs-shadow-raised);
     color: var(--bzs-text);
     text-decoration: none;
+    transition: box-shadow var(--bzs-motion-fast) var(--bzs-motion-easing);
 }
 
 .demo-release-fallback:active {
@@ -100,6 +101,7 @@
     font-size: var(--bzs-font-size-small);
     font-weight: var(--bzs-font-weight-medium);
     text-decoration: none;
+    transition: background-color var(--bzs-motion-fast) var(--bzs-motion-easing);
 }
 
 .demo-release-details-link:hover {

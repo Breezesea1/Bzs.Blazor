@@ -62,9 +62,9 @@
     --bzs-font-weight-regular: 400;
     --bzs-font-weight-medium: 500;
     --bzs-font-weight-bold: 600;
-    --bzs-motion-fast: 120ms;
-    --bzs-motion-normal: 180ms;
-    --bzs-motion-slow: 240ms;
+    --bzs-motion-fast: 180ms;
+    --bzs-motion-normal: 240ms;
+    --bzs-motion-slow: 320ms;
     --bzs-motion-easing: cubic-bezier(0.2, 0, 0, 1);
     --bzs-control-height: 2.25rem;
     --bzs-control-padding-inline: 0.75rem;
@@ -115,6 +115,7 @@
     box-shadow: var(--bzs-shadow-inset);
     color: var(--bzs-text);
     font: inherit;
+    transition: box-shadow var(--bzs-motion-fast) var(--bzs-motion-easing);
 }
 
 .bzs-input:focus-visible {

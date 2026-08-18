@@ -49,7 +49,8 @@
     border-radius: 0.625rem;
     font-weight: 600;
     text-decoration: none;
-    transition: transform var(--bzs-motion-normal) ease, box-shadow var(--bzs-motion-normal) ease;
+    transition: box-shadow var(--bzs-motion-normal) var(--bzs-motion-easing),
+        transform var(--bzs-motion-normal) var(--bzs-motion-easing);
 }
 
 .demo-landing-cta--primary {
@@ -74,6 +75,7 @@
     gap: 0.25rem;
     color: var(--demo-muted);
     text-decoration: none;
+    transition: color var(--bzs-motion-fast) var(--bzs-motion-easing);
 }
 
 .demo-landing-github:hover {
@@ -208,7 +210,8 @@
     background: var(--demo-panel);
     color: var(--demo-text);
     text-decoration: none;
-    transition: border-color var(--bzs-motion-normal) ease, transform var(--bzs-motion-normal) ease;
+    transition: border-color var(--bzs-motion-normal) var(--bzs-motion-easing),
+        transform var(--bzs-motion-normal) var(--bzs-motion-easing);
 }
 
 .demo-landing-group-card:hover {
@@ -263,11 +266,13 @@
     justify-self: start;
     color: var(--demo-accent-strong);
     font-weight: 600;
-    text-decoration: none;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition: text-decoration-color var(--bzs-motion-fast) var(--bzs-motion-easing);
 }
 
 .demo-landing-release-more:hover {
-    text-decoration: underline;
+    text-decoration-color: currentColor;
 }
 
 .demo-landing-footer {
@@ -290,6 +295,7 @@
 .demo-landing-footer-links a {
     color: var(--demo-muted);
     text-decoration: none;
+    transition: color var(--bzs-motion-fast) var(--bzs-motion-easing);
 }
 
 .demo-landing-footer-links a:hover {

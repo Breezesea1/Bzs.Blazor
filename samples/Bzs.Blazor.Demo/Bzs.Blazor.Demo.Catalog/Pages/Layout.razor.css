@@ -424,6 +424,7 @@
 }
 
 ::deep .demo-app-shell-nav-link {
+    position: relative;
     display: flex;
     min-block-size: 2rem;
     align-items: center;
@@ -433,6 +434,25 @@
     color: var(--demo-app-shell-sidebar-muted);
     font-size: 0.6875rem;
     text-decoration: none;
+    transition: background-color var(--bzs-motion-normal) var(--bzs-motion-easing),
+        box-shadow var(--bzs-motion-normal) var(--bzs-motion-easing),
+        color var(--bzs-motion-normal) var(--bzs-motion-easing);
+}
+
+::deep .demo-app-shell-nav-link::before {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 0.2rem;
+    inline-size: 0.2rem;
+    block-size: 0.8rem;
+    border-radius: var(--demo-radius-compact);
+    background: var(--layout-primary);
+    content: "";
+    opacity: 0;
+    transform: translateY(-50%) scaleY(0.55);
+    transform-origin: center;
+    transition: opacity var(--bzs-motion-normal) var(--bzs-motion-easing),
+        transform var(--bzs-motion-normal) var(--bzs-motion-easing);
 }
 
 ::deep .demo-app-shell-nav-link .bzs-icon {
@@ -460,11 +480,8 @@
 }
 
 ::deep .demo-app-shell-nav-link--active::before {
-    inline-size: 0.2rem;
-    block-size: 0.8rem;
-    border-radius: var(--demo-radius-compact);
-    background: var(--layout-primary);
-    content: "";
+    opacity: 1;
+    transform: translateY(-50%) scaleY(1);
 }
 
 .demo-app-shell-user {

@@ -188,6 +188,111 @@ public sealed class LayoutTests
     }
 
     [Fact]
+    public void NavigationDrawerExposesAnAccessibleConstrainedResizeHandle()
+    {
+        using var context = CreateInteractiveContext();
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, true)
+            .Add(component => component.Resizable, true)
+            .Add(component => component.MinimumWidth, 224d)
+            .Add(component => component.MaximumWidth, 384d)
+            .Add(component => component.ResizeStep, 8d)
+            .Add(component => component.ResizeHandleAccessibleName, "Resize workspace navigation")
+            .Add(component => component.ChildContent, "Navigation items"));
+
+        var navigation = cut.Find("nav");
+        Assert.Equal("true", navigation.GetAttribute("data-bzs-navigation-drawer-resizable"));
+
+        var handle = cut.Find("[role='separator']");
+        Assert.Equal("Resize workspace navigation", handle.GetAttribute("aria-label"));
+        Assert.Equal("vertical", handle.GetAttribute("aria-orientation"));
+        Assert.Equal("224", handle.GetAttribute("aria-valuemin"));
+        Assert.Equal("384", handle.GetAttribute("aria-valuemax"));
+        Assert.Equal("0", handle.GetAttribute("tabindex"));
+        Assert.Contains("Navigation items", cut.Find(".bzs-navigation-drawer__content").TextContent);
+    }
+
+    [Theory]
+    [InlineData(0, 480, 16)]
+    [InlineData(320, 300, 16)]
+    [InlineData(192, 480, 0)]
+    public void NavigationDrawerRejectsInvalidResizeConstraints(
+        double minimumWidth,
+        double maximumWidth,
+        double resizeStep)
+    {
+        using var context = new BunitContext();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            context.Render<BzsNavigationDrawer>(parameters => parameters
+                .Add(component => component.Resizable, true)
+                .Add(component => component.MinimumWidth, minimumWidth)
+                .Add(component => component.MaximumWidth, maximumWidth)
+                .Add(component => component.ResizeStep, resizeStep)));
+    }
+
+    [Fact]
+    public async Task NavigationDrawerReportsOneCompletedResizeWithoutMutatingItsParameters()
+    {
+        using var context = CreateInteractiveContext();
+        var module = context.JSInterop.SetupModule(BzsNavigationDrawerResizeInterop.ModulePath);
+        var configuration = module
+            .Setup<double>(BzsNavigationDrawerResizeInterop.ConfigureMethod, _ => true)
+            .SetResult(256);
+        double? completedWidth = null;
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Open, false)
+            .Add(component => component.Resizable, true)
+            .Add(component => component.MinimumWidth, 224d)
+            .Add(component => component.MaximumWidth, 384d)
+            .Add(component => component.ResizeStep, 8d)
+            .Add(component => component.ResizeCompleted, width => completedWidth = width));
+
+        configuration.VerifyInvoke(BzsNavigationDrawerResizeInterop.ConfigureMethod, 1);
+        var invocation = Assert.Single(
+            module.Invocations[BzsNavigationDrawerResizeInterop.ConfigureMethod]);
+        Assert.Equal(224d, invocation.Arguments[4]);
+        Assert.Equal(384d, invocation.Arguments[5]);
+        Assert.Equal(8d, invocation.Arguments[6]);
+        Assert.Equal("start", invocation.Arguments[7]);
+
+        await cut.InvokeAsync(() => cut.Instance.NotifyResizeCompletedAsync(320));
+
+        Assert.Equal(320d, completedWidth);
+        Assert.True(cut.Instance.Resizable);
+        Assert.Equal(224d, cut.Instance.MinimumWidth);
+        Assert.Equal(384d, cut.Instance.MaximumWidth);
+
+        cut.Render(parameters => parameters.Add(
+            component => component.AccessibleName,
+            "Updated navigation"));
+        configuration.VerifyInvoke(BzsNavigationDrawerResizeInterop.ConfigureMethod, 1);
+
+        cut.Render(parameters => parameters.Add(component => component.MinimumWidth, 225d));
+        configuration.VerifyInvoke(BzsNavigationDrawerResizeInterop.ConfigureMethod, 2);
+    }
+
+    [Fact]
+    public async Task NavigationDrawerReportsTheActualWidthWhenTheContainerIsNarrowerThanItsMinimum()
+    {
+        using var context = CreateInteractiveContext();
+        var module = context.JSInterop.SetupModule(BzsNavigationDrawerResizeInterop.ModulePath);
+        module
+            .Setup<double>(BzsNavigationDrawerResizeInterop.ConfigureMethod, _ => true)
+            .SetResult(180);
+        double? completedWidth = null;
+        var cut = context.Render<BzsNavigationDrawer>(parameters => parameters
+            .Add(component => component.Resizable, true)
+            .Add(component => component.MinimumWidth, 224d)
+            .Add(component => component.MaximumWidth, 384d)
+            .Add(component => component.ResizeCompleted, width => completedWidth = width));
+
+        await cut.InvokeAsync(() => cut.Instance.NotifyResizeCompletedAsync(180));
+
+        Assert.Equal(180d, completedWidth);
+    }
+
+    [Fact]
     public async Task OpenNavigationDrawerRetriesThroughFourTransientActivationFailures()
     {
         using var context = CreateInteractiveContext();

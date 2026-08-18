@@ -37,6 +37,9 @@
     text-align: start;
     text-wrap: wrap;
     overflow-wrap: anywhere;
+    transition: border-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        box-shadow var(--bzs-motion-fast) var(--bzs-motion-easing),
+        color var(--bzs-motion-fast) var(--bzs-motion-easing);
     cursor: pointer;
 }
 

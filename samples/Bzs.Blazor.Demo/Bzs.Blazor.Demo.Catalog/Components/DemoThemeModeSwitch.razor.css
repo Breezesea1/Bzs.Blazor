@@ -10,7 +10,7 @@
     box-shadow: var(--bzs-shadow-inset);
 }
 
-.demo-theme-switch-option {
+.demo-theme-switch ::deep .demo-theme-switch-option {
     min-block-size: 1.875rem;
     border: 0;
     border-radius: calc(var(--bzs-radius-control) - 0.125rem);
@@ -23,23 +23,23 @@
     cursor: pointer;
 }
 
-.demo-theme-switch-option:hover {
+.demo-theme-switch ::deep .demo-theme-switch-option:hover {
     color: var(--bzs-text);
 }
 
-.demo-theme-switch-option[aria-pressed="true"] {
+.demo-theme-switch ::deep .demo-theme-switch-option[aria-pressed="true"] {
     background: var(--bzs-surface-raised);
     box-shadow: var(--bzs-shadow-raised);
     color: var(--bzs-text);
 }
 
-.demo-theme-switch-option:focus-visible {
+.demo-theme-switch ::deep .demo-theme-switch-option:focus-visible {
     outline: 2px solid var(--bzs-focus-ring);
     outline-offset: 0.125rem;
 }
 
 @media (max-width: 34rem) {
-    .demo-theme-switch-option {
+    .demo-theme-switch ::deep .demo-theme-switch-option {
         min-inline-size: 1.875rem;
         padding-inline: 0.375rem;
         font-size: 0.6875rem;
@@ -51,7 +51,7 @@
         box-shadow: none;
     }
 
-    .demo-theme-switch-option[aria-pressed="true"] {
+    .demo-theme-switch ::deep .demo-theme-switch-option[aria-pressed="true"] {
         outline: 1px solid ButtonText;
         box-shadow: none;
     }

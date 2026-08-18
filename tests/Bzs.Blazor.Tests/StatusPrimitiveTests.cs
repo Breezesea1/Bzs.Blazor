@@ -201,6 +201,34 @@ public sealed class StatusPrimitiveTests
     }
 
     [Fact]
+    public void AvatarRendersOptionalActionContentWithoutHidingTheCommand()
+    {
+        using var context = new BunitContext();
+
+        var withoutAction = context.Render<BzsAvatar>(parameters => parameters
+            .Add(component => component.Initials, "AL")
+            .Add(component => component.Name, "Ada Lovelace"));
+        Assert.Empty(withoutAction.FindAll(".bzs-avatar__action"));
+
+        var withAction = context.Render<BzsAvatar>(parameters => parameters
+            .Add(component => component.ImageUrl, "/people/ada.png")
+            .Add(component => component.AccessibleName, "Ada Lovelace account")
+            .Add(component => component.ActionContent, builder =>
+            {
+                builder.OpenElement(0, "button");
+                builder.AddContent(1, "Sign out");
+                builder.CloseElement();
+            }));
+
+        var avatar = withAction.Find("span.bzs-avatar");
+        Assert.Equal("group", avatar.GetAttribute("role"));
+        Assert.Equal("Ada Lovelace account", avatar.GetAttribute("aria-label"));
+        Assert.False(avatar.HasAttribute("aria-hidden"));
+        Assert.Equal("true", avatar.GetAttribute("data-bzs-avatar-has-action"));
+        Assert.Equal("Sign out", withAction.Find("button").TextContent);
+    }
+
+    [Fact]
     public void AvatarRendersNativeImageFallbackWithoutChangingItsRootDimensions()
     {
         using var context = new BunitContext();

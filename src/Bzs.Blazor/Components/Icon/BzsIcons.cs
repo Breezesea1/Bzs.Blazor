@@ -58,6 +58,14 @@ public static class BzsIcons
     public static BzsIconData Search { get; } = new(
         "m21 21-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16");
 
+    /// <summary>Gets the filter icon.</summary>
+    public static BzsIconData Filter { get; } = new(
+        "M22 3H2l8 9.46V19l4 2v-8.54L22 3Z");
+
+    /// <summary>Gets the refresh icon.</summary>
+    public static BzsIconData Refresh { get; } = new(
+        "M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5");
+
     /// <summary>Gets the eye icon.</summary>
     public static BzsIconData Eye { get; } = new(
         "M2.062 12.348a1 1 0 0 1 0-.696C3.54 7.51 7.773 4.5 12 4.5c4.227 0 8.46 3.01 9.938 7.152a1 1 0 0 1 0 .696C20.46 16.49 16.227 19.5 12 19.5c-4.227 0-8.46-3.01-9.938-7.152ZM12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7");

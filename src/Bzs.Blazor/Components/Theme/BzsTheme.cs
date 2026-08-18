@@ -218,8 +218,8 @@ public static class BzsThemes
             FontWeightMedium: "500",
             FontWeightBold: "600"),
         Motion: new BzsThemeMotion(
-            FastDuration: "120ms",
-            NormalDuration: "180ms",
-            SlowDuration: "240ms",
+            FastDuration: "180ms",
+            NormalDuration: "240ms",
+            SlowDuration: "320ms",
             Easing: "cubic-bezier(0.2, 0, 0, 1)"));
 }

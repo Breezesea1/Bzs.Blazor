@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using Bunit;
 using Bunit.JSInterop;
 using Microsoft.AspNetCore.Components;
@@ -590,6 +591,11 @@ public sealed class DataGridServerTests
             configure: parameters => parameters.Add(component => component.FiltersChanged, value => requested = value));
         cut.WaitForAssertion(() => Assert.Single(provider.Calls));
 
+        cut.Find("button[aria-label='Name column menu']").Click();
+        var operatorOptions = cut.FindAll("[data-bzs-data-grid-filter='name'] button[role='radio']");
+        Assert.Equal(4, operatorOptions.Count);
+        Assert.Empty(cut.FindAll("[data-bzs-data-grid-filter='name'] select"));
+        operatorOptions.Single(option => option.TextContent.Trim() == "Starts with").Click();
         var input = cut.Find("[data-bzs-data-grid-filter='name'] input");
         Assert.Null(input.Closest("[role='menu']"));
         input.Input("Ada");
@@ -597,12 +603,13 @@ public sealed class DataGridServerTests
 
         var filter = Assert.IsType<BzsDataGridTextFilter>(Assert.Single(requested!));
         Assert.Equal("Ada", filter.Value);
+        Assert.Equal(BzsDataGridTextOperator.StartsWith, filter.Operator);
         Assert.Empty(cut.Instance.Filters);
         Assert.Single(provider.Calls);
 
         cut.Find("button[aria-label='Name column menu']").Click();
-        Assert.Contains("Sort ascending", cut.Find("[role='menu']").TextContent);
-        Assert.Contains("Clear filter", cut.Find("[role='menu']").TextContent);
+        Assert.Contains("Sort ascending", cut.Find("[role='group']").TextContent);
+        Assert.Contains("Clear filter", cut.Find("[role='group']").TextContent);
     }
 
     [Fact]
@@ -618,6 +625,7 @@ public sealed class DataGridServerTests
             configure: parameters => parameters.Add(component => component.FiltersChanged, value => requested = value));
         cut.WaitForAssertion(() => Assert.Single(provider.Calls));
 
+        cut.Find("button[aria-label='Name column menu']").Click();
         cut.Find("[data-bzs-data-grid-filter='name'] input").Input("Grace");
         cut.Find("button[aria-label='Apply Name filter']").Click();
 
@@ -640,13 +648,57 @@ public sealed class DataGridServerTests
         cut.WaitForAssertion(() => Assert.Single(provider.Calls));
 
         cut.Find("button[aria-label='Name column menu']").Click();
-        cut.FindAll("[role='menuitem']").Single(item => item.TextContent.Contains("Clear filter", StringComparison.Ordinal)).Click();
+        cut.FindAll("[data-bzs-data-grid-filter='name'] .bzs-data-grid__filter-actions button")
+            .Single(item => item.TextContent.Contains("Clear filter", StringComparison.Ordinal))
+            .Click();
 
         Assert.Empty(requested!);
+        cut.Find("button[aria-label='Name column menu']").Click();
         Assert.Equal("Ada", cut.Find("[data-bzs-data-grid-filter='name'] input").GetAttribute("value"));
 
         cut.Render(parameters => parameters.Add(component => component.Filters, Array.Empty<BzsDataGridFilter>()));
         Assert.Equal(string.Empty, cut.Find("[data-bzs-data-grid-filter='name'] input").GetAttribute("value"));
+    }
+
+    [Theory]
+    [InlineData(true, "是")]
+    [InlineData(false, "否")]
+    public void BooleanFilterSummaryUsesTheActiveUiCulture(bool value, string expectedSummaryValue)
+    {
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUiCulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("zh-Hans");
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("zh-Hans");
+            using var context = CreateContext();
+            var provider = new RecordingProvider(_ => new BzsDataGridResult<Row>([], hasNextPage: false));
+            var cut = context.Render<BzsDataGrid<Row>>(parameters => parameters
+                .Add(component => component.Provider, provider)
+                .Add(component => component.Filters, new BzsDataGridFilter[]
+                {
+                    new BzsDataGridBooleanFilter("enabled", value),
+                })
+                .Add(component => component.ChildContent, BuildBooleanColumn()));
+
+            cut.WaitForAssertion(() => Assert.Single(provider.Calls));
+            Assert.Contains(expectedSummaryValue, cut.Find(".bzs-data-grid__filter-chip").TextContent, StringComparison.Ordinal);
+
+            cut.Find(".bzs-data-grid__column-options button").Click();
+            var options = cut.FindAll("[data-bzs-data-grid-filter='enabled'] button[role='radio']");
+            Assert.Equal(
+                ["任意", "是", "否"],
+                options.Select(option => option.TextContent.Trim()));
+            Assert.Equal(
+                expectedSummaryValue,
+                Assert.Single(options, option => option.GetAttribute("aria-checked") == "true").TextContent.Trim());
+            Assert.Empty(cut.FindAll("[data-bzs-data-grid-filter='enabled'] select"));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUiCulture;
+        }
     }
 
     [Fact]
@@ -875,7 +927,10 @@ public sealed class DataGridServerTests
         cut = RenderProviderGrid(context, provider, page, configure: configure);
         cut.WaitForAssertion(() => Assert.Single(provider.Calls));
 
-        cut.Find(".bzs-data-grid__page-size select").Change("25");
+        cut.Find(".bzs-data-grid__page-size .bzs-popover__trigger").Click();
+        cut.FindAll(".bzs-data-grid__page-size-options button")
+            .Single(option => option.TextContent.Trim() == "25")
+            .Click();
 
         cut.WaitForAssertion(() => Assert.Equal(2, provider.Calls.Count));
         Assert.Equal(1, provider.Calls.Last().Page);
@@ -1000,6 +1055,16 @@ public sealed class DataGridServerTests
         builder.AddAttribute(3, nameof(BzsDataGridColumn<Row>.ValueSelector), (Func<Row, object?>)(row => row.Name));
         builder.AddAttribute(4, nameof(BzsDataGridColumn<Row>.Sortable), true);
         builder.AddAttribute(5, nameof(BzsDataGridColumn<Row>.FilterKind), BzsDataGridFilterKind.Text);
+        builder.CloseComponent();
+    };
+
+    private static RenderFragment BuildBooleanColumn() => builder =>
+    {
+        builder.OpenComponent<BzsDataGridColumn<Row>>(0);
+        builder.AddAttribute(1, nameof(BzsDataGridColumn<Row>.Key), "enabled");
+        builder.AddAttribute(2, nameof(BzsDataGridColumn<Row>.Title), "Enabled");
+        builder.AddAttribute(3, nameof(BzsDataGridColumn<Row>.ValueSelector), (Func<Row, object?>)(_ => true));
+        builder.AddAttribute(4, nameof(BzsDataGridColumn<Row>.FilterKind), BzsDataGridFilterKind.Boolean);
         builder.CloseComponent();
     };
 

@@ -40,6 +40,10 @@
     text-decoration: none;
 }
 
+.bzs-breadcrumbs__link {
+    transition: color var(--bzs-motion-fast) var(--bzs-motion-easing);
+}
+
 .bzs-breadcrumbs__link:hover {
     color: var(--bzs-text);
     text-decoration: underline;

@@ -20,4 +20,10 @@
         <span class="bzs-avatar__name"
               aria-hidden="@(HasExplicitAccessibleName ? "true" : null)">@NormalizedName</span>
     }
+    @if (HasAction)
+    {
+        <span class="bzs-avatar__action">
+            @ActionContent
+        </span>
+    }
 </span>

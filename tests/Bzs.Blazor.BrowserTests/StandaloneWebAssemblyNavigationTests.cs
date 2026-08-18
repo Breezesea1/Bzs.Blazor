@@ -73,14 +73,15 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     }
 
     [Theory]
-    [InlineData("", "目录主题", "浅色", "深色", "系统")]
-    [InlineData("?culture=en-US", "Catalog theme", "Light", "Dark", "System")]
+    [InlineData("", "目录主题", "浅色", "深色", "系统", "基础组件")]
+    [InlineData("?culture=en-US", "Catalog theme", "Light", "Dark", "System", "Foundation components")]
     public async Task GlobalThemeSwitchPersistsAndFollowsSystemPreference(
         string query,
         string accessibleName,
         string lightLabel,
         string darkLabel,
-        string systemLabel)
+        string systemLabel,
+        string foundationLinkLabel)
     {
         BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
         await AssertGlobalThemeSwitchPersistsAndFollowsSystemPreferenceAsync(
@@ -89,7 +90,8 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
             accessibleName,
             lightLabel,
             darkLabel,
-            systemLabel);
+            systemLabel,
+            foundationLinkLabel);
     }
 
     [Fact]
@@ -341,7 +343,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         Assert.True(response?.Ok ?? false);
         await Expect(Page.GetByTestId("productivity-workbench"))
             .ToHaveAttributeAsync("data-bzs-interactive", "true");
-        var grid = Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" });
+        var grid = Page.GetByTestId("productivity-grid").GetByRole(AriaRole.Table);
         await Expect(grid.Locator("tbody tr")).ToHaveCountAsync(5);
 
         var workbenchNavigation = Page.GetByRole(
@@ -417,6 +419,42 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
             new() { Name = "Home", Exact = true }).ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/");
         AssertNoUnexpectedBrowserErrors("standalone WebAssembly productivity workflow");
+    }
+
+    [Fact]
+    public async Task NavigationDrawerRouteIsReachableAndSupportsItsLifecycle()
+    {
+        BeginBrowserGateTest();
+        var response = await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+
+        Assert.True(response?.Ok ?? false);
+        await ClickUniqueNavigationLinkAsync("Navigation drawer");
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/navigation-drawer?culture=en-US");
+
+        var showcase = Page.GetByTestId("navigation-drawer-showcase");
+        await Expect(showcase).ToHaveAttributeAsync("data-bzs-interactive", "true");
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Navigation drawer lifecycle", Exact = true }))
+            .ToBeVisibleAsync();
+
+        var drawer = Page.GetByTestId("navigation-drawer-showcase-drawer");
+        await Page.GetByTestId("navigation-drawer-open").ClickAsync();
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await Expect(Page.GetByTestId("navigation-drawer-primary-action")).ToBeFocusedAsync();
+
+        await Page.Keyboard.PressAsync("Escape");
+        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+
+        await Page.GetByTestId("navigation-drawer-open").ClickAsync();
+        await Page.GetByTestId("navigation-drawer-open-dialog").ClickAsync();
+        var nestedDialog = Page.GetByRole(
+            AriaRole.Dialog,
+            new() { Name = "Dialog from navigation drawer", Exact = true });
+        await Expect(nestedDialog.GetByTestId("service-dialog-complete")).ToBeFocusedAsync();
+        await nestedDialog.GetByTestId("service-dialog-complete").ClickAsync();
+        await Expect(nestedDialog).ToHaveCountAsync(0);
+        await Expect(Page.GetByTestId("navigation-drawer-dialog-status"))
+            .ToHaveTextAsync("Nested dialog completed");
+        AssertNoUnexpectedBrowserErrors("standalone WebAssembly navigation drawer lifecycle");
     }
 
     private async Task ClickUniqueNavigationLinkAsync(string accessibleName)

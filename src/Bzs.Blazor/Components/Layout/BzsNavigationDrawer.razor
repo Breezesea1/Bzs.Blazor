@@ -14,7 +14,22 @@
     <div @ref="_panelElement"
          class="bzs-navigation-drawer__panel"
          tabindex="-1">
-        @ChildContent
+        <div class="bzs-navigation-drawer__content"
+             data-bzs-navigation-drawer-scroll-region="true">
+            @ChildContent
+        </div>
+        @if (Resizable)
+        {
+            <div @ref="_resizeHandleElement"
+                 class="bzs-navigation-drawer__resize-handle"
+                 role="separator"
+                 tabindex="0"
+                 aria-label="@EffectiveResizeHandleAccessibleName"
+                 aria-orientation="vertical"
+                 aria-valuemin="@FormatWidth(MinimumWidth)"
+                 aria-valuemax="@FormatWidth(MaximumWidth)"
+                 aria-valuenow="@FormatWidth(_currentWidth)"></div>
+        }
     </div>
     <button @ref="_escapeTriggerElement"
             type="button"

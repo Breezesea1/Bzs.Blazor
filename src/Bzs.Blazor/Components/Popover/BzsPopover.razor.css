@@ -20,6 +20,8 @@
     color: var(--bzs-text);
     font: inherit;
     transition: background-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        border-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        box-shadow var(--bzs-motion-fast) var(--bzs-motion-easing),
         color var(--bzs-motion-fast) var(--bzs-motion-easing);
     cursor: pointer;
 }

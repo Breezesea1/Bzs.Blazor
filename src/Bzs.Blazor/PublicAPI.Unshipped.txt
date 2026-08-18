@@ -10,6 +10,8 @@ Bzs.Blazor.BzsPasswordInput.ShowPasswordText.get -> string?
 Bzs.Blazor.BzsPasswordInput.ShowPasswordText.set -> void
 static Bzs.Blazor.BzsIcons.Eye.get -> Bzs.Blazor.BzsIconData!
 static Bzs.Blazor.BzsIcons.EyeOff.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Filter.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Refresh.get -> Bzs.Blazor.BzsIconData!
 Bzs.Blazor.BzsInputUpdateMode
 Bzs.Blazor.BzsInputUpdateMode.Change = 0 -> Bzs.Blazor.BzsInputUpdateMode
 Bzs.Blazor.BzsInputUpdateMode.Input = 1 -> Bzs.Blazor.BzsInputUpdateMode
@@ -60,6 +62,8 @@ Bzs.Blazor.BzsAutocompleteOption<TValue>.Label.get -> string!
 Bzs.Blazor.BzsAutocompleteOption<TValue>.Value.get -> TValue
 Bzs.Blazor.BzsAutocompleteOption<TValue>.ValueText.get -> string!
 Bzs.Blazor.BzsAvatar
+Bzs.Blazor.BzsAvatar.ActionContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsAvatar.ActionContent.set -> void
 Bzs.Blazor.BzsAvatar.AccessibleName.get -> string?
 Bzs.Blazor.BzsAvatar.AccessibleName.set -> void
 Bzs.Blazor.BzsAvatar.BzsAvatar() -> void
@@ -164,6 +168,8 @@ Bzs.Blazor.BzsDataGrid<TItem>.CaptionContent.get -> Microsoft.AspNetCore.Compone
 Bzs.Blazor.BzsDataGrid<TItem>.CaptionContent.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
 Bzs.Blazor.BzsDataGrid<TItem>.ChildContent.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ClearAllFiltersText.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.ClearAllFiltersText.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.CompactPagination.get -> bool
 Bzs.Blazor.BzsDataGrid<TItem>.CompactPagination.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.DisposeAsync() -> System.Threading.Tasks.ValueTask
@@ -234,12 +240,18 @@ Bzs.Blazor.BzsDataGrid<TItem>.ShowPageSizeSelector.get -> bool
 Bzs.Blazor.BzsDataGrid<TItem>.ShowPageSizeSelector.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ShowPagination.get -> bool
 Bzs.Blazor.BzsDataGrid<TItem>.ShowPagination.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ShowFilterSummary.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ShowFilterSummary.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ShowResultSummary.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ShowResultSummary.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ShowSelectAll.get -> bool
 Bzs.Blazor.BzsDataGrid<TItem>.ShowSelectAll.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.Sort.get -> Bzs.Blazor.BzsDataGridSort?
 Bzs.Blazor.BzsDataGrid<TItem>.Sort.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SortChanged.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsDataGridSort?>
 Bzs.Blazor.BzsDataGrid<TItem>.SortChanged.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ToolbarContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsDataGrid<TItem>.ToolbarContent.set -> void
 Bzs.Blazor.BzsDataGridBooleanFilter
 Bzs.Blazor.BzsDataGridBooleanFilter.BzsDataGridBooleanFilter(string! columnKey, bool value) -> void
 Bzs.Blazor.BzsDataGridBooleanFilter.Value.get -> bool
@@ -565,4 +577,17 @@ Bzs.Blazor.BzsNavigationDrawer.CloseOnEscape.get -> bool
 Bzs.Blazor.BzsNavigationDrawer.CloseOnEscape.set -> void
 Bzs.Blazor.BzsNavigationDrawer.InitialFocusSelector.get -> string?
 Bzs.Blazor.BzsNavigationDrawer.InitialFocusSelector.set -> void
+Bzs.Blazor.BzsNavigationDrawer.MaximumWidth.get -> double
+Bzs.Blazor.BzsNavigationDrawer.MaximumWidth.set -> void
+Bzs.Blazor.BzsNavigationDrawer.MinimumWidth.get -> double
+Bzs.Blazor.BzsNavigationDrawer.MinimumWidth.set -> void
+Bzs.Blazor.BzsNavigationDrawer.NotifyResizeCompletedAsync(double width) -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsNavigationDrawer.Resizable.get -> bool
+Bzs.Blazor.BzsNavigationDrawer.Resizable.set -> void
+Bzs.Blazor.BzsNavigationDrawer.ResizeCompleted.get -> Microsoft.AspNetCore.Components.EventCallback<double>
+Bzs.Blazor.BzsNavigationDrawer.ResizeCompleted.set -> void
+Bzs.Blazor.BzsNavigationDrawer.ResizeHandleAccessibleName.get -> string?
+Bzs.Blazor.BzsNavigationDrawer.ResizeHandleAccessibleName.set -> void
+Bzs.Blazor.BzsNavigationDrawer.ResizeStep.get -> double
+Bzs.Blazor.BzsNavigationDrawer.ResizeStep.set -> void
 Bzs.Blazor.BzsNavigationDrawer.DisposeAsync() -> System.Threading.Tasks.ValueTask

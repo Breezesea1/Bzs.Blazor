@@ -50,6 +50,7 @@ public partial class LandingPage : ComponentBase, IAsyncDisposable
         new("tabs", DemoText.Chrome.Tabs, DemoText.Landing.GroupTabsDescription, DemoNavIcons.Tabs),
         new("overlays", DemoText.Chrome.Overlays, DemoText.Landing.GroupOverlaysDescription, DemoNavIcons.Overlays),
         new("layout", DemoText.Chrome.Layout, DemoText.Landing.GroupLayoutDescription, DemoNavIcons.Layout),
+        new("navigation-drawer", DemoText.Chrome.NavigationDrawer, DemoText.Landing.GroupNavigationDrawerDescription, DemoNavIcons.NavigationDrawer),
     ];
 
     protected override void OnAfterRender(bool firstRender)

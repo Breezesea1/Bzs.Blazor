@@ -51,9 +51,17 @@ public sealed partial class BzsAvatar : BzsComponentBase
     [Parameter]
     public string? AccessibleName { get; set; }
 
+    /// <summary>
+    /// Gets or sets optional trailing action content, such as an account menu or sign-out command.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ActionContent { get; set; }
+
     private bool HasImage => !string.IsNullOrWhiteSpace(ImageUrl);
 
     private bool HasName => !string.IsNullOrWhiteSpace(Name);
+
+    private bool HasAction => ActionContent is not null;
 
     private bool HasExplicitAccessibleName => !string.IsNullOrWhiteSpace(AccessibleName)
         || HasAdditionalAccessibleName();
@@ -108,6 +116,28 @@ public sealed partial class BzsAvatar : BzsComponentBase
             if (HasName)
             {
                 attributes["data-bzs-avatar-has-name"] = "true";
+                attributes["data-bzs-avatar-composite"] = "true";
+                attributes.Remove("aria-hidden");
+
+                if (!string.IsNullOrWhiteSpace(AccessibleName))
+                {
+                    attributes["role"] = "group";
+                    attributes["aria-label"] = AccessibleName.Trim();
+                }
+                else if (HasAdditionalAccessibleName())
+                {
+                    attributes["role"] = "group";
+                }
+                else
+                {
+                    attributes.Remove("role");
+                    attributes.Remove("aria-label");
+                    attributes.Remove("aria-labelledby");
+                }
+            }
+            else if (HasAction)
+            {
+                attributes["data-bzs-avatar-composite"] = "true";
                 attributes.Remove("aria-hidden");
 
                 if (!string.IsNullOrWhiteSpace(AccessibleName))
@@ -143,6 +173,11 @@ public sealed partial class BzsAvatar : BzsComponentBase
                 attributes.Remove("aria-label");
                 attributes.Remove("aria-labelledby");
                 attributes["aria-hidden"] = "true";
+            }
+
+            if (HasAction)
+            {
+                attributes["data-bzs-avatar-has-action"] = "true";
             }
 
             return attributes;

@@ -75,6 +75,7 @@
     padding-inline: 0.625rem;
     background: var(--bzs-surface-inset);
     box-shadow: var(--bzs-shadow-inset);
+    transition: box-shadow var(--bzs-motion-fast) var(--bzs-motion-easing);
 }
 
 .bzs-select__search:focus-within {
@@ -125,6 +126,8 @@
     color: var(--bzs-text);
     font: inherit;
     text-align: start;
+    transition: background-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        color var(--bzs-motion-fast) var(--bzs-motion-easing);
     cursor: pointer;
 }
 

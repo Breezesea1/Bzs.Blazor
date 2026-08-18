@@ -51,7 +51,7 @@ public sealed class DataGridTests
         Assert.Equal(new[] { "Name", "Score" }, cut.FindAll("th").Select(header => header.TextContent.Trim()));
         Assert.Equal("Alpha", cut.Find("tbody td:first-child").TextContent.Trim());
         Assert.Equal("42 points", cut.Find("tbody strong").TextContent.Trim());
-        Assert.Equal("Rows per page", cut.Find("label > span").TextContent.Trim());
+        Assert.Equal("Rows per page", cut.Find(".bzs-data-grid__page-size > span").TextContent.Trim());
     }
 
     [Theory]
@@ -75,6 +75,7 @@ public sealed class DataGridTests
 
         Assert.Equal(showPageSizeSelector, cut.FindAll("[aria-label='Rows per page']").Count == 1);
         Assert.Equal(showPagination, cut.FindAll("[aria-label='Data pages']").Count == 1);
+        Assert.Equal(showPageSizeSelector || showPagination, cut.FindAll(".bzs-data-grid__footer").Count == 1);
     }
 
     [Fact]
@@ -200,7 +201,10 @@ public sealed class DataGridTests
         Assert.Equal([1], pageRequests);
         Assert.Equal(2, cut.Instance.Page);
 
-        cut.Find("select").Change("25");
+        cut.Find(".bzs-data-grid__page-size .bzs-popover__trigger").Click();
+        cut.FindAll(".bzs-data-grid__page-size-options button")
+            .Single(option => option.TextContent.Trim() == "25")
+            .Click();
         Assert.Equal([25], sizeRequests);
         Assert.Equal([1, 1], pageRequests);
         Assert.Equal(10, cut.Instance.PageSize);
@@ -233,7 +237,10 @@ public sealed class DataGridTests
                 });
             });
 
-        cut.Find("select").Change("25");
+        cut.Find(".bzs-data-grid__page-size .bzs-popover__trigger").Click();
+        cut.FindAll(".bzs-data-grid__page-size-options button")
+            .Single(option => option.TextContent.Trim() == "25")
+            .Click();
 
         Assert.Equal(1, page);
         Assert.Equal(25, pageSize);
@@ -589,7 +596,7 @@ public sealed class DataGridTests
 
             Assert.Equal("数据表格", cut.Find("table").GetAttribute("aria-label"));
             Assert.Equal("暂无数据", cut.Find("tbody td").TextContent.Trim());
-            Assert.Contains("每页行数", cut.Find("label").TextContent, StringComparison.Ordinal);
+            Assert.Contains("每页行数", cut.Find(".bzs-data-grid__page-size").TextContent, StringComparison.Ordinal);
 
             var selectAll = RenderGrid(
                 context,
@@ -638,6 +645,37 @@ public sealed class DataGridTests
     }
 
     [Fact]
+    public async Task StaticRenderingKeepsCaptionContentInsideTheTableCaption()
+    {
+        using var context = CreateContext();
+        await using var renderer = new HtmlRenderer(
+            context.Services,
+            context.Services.GetRequiredService<ILoggerFactory>());
+        var parameters = ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            [nameof(BzsDataGrid<Row>.Items)] = new[] { new Row(1, "Alpha", 42) },
+            [nameof(BzsDataGrid<Row>.CaptionContent)] = (RenderFragment)(builder =>
+            {
+                builder.OpenElement(0, "button");
+                builder.AddAttribute(1, "id", "caption-action");
+                builder.AddContent(2, "Custom projects");
+                builder.CloseElement();
+            }),
+            [nameof(BzsDataGrid<Row>.ChildContent)] = BuildColumns(),
+        });
+
+        var html = await renderer.Dispatcher.InvokeAsync(async () =>
+        {
+            var output = await renderer.RenderComponentAsync<BzsDataGrid<Row>>(parameters);
+            return output.ToHtmlString();
+        });
+        var document = await new HtmlParser().ParseDocumentAsync(html);
+
+        Assert.Equal("Custom projects", document.QuerySelector("caption")?.TextContent.Trim());
+        Assert.Single(document.QuerySelectorAll("#caption-action"));
+    }
+
+    [Fact]
     public async Task StaticRenderingOmitsFooterControlsWhenBothAreHidden()
     {
         using var context = CreateContext();
@@ -650,6 +688,7 @@ public sealed class DataGridTests
             [nameof(BzsDataGrid<Row>.ChildContent)] = BuildColumns(),
             [nameof(BzsDataGrid<Row>.ShowPageSizeSelector)] = false,
             [nameof(BzsDataGrid<Row>.ShowPagination)] = false,
+            [nameof(BzsDataGrid<Row>.ShowResultSummary)] = true,
         });
 
         var html = await renderer.Dispatcher.InvokeAsync(async () =>

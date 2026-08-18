@@ -1,0 +1,139 @@
+<PageTitle>@DemoText.NavigationDrawer.PageTitle</PageTitle>
+
+<section class="demo-page demo-navigation-drawer-showcase"
+         aria-labelledby="navigation-drawer-showcase-title"
+         data-testid="navigation-drawer-showcase"
+         data-bzs-interactive="@(_isInteractive ? "true" : "false")">
+    <header class="demo-page-header">
+        <p class="demo-eyebrow">@DemoText.NavigationDrawer.Eyebrow</p>
+        <h1 id="navigation-drawer-showcase-title">@DemoText.NavigationDrawer.Title</h1>
+        <p class="demo-page-summary">@DemoText.NavigationDrawer.Summary</p>
+    </header>
+
+    <p class="demo-runtime-status" role="status">
+        @(_isInteractive ? DemoText.NavigationDrawer.RuntimeReady : DemoText.NavigationDrawer.RuntimeWaiting)
+    </p>
+
+    <section class="demo-panel" aria-labelledby="navigation-drawer-configuration-title">
+        <h2 id="navigation-drawer-configuration-title">@DemoText.NavigationDrawer.Configuration</h2>
+        <div class="demo-navigation-drawer-showcase__settings">
+            <fieldset class="demo-navigation-drawer-showcase__group">
+                <legend>@DemoText.NavigationDrawer.Variant</legend>
+                <div class="demo-control-row">
+                    <BzsButton Variant="BzsButtonVariant.Outline"
+                               aria-pressed="@(_variant == BzsNavigationDrawerVariant.Temporary)"
+                               Click="() => SetVariant(BzsNavigationDrawerVariant.Temporary)"
+                               data-testid="navigation-drawer-variant-temporary">@DemoText.NavigationDrawer.Temporary</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Outline"
+                               aria-pressed="@(_variant == BzsNavigationDrawerVariant.Persistent)"
+                               Click="() => SetVariant(BzsNavigationDrawerVariant.Persistent)"
+                               data-testid="navigation-drawer-variant-persistent">@DemoText.NavigationDrawer.Persistent</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Outline"
+                               aria-pressed="@(_variant == BzsNavigationDrawerVariant.Responsive)"
+                               Click="() => SetVariant(BzsNavigationDrawerVariant.Responsive)"
+                               data-testid="navigation-drawer-variant-responsive">@DemoText.NavigationDrawer.Responsive</BzsButton>
+                </div>
+            </fieldset>
+
+            <fieldset class="demo-navigation-drawer-showcase__group">
+                <legend>@DemoText.NavigationDrawer.Position</legend>
+                <div class="demo-control-row">
+                    <BzsButton Variant="BzsButtonVariant.Outline"
+                               aria-pressed="@(_position == BzsNavigationDrawerPosition.Start)"
+                               Click="() => SetPosition(BzsNavigationDrawerPosition.Start)"
+                               data-testid="navigation-drawer-position-start">@DemoText.NavigationDrawer.Start</BzsButton>
+                    <BzsButton Variant="BzsButtonVariant.Outline"
+                               aria-pressed="@(_position == BzsNavigationDrawerPosition.End)"
+                               Click="() => SetPosition(BzsNavigationDrawerPosition.End)"
+                               data-testid="navigation-drawer-position-end">@DemoText.NavigationDrawer.End</BzsButton>
+                </div>
+            </fieldset>
+
+            <fieldset class="demo-navigation-drawer-showcase__group">
+                <legend>@DemoText.NavigationDrawer.Behavior</legend>
+                <BzsToggle Id="navigation-drawer-close-on-escape"
+                           @bind-Value="_closeOnEscape"
+                           Label="@DemoText.NavigationDrawer.CloseOnEscape" />
+                <BzsToggle Id="navigation-drawer-close-on-backdrop"
+                           @bind-Value="_closeOnBackdropClick"
+                           Label="@DemoText.NavigationDrawer.CloseOnBackdrop" />
+                <BzsToggle Id="navigation-drawer-use-initial-focus"
+                           @bind-Value="_useInitialFocus"
+                           Label="@DemoText.NavigationDrawer.UseInitialFocus" />
+                <BzsToggle Id="navigation-drawer-accept-dismissals"
+                           @bind-Value="_acceptDismissals"
+                           Label="@DemoText.NavigationDrawer.AcceptDismissals" />
+            </fieldset>
+        </div>
+
+        <BzsButton StartIcon="BzsIcons.Menu"
+                   Disabled="@(!_isInteractive)"
+                   Click="OpenDrawer"
+                   data-testid="navigation-drawer-open">@DemoText.NavigationDrawer.OpenDrawer</BzsButton>
+    </section>
+
+    <section class="demo-panel" aria-labelledby="navigation-drawer-status-title">
+        <h2 id="navigation-drawer-status-title">@DemoText.NavigationDrawer.Status</h2>
+        <dl class="demo-navigation-drawer-showcase__status" data-testid="navigation-drawer-status">
+            <div>
+                <dt>@DemoText.NavigationDrawer.DrawerState</dt>
+                <dd>@(_open ? DemoText.NavigationDrawer.Open : DemoText.NavigationDrawer.Closed)</dd>
+            </div>
+            <div>
+                <dt>@DemoText.NavigationDrawer.Variant</dt>
+                <dd>@VariantLabel</dd>
+            </div>
+            <div>
+                <dt>@DemoText.NavigationDrawer.Position</dt>
+                <dd>@PositionLabel</dd>
+            </div>
+            <div>
+                <dt>@DemoText.NavigationDrawer.LastRequest</dt>
+                <dd>@LastRequestLabel</dd>
+            </div>
+        </dl>
+        <p class="demo-runtime-status" role="status" data-testid="navigation-drawer-dialog-status">@_dialogStatus</p>
+    </section>
+
+    <BzsOverlayHost data-testid="navigation-drawer-overlay-host" />
+
+    <BzsNavigationDrawer Id="navigation-drawer-showcase-drawer"
+                         Class="demo-navigation-drawer-showcase__drawer"
+                         Open="@_open"
+                         OpenChanged="HandleOpenChangedAsync"
+                         Variant="@_variant"
+                         Position="@_position"
+                         CloseOnEscape="@_closeOnEscape"
+                         CloseOnBackdropClick="@_closeOnBackdropClick"
+                         InitialFocusSelector="@InitialFocusSelector"
+                         AccessibleName="@DemoText.NavigationDrawer.PanelTitle"
+                         data-testid="navigation-drawer-showcase-drawer">
+        <div class="demo-navigation-drawer-showcase__panel">
+            <header>
+                <p class="demo-eyebrow">BzsNavigationDrawer</p>
+                <h2>@DemoText.NavigationDrawer.PanelTitle</h2>
+                <p>@DemoText.NavigationDrawer.PanelSummary</p>
+            </header>
+
+            <ul class="demo-navigation-drawer-showcase__links">
+                <li><a href="@RouteUrl("")">@DemoText.Chrome.Overview</a></li>
+                <li><a href="@RouteUrl("forms")">@DemoText.Chrome.Forms</a></li>
+                <li><a href="@RouteUrl("productivity")">@DemoText.Chrome.Productivity</a></li>
+            </ul>
+
+            <div class="demo-navigation-drawer-showcase__panel-actions">
+                <BzsButton Id="navigation-drawer-primary-action"
+                           Variant="BzsButtonVariant.Secondary"
+                           data-testid="navigation-drawer-primary-action">@DemoText.NavigationDrawer.PrimaryAction</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline"
+                           StartIcon="BzsIcons.Info"
+                           Click="OpenNestedDialogAsync"
+                           data-testid="navigation-drawer-open-dialog">@DemoText.NavigationDrawer.OpenDialog</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Ghost"
+                           StartIcon="BzsIcons.Close"
+                           Click="CloseDrawer"
+                           data-testid="navigation-drawer-close">@DemoText.NavigationDrawer.CloseDrawer</BzsButton>
+            </div>
+        </div>
+    </BzsNavigationDrawer>
+</section>

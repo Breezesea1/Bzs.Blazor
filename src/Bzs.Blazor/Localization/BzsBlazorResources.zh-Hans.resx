@@ -249,6 +249,45 @@
   <data name="DataGridCurrentPageText" xml:space="preserve">
     <value>第 {0} 页</value>
   </data>
+  <data name="DataGridSortText" xml:space="preserve">
+    <value>排序</value>
+  </data>
+  <data name="DataGridConditionText" xml:space="preserve">
+    <value>条件</value>
+  </data>
+  <data name="DataGridValueText" xml:space="preserve">
+    <value>值</value>
+  </data>
+  <data name="DataGridApplyText" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="DataGridColumnSortText" xml:space="preserve">
+    <value>{0} 排序选项</value>
+  </data>
+  <data name="DataGridClearColumnFilterText" xml:space="preserve">
+    <value>清除 {0} 筛选</value>
+  </data>
+  <data name="DataGridClearAllFiltersText" xml:space="preserve">
+    <value>全部清除</value>
+  </data>
+  <data name="DataGridActiveFiltersText" xml:space="preserve">
+    <value>{0} 个生效筛选条件</value>
+  </data>
+  <data name="DataGridSelectedSummaryText" xml:space="preserve">
+    <value>已选择 {0} 项</value>
+  </data>
+  <data name="DataGridResultSummaryText" xml:space="preserve">
+    <value>正在显示第 {0}-{1} 项，共 {2} 项</value>
+  </data>
+  <data name="DataGridZeroResultSummaryText" xml:space="preserve">
+    <value>无结果</value>
+  </data>
+  <data name="DataGridUnknownResultSummaryText" xml:space="preserve">
+    <value>本页 {0} 行</value>
+  </data>
+  <data name="DataGridFilterSummaryText" xml:space="preserve">
+    <value>{0}：{1} {2}</value>
+  </data>
   <data name="BreadcrumbAccessibleName" xml:space="preserve">
     <value>面包屑导航</value>
   </data>

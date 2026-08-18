@@ -12,324 +12,473 @@
     </div>
 
     @{ var rows = Rows; }
-    <div class="bzs-data-grid__viewport">
-        <table class="bzs-data-grid__table"
-               aria-label="@TableAccessibleName"
-               aria-busy="@(EffectiveLoading ? "true" : "false")">
-            @if (CaptionContent is not null)
-            {
-                <caption>@CaptionContent</caption>
-            }
-            else if (!string.IsNullOrWhiteSpace(Caption))
-            {
-                <caption>@Caption</caption>
-            }
-            <thead>
-                <tr>
-                    @if (SelectionMode != BzsDataGridSelectionMode.None)
+    @if (ShowCaptionArea)
+    {
+        <div class="bzs-data-grid__header-area">
+            <div class="bzs-data-grid__caption-bar">
+                @if (CaptionContent is null && !string.IsNullOrWhiteSpace(Caption))
+                {
+                    <span id="@CaptionId" class="bzs-data-grid__caption-title">@Caption</span>
+                }
+                <span class="bzs-data-grid__caption-meta">
+                    @if (SelectedCount > 0)
                     {
-                        <th class="bzs-data-grid__selection-header" scope="col">
-                            @if (ShowCurrentPageSelectAll)
-                            {
-                                <input type="checkbox"
-                                       @ref="_selectAllReference"
-                                       checked="@AreAllCurrentRowsSelected(rows)"
-                                       disabled="@(rows.Count == 0)"
-                                       aria-checked="@GetCurrentPageSelectAllState(rows)"
-                                       aria-label="@EffectiveSelectAllText"
-                                       @onchange="RequestCurrentPageSelectionAsync" />
-                            }
-                            else
-                            {
-                                <span class="bzs-visually-hidden">@EffectiveSelectionColumnText</span>
-                            }
-                        </th>
+                        <span class="bzs-data-grid__status-pill">
+                            @Localize("DataGridSelectedSummaryText", SelectedCount)
+                        </span>
                     }
-                    @foreach (var column in Columns)
+                    @if (ToolbarContent is not null)
                     {
-                        <th @key="column" @attributes="column.BuildHeaderAttributes(DisplayedSort)">
-                            <div class="bzs-data-grid__header-content">
-                                @if (column.Sortable)
+                        <span class="bzs-data-grid__toolbar">@ToolbarContent</span>
+                    }
+                </span>
+            </div>
+            @if (ShowFilterSummary && Filters.Count > 0)
+            {
+                <div class="bzs-data-grid__filter-summary">
+                    <span class="bzs-data-grid__filter-summary-label">
+                        <BzsIcon Icon="BzsIcons.Filter" />
+                        @Localize("DataGridActiveFiltersText", Filters.Count)
+                    </span>
+                    <span class="bzs-data-grid__filter-chips">
+                        @foreach (var filter in Filters)
+                        {
+                            <button @key="filter.ColumnKey"
+                                    type="button"
+                                    class="bzs-data-grid__filter-chip"
+                                    aria-label="@GetClearFilterLabel(filter.ColumnKey)"
+                                    @onclick="() => RequestClearFilterAsync(filter.ColumnKey)">
+                                <span>@GetFilterSummary(filter.ColumnKey, filter)</span>
+                                <BzsIcon Icon="BzsIcons.Close" />
+                            </button>
+                        }
+                    </span>
+                    <button type="button"
+                            class="bzs-data-grid__clear-filters"
+                            @onclick="RequestClearAllFiltersAsync">
+                        @EffectiveClearAllFiltersText
+                    </button>
+                </div>
+            }
+        </div>
+    }
+    <div class="bzs-data-grid__surface">
+        <div class="bzs-data-grid__viewport" tabindex="0">
+            <table class="bzs-data-grid__table"
+                   aria-label="@TableAccessibleName"
+                   aria-labelledby="@TableLabelledBy"
+                   aria-busy="@(EffectiveLoading ? "true" : "false")">
+                @if (CaptionContent is not null)
+                {
+                    <caption id="@CaptionId" class="bzs-data-grid__caption-title">@CaptionContent</caption>
+                }
+                else if (!string.IsNullOrWhiteSpace(Caption))
+                {
+                    <caption class="bzs-visually-hidden">@Caption</caption>
+                }
+                <thead>
+                    <tr>
+                        @if (SelectionMode != BzsDataGridSelectionMode.None)
+                        {
+                            <th class="bzs-data-grid__selection-header" scope="col">
+                                @if (ShowCurrentPageSelectAll)
                                 {
-                                    <button type="button"
-                                            class="bzs-data-grid__sort"
-                                            aria-label="@column.EffectiveAccessibleName"
-                                            disabled="@ControlsDisabled"
-                                            @onclick="() => RequestSortAsync(column)">
-                                        @column.RenderHeader()
-                                        <span class="bzs-data-grid__sort-indicator" aria-hidden="true">
-                                            @if (GetSortIcon(column) is { } sortIcon)
-                                            {
-                                                <BzsIcon Icon="sortIcon" />
-                                            }
-                                        </span>
-                                    </button>
+                                    <input type="checkbox"
+                                           @ref="_selectAllReference"
+                                           checked="@AreAllCurrentRowsSelected(rows)"
+                                           disabled="@(rows.Count == 0)"
+                                           aria-checked="@GetCurrentPageSelectAllState(rows)"
+                                           aria-label="@EffectiveSelectAllText"
+                                           @onchange="RequestCurrentPageSelectionAsync" />
                                 }
                                 else
                                 {
-                                    <span class="bzs-data-grid__header-label">@column.RenderHeader()</span>
+                                    <span class="bzs-visually-hidden">@EffectiveSelectionColumnText</span>
                                 }
-
-                                @if (Provider is not null
-                                    && (column.Sortable || column.FilterKind != BzsDataGridFilterKind.None))
-                                {
-                                    <BzsMenu Open="@IsColumnMenuOpen(column)"
-                                             OpenChanged="value => SetColumnMenuOpen(column, value)"
-                                             TriggerAccessibleName="@GetColumnMenuLabel(column)"
-                                             AccessibleName="@GetColumnMenuLabel(column)"
-                                             Placement="BzsPopoverPlacement.BottomEnd">
-                                        <TriggerContent>
-                                            <BzsIcon Icon="BzsIcons.Menu" />
-                                        </TriggerContent>
-                                        <ChildContent>
-                                            @if (column.Sortable)
-                                            {
-                                                <BzsMenuItem Text="@EffectiveSortAscendingText"
-                                                             Activated="() => RequestSpecificSortAsync(column, BzsDataGridSortDirection.Ascending)" />
-                                                <BzsMenuItem Text="@EffectiveSortDescendingText"
-                                                             Activated="() => RequestSpecificSortAsync(column, BzsDataGridSortDirection.Descending)" />
-                                                <BzsMenuItem Text="@EffectiveClearSortText"
-                                                             Disabled="@(Sort is null || !string.Equals(Sort.ColumnKey, column.EffectiveKey, StringComparison.Ordinal))"
-                                                             Activated="RequestClearSortAsync" />
-                                            }
-                                            @if (column.Sortable && Provider is not null && column.FilterKind != BzsDataGridFilterKind.None)
-                                            {
-                                                <BzsMenuItem Separator />
-                                            }
-                                            @if (Provider is not null && column.FilterKind != BzsDataGridFilterKind.None)
-                                            {
-                                                <BzsMenuItem Text="@EffectiveClearFilterText"
-                                                             Disabled="@(GetFilter(column) is null)"
-                                                             Activated="() => RequestClearFilterAsync(column)" />
-                                            }
-                                        </ChildContent>
-                                    </BzsMenu>
-                                }
-                            </div>
-
-                            @if (Provider is not null && column.FilterKind != BzsDataGridFilterKind.None)
-                            {
-                                <div class="bzs-data-grid__filter" data-bzs-data-grid-filter="@column.EffectiveKey">
-                                    @if (column.FilterKind == BzsDataGridFilterKind.Text)
+                            </th>
+                        }
+                        @foreach (var column in Columns)
+                        {
+                            <th @key="column" @attributes="column.BuildHeaderAttributes(DisplayedSort)">
+                                <div class="bzs-data-grid__header-content">
+                                    @if (column.Sortable)
                                     {
-                                        <select aria-label="@GetFilterOperatorLabel(column)"
-                                                value="@GetFilterOperatorValue(column)"
-                                                @onchange="args => SetFilterOperator(column, args.Value?.ToString())">
-                                            <option value="@((int)BzsDataGridTextOperator.Contains)">@EffectiveContainsText</option>
-                                            <option value="@((int)BzsDataGridTextOperator.StartsWith)">@EffectiveStartsWithText</option>
-                                            <option value="@((int)BzsDataGridTextOperator.EndsWith)">@EffectiveEndsWithText</option>
-                                            <option value="@((int)BzsDataGridTextOperator.Equals)">@EffectiveEqualsText</option>
-                                        </select>
-                                        <input type="text"
-                                               value="@GetFilterDraft(column)"
-                                               aria-label="@GetFilterValueLabel(column)"
-                                               @oninput="args => SetFilterDraft(column, args.Value?.ToString())" />
-                                    }
-                                    else if (column.FilterKind is BzsDataGridFilterKind.Number or BzsDataGridFilterKind.Date)
-                                    {
-                                        <select aria-label="@GetFilterOperatorLabel(column)"
-                                                value="@GetFilterOperatorValue(column)"
-                                                @onchange="args => SetFilterOperator(column, args.Value?.ToString())">
-                                            <option value="@((int)BzsDataGridComparisonOperator.Equals)">@EffectiveEqualsText</option>
-                                            <option value="@((int)BzsDataGridComparisonOperator.NotEquals)">@EffectiveNotEqualsText</option>
-                                            <option value="@((int)BzsDataGridComparisonOperator.LessThan)">@EffectiveLessThanText</option>
-                                            <option value="@((int)BzsDataGridComparisonOperator.LessThanOrEqual)">@EffectiveLessThanOrEqualText</option>
-                                            <option value="@((int)BzsDataGridComparisonOperator.GreaterThan)">@EffectiveGreaterThanText</option>
-                                            <option value="@((int)BzsDataGridComparisonOperator.GreaterThanOrEqual)">@EffectiveGreaterThanOrEqualText</option>
-                                        </select>
-                                        <input type="@(column.FilterKind == BzsDataGridFilterKind.Number ? "number" : "date")"
-                                               step="@(column.FilterKind == BzsDataGridFilterKind.Number ? "any" : null)"
-                                               value="@GetFilterDraft(column)"
-                                               aria-label="@GetFilterValueLabel(column)"
-                                               @oninput="args => SetFilterDraft(column, args.Value?.ToString())" />
+                                        <button type="button"
+                                                class="bzs-data-grid__sort"
+                                                aria-label="@column.EffectiveAccessibleName"
+                                                disabled="@ControlsDisabled"
+                                                @onclick="() => RequestSortAsync(column)">
+                                            <span class="bzs-data-grid__header-label">@column.RenderHeader()</span>
+                                            <span class="bzs-data-grid__sort-indicator" aria-hidden="true">
+                                                @if (GetSortIcon(column) is { } sortIcon)
+                                                {
+                                                    <BzsIcon Icon="sortIcon" />
+                                                }
+                                            </span>
+                                        </button>
                                     }
                                     else
                                     {
-                                        <select aria-label="@GetFilterValueLabel(column)"
-                                                value="@GetFilterDraft(column)"
-                                                @onchange="args => SetFilterDraft(column, args.Value?.ToString())">
-                                            <option value="">@EffectiveAnyText</option>
-                                            <option value="true">@EffectiveTrueText</option>
-                                            <option value="false">@EffectiveFalseText</option>
-                                        </select>
+                                        <span class="bzs-data-grid__header-label">@column.RenderHeader()</span>
                                     }
-                                    <button type="button"
-                                            class="bzs-data-grid__filter-apply"
-                                            aria-label="@GetApplyFilterLabel(column)"
-                                            title="@GetApplyFilterLabel(column)"
-                                            @onclick="() => RequestApplyFilterAsync(column)">
-                                        <BzsIcon Icon="BzsIcons.Search" />
-                                    </button>
+
+                                    @if (Provider is not null
+                                        && (column.Sortable || column.FilterKind != BzsDataGridFilterKind.None))
+                                    {
+                                        <span class="bzs-data-grid__column-options"
+                                              data-bzs-filter-active="@(GetFilter(column) is null ? "false" : "true")">
+                                            <BzsPopover Open="@IsColumnMenuOpen(column)"
+                                                        OpenChanged="value => SetColumnMenuOpen(column, value)"
+                                                        TriggerAccessibleName="@GetColumnMenuLabel(column)"
+                                                        ContentAccessibleName="@GetColumnMenuLabel(column)"
+                                                        ContentRole="group"
+                                                        Placement="BzsPopoverPlacement.BottomEnd">
+                                                <TriggerContent>
+                                                    <BzsIcon Icon="BzsIcons.Filter" />
+                                                </TriggerContent>
+                                                <ChildContent>
+                                                    <span class="bzs-data-grid__column-panel">
+                                                        <span class="bzs-data-grid__column-panel-title">
+                                                            @column.EffectiveAccessibleName
+                                                        </span>
+                                                        @if (column.Sortable)
+                                                        {
+                                                            <span class="bzs-data-grid__column-panel-section">
+                                                                <span class="bzs-data-grid__field-label">@EffectiveSortText</span>
+                                                                <span class="bzs-data-grid__sort-actions"
+                                                                      role="group"
+                                                                      aria-label="@GetColumnSortLabel(column)">
+                                                                    <button type="button"
+                                                                            data-bzs-active="@IsSort(column, BzsDataGridSortDirection.Ascending)"
+                                                                            @onclick="() => RequestSpecificSortAsync(column, BzsDataGridSortDirection.Ascending)">
+                                                                        <BzsIcon Icon="BzsIcons.ChevronUp" />
+                                                                        @EffectiveSortAscendingText
+                                                                    </button>
+                                                                    <button type="button"
+                                                                            data-bzs-active="@IsSort(column, BzsDataGridSortDirection.Descending)"
+                                                                            @onclick="() => RequestSpecificSortAsync(column, BzsDataGridSortDirection.Descending)">
+                                                                        <BzsIcon Icon="BzsIcons.ChevronDown" />
+                                                                        @EffectiveSortDescendingText
+                                                                    </button>
+                                                                    <button type="button"
+                                                                            disabled="@(Sort is null || !string.Equals(Sort.ColumnKey, column.EffectiveKey, StringComparison.Ordinal))"
+                                                                            @onclick="RequestClearSortAsync">
+                                                                        @EffectiveClearSortText
+                                                                    </button>
+                                                                </span>
+                                                            </span>
+                                                        }
+                                                        @if (column.FilterKind != BzsDataGridFilterKind.None)
+                                                        {
+                                                            <span class="bzs-data-grid__column-panel-section"
+                                                                  data-bzs-data-grid-filter="@column.EffectiveKey">
+                                                                @if (column.FilterKind == BzsDataGridFilterKind.Text)
+                                                                {
+                                                                    <span class="bzs-data-grid__filter-field">
+                                                                        <span class="bzs-data-grid__field-label">@EffectiveConditionText</span>
+                                                                        <span class="bzs-data-grid__filter-options"
+                                                                              role="radiogroup"
+                                                                              aria-label="@GetFilterOperatorLabel(column)">
+                                                                            <button type="button"
+                                                                                    role="radio"
+                                                                                    aria-checked="@(IsFilterOperatorSelected(column, (int)BzsDataGridTextOperator.Contains) ? "true" : "false")"
+                                                                                    data-bzs-active="@IsFilterOperatorSelected(column, (int)BzsDataGridTextOperator.Contains)"
+                                                                                    @onclick="() => SetFilterOperator(column, (int)BzsDataGridTextOperator.Contains)">@EffectiveContainsText</button>
+                                                                            <button type="button"
+                                                                                    role="radio"
+                                                                                    aria-checked="@(IsFilterOperatorSelected(column, (int)BzsDataGridTextOperator.StartsWith) ? "true" : "false")"
+                                                                                    data-bzs-active="@IsFilterOperatorSelected(column, (int)BzsDataGridTextOperator.StartsWith)"
+                                                                                    @onclick="() => SetFilterOperator(column, (int)BzsDataGridTextOperator.StartsWith)">@EffectiveStartsWithText</button>
+                                                                            <button type="button"
+                                                                                    role="radio"
+                                                                                    aria-checked="@(IsFilterOperatorSelected(column, (int)BzsDataGridTextOperator.EndsWith) ? "true" : "false")"
+                                                                                    data-bzs-active="@IsFilterOperatorSelected(column, (int)BzsDataGridTextOperator.EndsWith)"
+                                                                                    @onclick="() => SetFilterOperator(column, (int)BzsDataGridTextOperator.EndsWith)">@EffectiveEndsWithText</button>
+                                                                            <button type="button"
+                                                                                    role="radio"
+                                                                                    aria-checked="@(IsFilterOperatorSelected(column, (int)BzsDataGridTextOperator.Equals) ? "true" : "false")"
+                                                                                    data-bzs-active="@IsFilterOperatorSelected(column, (int)BzsDataGridTextOperator.Equals)"
+                                                                                    @onclick="() => SetFilterOperator(column, (int)BzsDataGridTextOperator.Equals)">@EffectiveEqualsText</button>
+                                                                        </span>
+                                                                    </span>
+                                                                    <label class="bzs-data-grid__filter-field">
+                                                                        <span class="bzs-data-grid__field-label">@EffectiveValueText</span>
+                                                                        <input type="text"
+                                                                               value="@GetFilterDraft(column)"
+                                                                               aria-label="@GetFilterValueLabel(column)"
+                                                                               @oninput="args => SetFilterDraft(column, args.Value?.ToString())"
+                                                                               @onkeydown="args => HandleFilterKeyDownAsync(column, args)" />
+                                                                    </label>
+                                                                }
+                                                                else if (column.FilterKind is BzsDataGridFilterKind.Number or BzsDataGridFilterKind.Date)
+                                                                {
+                                                                    <span class="bzs-data-grid__filter-field">
+                                                                        <span class="bzs-data-grid__field-label">@EffectiveConditionText</span>
+                                                                        <span class="bzs-data-grid__filter-options"
+                                                                              role="radiogroup"
+                                                                              aria-label="@GetFilterOperatorLabel(column)">
+                                                                            @foreach (var option in GetComparisonFilterOptions())
+                                                                            {
+                                                                                <button @key="option.Value"
+                                                                                        type="button"
+                                                                                        role="radio"
+                                                                                        aria-checked="@(IsFilterOperatorSelected(column, option.Value) ? "true" : "false")"
+                                                                                        data-bzs-active="@IsFilterOperatorSelected(column, option.Value)"
+                                                                                        @onclick="() => SetFilterOperator(column, option.Value)">@option.Label</button>
+                                                                            }
+                                                                        </span>
+                                                                    </span>
+                                                                    <label class="bzs-data-grid__filter-field">
+                                                                        <span class="bzs-data-grid__field-label">@EffectiveValueText</span>
+                                                                        <input type="@(column.FilterKind == BzsDataGridFilterKind.Number ? "number" : "date")"
+                                                                               step="@(column.FilterKind == BzsDataGridFilterKind.Number ? "any" : null)"
+                                                                               value="@GetFilterDraft(column)"
+                                                                               aria-label="@GetFilterValueLabel(column)"
+                                                                               @oninput="args => SetFilterDraft(column, args.Value?.ToString())"
+                                                                               @onkeydown="args => HandleFilterKeyDownAsync(column, args)" />
+                                                                    </label>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="bzs-data-grid__filter-field">
+                                                                        <span class="bzs-data-grid__field-label">@EffectiveValueText</span>
+                                                                        <span class="bzs-data-grid__filter-options bzs-data-grid__filter-options--boolean"
+                                                                              role="radiogroup"
+                                                                              aria-label="@GetFilterValueLabel(column)">
+                                                                            <button type="button"
+                                                                                    role="radio"
+                                                                                    aria-checked="@(IsFilterDraftSelected(column, string.Empty) ? "true" : "false")"
+                                                                                    data-bzs-active="@IsFilterDraftSelected(column, string.Empty)"
+                                                                                    @onclick="() => SetFilterDraft(column, string.Empty)">@EffectiveAnyText</button>
+                                                                            <button type="button"
+                                                                                    role="radio"
+                                                                                    aria-checked="@(IsFilterDraftSelected(column, TrueFilterDraft) ? "true" : "false")"
+                                                                                    data-bzs-active="@IsFilterDraftSelected(column, TrueFilterDraft)"
+                                                                                    @onclick="() => SetFilterDraft(column, TrueFilterDraft)">@EffectiveTrueText</button>
+                                                                            <button type="button"
+                                                                                    role="radio"
+                                                                                    aria-checked="@(IsFilterDraftSelected(column, FalseFilterDraft) ? "true" : "false")"
+                                                                                    data-bzs-active="@IsFilterDraftSelected(column, FalseFilterDraft)"
+                                                                                    @onclick="() => SetFilterDraft(column, FalseFilterDraft)">@EffectiveFalseText</button>
+                                                                        </span>
+                                                                    </span>
+                                                                }
+                                                                <span class="bzs-data-grid__filter-actions">
+                                                                    <button type="button"
+                                                                            aria-label="@GetClearFilterLabel(column)"
+                                                                            disabled="@(GetFilter(column) is null)"
+                                                                            @onclick="() => RequestClearFilterAsync(column)">
+                                                                        @EffectiveClearFilterText
+                                                                    </button>
+                                                                    <button type="button"
+                                                                            class="bzs-data-grid__filter-apply"
+                                                                            aria-label="@GetApplyFilterLabel(column)"
+                                                                            @onclick="() => RequestApplyFilterAsync(column)">
+                                                                        @EffectiveApplyText
+                                                                    </button>
+                                                                </span>
+                                                            </span>
+                                                        }
+                                                    </span>
+                                                </ChildContent>
+                                            </BzsPopover>
+                                        </span>
+                                    }
                                 </div>
-                            }
-                        </th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                @if (EffectiveLoading && !HasAcceptedProviderResult)
-                {
-                    <tr>
-                        <td colspan="@ColumnSpan">
-                            @if (LoadingTemplate is not null)
-                            {
-                                @LoadingTemplate
-                            }
-                            else
-                            {
-                                <div class="bzs-data-grid__state" role="status">
-                                    <BzsSkeleton Shape="BzsSkeletonShape.Text" />
-                                    <span>@EffectiveLoadingText</span>
-                                </div>
-                            }
-                        </td>
+                            </th>
+                        }
                     </tr>
-                }
-                else if (EffectiveError is not null && !HasAcceptedProviderResult)
-                {
-                    <tr>
-                        <td colspan="@ColumnSpan">
-                            @if (ErrorTemplate is not null)
-                            {
-                                @ErrorTemplate(EffectiveError)
-                            }
-                            else
-                            {
-                                <div class="bzs-data-grid__state bzs-data-grid__state--error" role="alert">
-                                    <span>@EffectiveErrorText</span>
-                                </div>
-                            }
-                            @if (Provider is not null)
-                            {
-                                <button type="button" @onclick="RetryProviderAsync">@EffectiveRetryText</button>
-                            }
-                        </td>
-                    </tr>
-                }
-                else if (rows.Count == 0)
-                {
-                    <tr>
-                        <td colspan="@ColumnSpan">
-                            @if (EmptyTemplate is not null)
-                            {
-                                @EmptyTemplate
-                            }
-                            else
-                            {
-                                <div class="bzs-data-grid__state">@EffectiveEmptyText</div>
-                            }
-                        </td>
-                    </tr>
-                }
-                else
-                {
-                    @for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+                </thead>
+                <tbody>
+                    @if (EffectiveLoading && !HasAcceptedProviderResult)
                     {
-                        var item = rows[rowIndex];
-                        <tr @key="GetRenderKey(item, rowIndex)"
-                            data-bzs-data-grid-selected="@(IsSelected(item) ? "true" : "false")">
-                            @if (SelectionMode != BzsDataGridSelectionMode.None)
-                            {
-                                <td class="bzs-data-grid__selection-cell">
-                                    <input type="@(SelectionMode == BzsDataGridSelectionMode.Single ? "radio" : "checkbox")"
-                                           name="@SelectionInputName"
-                                           checked="@IsSelected(item)"
-                                           aria-label="@GetSelectionLabel(item, rowIndex)"
-                                           @onchange="() => RequestSelectionAsync(item)" />
-                                </td>
-                            }
-                            @foreach (var column in Columns)
-                            {
-                                <td @key="column" class="bzs-data-grid__cell">
-                                    @column.RenderCell(item)
-                                </td>
-                            }
+                        <tr>
+                            <td colspan="@ColumnSpan">
+                                @if (LoadingTemplate is not null)
+                                {
+                                    @LoadingTemplate
+                                }
+                                else
+                                {
+                                    <div class="bzs-data-grid__state" role="status">
+                                        <BzsSkeleton Shape="BzsSkeletonShape.Text" />
+                                        <span>@EffectiveLoadingText</span>
+                                    </div>
+                                }
+                            </td>
                         </tr>
                     }
-                }
-            </tbody>
-        </table>
-    </div>
-
-    @if (Provider is not null && HasAcceptedProviderResult && (EffectiveLoading || EffectiveError is not null))
-    {
-        <div class="bzs-data-grid__provider-state"
-             role="@(EffectiveError is null ? "status" : "alert")">
-            @if (EffectiveError is not null && ErrorTemplate is not null)
-            {
-                @ErrorTemplate(EffectiveError)
-            }
-            else
-            {
-                <span>@(EffectiveError is null ? EffectiveLoadingText : EffectiveErrorText)</span>
-            }
-            @if (EffectiveError is not null)
-            {
-                <button type="button" @onclick="RetryProviderAsync">@EffectiveRetryText</button>
-            }
-        </div>
-    }
-
-    @if (ShowPageSizeSelector || ShowPagination)
-    {
-        <div class="bzs-data-grid__footer">
-            @if (ShowPageSizeSelector)
-            {
-                <label class="bzs-data-grid__page-size" for="@PageSizeInputId">
-                    <span>@EffectivePageSizeText</span>
-                    <select id="@PageSizeInputId"
-                            aria-label="@EffectivePageSizeText"
-                            value="@PageSize"
-                            disabled="@ControlsDisabled"
-                            @onchange="RequestPageSizeAsync">
-                        @foreach (var option in PageSizeOptions)
+                    else if (EffectiveError is not null && !HasAcceptedProviderResult)
+                    {
+                        <tr>
+                            <td colspan="@ColumnSpan">
+                                @if (ErrorTemplate is not null)
+                                {
+                                    @ErrorTemplate(EffectiveError)
+                                }
+                                else
+                                {
+                                    <div class="bzs-data-grid__state bzs-data-grid__state--error" role="alert">
+                                        <span>@EffectiveErrorText</span>
+                                    </div>
+                                }
+                                @if (Provider is not null)
+                                {
+                                    <button type="button" class="bzs-data-grid__state-action" @onclick="RetryProviderAsync">
+                                        @EffectiveRetryText
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    else if (rows.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="@ColumnSpan">
+                                @if (EmptyTemplate is not null)
+                                {
+                                    @EmptyTemplate
+                                }
+                                else
+                                {
+                                    <div class="bzs-data-grid__state">@EffectiveEmptyText</div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
                         {
-                            <option value="@option">@option</option>
+                            var item = rows[rowIndex];
+                            <tr @key="GetRenderKey(item, rowIndex)"
+                                data-bzs-data-grid-selected="@(IsSelected(item) ? "true" : "false")">
+                                @if (SelectionMode != BzsDataGridSelectionMode.None)
+                                {
+                                    <td class="bzs-data-grid__selection-cell">
+                                        <input type="@(SelectionMode == BzsDataGridSelectionMode.Single ? "radio" : "checkbox")"
+                                               name="@SelectionInputName"
+                                               checked="@IsSelected(item)"
+                                               aria-label="@GetSelectionLabel(item, rowIndex)"
+                                               @onchange="() => RequestSelectionAsync(item)" />
+                                    </td>
+                                }
+                                @foreach (var column in Columns)
+                                {
+                                    <td @key="column" class="bzs-data-grid__cell">
+                                        @column.RenderCell(item)
+                                    </td>
+                                }
+                            </tr>
                         }
-                    </select>
-                </label>
-            }
-            @if (ShowPagination)
-            {
-                @if (Provider is null)
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Provider is not null && HasAcceptedProviderResult && (EffectiveLoading || EffectiveError is not null))
+        {
+            <div class="bzs-data-grid__provider-state"
+                 role="@(EffectiveError is null ? "status" : "alert")">
+                @if (EffectiveError is not null && ErrorTemplate is not null)
                 {
-                    <BzsPagination Page="@Page"
-                                   PageChanged="@PageChanged"
-                                   PageCount="@PageCount"
-                                   Compact="@CompactPagination"
-                                   Disabled="@ControlsDisabled"
-                                   AccessibleName="@EffectivePaginationAccessibleName" />
-                }
-                else if (AcceptedTotalCount is not null)
-                {
-                    <BzsPagination Page="@AcceptedPage"
-                                   PageChanged="@RequestPageAsync"
-                                   PageCount="@AcceptedPageCount"
-                                   Compact="@CompactPagination"
-                                   Disabled="@ControlsDisabled"
-                                   AccessibleName="@EffectivePaginationAccessibleName" />
+                    @ErrorTemplate(EffectiveError)
                 }
                 else
                 {
-                    <nav class="bzs-data-grid__unknown-pagination" aria-label="@EffectivePaginationAccessibleName">
-                        <button type="button"
-                                aria-label="@EffectivePreviousPageText"
-                                title="@EffectivePreviousPageText"
-                                disabled="@(ControlsDisabled || AcceptedPage <= 1)"
-                                @onclick="() => RequestPageAsync(AcceptedPage - 1)">
-                            <BzsIcon Icon="BzsIcons.ChevronLeft" />
-                        </button>
-                        <span>@Localize("DataGridCurrentPageText", AcceptedPage)</span>
-                        <button type="button"
-                                aria-label="@EffectiveNextPageText"
-                                title="@EffectiveNextPageText"
-                                disabled="@(ControlsDisabled || !AcceptedHasNextPage)"
-                                @onclick="() => RequestPageAsync(AcceptedPage + 1)">
-                            <BzsIcon Icon="BzsIcons.ChevronRight" />
-                        </button>
-                    </nav>
+                    <span>@(EffectiveError is null ? EffectiveLoadingText : EffectiveErrorText)</span>
                 }
-            }
-        </div>
-    }
+                @if (EffectiveError is not null)
+                {
+                    <button type="button" @onclick="RetryProviderAsync">@EffectiveRetryText</button>
+                }
+            </div>
+        }
+
+        @if (ShowPageSizeSelector || ShowPagination)
+        {
+            <div class="bzs-data-grid__footer">
+                <div class="bzs-data-grid__footer-info">
+                    @if (ShowResultSummary && ResultSummary is { } resultSummary)
+                    {
+                        <span class="bzs-data-grid__result-summary" role="status">@resultSummary</span>
+                    }
+                    @if (ShowPageSizeSelector)
+                    {
+                        <span class="bzs-data-grid__page-size">
+                            <span>@EffectivePageSizeText</span>
+                            <span class="bzs-data-grid__page-size-picker">
+                                <BzsPopover Open="@_pageSizeMenuOpen"
+                                            OpenChanged="value => _pageSizeMenuOpen = value"
+                                            Disabled="@ControlsDisabled"
+                                            TriggerAccessibleName="@EffectivePageSizeText"
+                                            ContentAccessibleName="@EffectivePageSizeText"
+                                            ContentRole="listbox"
+                                            Placement="BzsPopoverPlacement.TopStart">
+                                    <TriggerContent>
+                                        <span>@PageSize</span>
+                                        <BzsIcon Icon="BzsIcons.ChevronDown" />
+                                    </TriggerContent>
+                                    <ChildContent>
+                                        <span class="bzs-data-grid__page-size-options">
+                                            @foreach (var option in PageSizeOptions)
+                                            {
+                                                <button @key="option"
+                                                        type="button"
+                                                        role="option"
+                                                        aria-selected="@(option == PageSize ? "true" : "false")"
+                                                        data-bzs-active="@(option == PageSize)"
+                                                        @onclick="() => RequestPageSizeAsync(option)">@option</button>
+                                            }
+                                        </span>
+                                    </ChildContent>
+                                </BzsPopover>
+                            </span>
+                        </span>
+                    }
+                </div>
+                @if (ShowPagination)
+                {
+                    @if (Provider is null)
+                    {
+                        <BzsPagination Page="@Page"
+                                       PageChanged="@PageChanged"
+                                       PageCount="@PageCount"
+                                       Compact="@CompactPagination"
+                                       Disabled="@ControlsDisabled"
+                                       AccessibleName="@EffectivePaginationAccessibleName" />
+                    }
+                    else if (AcceptedTotalCount is not null)
+                    {
+                        <BzsPagination Page="@AcceptedPage"
+                                       PageChanged="@RequestPageAsync"
+                                       PageCount="@AcceptedPageCount"
+                                       Compact="@CompactPagination"
+                                       Disabled="@ControlsDisabled"
+                                       AccessibleName="@EffectivePaginationAccessibleName" />
+                    }
+                    else
+                    {
+                        <nav class="bzs-data-grid__unknown-pagination" aria-label="@EffectivePaginationAccessibleName">
+                            <button type="button"
+                                    aria-label="@EffectivePreviousPageText"
+                                    title="@EffectivePreviousPageText"
+                                    disabled="@(ControlsDisabled || AcceptedPage <= 1)"
+                                    @onclick="() => RequestPageAsync(AcceptedPage - 1)">
+                                <BzsIcon Icon="BzsIcons.ChevronLeft" />
+                            </button>
+                            <span>@Localize("DataGridCurrentPageText", AcceptedPage)</span>
+                            <button type="button"
+                                    aria-label="@EffectiveNextPageText"
+                                    title="@EffectiveNextPageText"
+                                    disabled="@(ControlsDisabled || !AcceptedHasNextPage)"
+                                    @onclick="() => RequestPageAsync(AcceptedPage + 1)">
+                                <BzsIcon Icon="BzsIcons.ChevronRight" />
+                            </button>
+                        </nav>
+                    }
+                }
+            </div>
+        }
+    </div>
 </div>

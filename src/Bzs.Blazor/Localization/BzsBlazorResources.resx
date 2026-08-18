@@ -249,6 +249,45 @@
   <data name="DataGridCurrentPageText" xml:space="preserve">
     <value>Page {0}</value>
   </data>
+  <data name="DataGridSortText" xml:space="preserve">
+    <value>Sort</value>
+  </data>
+  <data name="DataGridConditionText" xml:space="preserve">
+    <value>Condition</value>
+  </data>
+  <data name="DataGridValueText" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="DataGridApplyText" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="DataGridColumnSortText" xml:space="preserve">
+    <value>{0} sort options</value>
+  </data>
+  <data name="DataGridClearColumnFilterText" xml:space="preserve">
+    <value>Clear {0} filter</value>
+  </data>
+  <data name="DataGridClearAllFiltersText" xml:space="preserve">
+    <value>Clear all</value>
+  </data>
+  <data name="DataGridActiveFiltersText" xml:space="preserve">
+    <value>Active filters: {0}</value>
+  </data>
+  <data name="DataGridSelectedSummaryText" xml:space="preserve">
+    <value>{0} selected</value>
+  </data>
+  <data name="DataGridResultSummaryText" xml:space="preserve">
+    <value>Showing {0}-{1} of {2}</value>
+  </data>
+  <data name="DataGridZeroResultSummaryText" xml:space="preserve">
+    <value>No results</value>
+  </data>
+  <data name="DataGridUnknownResultSummaryText" xml:space="preserve">
+    <value>Rows on this page: {0}</value>
+  </data>
+  <data name="DataGridFilterSummaryText" xml:space="preserve">
+    <value>{0}: {1} {2}</value>
+  </data>
   <data name="BreadcrumbAccessibleName" xml:space="preserve">
     <value>Breadcrumb</value>
   </data>

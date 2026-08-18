@@ -19,6 +19,7 @@
     color: inherit;
     font: inherit;
     text-align: start;
+    transition: background-color var(--bzs-motion-fast) var(--bzs-motion-easing);
     cursor: pointer;
 }
 

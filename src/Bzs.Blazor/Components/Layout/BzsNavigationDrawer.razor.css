@@ -22,11 +22,14 @@
 
 .bzs-navigation-drawer__panel {
     box-sizing: border-box;
+    display: grid;
     position: absolute;
     z-index: 1;
     inset-block: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     inline-size: min(var(--bzs-navigation-drawer-width, 16rem), 100%);
-    overflow: auto;
+    overflow: hidden;
     border: 0;
     background: var(
         --bzs-navigation-drawer-background,
@@ -39,6 +42,81 @@
     transition:
         opacity var(--bzs-motion-normal) var(--bzs-motion-easing),
         visibility var(--bzs-motion-normal) step-end;
+}
+
+.bzs-navigation-drawer__content {
+    min-inline-size: 0;
+    min-block-size: 0;
+    overflow: auto;
+    scrollbar-color:
+        color-mix(in srgb, var(--bzs-text-muted) 52%, var(--bzs-surface-raised) 48%)
+        transparent;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+}
+
+.bzs-navigation-drawer__content::-webkit-scrollbar {
+    inline-size: 0.625rem;
+    block-size: 0.625rem;
+}
+
+.bzs-navigation-drawer__content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.bzs-navigation-drawer__content::-webkit-scrollbar-thumb {
+    border: 0;
+    border-radius: var(--bzs-radius-control);
+    background: color-mix(in srgb, var(--bzs-text-muted) 32%, var(--bzs-surface-raised) 68%);
+    box-shadow: var(--bzs-shadow-raised);
+}
+
+.bzs-navigation-drawer__content::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--bzs-primary) 36%, var(--bzs-surface-raised) 64%);
+}
+
+.bzs-navigation-drawer__resize-handle {
+    position: absolute;
+    z-index: 2;
+    inset-block: 0;
+    inline-size: 0.75rem;
+    border: 0;
+    outline: none;
+    background: transparent;
+    cursor: col-resize;
+    touch-action: none;
+}
+
+.bzs-navigation-drawer--start .bzs-navigation-drawer__resize-handle {
+    inset-inline-end: 0;
+}
+
+.bzs-navigation-drawer--end .bzs-navigation-drawer__resize-handle {
+    inset-inline-start: 0;
+}
+
+.bzs-navigation-drawer__resize-handle::before {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline: 0;
+    inline-size: 0.25rem;
+    block-size: 3rem;
+    margin-inline: auto;
+    border-radius: var(--bzs-radius-control);
+    background: color-mix(in srgb, var(--bzs-surface-raised) 76%, var(--bzs-text-muted) 24%);
+    box-shadow: var(--bzs-shadow-raised);
+    content: "";
+    transform: translateY(-50%);
+    transition:
+        background-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        box-shadow var(--bzs-motion-fast) var(--bzs-motion-easing);
+}
+
+.bzs-navigation-drawer__resize-handle:hover::before,
+.bzs-navigation-drawer__resize-handle:focus-visible::before,
+.bzs-navigation-drawer[data-bzs-resizing="true"] .bzs-navigation-drawer__resize-handle::before {
+    background: color-mix(in srgb, var(--bzs-primary) 44%, var(--bzs-surface-raised) 56%);
+    box-shadow: var(--bzs-shadow-raised), var(--bzs-shadow-focus);
 }
 
 .bzs-navigation-drawer--start .bzs-navigation-drawer__panel {
@@ -85,7 +163,8 @@
 
 @media (prefers-reduced-motion: reduce) {
     .bzs-navigation-drawer__backdrop,
-    .bzs-navigation-drawer__panel {
+    .bzs-navigation-drawer__panel,
+    .bzs-navigation-drawer__resize-handle::before {
         transition: none;
     }
 }
@@ -101,5 +180,31 @@
         background: Canvas;
         box-shadow: none;
         color: CanvasText;
+    }
+
+    .bzs-navigation-drawer__content {
+        scrollbar-color: CanvasText Canvas;
+    }
+
+    .bzs-navigation-drawer__content::-webkit-scrollbar-track {
+        background: Canvas;
+    }
+
+    .bzs-navigation-drawer__content::-webkit-scrollbar-thumb,
+    .bzs-navigation-drawer__content::-webkit-scrollbar-thumb:hover {
+        background: CanvasText;
+        box-shadow: none;
+    }
+
+    .bzs-navigation-drawer__resize-handle::before,
+    .bzs-navigation-drawer__resize-handle:hover::before,
+    .bzs-navigation-drawer__resize-handle:focus-visible::before {
+        background: CanvasText;
+        box-shadow: none;
+    }
+
+    .bzs-navigation-drawer__resize-handle:focus-visible {
+        outline: 0.125rem solid Highlight;
+        outline-offset: -0.125rem;
     }
 }

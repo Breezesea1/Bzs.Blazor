@@ -56,6 +56,10 @@
             <BzsIcon Icon="DemoNavIcons.Layout" />
             <span class="demo-nav-link-label">@DemoText.Chrome.Layout</span>
         </NavLink>
+        <NavLink class="demo-nav-link" href="@RouteUrl("navigation-drawer")">
+            <BzsIcon Icon="DemoNavIcons.NavigationDrawer" />
+            <span class="demo-nav-link-label">@DemoText.Chrome.NavigationDrawer</span>
+        </NavLink>
     </div>
 
     <div class="demo-nav-section">
@@ -100,14 +104,16 @@
     }
 
     <div class="demo-user">
-        <span class="demo-user-avatar" aria-hidden="true">@DemoText.Chrome.DemoUserAvatarInitial</span>
-        <span class="demo-user-copy">
-            <strong>@DemoText.Chrome.DemoUser</strong>
-            <small>@DemoText.Chrome.Administrator</small>
-        </span>
-        <a class="demo-user-action" href="@RouteUrl("")" aria-label="@DemoText.Chrome.SignOutAccessibleName">
-            <BzsIcon Icon="DemoNavIcons.LogOut" />
-            <span class="demo-user-action-label">@DemoText.Chrome.Exit</span>
-        </a>
+        <BzsAvatar Initials="@DemoText.Chrome.DemoUserAvatarInitial"
+                   Name="@DemoText.Chrome.DemoUser"
+                   Size="BzsAvatarSize.Medium"
+                   Class="demo-user-identity">
+            <ActionContent>
+                <a class="demo-user-action" href="@RouteUrl("")" aria-label="@DemoText.Chrome.SignOutAccessibleName">
+                    <BzsIcon Icon="DemoNavIcons.LogOut" />
+                    <span class="demo-user-action-label">@DemoText.Chrome.Exit</span>
+                </a>
+            </ActionContent>
+        </BzsAvatar>
     </div>
 </div>

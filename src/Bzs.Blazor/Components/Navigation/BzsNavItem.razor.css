@@ -29,6 +29,9 @@
     line-height: 1.35;
     text-align: start;
     text-decoration: none;
+    transition: background-color var(--bzs-motion-normal) var(--bzs-motion-easing),
+        box-shadow var(--bzs-motion-normal) var(--bzs-motion-easing),
+        color var(--bzs-motion-normal) var(--bzs-motion-easing);
 }
 
 .bzs-nav-item__summary {
@@ -61,8 +64,8 @@
     font-weight: var(--bzs-font-weight-bold);
 }
 
-.bzs-nav-item__link--active::before,
-::deep .bzs-nav-item__link--active::before {
+.bzs-nav-item__link::before,
+::deep .bzs-nav-item__link::before {
     position: absolute;
     inset-block: 0.45rem;
     inset-inline-start: 0;
@@ -70,6 +73,17 @@
     border-radius: var(--bzs-radius-control);
     background: currentColor;
     content: "";
+    opacity: 0;
+    transform: scaleY(0.55);
+    transform-origin: center;
+    transition: opacity var(--bzs-motion-normal) var(--bzs-motion-easing),
+        transform var(--bzs-motion-normal) var(--bzs-motion-easing);
+}
+
+.bzs-nav-item__link--active::before,
+::deep .bzs-nav-item__link--active::before {
+    opacity: 1;
+    transform: scaleY(1);
 }
 
 .bzs-nav-item__link--disabled {
@@ -109,6 +123,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .bzs-nav-item__link::before,
+    .bzs-nav-item ::deep .bzs-nav-item__link::before,
     .bzs-nav-item ::deep .bzs-nav-item__chevron {
         transition: none;
     }

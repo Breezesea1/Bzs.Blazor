@@ -72,10 +72,10 @@
                         ShowDelay="@TimeSpan.Zero"
                         HideDelay="@TimeSpan.Zero">
                 <TriggerContent Context="trigger">
-                    <button type="button"
-                            class="demo-inline-command"
-                            data-testid="productivity-tooltip-trigger"
-                            @attributes="trigger.Attributes">Focus me</button>
+                    <BzsButton Variant="BzsButtonVariant.Secondary"
+                               Class="demo-inline-command"
+                               data-testid="productivity-tooltip-trigger"
+                               @attributes="trigger.Attributes">Focus me</BzsButton>
                 </TriggerContent>
             </BzsTooltip>
             <BzsPopover Open="@_popoverOpen"
@@ -143,16 +143,9 @@
 
     <section class="demo-panel" aria-labelledby="grid-specimen-title">
         <header class="demo-form-section-header">
-            <h2 id="grid-specimen-title">Typed provider DataGrid</h2>
-            <p>Page, sort, filter, loading, empty, error, retry, and row identity stay in the public contract.</p>
+            <h2 id="grid-specimen-title">@DemoText.Productivity.DataGridTitle</h2>
+            <p>@DemoText.Productivity.DataGridDescription</p>
         </header>
-        <div class="demo-control-row">
-            <BzsButton Variant="BzsButtonVariant.Outline"
-                       Click="RefreshGridAsync"
-                       AccessibleName="@DemoText.Productivity.RefreshGridAccessibleName"
-                       data-testid="productivity-grid-refresh">@DemoText.Productivity.RefreshGrid</BzsButton>
-            <span class="demo-runtime-status" role="status" data-testid="productivity-grid-refresh-status">@GridRefreshStatus</span>
-        </div>
         <BzsDataGrid TItem="ReviewRow"
                      @ref="_grid"
                      Provider="@_gridProvider"
@@ -166,51 +159,102 @@
                      Filters="@_gridFilters"
                      FiltersChanged="value => _gridFilters = value"
                      ShowPageSizeSelector="false"
+                     ShowResultSummary="true"
                      ItemKey="row => row.Id"
                      SelectionMode="BzsDataGridSelectionMode.Multiple"
                      ShowSelectAll="true"
+                     SelectAllText="@DemoText.Productivity.SelectCurrentPage"
                      SelectedItems="@_selectedRows"
                      SelectedItemsChanged="HandleGridSelectionChanged"
-                     Caption="Review queue"
-                     AccessibleName="Review queue data"
+                     Caption="@DemoText.Productivity.ReviewQueue"
+                     AccessibleName="@DemoText.Productivity.ReviewQueue"
                      data-testid="productivity-grid">
-            <BzsDataGridColumn TItem="ReviewRow"
-                               Key="title"
-                               Title="Review"
-                               ValueSelector="row => row.Title"
-                               Sortable="true"
-                               FilterKind="BzsDataGridFilterKind.Text" />
-            <BzsDataGridColumn TItem="ReviewRow"
-                               Key="owner"
-                               Title="Owner"
-                               ValueSelector="row => row.Owner"
-                               Sortable="true" />
-            <BzsDataGridColumn TItem="ReviewRow"
-                               Key="priority"
-                               Title="Priority"
-                               ValueSelector="row => row.Priority"
-                               Sortable="true" />
+            <ToolbarContent>
+                <BzsButton Variant="BzsButtonVariant.Outline"
+                           Size="BzsButtonSize.Small"
+                           StartIcon="BzsIcons.Refresh"
+                           Click="RefreshGridAsync"
+                           AccessibleName="@DemoText.Productivity.RefreshGridAccessibleName"
+                           data-testid="productivity-grid-refresh">@DemoText.Productivity.RefreshGrid</BzsButton>
+                <span class="demo-runtime-status"
+                      role="status"
+                      data-testid="productivity-grid-refresh-status">@GridRefreshStatus</span>
+            </ToolbarContent>
+            <ChildContent>
+                <BzsDataGridColumn TItem="ReviewRow"
+                                   Key="title"
+                                   Title="@DemoText.Productivity.ReviewColumn"
+                                   ValueSelector="row => row.Title"
+                                   Sortable="true"
+                                   FilterKind="BzsDataGridFilterKind.Text" />
+                <BzsDataGridColumn TItem="ReviewRow"
+                                   Key="owner"
+                                   Title="@DemoText.Productivity.OwnerColumn"
+                                   ValueSelector="row => row.Owner"
+                                   Sortable="true"
+                                   FilterKind="BzsDataGridFilterKind.Text" />
+                <BzsDataGridColumn TItem="ReviewRow"
+                                   Key="priority"
+                                   Title="@DemoText.Productivity.PriorityColumn"
+                                   ValueSelector="row => row.Priority"
+                                   Sortable="true"
+                                   FilterKind="BzsDataGridFilterKind.Text">
+                    <CellTemplate Context="row">
+                        <span class="demo-grid-priority" data-priority="@row.Priority.ToLowerInvariant()">
+                            @row.Priority
+                        </span>
+                    </CellTemplate>
+                </BzsDataGridColumn>
+            </ChildContent>
         </BzsDataGrid>
-        <h3>@DemoText.Productivity.CompactGridTitle</h3>
-        <p>@DemoText.Productivity.CompactGridDescription</p>
-        <BzsDataGrid TItem="ReviewRow"
-                     Items="@CompactGridRows"
-                     PageSize="5"
-                     PageSizeOptions="@_gridPageSizeOptions"
-                     ShowPageSizeSelector="false"
-                     ShowPagination="false"
-                     Caption="@DemoText.Productivity.CompactGridTitle"
-                     AccessibleName="@DemoText.Productivity.CompactGridTitle"
-                     data-testid="productivity-compact-grid">
-            <BzsDataGridColumn TItem="ReviewRow"
-                               Key="title"
-                               Title="@DemoText.Productivity.CompactGridReviewColumn"
-                               ValueSelector="row => row.Title" />
-            <BzsDataGridColumn TItem="ReviewRow"
-                               Key="owner"
-                               Title="@DemoText.Productivity.CompactGridOwnerColumn"
-                               ValueSelector="row => row.Owner" />
-        </BzsDataGrid>
+        <div class="demo-data-grid-examples">
+            <section class="demo-data-grid-example" aria-labelledby="page-size-only-grid-title">
+                <h3 id="page-size-only-grid-title">@DemoText.Productivity.PageSizeOnlyGridTitle</h3>
+                <p>@DemoText.Productivity.PageSizeOnlyGridDescription</p>
+                <BzsDataGrid TItem="ReviewRow"
+                             Items="@CompactGridRows"
+                             PageSize="@_pageSizeOnlyGridPageSize"
+                             PageSizeChanged="value => _pageSizeOnlyGridPageSize = value"
+                             PageSizeOptions="@PageSizeOnlyGridOptions"
+                             ShowPageSizeSelector="true"
+                             ShowPagination="false"
+                             Caption="@DemoText.Productivity.PageSizeOnlyGridTitle"
+                             AccessibleName="@DemoText.Productivity.PageSizeOnlyGridTitle"
+                             data-testid="productivity-page-size-only-grid">
+                    <BzsDataGridColumn TItem="ReviewRow"
+                                       Key="title"
+                                       Title="@DemoText.Productivity.CompactGridReviewColumn"
+                                       ValueSelector="row => row.Title" />
+                    <BzsDataGridColumn TItem="ReviewRow"
+                                       Key="owner"
+                                       Title="@DemoText.Productivity.CompactGridOwnerColumn"
+                                       ValueSelector="row => row.Owner" />
+                </BzsDataGrid>
+            </section>
+            <section class="demo-data-grid-example" aria-labelledby="compact-grid-title">
+                <h3 id="compact-grid-title">@DemoText.Productivity.CompactGridTitle</h3>
+                <p>@DemoText.Productivity.CompactGridDescription</p>
+                <BzsDataGrid TItem="ReviewRow"
+                             Items="@CompactGridRows"
+                             PageSize="5"
+                             PageSizeOptions="@_gridPageSizeOptions"
+                             ShowPageSizeSelector="false"
+                             ShowPagination="false"
+                             ShowResultSummary="false"
+                             Caption="@DemoText.Productivity.CompactGridTitle"
+                             AccessibleName="@DemoText.Productivity.CompactGridTitle"
+                             data-testid="productivity-compact-grid">
+                    <BzsDataGridColumn TItem="ReviewRow"
+                                       Key="title"
+                                       Title="@DemoText.Productivity.CompactGridReviewColumn"
+                                       ValueSelector="row => row.Title" />
+                    <BzsDataGridColumn TItem="ReviewRow"
+                                       Key="owner"
+                                       Title="@DemoText.Productivity.CompactGridOwnerColumn"
+                                       ValueSelector="row => row.Owner" />
+                </BzsDataGrid>
+            </section>
+        </div>
     </section>
 </section>
 
@@ -225,6 +269,7 @@
     ];
     private readonly OwnerProvider _ownerProvider = new();
     private readonly DemoGridProvider _gridProvider = new();
+    private static readonly IReadOnlyList<int> PageSizeOnlyGridOptions = [1, 2];
     private IReadOnlyList<ReviewRow> CompactGridRows =>
     [
         new(
@@ -255,6 +300,7 @@
     private IReadOnlyList<ReviewRow> _selectedRows = Array.Empty<ReviewRow>();
     private BzsDataGrid<ReviewRow>? _grid;
     private bool _gridRefreshed;
+    private int _pageSizeOnlyGridPageSize = 1;
 
     private string GridRefreshStatus => _gridRefreshed
         ? DemoText.Productivity.GridRefreshed
@@ -335,9 +381,15 @@
         {
             await Task.Delay(TimeSpan.FromMilliseconds(75), cancellationToken);
             IEnumerable<ReviewRow> query = Rows;
-            if (request.Filters.OfType<BzsDataGridTextFilter>().FirstOrDefault() is { } filter)
+            foreach (var filter in request.Filters.OfType<BzsDataGridTextFilter>())
             {
-                query = query.Where(row => row.Title.Contains(filter.Value, StringComparison.OrdinalIgnoreCase));
+                query = filter.ColumnKey switch
+                {
+                    "title" => query.Where(row => Matches(row.Title, filter)),
+                    "owner" => query.Where(row => Matches(row.Owner, filter)),
+                    "priority" => query.Where(row => Matches(row.Priority, filter)),
+                    _ => query,
+                };
             }
 
             if (request.Sort is { } sort)
@@ -350,6 +402,21 @@
             var total = query.Count();
             var page = query.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToArray();
             return new BzsDataGridResult<ReviewRow>(page, total);
+        }
+
+        private static bool Matches(string value, BzsDataGridTextFilter filter)
+        {
+            var comparison = filter.CaseSensitive
+                ? StringComparison.CurrentCulture
+                : StringComparison.CurrentCultureIgnoreCase;
+            return filter.Operator switch
+            {
+                BzsDataGridTextOperator.Contains => value.Contains(filter.Value, comparison),
+                BzsDataGridTextOperator.StartsWith => value.StartsWith(filter.Value, comparison),
+                BzsDataGridTextOperator.EndsWith => value.EndsWith(filter.Value, comparison),
+                BzsDataGridTextOperator.Equals => value.Equals(filter.Value, comparison),
+                _ => false,
+            };
         }
     }
 

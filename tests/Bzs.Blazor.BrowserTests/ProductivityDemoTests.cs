@@ -96,6 +96,13 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
             + " }");
         await Expect(identity.Locator(".bzs-avatar__visual"))
             .ToHaveCSSAsync("border-top-left-radius", "13px");
+        await Expect(identity).ToHaveCSSAsync("border-top-width", "0px");
+        var visual = identity.Locator(".bzs-avatar__visual");
+        await Expect(visual).ToHaveCSSAsync("border-top-width", "0px");
+        var visualShadow = await visual.EvaluateAsync<string>(
+            "element => getComputedStyle(element).boxShadow");
+        Assert.NotEqual("none", visualShadow);
+        Assert.DoesNotContain("inset", visualShadow, StringComparison.OrdinalIgnoreCase);
 
         var identityBox = await identity.BoundingBoxAsync();
         var statusRowBox = await statusRow.BoundingBoxAsync();
@@ -174,8 +181,29 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
             new() { Name = "Refresh the current DataGrid request", Exact = true }).ClickAsync();
         await Expect(Page.GetByTestId("productivity-grid-refresh-status"))
             .ToHaveTextAsync("The DataGrid refreshed with the same provider request.");
-        await Expect(reviewGrid.GetByRole(AriaRole.Combobox, new() { Name = "Rows per page" }))
+        await Expect(reviewGrid.GetByRole(AriaRole.Button, new() { Name = "Rows per page", Exact = true }))
             .ToHaveCountAsync(0);
+        var pageSizeOnlyGrid = Page.GetByTestId("productivity-page-size-only-grid");
+        await Expect(pageSizeOnlyGrid).ToBeVisibleAsync();
+        var pageSizeOnlyTable = pageSizeOnlyGrid.GetByRole(
+            AriaRole.Table,
+            new() { Name = "Page-size selector only", Exact = true });
+        await Expect(pageSizeOnlyTable).ToBeVisibleAsync();
+        await Expect(pageSizeOnlyGrid).ToHaveAttributeAsync(
+            "data-testid",
+            "productivity-page-size-only-grid");
+        var pageSizeOnlySelector = pageSizeOnlyGrid.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Rows per page", Exact = true });
+        await Expect(pageSizeOnlySelector).ToBeVisibleAsync();
+        await Expect(pageSizeOnlyGrid.GetByRole(AriaRole.Navigation, new() { Name = "Data pagination", Exact = true }))
+            .ToHaveCountAsync(0);
+        await Expect(pageSizeOnlyTable.Locator("tbody tr")).ToHaveCountAsync(1);
+        await pageSizeOnlySelector.ClickAsync();
+        await pageSizeOnlyGrid.GetByRole(
+            AriaRole.Option,
+            new() { Name = "2", Exact = true }).ClickAsync();
+        await Expect(pageSizeOnlyTable.Locator("tbody tr")).ToHaveCountAsync(2);
         var selectAllRows = reviewGrid.GetByRole(
             AriaRole.Checkbox,
             new() { Name = "Select all rows on this page", Exact = true });
@@ -255,6 +283,49 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
 
         await Expect(selectAllRows).Not.ToBeCheckedAsync();
         await Expect(selectAllRows).ToHaveJSPropertyAsync("indeterminate", false);
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("webassembly")]
+    [InlineData("auto")]
+    public async Task ColumnFilterPanelUpdatesRowsAndExposesClearableSummary(string renderMode)
+    {
+        BeginBrowserGateTest($"filter-{renderMode}");
+        var response = await Page.GotoAsync(
+            $"{server.BaseUrl}/productivity/{renderMode}?culture=en-US");
+        Assert.True(response?.Ok ?? false);
+        await Expect(Page.GetByTestId("productivity-workbench"))
+            .ToHaveAttributeAsync("data-bzs-interactive", "true");
+
+        var gridRoot = Page.GetByTestId("productivity-grid");
+        var reviewGrid = gridRoot.GetByRole(AriaRole.Table, new() { Name = "Review queue" });
+        await reviewGrid.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Owner column menu", Exact = true }).ClickAsync();
+        var operatorOptions = reviewGrid.GetByRole(AriaRole.Radio);
+        await Expect(operatorOptions).ToHaveCountAsync(4);
+        await operatorOptions.GetByText("Starts with", new() { Exact = true }).ClickAsync();
+        var ownerFilter = reviewGrid.GetByRole(
+            AriaRole.Textbox,
+            new() { Name = "Owner filter value", Exact = true });
+        await ownerFilter.FillAsync("Alicia");
+        await reviewGrid.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Apply Owner filter", Exact = true }).ClickAsync();
+
+        await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(3);
+        await Expect(gridRoot.GetByText("Active filters: 1", new() { Exact = true }))
+            .ToBeVisibleAsync();
+        var clearFilter = gridRoot.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Clear Owner filter", Exact = true });
+        await Expect(clearFilter).ToBeVisibleAsync();
+        await clearFilter.ClickAsync();
+        await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(5);
+        await Expect(gridRoot.GetByText("Active filters: 1", new() { Exact = true }))
+            .ToHaveCountAsync(0);
+        AssertNoUnexpectedBrowserErrors($"DataGrid filter workflow {renderMode}");
     }
 
     [Fact]

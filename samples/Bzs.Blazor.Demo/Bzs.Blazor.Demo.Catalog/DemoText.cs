@@ -39,6 +39,8 @@ public static class DemoText
 
         public static string Layout => Get("布局", "Layout");
 
+        public static string NavigationDrawer => Get("导航抽屉", "Navigation drawer");
+
         public static string ProjectSection => Get("项目", "Project");
 
         public static string Releases => Get("版本发布", "Releases");
@@ -66,6 +68,8 @@ public static class DemoText
         public static string SignOutAccessibleName => Get("演示退出操作，返回概览", "Demo sign-out action, returns to overview");
 
         public static string OpenNavigation => Get("打开导航", "Open navigation");
+
+        public static string ResizeNavigationDrawer => Get("调整导航抽屉宽度", "Resize navigation drawer");
 
         public static string ComponentWorkbench => Get("组件工作台", "Component workbench");
 
@@ -256,6 +260,10 @@ public static class DemoText
 
         public static string GroupLayoutDescription => Get("应用壳、栅格与堆叠布局。", "App shell, grid, and stack primitives.");
 
+        public static string GroupNavigationDrawerDescription => Get(
+            "变体、焦点、Escape 与受控关闭生命周期。",
+            "Variants, focus, Escape, and controlled close lifecycle.");
+
         public static string ReleaseHeading => Get("最新版本", "Latest release");
 
         public static string HighlightsHeading => Get("主要更新", "Highlights");
@@ -281,6 +289,20 @@ public static class DemoText
 
     public static class Productivity
     {
+        public static string DataGridTitle => Get("数据工作台", "Data workbench");
+
+        public static string DataGridDescription => Get(
+            "类型化提供器负责分页、排序与筛选；表格统一呈现加载、错误、选择和结果状态。",
+            "A typed provider owns paging, sorting, and filtering while the grid presents loading, error, selection, and result state as one workspace.");
+
+        public static string ReviewQueue => Get("评审队列", "Review queue");
+
+        public static string ReviewColumn => Get("评审", "Review");
+
+        public static string OwnerColumn => Get("负责人", "Owner");
+
+        public static string PriorityColumn => Get("优先级", "Priority");
+
         public static string RefreshGrid => Get("刷新数据网格", "Refresh DataGrid");
 
         public static string RefreshGridAccessibleName => Get("刷新当前数据网格请求", "Refresh the current DataGrid request");
@@ -306,6 +328,99 @@ public static class DemoText
         public static string CompactGridNormalPriority => Get("普通", "Normal");
 
         public static string CompactGridHighPriority => Get("高", "High");
+
+        public static string PageSizeOnlyGridTitle => Get("仅显示每页数量", "Page-size selector only");
+
+        public static string PageSizeOnlyGridDescription => Get(
+            "保留每页数量选择器，同时独立隐藏数字分页。",
+            "Keep the page-size selector while independently hiding numeric pagination.");
+
+        public static string SelectCurrentPage => Get("选择本页所有行", "Select all rows on this page");
+    }
+
+    public static class NavigationDrawer
+    {
+        public static string PageTitle => Get("导航抽屉生命周期 - Bzs.Blazor", "Navigation drawer lifecycle - Bzs.Blazor");
+
+        public static string Eyebrow => Get("导航与焦点", "Navigation and focus");
+
+        public static string Title => Get("导航抽屉生命周期", "Navigation drawer lifecycle");
+
+        public static string Summary => Get(
+            "在一个受控工作台中检查临时、持久和响应式变体，以及模态焦点和关闭策略。",
+            "Inspect temporary, persistent, and responsive variants together with modal focus and close policies in one controlled workbench.");
+
+        public static string RuntimeReady => Get("交互运行时已就绪", "Interactive runtime ready");
+
+        public static string RuntimeWaiting => Get("等待交互运行时", "Waiting for interactive runtime");
+
+        public static string Configuration => Get("配置", "Configuration");
+
+        public static string Variant => Get("变体", "Variant");
+
+        public static string Temporary => Get("临时", "Temporary");
+
+        public static string Persistent => Get("持久", "Persistent");
+
+        public static string Responsive => Get("响应式", "Responsive");
+
+        public static string Position => Get("位置", "Position");
+
+        public static string Start => Get("起始侧", "Start");
+
+        public static string End => Get("末尾侧", "End");
+
+        public static string Behavior => Get("模态行为", "Modal behavior");
+
+        public static string CloseOnEscape => Get("按 Escape 关闭", "Close on Escape");
+
+        public static string CloseOnBackdrop => Get("点击背景关闭", "Close on backdrop click");
+
+        public static string UseInitialFocus => Get("使用指定初始焦点", "Use explicit initial focus");
+
+        public static string AcceptDismissals => Get("接受关闭请求", "Accept dismissal requests");
+
+        public static string OpenDrawer => Get("打开导航抽屉", "Open navigation drawer");
+
+        public static string Status => Get("生命周期状态", "Lifecycle status");
+
+        public static string DrawerState => Get("抽屉状态", "Drawer state");
+
+        public static string Open => Get("已打开", "Open");
+
+        public static string Closed => Get("已关闭", "Closed");
+
+        public static string LastRequest => Get("最近关闭请求", "Latest close request");
+
+        public static string NoRequest => Get("尚无", "None yet");
+
+        public static string Accepted => Get("已接受", "Accepted");
+
+        public static string Rejected => Get("已拒绝，抽屉保持打开", "Rejected; drawer remains open");
+
+        public static string PanelTitle => Get("工作区导航", "Workspace navigation");
+
+        public static string PanelSummary => Get(
+            "此面板使用当前工作台配置，并始终保留一个直接关闭操作。",
+            "This panel uses the current workbench configuration and always keeps a direct close action available.");
+
+        public static string PrimaryAction => Get("主要焦点目标", "Primary focus target");
+
+        public static string OpenDialog => Get("打开嵌套对话框", "Open nested dialog");
+
+        public static string CloseDrawer => Get("关闭导航抽屉", "Close navigation drawer");
+
+        public static string NestedDialogTitle => Get("抽屉中的对话框", "Dialog from navigation drawer");
+
+        public static string NestedDialogPrompt => Get(
+            "此对话框由抽屉外的共享浮层宿主呈现。",
+            "This dialog is rendered by the shared overlay host outside the drawer.");
+
+        public static string DialogNotOpened => Get("尚未打开嵌套对话框", "Nested dialog not opened");
+
+        public static string DialogCompleted => Get("嵌套对话框已完成", "Nested dialog completed");
+
+        public static string DialogDismissed => Get("嵌套对话框已关闭", "Nested dialog dismissed");
     }
 
     private static string Get(string chinese, string english) =>

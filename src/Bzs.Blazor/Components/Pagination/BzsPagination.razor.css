@@ -45,6 +45,8 @@
     box-shadow: var(--bzs-shadow-raised);
     color: inherit;
     transition: background-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        border-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        box-shadow var(--bzs-motion-fast) var(--bzs-motion-easing),
         color var(--bzs-motion-fast) var(--bzs-motion-easing);
     cursor: pointer;
 }
@@ -70,7 +72,7 @@
 .bzs-pagination__page[aria-current="page"] {
     border-color: var(--bzs-primary);
     background-color: var(--bzs-primary);
-    box-shadow: none;
+    box-shadow: var(--bzs-shadow-raised);
     color: var(--bzs-on-primary);
     font-weight: var(--bzs-font-weight-bold);
 }

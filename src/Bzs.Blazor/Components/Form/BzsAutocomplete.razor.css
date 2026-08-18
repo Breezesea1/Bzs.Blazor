@@ -25,6 +25,8 @@
     padding: 0;
     background: transparent;
     color: var(--bzs-text-muted);
+    transition: background-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        color var(--bzs-motion-fast) var(--bzs-motion-easing);
     cursor: pointer;
 }
 
@@ -75,6 +77,8 @@
     color: var(--bzs-text);
     font: inherit;
     text-align: start;
+    transition: background-color var(--bzs-motion-fast) var(--bzs-motion-easing),
+        color var(--bzs-motion-fast) var(--bzs-motion-easing);
     cursor: pointer;
 }
 

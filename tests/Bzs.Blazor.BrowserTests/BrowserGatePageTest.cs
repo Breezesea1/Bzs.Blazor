@@ -151,6 +151,7 @@ public abstract class BrowserGatePageTest : PageTest
             chrome.FoundationComponents,
             chrome.Forms,
             chrome.Productivity,
+            chrome.NavigationDrawer,
             chrome.Feedback,
             chrome.Tabs,
             chrome.Overlays,
@@ -174,7 +175,8 @@ public abstract class BrowserGatePageTest : PageTest
 
         await Expect(navigation.GetByText(chrome.DemoUserAvatarInitial, new() { Exact = true })).ToBeVisibleAsync();
         await Expect(navigation.GetByText(chrome.DemoUser, new() { Exact = true })).ToBeVisibleAsync();
-        await Expect(navigation.GetByText(chrome.Administrator, new() { Exact = true })).ToBeVisibleAsync();
+        await Expect(navigation.GetByRole(AriaRole.Separator, new() { Name = chrome.ResizeNavigationDrawer, Exact = true }))
+            .ToBeVisibleAsync();
         await Expect(navigation.GetByRole(AriaRole.Link, new() { Name = chrome.SignOutAccessibleName, Exact = true }))
             .ToBeVisibleAsync();
         await Expect(Page.GetByText(chrome.ComponentWorkbench, new() { Exact = true })).ToBeVisibleAsync();
@@ -194,7 +196,8 @@ public abstract class BrowserGatePageTest : PageTest
         string accessibleName,
         string lightLabel,
         string darkLabel,
-        string systemLabel)
+        string systemLabel,
+        string foundationLinkLabel)
     {
         await Page.AddInitScriptAsync(
             """
@@ -219,6 +222,11 @@ public abstract class BrowserGatePageTest : PageTest
         await Expect(system).ToBeVisibleAsync();
 
         await dark.ClickAsync();
+        await Expect(provider).ToHaveAttributeAsync("data-bzs-theme", "dark");
+
+        await Page.Locator(".demo-nav").GetByRole(
+            AriaRole.Link,
+            new() { Name = foundationLinkLabel, Exact = true }).ClickAsync();
         await Expect(provider).ToHaveAttributeAsync("data-bzs-theme", "dark");
 
         await Page.ReloadAsync();
@@ -408,6 +416,7 @@ public abstract class BrowserGatePageTest : PageTest
             FoundationComponents = "基础组件",
             Forms = "表单",
             Productivity = "生产力",
+            NavigationDrawer = "导航抽屉",
             Feedback = "反馈",
             Tabs = "选项卡",
             Overlays = "浮层",
@@ -426,6 +435,7 @@ public abstract class BrowserGatePageTest : PageTest
             Exit = "退出",
             SignOutAccessibleName = "演示退出操作，返回概览",
             OpenNavigation = "打开导航",
+            ResizeNavigationDrawer = "调整导航抽屉宽度",
             ComponentWorkbench = "组件工作台",
             LanguageSwitcherAccessibleName = "目录语言",
         }
@@ -441,6 +451,7 @@ public abstract class BrowserGatePageTest : PageTest
             FoundationComponents = "Foundation components",
             Forms = "Forms",
             Productivity = "Productivity",
+            NavigationDrawer = "Navigation drawer",
             Feedback = "Feedback",
             Tabs = "Tabs",
             Overlays = "Overlays",
@@ -459,6 +470,7 @@ public abstract class BrowserGatePageTest : PageTest
             Exit = "Exit",
             SignOutAccessibleName = "Demo sign-out action, returns to overview",
             OpenNavigation = "Open navigation",
+            ResizeNavigationDrawer = "Resize navigation drawer",
             ComponentWorkbench = "Component workbench",
             LanguageSwitcherAccessibleName = "Catalog language",
         };
@@ -484,6 +496,8 @@ public abstract class BrowserGatePageTest : PageTest
         public required string Forms { get; init; }
 
         public required string Productivity { get; init; }
+
+        public required string NavigationDrawer { get; init; }
 
         public required string Feedback { get; init; }
 
@@ -520,6 +534,8 @@ public abstract class BrowserGatePageTest : PageTest
         public required string SignOutAccessibleName { get; init; }
 
         public required string OpenNavigation { get; init; }
+
+        public required string ResizeNavigationDrawer { get; init; }
 
         public required string ComponentWorkbench { get; init; }
 

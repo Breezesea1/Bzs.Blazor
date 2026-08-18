@@ -4,18 +4,18 @@
          data-fixture-interactive="@(_interactive ? "true" : "false")"
          @onkeydown="RecordAncestorKeyDown">
     <output id="fixture-ancestor-key-count">@_ancestorKeyCount</output>
-    <button id="fixture-open" type="button" @onclick="OpenDrawer">Open drawer</button>
-    <button id="fixture-open-with-initial-focus" type="button" @onclick="OpenWithInitialFocus">Open drawer with initial focus</button>
-    <button id="fixture-close-external" type="button" @onclick="CloseDrawer">Close drawer externally</button>
-    <button id="fixture-open-without-focusable" type="button" @onclick="OpenWithoutFocusable">Open without focusable content</button>
-    <button id="fixture-variant-temporary" type="button" @onclick="SetTemporary">Temporary</button>
-    <button id="fixture-variant-persistent" type="button" @onclick="SetPersistent">Persistent</button>
-    <button id="fixture-variant-responsive" type="button" @onclick="SetResponsive">Responsive</button>
-    <button id="fixture-toggle-backdrop-override" type="button" @onclick="ToggleBackdropOverride">Toggle backdrop override</button>
-    <button id="fixture-toggle-backdrop-hidden" type="button" @onclick="ToggleHiddenBackdrop">Toggle hidden backdrop</button>
-    <button id="fixture-toggle-close-on-backdrop-click" type="button" @onclick="ToggleCloseOnBackdropClick">Toggle close on backdrop click</button>
-    <button id="fixture-reject-close" type="button" @onclick="RejectClose">Reject close</button>
-    <button id="fixture-accept-close" type="button" @onclick="AcceptClose">Accept close</button>
+    <BzsButton Id="fixture-open" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="OpenDrawer">Open drawer</BzsButton>
+    <BzsButton Id="fixture-open-with-initial-focus" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="OpenWithInitialFocus">Open drawer with initial focus</BzsButton>
+    <BzsButton Id="fixture-close-external" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="CloseDrawer">Close drawer externally</BzsButton>
+    <BzsButton Id="fixture-open-without-focusable" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="OpenWithoutFocusable">Open without focusable content</BzsButton>
+    <BzsButton Id="fixture-variant-temporary" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="SetTemporary">Temporary</BzsButton>
+    <BzsButton Id="fixture-variant-persistent" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="SetPersistent">Persistent</BzsButton>
+    <BzsButton Id="fixture-variant-responsive" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="SetResponsive">Responsive</BzsButton>
+    <BzsButton Id="fixture-toggle-backdrop-override" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="ToggleBackdropOverride">Toggle backdrop override</BzsButton>
+    <BzsButton Id="fixture-toggle-backdrop-hidden" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="ToggleHiddenBackdrop">Toggle hidden backdrop</BzsButton>
+    <BzsButton Id="fixture-toggle-close-on-backdrop-click" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="ToggleCloseOnBackdropClick">Toggle close on backdrop click</BzsButton>
+    <BzsButton Id="fixture-reject-close" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="RejectClose">Reject close</BzsButton>
+    <BzsButton Id="fixture-accept-close" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="AcceptClose">Accept close</BzsButton>
 
     <BzsOverlayHost id="fixture-overlay-host" />
     <output id="fixture-service-dialog-status">@_serviceDialogStatus</output>
@@ -31,9 +31,9 @@
                          AccessibleName="Lifecycle navigation">
         @if (_showFocusableContent)
         {
-            <button id="fixture-close" type="button" @onclick="CloseDrawer">Close drawer</button>
-            <button id="fixture-initial-focus-target" type="button">Initial focus target</button>
-            <button id="fixture-open-service-dialog" type="button" @onclick="OpenServiceDialogAsync">Open service dialog</button>
+            <BzsButton Id="fixture-close" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="CloseDrawer">Close drawer</BzsButton>
+            <BzsButton Id="fixture-initial-focus-target" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small">Initial focus target</BzsButton>
+            <BzsButton Id="fixture-open-service-dialog" Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Click="OpenServiceDialogAsync">Open service dialog</BzsButton>
             <a id="fixture-enhanced-navigation" href="/layout">Navigate</a>
         }
     </BzsNavigationDrawer>

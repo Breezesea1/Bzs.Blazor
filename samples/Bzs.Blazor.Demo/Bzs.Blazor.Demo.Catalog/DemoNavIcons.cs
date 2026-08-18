@@ -29,6 +29,8 @@ public static class DemoNavIcons
 
     public static BzsIconData Layout { get; } = new("M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z");
 
+    public static BzsIconData NavigationDrawer { get; } = new("M3 3h18v18H3zM9 3v18M5.5 7h1M5.5 11h1M5.5 15h1");
+
     public static BzsIconData StaticRender { get; } = new(
         "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
         + "M14 2v6h6M16 13H8M16 17H8M10 9H8");

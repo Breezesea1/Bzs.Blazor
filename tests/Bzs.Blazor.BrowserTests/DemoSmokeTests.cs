@@ -43,14 +43,15 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     }
 
     [Theory]
-    [InlineData("", "目录主题", "浅色", "深色", "系统")]
-    [InlineData("?culture=en-US", "Catalog theme", "Light", "Dark", "System")]
+    [InlineData("", "目录主题", "浅色", "深色", "系统", "基础组件")]
+    [InlineData("?culture=en-US", "Catalog theme", "Light", "Dark", "System", "Foundation components")]
     public async Task GlobalThemeSwitchPersistsAndFollowsSystemPreference(
         string query,
         string accessibleName,
         string lightLabel,
         string darkLabel,
-        string systemLabel)
+        string systemLabel,
+        string foundationLinkLabel)
     {
         BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
         await AssertGlobalThemeSwitchPersistsAndFollowsSystemPreferenceAsync(
@@ -59,7 +60,8 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
             accessibleName,
             lightLabel,
             darkLabel,
-            systemLabel);
+            systemLabel,
+            foundationLinkLabel);
     }
 
     [Fact]
@@ -129,11 +131,11 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
             .ToBeVisibleAsync();
 
         var brandLink = Page.Locator("#demo-navigation-drawer .demo-brand-link");
-        var exitLink = Page.Locator("#demo-navigation-drawer .demo-user-action");
+        var resizeHandle = Page.Locator("#demo-navigation-drawer .bzs-navigation-drawer__resize-handle");
         await brandLink.FocusAsync();
         await brandLink.PressAsync("Shift+Tab");
-        await Expect(exitLink).ToBeFocusedAsync();
-        await exitLink.PressAsync("Tab");
+        await Expect(resizeHandle).ToBeFocusedAsync();
+        await resizeHandle.PressAsync("Tab");
         await Expect(brandLink).ToBeFocusedAsync();
         await Page.Keyboard.PressAsync("Escape");
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
@@ -365,6 +367,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     [InlineData("foundation", "Icon, Surface, and Button")]
     [InlineData("forms", "Profile editor")]
     [InlineData("productivity", "Operational workbench")]
+    [InlineData("navigation-drawer", "Navigation drawer lifecycle")]
     [InlineData("feedback", "Status and notifications")]
     [InlineData("tabs", "Tabs, language, and direction")]
     [InlineData("overlays", "Dialog, Drawer, and Host")]
@@ -452,6 +455,10 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Saving" }))
             .ToBeDisabledAsync();
         await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Close example" }))
+            .ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Img, new() { Name = "Show password icon", Exact = true }))
+            .ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Img, new() { Name = "Hide password icon", Exact = true }))
             .ToBeVisibleAsync();
     }
 

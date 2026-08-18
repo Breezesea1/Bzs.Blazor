@@ -72,6 +72,13 @@ export function initialize() {
     };
     instance.mediaQuery.addEventListener('change', instance.mediaQueryListener);
 
+    instance.providerObserver = new MutationObserver(() => {
+        if (activeInstance === instance) {
+            applyMode(currentMode);
+        }
+    });
+    instance.providerObserver.observe(document.body, { childList: true, subtree: true });
+
     instance.clickListener = event => {
         const option = event.target.closest(modeSelector);
         const mode = option?.dataset.demoThemeMode;
@@ -112,6 +119,7 @@ export function dispose(token) {
     }
 
     instance.mediaQuery.removeEventListener('change', instance.mediaQueryListener);
+    instance.providerObserver.disconnect();
     document.removeEventListener('click', instance.clickListener, true);
     document.removeEventListener('enhancedload', instance.enhancedNavigationListener);
     window.removeEventListener('storage', instance.storageListener);
