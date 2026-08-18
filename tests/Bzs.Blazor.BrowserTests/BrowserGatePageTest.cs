@@ -124,7 +124,7 @@ public abstract class BrowserGatePageTest : PageTest
     {
         var chrome = GetDemoChromeText(isChinese);
 
-        await Expect(Page.Locator(".demo-skip-link")).ToHaveTextAsync(chrome.SkipLink);
+        await Expect(Page.Locator("a[href='#main-content']")).ToHaveTextAsync(chrome.SkipLink);
         var navigation = Page.GetByRole(
             AriaRole.Navigation,
             new() { Name = chrome.NavigationAccessibleName, Exact = true });
@@ -224,7 +224,7 @@ public abstract class BrowserGatePageTest : PageTest
         await dark.ClickAsync();
         await Expect(provider).ToHaveAttributeAsync("data-bzs-theme", "dark");
 
-        await Page.Locator(".demo-nav").GetByRole(
+        await Page.GetByRole(AriaRole.Navigation).GetByRole(
             AriaRole.Link,
             new() { Name = foundationLinkLabel, Exact = true }).ClickAsync();
         await Expect(provider).ToHaveAttributeAsync("data-bzs-theme", "dark");
@@ -275,7 +275,7 @@ public abstract class BrowserGatePageTest : PageTest
     protected async Task AssertLandingPageCopyFollowsCultureAsync(string baseUrl)
     {
         await Page.GotoAsync(baseUrl);
-        await Expect(Page.GetByTestId("landing-hero").Locator("h1"))
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Level = 1 }))
             .ToHaveTextAsync("为 Blazor 而生的紧凑组件库");
         await Expect(Page.GetByTestId("landing-install").GetByRole(
             AriaRole.Heading, new() { Name = "安装", Exact = true })).ToBeVisibleAsync();
@@ -286,7 +286,7 @@ public abstract class BrowserGatePageTest : PageTest
         await Expect(Page.GetByTestId("landing-footer")).ToContainTextAsync("基于 MIT 许可证发布。");
 
         await Page.GotoAsync($"{baseUrl}?culture=en-US");
-        await Expect(Page.GetByTestId("landing-hero").Locator("h1"))
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Level = 1 }))
             .ToHaveTextAsync("A compact component library for Blazor");
         await Expect(Page.GetByTestId("landing-install").GetByRole(
             AriaRole.Heading, new() { Name = "Installation", Exact = true })).ToBeVisibleAsync();

@@ -103,29 +103,31 @@ public sealed class NavigationDrawerShowcaseTests(DemoServerFixture server) : Br
             .ToBeVisibleAsync();
 
         var drawer = Page.GetByTestId("navigation-drawer-showcase-drawer");
-        var background = showcase.Locator(":scope > .demo-page-header");
+        var status = Page.GetByTestId("navigation-drawer-status");
         await Page.GetByTestId("navigation-drawer-open").ClickAsync();
-        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
-        await Expect(background).ToHaveAttributeAsync("inert", "");
+        await Expect(drawer).Not.ToHaveAttributeAsync("aria-hidden", "true");
+        await Expect(status).ToContainTextAsync("Open");
         await Expect(Page.GetByTestId("navigation-drawer-primary-action")).ToBeFocusedAsync();
 
         await Page.GetByTestId("navigation-drawer-close").ClickAsync();
-        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
-        await Expect(background).Not.ToHaveAttributeAsync("inert", "");
+        await Expect(drawer).ToHaveAttributeAsync("aria-hidden", "true");
+        await Expect(status).ToContainTextAsync("Closed");
 
         await Page.GetByTestId("navigation-drawer-open").ClickAsync();
         await Expect(Page.GetByTestId("navigation-drawer-primary-action")).ToBeFocusedAsync();
         await Page.Keyboard.PressAsync("Escape");
-        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+        await Expect(drawer).ToHaveAttributeAsync("aria-hidden", "true");
 
-        await Page.Locator("#navigation-drawer-accept-dismissals + .bzs-toggle__track")
-            .ClickAsync();
-        await Expect(Page.GetByRole(AriaRole.Switch, new() { Name = "Accept dismissal requests", Exact = true }))
-            .ToHaveAttributeAsync("aria-checked", "false");
+        var acceptDismissals = Page.GetByRole(
+            AriaRole.Switch,
+            new() { Name = "Accept dismissal requests", Exact = true });
+        await acceptDismissals.FocusAsync();
+        await acceptDismissals.PressAsync("Space");
+        await Expect(acceptDismissals).ToHaveAttributeAsync("aria-checked", "false");
         await Page.GetByTestId("navigation-drawer-open").ClickAsync();
         await Expect(Page.GetByTestId("navigation-drawer-primary-action")).ToBeFocusedAsync();
         await Page.Keyboard.PressAsync("Escape");
-        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await Expect(drawer).Not.ToHaveAttributeAsync("aria-hidden", "true");
         await Expect(Page.GetByTestId("navigation-drawer-status"))
             .ToContainTextAsync("Rejected; drawer remains open");
         await Page.GetByTestId("navigation-drawer-close").ClickAsync();

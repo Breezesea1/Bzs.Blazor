@@ -14,11 +14,11 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
 
         await Page.GotoAsync(server.BaseUrl);
         await Expect(Page.Locator("html")).ToHaveAttributeAsync("lang", "zh-Hans");
-        await Expect(Page.Locator(".demo-skip-link")).ToHaveTextAsync("跳至目录内容");
+        await Expect(Page.Locator("a[href='#main-content']")).ToHaveTextAsync("跳至目录内容");
 
         await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
         await Expect(Page.Locator("html")).ToHaveAttributeAsync("lang", "en-US");
-        await Expect(Page.Locator(".demo-skip-link")).ToHaveTextAsync("Skip to catalog content");
+        await Expect(Page.Locator("a[href='#main-content']")).ToHaveTextAsync("Skip to catalog content");
     }
 
     [Theory]
@@ -127,11 +127,14 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         await Expect(appBar).ToHaveAttributeAsync("inert", "");
         await Expect(mainContent).ToHaveAttributeAsync("inert", "");
         await Expect(closeNavigation).ToBeFocusedAsync();
-        await Expect(Page.Locator("#demo-navigation-drawer .bzs-navigation-drawer__backdrop"))
+        var backdrop = drawer.Locator(".bzs-navigation-drawer__backdrop");
+        await Expect(backdrop)
             .ToBeVisibleAsync();
 
-        var brandLink = Page.Locator("#demo-navigation-drawer .demo-brand-link");
-        var resizeHandle = Page.Locator("#demo-navigation-drawer .bzs-navigation-drawer__resize-handle");
+        var brandLink = drawer.GetByRole(AriaRole.Link, new() { Name = "Bzs.Blazor", Exact = false });
+        var resizeHandle = drawer.GetByRole(
+            AriaRole.Separator,
+            new() { Name = "Resize navigation drawer", Exact = true });
         await brandLink.FocusAsync();
         await brandLink.PressAsync("Shift+Tab");
         await Expect(resizeHandle).ToBeFocusedAsync();
@@ -144,8 +147,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         await Expect(openNavigation).ToBeFocusedAsync();
 
         await openNavigation.ClickAsync();
-        await Page.Locator("#demo-navigation-drawer .bzs-navigation-drawer__backdrop")
-            .DispatchEventAsync("click");
+        await backdrop.DispatchEventAsync("click");
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
         await Expect(openNavigation).ToBeFocusedAsync();
         Assert.Equal(
@@ -206,7 +208,8 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         await Page.SetViewportSizeAsync(767, 844);
         Assert.True(await Page.EvaluateAsync<bool>("matchMedia('(width < 48rem)').matches"));
         await openNavigation.ClickAsync();
-        await Expect(Page.Locator("#demo-navigation-drawer .bzs-navigation-drawer__backdrop"))
+        var backdrop = drawer.Locator(".bzs-navigation-drawer__backdrop");
+        await Expect(backdrop)
             .ToHaveCSSAsync("display", "block");
         await Page.Keyboard.PressAsync("Escape");
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
@@ -217,7 +220,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         await Expect(closeNavigation).ToBeFocusedAsync();
         await Expect(appBar).ToHaveCSSAsync("margin-inline-start", "256px");
         await Expect(mainContent).ToHaveCSSAsync("margin-inline-start", "256px");
-        await Expect(Page.Locator("#demo-navigation-drawer .bzs-navigation-drawer__backdrop"))
+        await Expect(backdrop)
             .ToHaveCSSAsync("display", "none");
 
         await Page.SetViewportSizeAsync(769, 844);

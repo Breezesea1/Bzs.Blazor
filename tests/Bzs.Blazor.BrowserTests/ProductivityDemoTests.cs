@@ -18,8 +18,8 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         response.EnsureSuccessStatusCode();
         Assert.Contains("data-testid=\"productivity-workbench\"", html, StringComparison.Ordinal);
         Assert.Contains("data-bzs-interactive=\"false\"", html, StringComparison.Ordinal);
-        Assert.Contains("data-bzs-tooltip=\"true\"", html, StringComparison.Ordinal);
-        Assert.Contains("data-bzs-popover=\"true\"", html, StringComparison.Ordinal);
+        Assert.Contains("Focus me", html, StringComparison.Ordinal);
+        Assert.Contains("aria-label=\"Open review details\"", html, StringComparison.Ordinal);
         Assert.Contains("<nav", html, StringComparison.Ordinal);
         Assert.Contains("role=\"combobox\"", html, StringComparison.Ordinal);
         Assert.Contains("type=\"file\"", html, StringComparison.Ordinal);
@@ -145,10 +145,13 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
             .ToBeVisibleAsync();
         await Expect(Page.GetByText("7", new() { Exact = true })).ToBeVisibleAsync();
 
-        var reviewQueueDisclosure = workbenchNavigation.Locator("details");
-        await Expect(reviewQueueDisclosure).ToHaveAttributeAsync("data-bzs-open", "true");
-        await reviewQueueDisclosure.Locator("summary").ClickAsync();
-        await Expect(reviewQueueDisclosure).ToHaveAttributeAsync("data-bzs-open", "false");
+        var reviewQueueDisclosure = workbenchNavigation.GetByText("Review queue", new() { Exact = true });
+        var assignedLink = workbenchNavigation.GetByRole(
+            AriaRole.Link,
+            new() { Name = "Assigned", Exact = true });
+        await Expect(assignedLink).ToBeVisibleAsync();
+        await reviewQueueDisclosure.ClickAsync();
+        await Expect(assignedLink).ToBeHiddenAsync();
 
         var reviewFilter = Page.GetByRole(
             AriaRole.Button,
@@ -173,7 +176,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
 
         var reviewGrid = Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" });
         await Expect(reviewGrid).ToBeVisibleAsync();
-        await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(5);
+        await Expect(reviewGrid.GetByRole(AriaRole.Row)).ToHaveCountAsync(6);
         await Expect(Page.GetByTestId("productivity-grid-refresh-status"))
             .ToHaveTextAsync("The DataGrid is ready to refresh.");
         await Page.GetByRole(
@@ -198,12 +201,12 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         await Expect(pageSizeOnlySelector).ToBeVisibleAsync();
         await Expect(pageSizeOnlyGrid.GetByRole(AriaRole.Navigation, new() { Name = "Data pagination", Exact = true }))
             .ToHaveCountAsync(0);
-        await Expect(pageSizeOnlyTable.Locator("tbody tr")).ToHaveCountAsync(1);
+        await Expect(pageSizeOnlyTable.GetByRole(AriaRole.Row)).ToHaveCountAsync(2);
         await pageSizeOnlySelector.ClickAsync();
         await pageSizeOnlyGrid.GetByRole(
             AriaRole.Option,
             new() { Name = "2", Exact = true }).ClickAsync();
-        await Expect(pageSizeOnlyTable.Locator("tbody tr")).ToHaveCountAsync(2);
+        await Expect(pageSizeOnlyTable.GetByRole(AriaRole.Row)).ToHaveCountAsync(3);
         var selectAllRows = reviewGrid.GetByRole(
             AriaRole.Checkbox,
             new() { Name = "Select all rows on this page", Exact = true });
@@ -251,11 +254,13 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         await Expect(Page.GetByText("review.pdf", new() { Exact = true })).ToBeVisibleAsync();
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Review", Exact = true }).ClickAsync();
-        await Expect(reviewGrid.Locator("th[aria-sort]"))
+        await Expect(reviewGrid.GetByRole(
+                AriaRole.Columnheader,
+                new() { NameRegex = new Regex("^Review\\b") }))
             .ToHaveAttributeAsync("aria-sort", "ascending");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Go to next page" }).Last.ClickAsync();
         await Expect(Page).ToHaveURLAsync(new Regex($"/productivity/{renderMode}(?:\\?|$)"));
-        await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(3);
+        await Expect(reviewGrid.GetByRole(AriaRole.Row)).ToHaveCountAsync(4);
         await Expect(selectAllRows).Not.ToBeCheckedAsync();
         AssertNoUnexpectedBrowserErrors($"productivity {renderMode} workflow");
     }
@@ -314,7 +319,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
             AriaRole.Button,
             new() { Name = "Apply Owner filter", Exact = true }).ClickAsync();
 
-        await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(3);
+        await Expect(reviewGrid.GetByRole(AriaRole.Row)).ToHaveCountAsync(4);
         await Expect(gridRoot.GetByText("Active filters: 1", new() { Exact = true }))
             .ToBeVisibleAsync();
         var clearFilter = gridRoot.GetByRole(
@@ -322,7 +327,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
             new() { Name = "Clear Owner filter", Exact = true });
         await Expect(clearFilter).ToBeVisibleAsync();
         await clearFilter.ClickAsync();
-        await Expect(reviewGrid.Locator("tbody tr")).ToHaveCountAsync(5);
+        await Expect(reviewGrid.GetByRole(AriaRole.Row)).ToHaveCountAsync(6);
         await Expect(gridRoot.GetByText("Active filters: 1", new() { Exact = true }))
             .ToHaveCountAsync(0);
         AssertNoUnexpectedBrowserErrors($"DataGrid filter workflow {renderMode}");

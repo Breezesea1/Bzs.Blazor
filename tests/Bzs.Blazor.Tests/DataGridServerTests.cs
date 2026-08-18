@@ -67,7 +67,7 @@ public sealed class DataGridServerTests
         Assert.Equal(2, request.Page);
         Assert.Equal(10, request.PageSize);
         Assert.IsType<BzsDataGridTextFilter>(Assert.Single(request.Filters));
-        Assert.Equal("2", cut.Find("[data-bzs-pagination-page='2']").TextContent.Trim());
+        Assert.Equal("2", cut.Find("button[aria-current='page']").TextContent.Trim());
     }
 
     [Fact]
@@ -539,7 +539,8 @@ public sealed class DataGridServerTests
 
         Assert.Equal([2], requestedPages);
         Assert.Single(provider.Calls);
-        Assert.Empty(cut.FindAll("[data-bzs-pagination-page]"));
+        Assert.Empty(cut.FindAll("nav[aria-label='Data pages'] button[aria-current]"));
+        Assert.Empty(cut.FindAll("nav[aria-label='Data pages'] button[aria-label^='Go to page']"));
     }
 
     [Fact]
@@ -576,7 +577,7 @@ public sealed class DataGridServerTests
             new BzsDataGridResult<Row>([new(11, "Corrected page")], totalCount: 20));
 
         cut.WaitForAssertion(() => Assert.Contains("Corrected page", cut.Find("tbody").TextContent));
-        Assert.Equal("2", cut.Find("[data-bzs-pagination-page='2']").TextContent.Trim());
+        Assert.Equal("2", cut.Find("button[aria-current='page']").TextContent.Trim());
     }
 
     [Fact]
@@ -592,11 +593,10 @@ public sealed class DataGridServerTests
         cut.WaitForAssertion(() => Assert.Single(provider.Calls));
 
         cut.Find("button[aria-label='Name column menu']").Click();
-        var operatorOptions = cut.FindAll("[data-bzs-data-grid-filter='name'] button[role='radio']");
+        var operatorOptions = cut.FindAll("[role='radiogroup'][aria-label='Name filter operator'] button[role='radio']");
         Assert.Equal(4, operatorOptions.Count);
-        Assert.Empty(cut.FindAll("[data-bzs-data-grid-filter='name'] select"));
         operatorOptions.Single(option => option.TextContent.Trim() == "Starts with").Click();
-        var input = cut.Find("[data-bzs-data-grid-filter='name'] input");
+        var input = cut.Find("input[aria-label='Name filter value']");
         Assert.Null(input.Closest("[role='menu']"));
         input.Input("Ada");
         cut.Find("button[aria-label='Apply Name filter']").Click();
@@ -626,7 +626,7 @@ public sealed class DataGridServerTests
         cut.WaitForAssertion(() => Assert.Single(provider.Calls));
 
         cut.Find("button[aria-label='Name column menu']").Click();
-        cut.Find("[data-bzs-data-grid-filter='name'] input").Input("Grace");
+        cut.Find("input[aria-label='Name filter value']").Input("Grace");
         cut.Find("button[aria-label='Apply Name filter']").Click();
 
         var filter = Assert.IsType<BzsDataGridTextFilter>(Assert.Single(requested!));
@@ -648,16 +648,14 @@ public sealed class DataGridServerTests
         cut.WaitForAssertion(() => Assert.Single(provider.Calls));
 
         cut.Find("button[aria-label='Name column menu']").Click();
-        cut.FindAll("[data-bzs-data-grid-filter='name'] .bzs-data-grid__filter-actions button")
-            .Single(item => item.TextContent.Contains("Clear filter", StringComparison.Ordinal))
-            .Click();
+        cut.Find("button[aria-label='Clear Name filter']").Click();
 
         Assert.Empty(requested!);
         cut.Find("button[aria-label='Name column menu']").Click();
-        Assert.Equal("Ada", cut.Find("[data-bzs-data-grid-filter='name'] input").GetAttribute("value"));
+        Assert.Equal("Ada", cut.Find("input[aria-label='Name filter value']").GetAttribute("value"));
 
         cut.Render(parameters => parameters.Add(component => component.Filters, Array.Empty<BzsDataGridFilter>()));
-        Assert.Equal(string.Empty, cut.Find("[data-bzs-data-grid-filter='name'] input").GetAttribute("value"));
+        Assert.Equal(string.Empty, cut.Find("input[aria-label='Name filter value']").GetAttribute("value"));
     }
 
     [Theory]
@@ -682,17 +680,19 @@ public sealed class DataGridServerTests
                 .Add(component => component.ChildContent, BuildBooleanColumn()));
 
             cut.WaitForAssertion(() => Assert.Single(provider.Calls));
-            Assert.Contains(expectedSummaryValue, cut.Find(".bzs-data-grid__filter-chip").TextContent, StringComparison.Ordinal);
+            Assert.Contains(
+                expectedSummaryValue,
+                cut.Find("button[aria-label='清除 Enabled 筛选']").TextContent,
+                StringComparison.Ordinal);
 
-            cut.Find(".bzs-data-grid__column-options button").Click();
-            var options = cut.FindAll("[data-bzs-data-grid-filter='enabled'] button[role='radio']");
+            cut.Find("button[aria-label='Enabled 列菜单']").Click();
+            var options = cut.FindAll("[role='radiogroup'][aria-label='Enabled 筛选值'] button[role='radio']");
             Assert.Equal(
                 ["任意", "是", "否"],
                 options.Select(option => option.TextContent.Trim()));
             Assert.Equal(
                 expectedSummaryValue,
                 Assert.Single(options, option => option.GetAttribute("aria-checked") == "true").TextContent.Trim());
-            Assert.Empty(cut.FindAll("[data-bzs-data-grid-filter='enabled'] select"));
         }
         finally
         {
@@ -723,7 +723,7 @@ public sealed class DataGridServerTests
 
         Assert.Contains("Accepted", cut.Find("tbody").TextContent);
         Assert.DoesNotContain("private detail", cut.Markup);
-        cut.Find(".bzs-data-grid__provider-state button").Click();
+        cut.Find("[role='alert'] button").Click();
         cut.WaitForAssertion(() => Assert.Equal(3, provider.Calls.Count));
         Assert.Equal(2, provider.Calls.Last().Request.Page);
     }
@@ -806,7 +806,7 @@ public sealed class DataGridServerTests
         Assert.Contains(nullKey ? "returned null" : "duplicate key", failures[0].Message, StringComparison.Ordinal);
         Assert.Contains("Accepted", cut.Find("tbody").TextContent);
         Assert.DoesNotContain(nullKey ? "Null key" : "Duplicate one", cut.Find("tbody").TextContent);
-        cut.Find(".bzs-data-grid__provider-state button").Click();
+        cut.Find("[role='alert'] button").Click();
         cut.WaitForAssertion(() => Assert.Equal(3, provider.Calls.Count));
     }
 
@@ -827,11 +827,11 @@ public sealed class DataGridServerTests
         cut.Render(parameters => parameters.Add(component => component.Page, 2));
         cut.WaitForAssertion(() => Assert.Equal(2, provider.Calls.Count));
         provider.Calls.Last().Completion.SetException(new InvalidOperationException("page failed"));
-        cut.WaitForAssertion(() => Assert.NotNull(cut.Find(".bzs-data-grid__provider-state")));
+        cut.WaitForAssertion(() => Assert.Contains("Data could not be loaded", cut.Find("[role='alert']").TextContent));
 
         var next = knownTotal
-            ? cut.Find("button[data-bzs-pagination-command='next']")
-            : cut.Find(".bzs-data-grid__unknown-pagination button[aria-label='Next page']");
+            ? cut.Find("button[aria-label='Go to next page']")
+            : cut.Find("button[aria-label='Next page']");
         Assert.False(next.HasAttribute("disabled"));
         next.Click();
 
@@ -862,7 +862,7 @@ public sealed class DataGridServerTests
         Assert.Equal("ascending", cut.Find("th[aria-sort]").GetAttribute("aria-sort"));
 
         provider.Calls.Last().Completion.SetException(new InvalidOperationException("sort failed"));
-        cut.WaitForAssertion(() => Assert.NotNull(cut.Find(".bzs-data-grid__provider-state")));
+        cut.WaitForAssertion(() => Assert.Contains("Data could not be loaded", cut.Find("[role='alert']").TextContent));
         Assert.Equal("ascending", cut.Find("th[aria-sort]").GetAttribute("aria-sort"));
     }
 
@@ -927,8 +927,8 @@ public sealed class DataGridServerTests
         cut = RenderProviderGrid(context, provider, page, configure: configure);
         cut.WaitForAssertion(() => Assert.Single(provider.Calls));
 
-        cut.Find(".bzs-data-grid__page-size .bzs-popover__trigger").Click();
-        cut.FindAll(".bzs-data-grid__page-size-options button")
+        cut.Find("button[aria-label='Rows per page']").Click();
+        cut.FindAll("[role='listbox'][aria-label='Rows per page'] button[role='option']")
             .Single(option => option.TextContent.Trim() == "25")
             .Click();
 
@@ -965,8 +965,8 @@ public sealed class DataGridServerTests
         var cut = RenderProviderGrid(context, provider, page: 2);
         cut.WaitForAssertion(() => Assert.Contains("Last", cut.Find("tbody").TextContent));
 
-        var pager = cut.Find(".bzs-data-grid__unknown-pagination");
-        Assert.Empty(pager.QuerySelectorAll("[data-bzs-pagination-page]"));
+        var pager = cut.Find("nav[aria-label='Data pages']");
+        Assert.Equal(2, pager.QuerySelectorAll("button").Length);
         Assert.False(pager.QuerySelector("button[aria-label='Previous page']")!.HasAttribute("disabled"));
         Assert.True(pager.QuerySelector("button[aria-label='Next page']")!.HasAttribute("disabled"));
     }

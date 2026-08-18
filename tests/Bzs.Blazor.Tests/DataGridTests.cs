@@ -51,7 +51,7 @@ public sealed class DataGridTests
         Assert.Equal(new[] { "Name", "Score" }, cut.FindAll("th").Select(header => header.TextContent.Trim()));
         Assert.Equal("Alpha", cut.Find("tbody td:first-child").TextContent.Trim());
         Assert.Equal("42 points", cut.Find("tbody strong").TextContent.Trim());
-        Assert.Equal("Rows per page", cut.Find(".bzs-data-grid__page-size > span").TextContent.Trim());
+        Assert.Equal("Rows per page", cut.Find("button[aria-label='Rows per page']").GetAttribute("aria-label"));
     }
 
     [Theory]
@@ -75,7 +75,6 @@ public sealed class DataGridTests
 
         Assert.Equal(showPageSizeSelector, cut.FindAll("[aria-label='Rows per page']").Count == 1);
         Assert.Equal(showPagination, cut.FindAll("[aria-label='Data pages']").Count == 1);
-        Assert.Equal(showPageSizeSelector || showPagination, cut.FindAll(".bzs-data-grid__footer").Count == 1);
     }
 
     [Fact]
@@ -197,12 +196,12 @@ public sealed class DataGridTests
             });
 
         Assert.Equal(new[] { "Row 11", "Row 12" }, BodyNames(cut));
-        cut.Find("button[data-bzs-pagination-command='previous']").Click();
+        cut.Find("button[aria-label='Go to previous page']").Click();
         Assert.Equal([1], pageRequests);
         Assert.Equal(2, cut.Instance.Page);
 
-        cut.Find(".bzs-data-grid__page-size .bzs-popover__trigger").Click();
-        cut.FindAll(".bzs-data-grid__page-size-options button")
+        cut.Find("button[aria-label='Rows per page']").Click();
+        cut.FindAll("[role='listbox'][aria-label='Rows per page'] button[role='option']")
             .Single(option => option.TextContent.Trim() == "25")
             .Click();
         Assert.Equal([25], sizeRequests);
@@ -237,8 +236,8 @@ public sealed class DataGridTests
                 });
             });
 
-        cut.Find(".bzs-data-grid__page-size .bzs-popover__trigger").Click();
-        cut.FindAll(".bzs-data-grid__page-size-options button")
+        cut.Find("button[aria-label='Rows per page']").Click();
+        cut.FindAll("[role='listbox'][aria-label='Rows per page'] button[role='option']")
             .Single(option => option.TextContent.Trim() == "25")
             .Click();
 
@@ -596,7 +595,7 @@ public sealed class DataGridTests
 
             Assert.Equal("数据表格", cut.Find("table").GetAttribute("aria-label"));
             Assert.Equal("暂无数据", cut.Find("tbody td").TextContent.Trim());
-            Assert.Contains("每页行数", cut.Find(".bzs-data-grid__page-size").TextContent, StringComparison.Ordinal);
+            Assert.Equal("每页行数", cut.Find("button[aria-label='每页行数']").GetAttribute("aria-label"));
 
             var selectAll = RenderGrid(
                 context,

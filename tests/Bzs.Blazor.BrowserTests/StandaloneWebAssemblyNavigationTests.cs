@@ -137,8 +137,8 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
             new() { Name = "Close navigation", Exact = true });
         await Expect(closeNavigation).ToBeFocusedAsync();
         await Page.Keyboard.PressAsync("Tab");
-        Assert.True(await Page.EvaluateAsync<bool>(
-            "() => document.querySelector('#demo-navigation-drawer')?.contains(document.activeElement) ?? false"));
+        Assert.True(await drawer.EvaluateAsync<bool>(
+            "element => element.contains(document.activeElement)"));
         await Page.Keyboard.PressAsync("Escape");
         await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
         await Expect(openNavigation).ToBeFocusedAsync();
@@ -344,17 +344,20 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await Expect(Page.GetByTestId("productivity-workbench"))
             .ToHaveAttributeAsync("data-bzs-interactive", "true");
         var grid = Page.GetByTestId("productivity-grid").GetByRole(AriaRole.Table);
-        await Expect(grid.Locator("tbody tr")).ToHaveCountAsync(5);
+        await Expect(grid.GetByRole(AriaRole.Row)).ToHaveCountAsync(6);
 
         var workbenchNavigation = Page.GetByRole(
             AriaRole.Navigation,
             new() { Name = "Workbench navigation", Exact = true });
-        var reviewQueueDisclosure = workbenchNavigation.Locator("details");
-        await Expect(reviewQueueDisclosure).ToHaveAttributeAsync("data-bzs-open", "true");
-        await reviewQueueDisclosure.Locator("summary").ClickAsync();
-        await Expect(reviewQueueDisclosure).ToHaveAttributeAsync("data-bzs-open", "false");
-        await reviewQueueDisclosure.Locator("summary").ClickAsync();
-        await Expect(reviewQueueDisclosure).ToHaveAttributeAsync("data-bzs-open", "true");
+        var reviewQueueDisclosure = workbenchNavigation.GetByText("Review queue", new() { Exact = true });
+        var assignedLink = workbenchNavigation.GetByRole(
+            AriaRole.Link,
+            new() { Name = "Assigned", Exact = true });
+        await Expect(assignedLink).ToBeVisibleAsync();
+        await reviewQueueDisclosure.ClickAsync();
+        await Expect(assignedLink).ToBeHiddenAsync();
+        await reviewQueueDisclosure.ClickAsync();
+        await Expect(assignedLink).ToBeVisibleAsync();
 
         var removeReviewFilter = Page.GetByRole(
             AriaRole.Button,
@@ -438,11 +441,11 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
 
         var drawer = Page.GetByTestId("navigation-drawer-showcase-drawer");
         await Page.GetByTestId("navigation-drawer-open").ClickAsync();
-        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "true");
+        await Expect(drawer).Not.ToHaveAttributeAsync("aria-hidden", "true");
         await Expect(Page.GetByTestId("navigation-drawer-primary-action")).ToBeFocusedAsync();
 
         await Page.Keyboard.PressAsync("Escape");
-        await Expect(drawer).ToHaveAttributeAsync("data-bzs-open", "false");
+        await Expect(drawer).ToHaveAttributeAsync("aria-hidden", "true");
 
         await Page.GetByTestId("navigation-drawer-open").ClickAsync();
         await Page.GetByTestId("navigation-drawer-open-dialog").ClickAsync();

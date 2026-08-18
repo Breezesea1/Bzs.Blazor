@@ -209,7 +209,7 @@ public sealed class LayoutTests
         Assert.Equal("224", handle.GetAttribute("aria-valuemin"));
         Assert.Equal("384", handle.GetAttribute("aria-valuemax"));
         Assert.Equal("0", handle.GetAttribute("tabindex"));
-        Assert.Contains("Navigation items", cut.Find(".bzs-navigation-drawer__content").TextContent);
+        Assert.Contains("Navigation items", navigation.TextContent);
     }
 
     [Theory]
