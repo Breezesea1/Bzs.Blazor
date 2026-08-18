@@ -32,6 +32,10 @@ _Avoid_: Floating panel, popover infrastructure, portal
 The shared set of demonstration pages and chrome, hosted in `Bzs.Blazor.Demo.Catalog` and reused by the standalone WebAssembly and server demo hosts, through which visitors explore the component library. All visitor-facing copy is bilingual: zh-Hans is the default culture and en-US is available through the language switcher.
 _Avoid_: Demo app, sample site, playground
 
+**Demo Catalog Destination**:
+A stable visitor-reachable location within the Demo Catalog that retains one identity across navigation, discovery, and host-specific visitor journeys.
+_Avoid_: Page, NavItem, MenuEntry
+
 **Landing Page**:
 The `/` route of the Demo Catalog, which introduces Bzs.Blazor to first-time visitors and routes them toward installation, the component groups, and releases. Its copy is bilingual (zh-Hans and en-US) with zh-Hans as the primary language.
 _Avoid_: Home page, overview page, dashboard

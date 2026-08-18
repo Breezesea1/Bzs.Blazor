@@ -10,8 +10,12 @@ public partial class CatalogNavigation : ComponentBase
     [Parameter]
     public bool IncludesServerRenderModes { get; set; }
 
-    private string RouteUrl(string route) => DemoCulture.PreserveCulture(
-        new Uri(Navigation.Uri),
-        new Uri(Navigation.BaseUri),
-        route);
+    private IReadOnlyList<DemoCatalogNavigationSection> NavigationSections =>
+        DemoCatalogDestinations.GetNavigationSections(
+            IncludesServerRenderModes
+                ? DemoCatalogHostCapabilities.SharedCatalog | DemoCatalogHostCapabilities.FullRenderModes
+                : DemoCatalogHostCapabilities.SharedCatalog | DemoCatalogHostCapabilities.StandaloneRuntime);
+
+    private string DestinationUrl(DemoCatalogDestination destination) =>
+        DemoCatalogDestinations.GetHref(Navigation, destination);
 }

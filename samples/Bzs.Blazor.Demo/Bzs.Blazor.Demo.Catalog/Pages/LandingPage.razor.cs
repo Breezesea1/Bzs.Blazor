@@ -40,18 +40,8 @@ public partial class LandingPage : ComponentBase, IAsyncDisposable
         new("datagrid", DemoText.Landing.FeatureDataGridTitle, DemoText.Landing.FeatureDataGridBody, DemoNavIcons.Layout),
     ];
 
-    private IReadOnlyList<LandingGroup> Groups =>
-    [
-        new("theme-foundation", DemoText.Chrome.ThemeFoundation, DemoText.Landing.GroupThemeFoundationDescription, DemoNavIcons.ThemeFoundation),
-        new("foundation", DemoText.Chrome.FoundationComponents, DemoText.Landing.GroupFoundationDescription, DemoNavIcons.Foundation),
-        new("forms", DemoText.Chrome.Forms, DemoText.Landing.GroupFormsDescription, DemoNavIcons.Forms),
-        new("productivity", DemoText.Chrome.Productivity, DemoText.Landing.GroupProductivityDescription, DemoNavIcons.Overview),
-        new("feedback", DemoText.Chrome.Feedback, DemoText.Landing.GroupFeedbackDescription, DemoNavIcons.Feedback),
-        new("tabs", DemoText.Chrome.Tabs, DemoText.Landing.GroupTabsDescription, DemoNavIcons.Tabs),
-        new("overlays", DemoText.Chrome.Overlays, DemoText.Landing.GroupOverlaysDescription, DemoNavIcons.Overlays),
-        new("layout", DemoText.Chrome.Layout, DemoText.Landing.GroupLayoutDescription, DemoNavIcons.Layout),
-        new("navigation-drawer", DemoText.Chrome.NavigationDrawer, DemoText.Landing.GroupNavigationDrawerDescription, DemoNavIcons.NavigationDrawer),
-    ];
+    private static IReadOnlyList<DemoCatalogDestination> Groups =>
+        DemoCatalogDestinations.CapabilityCandidates;
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -62,10 +52,8 @@ public partial class LandingPage : ComponentBase, IAsyncDisposable
         }
     }
 
-    private string RouteUrl(string route) => DemoCulture.PreserveCulture(
-        new Uri(Navigation.Uri),
-        new Uri(Navigation.BaseUri),
-        route);
+    private string DestinationUrl(DemoCatalogDestination destination) =>
+        DemoCatalogDestinations.GetHref(Navigation, destination);
 
     private static string FormatGroupIndex(int index) =>
         (index + 1).ToString("00", CultureInfo.InvariantCulture);
@@ -168,5 +156,4 @@ public partial class LandingPage : ComponentBase, IAsyncDisposable
 
     private sealed record LandingFeature(string Key, string Title, string Body, BzsIconData Icon);
 
-    private sealed record LandingGroup(string Route, string Name, string Description, BzsIconData Icon);
 }

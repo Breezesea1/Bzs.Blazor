@@ -95,10 +95,8 @@ public partial class NavigationDrawerShowcase : ComponentBase
 
     private void SetVariant(BzsNavigationDrawerVariant variant) => _variant = variant;
 
-    private string RouteUrl(string route) => DemoCulture.PreserveCulture(
-        new Uri(Navigation.Uri),
-        new Uri(Navigation.BaseUri),
-        route);
+    private string DestinationUrl(DemoCatalogDestination destination) =>
+        DemoCatalogDestinations.GetHref(Navigation, destination);
 
     protected override void OnAfterRender(bool firstRender)
     {

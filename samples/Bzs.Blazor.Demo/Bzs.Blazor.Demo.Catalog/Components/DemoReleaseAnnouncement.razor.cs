@@ -36,9 +36,14 @@ public partial class DemoReleaseAnnouncement : ComponentBase, IAsyncDisposable
 
     private string UnreadBadgeAccessibleName => DemoText.Chrome.UnreadReleaseAnnouncement(_unreadCount);
 
-    private string ReleasesUrl => RouteUrl("releases");
+    private string ReleasesUrl => DemoCatalogDestinations.GetHref(
+        Navigation,
+        DemoCatalogDestinations.Releases);
 
-    private string LatestReleaseUrl => RouteUrl($"releases#{Latest.Id}");
+    private string LatestReleaseUrl => DemoCatalogDestinations.GetHref(
+        Navigation,
+        DemoCatalogDestinations.Releases,
+        fragment: Latest.Id);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -131,11 +136,6 @@ public partial class DemoReleaseAnnouncement : ComponentBase, IAsyncDisposable
 
     private void UpdateUnreadCount() =>
         _unreadCount = GetLatestUnreadCount(Latest.Id, _acknowledgedIds);
-
-    private string RouteUrl(string route) => DemoCulture.PreserveCulture(
-        new Uri(Navigation.Uri),
-        new Uri(Navigation.BaseUri),
-        route);
 
     public async ValueTask DisposeAsync()
     {

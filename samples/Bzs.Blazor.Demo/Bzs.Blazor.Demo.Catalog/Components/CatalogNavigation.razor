@@ -1,6 +1,6 @@
 <div class="demo-nav">
     <div class="demo-brand">
-        <a class="demo-brand-link" href="@RouteUrl("")">
+        <a class="demo-brand-link" href="@DestinationUrl(DemoCatalogDestinations.Overview)">
             <img class="demo-brand-mark" src="_content/Bzs.Blazor.Demo.Catalog/demo-logo.svg" alt="" width="36" height="36" />
             <span class="demo-brand-copy">
                 <strong>Bzs.Blazor</strong>
@@ -18,88 +18,20 @@
                    aria-expanded="true" />
     </div>
 
-    <div class="demo-nav-section">
-        <p class="demo-nav-heading">@DemoText.Chrome.CatalogSection</p>
-        <NavLink class="demo-nav-link" href="@RouteUrl("")" Match="NavLinkMatch.All">
-            <BzsIcon Icon="DemoNavIcons.Overview" />
-            <span class="demo-nav-link-label">@DemoText.Chrome.Overview</span>
-        </NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("theme-foundation")">
-            <BzsIcon Icon="DemoNavIcons.ThemeFoundation" />
-            <span class="demo-nav-link-label">@DemoText.Chrome.ThemeFoundation</span>
-        </NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("foundation")">
-            <BzsIcon Icon="DemoNavIcons.Foundation" />
-            <span class="demo-nav-link-label">@DemoText.Chrome.FoundationComponents</span>
-        </NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("forms")">
-            <BzsIcon Icon="DemoNavIcons.Forms" />
-            <span class="demo-nav-link-label">@DemoText.Chrome.Forms</span>
-        </NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("productivity")">
-            <BzsIcon Icon="DemoNavIcons.Foundation" />
-            <span class="demo-nav-link-label">@DemoText.Chrome.Productivity</span>
-        </NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("feedback")">
-            <BzsIcon Icon="DemoNavIcons.Feedback" />
-            <span class="demo-nav-link-label">@DemoText.Chrome.Feedback</span>
-        </NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("tabs")">
-            <BzsIcon Icon="DemoNavIcons.Tabs" />
-            <span class="demo-nav-link-label">@DemoText.Chrome.Tabs</span>
-        </NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("overlays")">
-            <BzsIcon Icon="DemoNavIcons.Overlays" />
-            <span class="demo-nav-link-label">@DemoText.Chrome.Overlays</span>
-        </NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("layout")">
-            <BzsIcon Icon="DemoNavIcons.Layout" />
-            <span class="demo-nav-link-label">@DemoText.Chrome.Layout</span>
-        </NavLink>
-        <NavLink class="demo-nav-link" href="@RouteUrl("navigation-drawer")">
-            <BzsIcon Icon="DemoNavIcons.NavigationDrawer" />
-            <span class="demo-nav-link-label">@DemoText.Chrome.NavigationDrawer</span>
-        </NavLink>
-    </div>
-
-    <div class="demo-nav-section">
-        <p class="demo-nav-heading">@DemoText.Chrome.ProjectSection</p>
-        <NavLink class="demo-nav-link" href="@RouteUrl("releases")">
-            <BzsIcon Icon="DemoNavIcons.Announcements" />
-            <span class="demo-nav-link-label">@DemoText.Chrome.Releases</span>
-        </NavLink>
-    </div>
-
-    @if (IncludesServerRenderModes)
+    @foreach (var section in NavigationSections)
     {
-        <div class="demo-nav-section">
-            <p class="demo-nav-heading">@DemoText.Chrome.RenderModesSection</p>
-            <NavLink class="demo-nav-link" href="@RouteUrl("render-modes/static")">
-                <BzsIcon Icon="DemoNavIcons.StaticRender" />
-                <span class="demo-nav-link-label">@DemoText.Chrome.StaticSsr</span>
-            </NavLink>
-            <NavLink class="demo-nav-link" href="@RouteUrl("render-modes/server")">
-                <BzsIcon Icon="DemoNavIcons.ServerRender" />
-                <span class="demo-nav-link-label">@DemoText.Chrome.InteractiveServer</span>
-            </NavLink>
-            <NavLink class="demo-nav-link" href="@RouteUrl("render-modes/webassembly")">
-                <BzsIcon Icon="DemoNavIcons.WebAssemblyRender" />
-                <span class="demo-nav-link-label">@DemoText.Chrome.InteractiveWebAssembly</span>
-            </NavLink>
-            <NavLink class="demo-nav-link" href="@RouteUrl("render-modes/auto")">
-                <BzsIcon Icon="DemoNavIcons.AutoRender" />
-                <span class="demo-nav-link-label">@DemoText.Chrome.InteractiveAuto</span>
-            </NavLink>
-        </div>
-    }
-    else
-    {
-        <div class="demo-nav-section">
-            <p class="demo-nav-heading">@DemoText.Chrome.RuntimeSection</p>
-            <NavLink class="demo-nav-link" href="@RouteUrl("render-modes/webassembly")">
-                <BzsIcon Icon="DemoNavIcons.WebAssemblyRender" />
-                <span class="demo-nav-link-label">@DemoText.Chrome.InteractiveWebAssembly</span>
-            </NavLink>
+        <div class="demo-nav-section" @key="section.Name">
+            <p class="demo-nav-heading">@section.Name</p>
+            @foreach (var destination in section.Destinations)
+            {
+                <NavLink class="demo-nav-link"
+                         href="@DestinationUrl(destination)"
+                         Match="@(ReferenceEquals(destination, DemoCatalogDestinations.Overview) ? NavLinkMatch.All : NavLinkMatch.Prefix)"
+                         @key="destination.Id">
+                    <BzsIcon Icon="destination.Icon" />
+                    <span class="demo-nav-link-label">@destination.Name</span>
+                </NavLink>
+            }
         </div>
     }
 
@@ -109,7 +41,7 @@
                    Size="BzsAvatarSize.Medium"
                    Class="demo-user-identity">
             <ActionContent>
-                <a class="demo-user-action" href="@RouteUrl("")" aria-label="@DemoText.Chrome.SignOutAccessibleName">
+                <a class="demo-user-action" href="@DestinationUrl(DemoCatalogDestinations.Overview)" aria-label="@DemoText.Chrome.SignOutAccessibleName">
                     <BzsIcon Icon="DemoNavIcons.LogOut" />
                     <span class="demo-user-action-label">@DemoText.Chrome.Exit</span>
                 </a>

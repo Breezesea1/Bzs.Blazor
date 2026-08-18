@@ -9,12 +9,5 @@
         <h1 id="not-found-title">Page not found</h1>
         <p class="demo-page-summary">The requested catalog route is not available in this static demo.</p>
     </header>
-    <p><a href="@RouteUrl("")">Return to the catalog overview</a></p>
+    <p><a href="@DemoCatalogDestinations.GetHref(Navigation, DemoCatalogDestinations.Overview)">Return to the catalog overview</a></p>
 </section>
-
-@code {
-    private string RouteUrl(string route) => DemoCulture.PreserveCulture(
-        new Uri(Navigation.Uri),
-        new Uri(Navigation.BaseUri),
-        route);
-}
