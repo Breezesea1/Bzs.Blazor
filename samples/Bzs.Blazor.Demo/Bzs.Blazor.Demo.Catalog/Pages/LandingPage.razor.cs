@@ -49,16 +49,8 @@ public partial class LandingPage : ComponentBase, IAsyncDisposable
             ? DemoCatalogHostCapabilities.FullRenderModes
             : DemoCatalogHostCapabilities.StandaloneRuntime);
 
-    private bool HasFullRenderModes =>
-        HostCapabilities.HasFlag(DemoCatalogHostCapabilities.FullRenderModes);
-
-    private IReadOnlyList<DemoCatalogDestination> RuntimeDestinations =>
-        DemoCatalogDestinations.GetRuntimeDestinations(HostCapabilities);
-
-    private string RuntimeSectionName =>
-        HasFullRenderModes
-            ? DemoText.Chrome.RenderModesSection
-            : DemoText.Chrome.RuntimeSection;
+    private DemoCatalogRuntimePresentation RuntimePresentation =>
+        DemoCatalogDestinations.GetRuntimePresentation(HostCapabilities);
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -71,18 +63,6 @@ public partial class LandingPage : ComponentBase, IAsyncDisposable
 
     private string DestinationUrl(DemoCatalogDestination destination) =>
         DemoCatalogDestinations.GetHref(Navigation, destination);
-
-    private string RuntimeDescription(DemoCatalogDestination destination) =>
-        (destination.Id, HasFullRenderModes) switch
-        {
-            ("interactive-webassembly", false) => DemoText.Landing.StandaloneRuntimeDescription,
-            ("static-ssr", _) => DemoText.Landing.StaticSsrDescription,
-            ("interactive-server", _) => DemoText.Landing.InteractiveServerDescription,
-            ("interactive-webassembly", _) => DemoText.Landing.InteractiveWebAssemblyDescription,
-            ("interactive-auto", _) => DemoText.Landing.InteractiveAutoDescription,
-            _ => throw new InvalidOperationException(
-                $"Demo Catalog destination '{destination.Id}' has no Landing Page runtime description."),
-        };
 
     private static string FormatGroupIndex(int index) =>
         (index + 1).ToString("00", CultureInfo.InvariantCulture);

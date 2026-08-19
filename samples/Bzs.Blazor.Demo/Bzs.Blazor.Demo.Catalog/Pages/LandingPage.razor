@@ -175,12 +175,13 @@
         </article>
     </section>
 
+    @{ var runtimePresentation = RuntimePresentation; }
     <section class="demo-landing-section" aria-labelledby="landing-routes-title" data-testid="landing-routes">
-        <h2 id="landing-routes-title">@RuntimeSectionName</h2>
+        <h2 id="landing-routes-title">@runtimePresentation.SectionName</h2>
         <ul class="demo-route-list">
-            @foreach (var destination in RuntimeDestinations)
+            @foreach (var item in runtimePresentation.Destinations)
             {
-                <li @key="destination.Id"><a href="@DestinationUrl(destination)">@destination.Name</a><span>@RuntimeDescription(destination)</span></li>
+                <li @key="item.Destination.Id"><a href="@DestinationUrl(item.Destination)">@item.Destination.Name</a><span>@item.Description</span></li>
             }
         </ul>
     </section>

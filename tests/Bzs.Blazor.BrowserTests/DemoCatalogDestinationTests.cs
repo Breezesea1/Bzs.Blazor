@@ -1,3 +1,4 @@
+using System.Globalization;
 using Bzs.Blazor.Demo.Client;
 using Microsoft.AspNetCore.Components;
 
@@ -44,20 +45,38 @@ public sealed class DemoCatalogDestinationTests
     }
 
     [Fact]
-    public void RuntimeDestinationsFollowHostCapabilities()
+    public void RuntimePresentationFollowsHostCapabilities()
     {
-        Assert.Equal(
-            ["static-ssr", "interactive-server", "interactive-webassembly", "interactive-auto"],
-            DemoCatalogDestinations.GetRuntimeDestinations(
-                    DemoCatalogHostCapabilities.SharedCatalog
-                    | DemoCatalogHostCapabilities.FullRenderModes)
-                .Select(destination => destination.Id));
-        Assert.Equal(
-            ["interactive-webassembly"],
-            DemoCatalogDestinations.GetRuntimeDestinations(
-                    DemoCatalogHostCapabilities.SharedCatalog
-                    | DemoCatalogHostCapabilities.StandaloneRuntime)
-                .Select(destination => destination.Id));
+        var originalUiCulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
+
+            var full = DemoCatalogDestinations.GetRuntimePresentation(
+                DemoCatalogHostCapabilities.SharedCatalog
+                | DemoCatalogHostCapabilities.FullRenderModes);
+            Assert.Equal("Render modes", full.SectionName);
+            Assert.Equal(
+                [
+                    ("static-ssr", "Meaningful passive markup."),
+                    ("interactive-server", "Server circuit interaction."),
+                    ("interactive-webassembly", "Browser-hosted interaction."),
+                    ("interactive-auto", "Automatic server-to-browser selection."),
+                ],
+                full.Destinations.Select(item => (item.Destination.Id, item.Description)));
+
+            var standalone = DemoCatalogDestinations.GetRuntimePresentation(
+                DemoCatalogHostCapabilities.SharedCatalog
+                | DemoCatalogHostCapabilities.StandaloneRuntime);
+            Assert.Equal("Runtime", standalone.SectionName);
+            Assert.Equal(
+                [("interactive-webassembly", "Browser-hosted interaction without a server runtime.")],
+                standalone.Destinations.Select(item => (item.Destination.Id, item.Description)));
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = originalUiCulture;
+        }
     }
 
     [Fact]

@@ -168,22 +168,26 @@ public static class DemoCatalogDestinations
         .. ComponentGroupDestinations,
     ];
 
-    private static IReadOnlyList<DemoCatalogDestination> RuntimeDestinations { get; } =
+    private static IReadOnlyList<DemoCatalogRuntimeDefinition> RuntimeDefinitions { get; } =
     [
-        StaticSsr,
-        InteractiveServer,
-        InteractiveWebAssembly,
-        InteractiveAuto,
+        new(StaticSsr, () => DemoText.Landing.StaticSsrDescription),
+        new(InteractiveServer, () => DemoText.Landing.InteractiveServerDescription),
+        new(
+            InteractiveWebAssembly,
+            () => DemoText.Landing.InteractiveWebAssemblyDescription,
+            () => DemoText.Landing.StandaloneRuntimeDescription),
+        new(InteractiveAuto, () => DemoText.Landing.InteractiveAutoDescription),
     ];
 
     internal static IReadOnlyList<DemoCatalogNavigationSection> GetNavigationSections(
         DemoCatalogHostCapabilities capabilities)
     {
+        var runtimePresentation = GetRuntimePresentation(capabilities);
         var runtimeSection = new DemoCatalogNavigationSection(
-            capabilities.HasFlag(DemoCatalogHostCapabilities.FullRenderModes)
-                ? DemoText.Chrome.RenderModesSection
-                : DemoText.Chrome.RuntimeSection,
-            GetRuntimeDestinations(capabilities));
+            runtimePresentation.SectionName,
+            runtimePresentation.Destinations
+                .Select(item => item.Destination)
+                .ToArray());
 
         return
         [
@@ -193,9 +197,23 @@ public static class DemoCatalogDestinations
         ];
     }
 
-    internal static IReadOnlyList<DemoCatalogDestination> GetRuntimeDestinations(
-        DemoCatalogHostCapabilities capabilities) =>
-        Available(RuntimeDestinations, capabilities);
+    internal static DemoCatalogRuntimePresentation GetRuntimePresentation(
+        DemoCatalogHostCapabilities capabilities)
+    {
+        var fullRenderModes = capabilities.HasFlag(DemoCatalogHostCapabilities.FullRenderModes);
+        var destinations = RuntimeDefinitions
+            .Where(item => item.Destination.IsAvailable(capabilities))
+            .Select(item => new DemoCatalogRuntimeDestination(
+                item.Destination,
+                item.GetDescription(useStandaloneDescription: !fullRenderModes)))
+            .ToArray();
+
+        return new DemoCatalogRuntimePresentation(
+            fullRenderModes
+                ? DemoText.Chrome.RenderModesSection
+                : DemoText.Chrome.RuntimeSection,
+            destinations);
+    }
 
     private static IReadOnlyList<DemoCatalogDestination> Available(
         IEnumerable<DemoCatalogDestination> destinations,
@@ -227,6 +245,17 @@ public static class DemoCatalogDestinations
             new Uri(navigation.BaseUri),
             relativePath);
     }
+
+    private sealed record DemoCatalogRuntimeDefinition(
+        DemoCatalogDestination Destination,
+        Func<string> Description,
+        Func<string>? StandaloneDescription = null)
+    {
+        internal string GetDescription(bool useStandaloneDescription) =>
+            useStandaloneDescription && StandaloneDescription is not null
+                ? StandaloneDescription()
+                : Description();
+    }
 }
 
 [Flags]
@@ -240,3 +269,11 @@ internal enum DemoCatalogHostCapabilities
 internal sealed record DemoCatalogNavigationSection(
     string Name,
     IReadOnlyList<DemoCatalogDestination> Destinations);
+
+internal sealed record DemoCatalogRuntimeDestination(
+    DemoCatalogDestination Destination,
+    string Description);
+
+internal sealed record DemoCatalogRuntimePresentation(
+    string SectionName,
+    IReadOnlyList<DemoCatalogRuntimeDestination> Destinations);
