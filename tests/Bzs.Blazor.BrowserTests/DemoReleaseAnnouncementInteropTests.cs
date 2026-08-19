@@ -13,18 +13,18 @@ public sealed class DemoReleaseAnnouncementInteropTests
             "v0.1.0",
         };
         IReadOnlySet<string> acknowledgedLatestAndHistoricalIds = new HashSet<string>(
-            ["v0.1.0", "v0.2.0", "v0.2.1", "v0.2.3", "v0.3.0"],
+            ["v0.1.0", "v0.2.0", "v0.2.1", "v0.2.3", "v0.3.0", "v0.4.0"],
             StringComparer.Ordinal);
 
         Assert.Equal(
             1,
             DemoReleaseAnnouncement.GetLatestUnreadCount(
-                "v0.3.0",
+                "v0.4.0",
                 acknowledgedHistoricalIds));
         Assert.Equal(
             0,
             DemoReleaseAnnouncement.GetLatestUnreadCount(
-                "v0.3.0",
+                "v0.4.0",
                 acknowledgedLatestAndHistoricalIds));
     }
 

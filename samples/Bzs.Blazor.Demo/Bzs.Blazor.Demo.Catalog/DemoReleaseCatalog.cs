@@ -25,6 +25,63 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.4.0",
+            "0.4.0",
+            new DateTimeOffset(2026, 8, 20, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Feature release", "功能版本"),
+            new DemoLocalizedText(
+                "Productivity workflows, resizable navigation, and identity",
+                "生产力工作流、可调整导航与身份展示"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.4.0 expands DataGrid productivity workflows, adds resizable navigation drawers and composable avatar identities, and centralizes Demo Catalog destinations across hosts.",
+                "Bzs.Blazor 0.4.0 扩展 DataGrid 生产力工作流，新增可调整大小的导航抽屉与可组合头像身份，并在各宿主间统一 Demo Catalog 目的地。"),
+            [
+                new DemoLocalizedText(
+                    "DataGrid adds toolbar composition, result and filter summaries, richer filtering, and explicit workflow controls.",
+                    "DataGrid 新增工具栏组合、结果与筛选摘要、更丰富的筛选以及显式工作流控制。"),
+                new DemoLocalizedText(
+                    "NavigationDrawer supports pointer and keyboard resizing while preserving responsive shell alignment.",
+                    "NavigationDrawer 支持指针与键盘调整大小，同时保持响应式应用壳对齐。"),
+                new DemoLocalizedText(
+                    "Avatar identities support visible names and optional trailing actions without hard-coded account semantics.",
+                    "Avatar 身份支持可见名称和可选尾部操作，不硬编码账户语义。"),
+                new DemoLocalizedText(
+                    "Demo Catalog destinations now share host-aware routes, localized presentation, culture, and base-path behavior.",
+                    "Demo Catalog 目的地现在共享宿主感知路由、本地化 presentation、文化参数和 base-path 行为。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Productivity and navigation", "生产力与导航"),
+                    [
+                        new DemoLocalizedText(
+                            "Provider-backed DataGrid workflows retain accepted rows, retry semantics, controlled state, and accessible commands.",
+                            "基于 provider 的 DataGrid 工作流保留已接受行、重试语义、受控状态和可访问命令。"),
+                        new DemoLocalizedText(
+                            "Resizable drawers synchronize preferred width with the application shell and constrain it as containers change.",
+                            "可调整抽屉会将首选宽度与应用壳同步，并在容器变化时约束有效宽度。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Identity and Demo delivery", "身份与 Demo 交付"),
+                    [
+                        new DemoLocalizedText(
+                            "Avatar composition keeps image, fallback, visible identity, accessibility, and optional actions coherent.",
+                            "Avatar 组合统一处理图片、fallback、可见身份、可访问性和可选操作。"),
+                        new DemoLocalizedText(
+                            "Full and standalone Demo hosts consume the same capability-filtered destination and runtime presentation.",
+                            "完整与独立 Demo 宿主使用同一套按能力过滤的目的地与运行时 presentation。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Compatibility", "兼容性"),
+                    [
+                        new DemoLocalizedText(
+                            "Existing URLs and render modes remain supported; the new public contracts are additive.",
+                            "现有 URL 和渲染模式继续受支持；新增公共契约均为增量扩展。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "No breaking changes to previously published APIs or supported render modes.",
+                "对已发布 API 和支持的渲染模式没有破坏性变更。")),
+        new(
             "v0.3.0",
             "0.3.0",
             new DateTimeOffset(2026, 8, 17, 0, 0, 0, TimeSpan.Zero),

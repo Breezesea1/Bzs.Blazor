@@ -24,12 +24,12 @@ public sealed class StandaloneReleaseAnnouncementTests(StandaloneWebAssemblyFixt
 
         var dialog = Page.GetByRole(
             AriaRole.Dialog,
-            new() { Name = "What's new in Bzs.Blazor 0.3.0", Exact = true });
+            new() { Name = "What's new in Bzs.Blazor 0.4.0", Exact = true });
         await Expect(dialog).ToBeVisibleAsync();
         await dialog.GetByRole(AriaRole.Link, new() { Name = "View all releases", Exact = true })
             .ClickAsync();
 
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/releases?culture=en-US#v0.3.0");
+        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/releases?culture=en-US#v0.4.0");
         await Expect(dialog).ToHaveCountAsync(0);
         await Expect(Page.GetByTestId("releases-page")).ToBeVisibleAsync();
         await AssertLatestReleaseHistoryAsync();

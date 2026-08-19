@@ -373,7 +373,7 @@ public abstract class BrowserGatePageTest : PageTest
 
         var snippet = Page.GetByTestId("landing-install-snippet");
         await Expect(snippet).ToContainTextAsync("dotnet add package Bzs.Blazor");
-        await Expect(snippet).ToContainTextAsync("--version 0.3.0");
+        await Expect(snippet).ToContainTextAsync("--version 0.4.0");
         await Expect(snippet).ToContainTextAsync("AddBzsBlazor()");
 
         await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync("data-interactive", "true");
@@ -402,9 +402,9 @@ public abstract class BrowserGatePageTest : PageTest
 
         Assert.Equal(
             [
+                "Productivity workflows, resizable navigation, and identity",
                 "Forms, data workflows, and navigation drawers",
                 "Bilingual Demo and shared landing page",
-                "Anchored overlay lifecycle hardening",
             ],
             releaseHeadings.Take(3));
     }
