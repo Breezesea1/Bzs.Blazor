@@ -44,7 +44,7 @@ public partial class LandingPage : ComponentBase, IAsyncDisposable
     ];
 
     private IReadOnlyList<DemoCatalogEntry> ComponentGroups =>
-        DemoCatalogChrome.GetComponentGroups();
+        DemoCatalogChrome.GetComponentGroups(IncludesServerRenderModes);
 
     private DemoCatalogSection RuntimeSection =>
         DemoCatalogChrome.GetRuntimeSection(IncludesServerRenderModes);

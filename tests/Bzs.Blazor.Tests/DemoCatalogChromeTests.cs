@@ -78,10 +78,14 @@ public sealed class DemoCatalogChromeTests
         try
         {
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
-            var english = DemoCatalogChrome.Describe(DemoCatalogDestinations.Forms);
+            var english = DemoCatalogChrome.Describe(
+                DemoCatalogDestinations.Forms,
+                includesServerRenderModes: true);
 
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("zh-Hans");
-            var chinese = DemoCatalogChrome.Describe(DemoCatalogDestinations.Forms);
+            var chinese = DemoCatalogChrome.Describe(
+                DemoCatalogDestinations.Forms,
+                includesServerRenderModes: true);
 
             Assert.NotEqual(english.Name, chinese.Name);
             Assert.Equal("forms", english.Destination.Id);
@@ -92,6 +96,22 @@ public sealed class DemoCatalogChromeTests
         {
             CultureInfo.CurrentUICulture = originalUiCulture;
         }
+    }
+
+    [Fact]
+    public void ComponentGroupsFollowHostCapabilities()
+    {
+        Assert.Equal(
+            DemoCatalogChrome.GetComponentGroups(includesServerRenderModes: true)
+                .Select(entry => entry.Destination.Id),
+            DemoCatalogChrome.GetComponentGroups(includesServerRenderModes: false)
+                .Select(entry => entry.Destination.Id));
+
+        Assert.All(
+            DemoCatalogDestinations.ComponentGroups,
+            destination => Assert.True(
+                destination.IsAvailable(DemoCatalogHostCapabilities.StandaloneRuntime
+                    | DemoCatalogHostCapabilities.SharedCatalog)));
     }
 
     [Fact]

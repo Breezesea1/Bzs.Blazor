@@ -20,78 +20,71 @@ internal static class DemoCatalogChrome
                 : DemoText.Chrome.RuntimeSection,
             Present(DemoCatalogDestinations.Runtimes, includesServerRenderModes));
 
-    internal static IReadOnlyList<DemoCatalogEntry> GetComponentGroups() =>
-        Present(DemoCatalogDestinations.ComponentGroups, includesServerRenderModes: true);
+    internal static IReadOnlyList<DemoCatalogEntry> GetComponentGroups(bool includesServerRenderModes) =>
+        Present(DemoCatalogDestinations.ComponentGroups, includesServerRenderModes);
 
-    internal static DemoCatalogEntry Describe(
-        DemoCatalogDestination destination,
-        bool includesServerRenderModes = true)
+    /// <summary>Gets the visitor-facing name of a destination, which no host varies.</summary>
+    internal static string GetName(DemoCatalogDestination destination)
     {
         ArgumentNullException.ThrowIfNull(destination);
         return destination.Id switch
         {
-            "overview" => new(destination, DemoText.Chrome.Overview, null),
-            "theme-foundation" => new(
-                destination,
-                DemoText.Chrome.ThemeFoundation,
-                DemoText.Landing.GroupThemeFoundationDescription),
-            "foundation" => new(
-                destination,
-                DemoText.Chrome.FoundationComponents,
-                DemoText.Landing.GroupFoundationDescription),
-            "forms" => new(
-                destination,
-                DemoText.Chrome.Forms,
-                DemoText.Landing.GroupFormsDescription),
-            "productivity" => new(
-                destination,
-                DemoText.Chrome.Productivity,
-                DemoText.Landing.GroupProductivityDescription),
-            "feedback" => new(
-                destination,
-                DemoText.Chrome.Feedback,
-                DemoText.Landing.GroupFeedbackDescription),
-            "tabs" => new(
-                destination,
-                DemoText.Chrome.Tabs,
-                DemoText.Landing.GroupTabsDescription),
-            "overlays" => new(
-                destination,
-                DemoText.Chrome.Overlays,
-                DemoText.Landing.GroupOverlaysDescription),
-            "layout" => new(
-                destination,
-                DemoText.Chrome.Layout,
-                DemoText.Landing.GroupLayoutDescription),
-            "navigation-drawer" => new(
-                destination,
-                DemoText.Chrome.NavigationDrawer,
-                DemoText.Landing.GroupNavigationDrawerDescription),
-            "releases" => new(destination, DemoText.Chrome.Releases, null),
-            "static-ssr" => new(
-                destination,
-                DemoText.Chrome.StaticSsr,
-                DemoText.Landing.StaticSsrDescription),
-            "interactive-server" => new(
-                destination,
-                DemoText.Chrome.InteractiveServer,
-                DemoText.Landing.InteractiveServerDescription),
-            "interactive-webassembly" => new(
-                destination,
-                DemoText.Chrome.InteractiveWebAssembly,
-                includesServerRenderModes
-                    ? DemoText.Landing.InteractiveWebAssemblyDescription
-                    : DemoText.Landing.StandaloneRuntimeDescription),
-            "interactive-auto" => new(
-                destination,
-                DemoText.Chrome.InteractiveAuto,
-                DemoText.Landing.InteractiveAutoDescription),
+            "overview" => DemoText.Chrome.Overview,
+            "theme-foundation" => DemoText.Chrome.ThemeFoundation,
+            "foundation" => DemoText.Chrome.FoundationComponents,
+            "forms" => DemoText.Chrome.Forms,
+            "productivity" => DemoText.Chrome.Productivity,
+            "feedback" => DemoText.Chrome.Feedback,
+            "tabs" => DemoText.Chrome.Tabs,
+            "overlays" => DemoText.Chrome.Overlays,
+            "layout" => DemoText.Chrome.Layout,
+            "navigation-drawer" => DemoText.Chrome.NavigationDrawer,
+            "releases" => DemoText.Chrome.Releases,
+            "static-ssr" => DemoText.Chrome.StaticSsr,
+            "interactive-server" => DemoText.Chrome.InteractiveServer,
+            "interactive-webassembly" => DemoText.Chrome.InteractiveWebAssembly,
+            "interactive-auto" => DemoText.Chrome.InteractiveAuto,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(destination),
                 destination.Id,
-                "The destination has no Demo Catalog Chrome copy."),
+                "The destination has no Demo Catalog Chrome name."),
         };
     }
+
+    internal static DemoCatalogEntry Describe(
+        DemoCatalogDestination destination,
+        bool includesServerRenderModes)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        return new(destination, GetName(destination), GetDescription(destination, includesServerRenderModes));
+    }
+
+    private static string? GetDescription(
+        DemoCatalogDestination destination,
+        bool includesServerRenderModes) =>
+        destination.Id switch
+        {
+            "overview" or "releases" => null,
+            "theme-foundation" => DemoText.Landing.GroupThemeFoundationDescription,
+            "foundation" => DemoText.Landing.GroupFoundationDescription,
+            "forms" => DemoText.Landing.GroupFormsDescription,
+            "productivity" => DemoText.Landing.GroupProductivityDescription,
+            "feedback" => DemoText.Landing.GroupFeedbackDescription,
+            "tabs" => DemoText.Landing.GroupTabsDescription,
+            "overlays" => DemoText.Landing.GroupOverlaysDescription,
+            "layout" => DemoText.Landing.GroupLayoutDescription,
+            "navigation-drawer" => DemoText.Landing.GroupNavigationDrawerDescription,
+            "static-ssr" => DemoText.Landing.StaticSsrDescription,
+            "interactive-server" => DemoText.Landing.InteractiveServerDescription,
+            "interactive-webassembly" => includesServerRenderModes
+                ? DemoText.Landing.InteractiveWebAssemblyDescription
+                : DemoText.Landing.StandaloneRuntimeDescription,
+            "interactive-auto" => DemoText.Landing.InteractiveAutoDescription,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(destination),
+                destination.Id,
+                "The destination has no Demo Catalog Chrome description."),
+        };
 
     private static IReadOnlyList<DemoCatalogEntry> Present(
         IEnumerable<DemoCatalogDestination> destinations,
