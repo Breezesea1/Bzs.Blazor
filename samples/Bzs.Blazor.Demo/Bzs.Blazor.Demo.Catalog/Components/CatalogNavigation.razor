@@ -1,6 +1,6 @@
 <div class="demo-nav">
     <div class="demo-brand">
-        <a class="demo-brand-link" href="@DestinationUrl(DemoCatalogDestinations.Overview)">
+        <a class="demo-brand-link" href="@Links.To(DemoCatalogDestinations.Overview)">
             <img class="demo-brand-mark" src="_content/Bzs.Blazor.Demo.Catalog/demo-logo.svg" alt="" width="36" height="36" />
             <span class="demo-brand-copy">
                 <strong>Bzs.Blazor</strong>
@@ -22,14 +22,14 @@
     {
         <div class="demo-nav-section" @key="section.Name">
             <p class="demo-nav-heading">@section.Name</p>
-            @foreach (var destination in section.Destinations)
+            @foreach (var entry in section.Destinations)
             {
                 <NavLink class="demo-nav-link"
-                         href="@DestinationUrl(destination)"
-                         Match="@(ReferenceEquals(destination, DemoCatalogDestinations.Overview) ? NavLinkMatch.All : NavLinkMatch.Prefix)"
-                         @key="destination.Id">
-                    <BzsIcon Icon="destination.Icon" />
-                    <span class="demo-nav-link-label">@destination.Name</span>
+                         href="@Links.To(entry.Destination)"
+                         Match="@(ReferenceEquals(entry.Destination, DemoCatalogDestinations.Overview) ? NavLinkMatch.All : NavLinkMatch.Prefix)"
+                         @key="entry.Destination.Id">
+                    <BzsIcon Icon="entry.Destination.Icon" />
+                    <span class="demo-nav-link-label">@entry.Name</span>
                 </NavLink>
             }
         </div>
@@ -41,7 +41,7 @@
                    Size="BzsAvatarSize.Medium"
                    Class="demo-user-identity">
             <ActionContent>
-                <a class="demo-user-action" href="@DestinationUrl(DemoCatalogDestinations.Overview)" aria-label="@DemoText.Chrome.SignOutAccessibleName">
+                <a class="demo-user-action" href="@Links.To(DemoCatalogDestinations.Overview)" aria-label="@DemoText.Chrome.SignOutAccessibleName">
                     <BzsIcon Icon="DemoNavIcons.LogOut" />
                     <span class="demo-user-action-label">@DemoText.Chrome.Exit</span>
                 </a>

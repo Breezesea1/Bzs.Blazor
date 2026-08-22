@@ -11,6 +11,7 @@
   <ItemGroup>
     <SupportedPlatform Include="browser" />
     <InternalsVisibleTo Include="Bzs.Blazor.BrowserTests" />
+    <InternalsVisibleTo Include="Bzs.Blazor.Tests" />
   </ItemGroup>
 
   <ItemGroup>

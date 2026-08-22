@@ -16,6 +16,9 @@ public partial class DemoReleaseAnnouncement : ComponentBase, IAsyncDisposable
     private bool _readStateLoaded;
     private int _unreadCount;
 
+    [Inject]
+    private DemoDestinationLinks Links { get; set; } = default!;
+
     private DemoReleaseEntry Latest => DemoReleaseCatalog.Latest;
 
     private bool IsChinese => DemoCulture.IsChinese(new Uri(Navigation.Uri));
@@ -36,12 +39,9 @@ public partial class DemoReleaseAnnouncement : ComponentBase, IAsyncDisposable
 
     private string UnreadBadgeAccessibleName => DemoText.Chrome.UnreadReleaseAnnouncement(_unreadCount);
 
-    private string ReleasesUrl => DemoCatalogDestinations.GetHref(
-        Navigation,
-        DemoCatalogDestinations.Releases);
+    private string ReleasesUrl => Links.To(DemoCatalogDestinations.Releases);
 
-    private string LatestReleaseUrl => DemoCatalogDestinations.GetHref(
-        Navigation,
+    private string LatestReleaseUrl => Links.To(
         DemoCatalogDestinations.Releases,
         fragment: Latest.Id);
 

@@ -20,7 +20,7 @@ public partial class NavigationDrawerShowcase : ComponentBase
     private IBzsDialogService DialogService { get; set; } = default!;
 
     [Inject]
-    private NavigationManager Navigation { get; set; } = default!;
+    private DemoDestinationLinks Links { get; set; } = default!;
 
     private string? InitialFocusSelector => _useInitialFocus
         ? "#navigation-drawer-primary-action"
@@ -94,9 +94,6 @@ public partial class NavigationDrawerShowcase : ComponentBase
     private void SetPosition(BzsNavigationDrawerPosition position) => _position = position;
 
     private void SetVariant(BzsNavigationDrawerVariant variant) => _variant = variant;
-
-    private string DestinationUrl(DemoCatalogDestination destination) =>
-        DemoCatalogDestinations.GetHref(Navigation, destination);
 
     protected override void OnAfterRender(bool firstRender)
     {

@@ -19,6 +19,9 @@ public partial class LandingPage : ComponentBase, IAsyncDisposable
     [Parameter]
     public bool IncludesServerRenderModes { get; set; }
 
+    [Inject]
+    private DemoDestinationLinks Links { get; set; } = default!;
+
     private bool IsChinese => DemoCulture.IsChinese(CultureInfo.CurrentUICulture.Name);
 
     private static DemoReleaseEntry Latest => DemoReleaseCatalog.Latest;
@@ -40,17 +43,11 @@ public partial class LandingPage : ComponentBase, IAsyncDisposable
         new("datagrid", DemoText.Landing.FeatureDataGridTitle, DemoText.Landing.FeatureDataGridBody, DemoNavIcons.Layout),
     ];
 
-    private static IReadOnlyList<DemoCatalogDestination> Groups =>
-        DemoCatalogDestinations.ComponentGroupDestinations;
+    private IReadOnlyList<DemoCatalogEntry> ComponentGroups =>
+        DemoCatalogChrome.GetComponentGroups();
 
-    private DemoCatalogHostCapabilities HostCapabilities =>
-        DemoCatalogHostCapabilities.SharedCatalog
-        | (IncludesServerRenderModes
-            ? DemoCatalogHostCapabilities.FullRenderModes
-            : DemoCatalogHostCapabilities.StandaloneRuntime);
-
-    private DemoCatalogRuntimePresentation RuntimePresentation =>
-        DemoCatalogDestinations.GetRuntimePresentation(HostCapabilities);
+    private DemoCatalogSection RuntimeSection =>
+        DemoCatalogChrome.GetRuntimeSection(IncludesServerRenderModes);
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -60,9 +57,6 @@ public partial class LandingPage : ComponentBase, IAsyncDisposable
             StateHasChanged();
         }
     }
-
-    private string DestinationUrl(DemoCatalogDestination destination) =>
-        DemoCatalogDestinations.GetHref(Navigation, destination);
 
     private static string FormatGroupIndex(int index) =>
         (index + 1).ToString("00", CultureInfo.InvariantCulture);

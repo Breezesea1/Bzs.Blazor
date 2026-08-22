@@ -33,8 +33,16 @@ The shared set of demonstration pages and chrome, hosted in `Bzs.Blazor.Demo.Cat
 _Avoid_: Demo app, sample site, playground
 
 **Demo Catalog Destination**:
-A stable visitor-reachable location within the Demo Catalog that retains one identity across navigation, discovery, and host-specific visitor journeys.
+A stable visitor-reachable location within the Demo Catalog that retains one identity across navigation, discovery, and host-specific visitor journeys. Its identity is independent of the active culture and of the host a visitor arrived through.
 _Avoid_: Page, NavItem, MenuEntry
+
+**Demo Catalog Chrome**:
+The visitor-facing presentation of Demo Catalog Destinations, which supplies their bilingual names, descriptions, and section grouping for the destinations a given host actually offers.
+_Avoid_: Nav model, menu builder, destination view model
+
+**Demo Destination Link**:
+The address a visitor follows to reach a Demo Catalog Destination, carrying the host base path and the visitor's current culture alongside any destination-specific query and fragment.
+_Avoid_: Href, route, URL helper
 
 **Landing Page**:
 The `/` route of the Demo Catalog, which introduces Bzs.Blazor to first-time visitors and routes them toward installation, the component groups, and releases. Its copy is bilingual (zh-Hans and en-US) with zh-Hans as the primary language.

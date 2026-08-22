@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\samples\Bzs.Blazor.Demo\Bzs.Blazor.Demo.Catalog\Bzs.Blazor.Demo.Catalog.csproj" />
     <ProjectReference Include="..\..\src\Bzs.Blazor\Bzs.Blazor.csproj" />
   </ItemGroup>
 

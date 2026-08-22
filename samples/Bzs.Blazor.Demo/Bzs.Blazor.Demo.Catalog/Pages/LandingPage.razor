@@ -1,4 +1,3 @@
-@inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject IBzsToastService Toasts
 @implements IAsyncDisposable
@@ -131,17 +130,17 @@
             <p>@DemoText.Landing.GroupsSummary</p>
         </header>
         <div class="demo-landing-groups-grid">
-            @for (var index = 0; index < Groups.Count; index++)
+            @for (var index = 0; index < ComponentGroups.Count; index++)
             {
-                var destination = Groups[index];
+                var entry = ComponentGroups[index];
                 <a class="demo-landing-group-card"
-                   href="@DestinationUrl(destination)"
-                   data-testid="@($"landing-group-{destination.Id}")"
-                   @key="destination.Id">
+                   href="@Links.To(entry.Destination)"
+                   data-testid="@($"landing-group-{entry.Destination.Id}")"
+                   @key="entry.Destination.Id">
                     <span class="demo-landing-group-index">@FormatGroupIndex(index)</span>
-                    <BzsIcon Icon="@destination.Icon" />
-                    <strong>@destination.Name</strong>
-                    <small>@destination.Description</small>
+                    <BzsIcon Icon="@entry.Destination.Icon" />
+                    <strong>@entry.Name</strong>
+                    <small>@entry.Description</small>
                 </a>
             }
         </div>
@@ -168,20 +167,20 @@
                     <li @key="highlight.English">@highlight.Resolve(IsChinese)</li>
                 }
             </ul>
-            <a class="demo-landing-release-more" href="@DestinationUrl(DemoCatalogDestinations.Releases)" data-testid="landing-release-more">
+            <a class="demo-landing-release-more" href="@Links.To(DemoCatalogDestinations.Releases)" data-testid="landing-release-more">
                 @DemoText.Chrome.ViewAllReleases
                 <BzsIcon Icon="BzsIcons.ChevronRight" />
             </a>
         </article>
     </section>
 
-    @{ var runtimePresentation = RuntimePresentation; }
+    @{ var runtimeSection = RuntimeSection; }
     <section class="demo-landing-section" aria-labelledby="landing-routes-title" data-testid="landing-routes">
-        <h2 id="landing-routes-title">@runtimePresentation.SectionName</h2>
+        <h2 id="landing-routes-title">@runtimeSection.Name</h2>
         <ul class="demo-route-list">
-            @foreach (var item in runtimePresentation.Destinations)
+            @foreach (var entry in runtimeSection.Destinations)
             {
-                <li @key="item.Destination.Id"><a href="@DestinationUrl(item.Destination)">@item.Destination.Name</a><span>@item.Description</span></li>
+                <li @key="entry.Destination.Id"><a href="@Links.To(entry.Destination)">@entry.Name</a><span>@entry.Description</span></li>
             }
         </ul>
     </section>

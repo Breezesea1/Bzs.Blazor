@@ -1,7 +1,7 @@
 @using System.Globalization
 @using Microsoft.AspNetCore.Components.Forms
 @using Bzs.Blazor
-@inject NavigationManager Navigation
+@inject DemoDestinationLinks Links
 
 <PageTitle>Productivity components - Bzs.Blazor</PageTitle>
 
@@ -27,15 +27,15 @@
         </header>
         <div class="demo-control-row">
             <BzsNavMenu AccessibleName="Workbench navigation">
-                <BzsNavItem Label="Overview" Href="@DestinationUrl(DemoCatalogDestinations.Overview)" Match="NavLinkMatch.All" Icon="@BzsIcons.Package" />
-                <BzsNavItem Label="Productivity" Href="@DestinationUrl(DemoCatalogDestinations.Productivity)" Active="true" Icon="@BzsIcons.Package" />
+                <BzsNavItem Label="Overview" Href="@Links.To(DemoCatalogDestinations.Overview)" Match="NavLinkMatch.All" Icon="@BzsIcons.Package" />
+                <BzsNavItem Label="Productivity" Href="@Links.To(DemoCatalogDestinations.Productivity)" Active="true" Icon="@BzsIcons.Package" />
                 <BzsNavItem Label="Review queue"
                             Open="@_reviewQueueOpen"
                             OpenChanged="value => _reviewQueueOpen = value"
                             Icon="@BzsIcons.Menu">
                     <ChildContent>
-                        <BzsNavItem Label="Assigned" Href="@DestinationUrl(DemoCatalogDestinations.Productivity, "view=assigned")" />
-                        <BzsNavItem Label="Waiting" Href="@DestinationUrl(DemoCatalogDestinations.Productivity, "view=waiting")" />
+                        <BzsNavItem Label="Assigned" Href="@Links.To(DemoCatalogDestinations.Productivity, "view=assigned")" />
+                        <BzsNavItem Label="Waiting" Href="@Links.To(DemoCatalogDestinations.Productivity, "view=waiting")" />
                     </ChildContent>
                 </BzsNavItem>
             </BzsNavMenu>
@@ -264,7 +264,7 @@
 
     private IReadOnlyList<BzsBreadcrumbItem> BreadcrumbItems =>
     [
-        new("Home", DestinationUrl(DemoCatalogDestinations.Overview)),
+        new("Home", Links.To(DemoCatalogDestinations.Overview)),
         new("Productivity", current: true),
     ];
     private readonly OwnerProvider _ownerProvider = new();
@@ -311,9 +311,6 @@
         _chipVisible = false;
         return Task.CompletedTask;
     }
-
-    private string DestinationUrl(DemoCatalogDestination destination, string? query = null) =>
-        DemoCatalogDestinations.GetHref(Navigation, destination, query);
 
     private Task MarkReady() { _commandStatus = "Review marked ready."; return Task.CompletedTask; }
     private Task AssignReviewer() { _commandStatus = "Reviewer assignment opened."; return Task.CompletedTask; }

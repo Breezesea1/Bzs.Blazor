@@ -1,0 +1,3 @@
+# Separate destination identity, catalog chrome, and destination links
+
+The Demo Catalog keeps Demo Catalog Destination identity independent from culture and host presentation, exposes Demo Catalog Chrome as the host-capability-aware bilingual presentation of those destinations, and routes every Demo Destination Link through one URL projection module. Host capability remains a fact of destination identity rather than a parallel mapping, the capability enum stays outside the public contract, and the link module delegates culture preservation to DemoCulture. This preserves locality after repeated catalog refactors while keeping the three seams independently testable.

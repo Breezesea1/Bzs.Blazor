@@ -1,10 +1,12 @@
 using Bzs.Blazor;
+using Bzs.Blazor.Demo.Client;
 using Bzs.Blazor.Demo.Components;
 using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddBzsBlazor();
+builder.Services.AddDemoCatalog();
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
     string[] supportedCultures = ["en-US", "zh-Hans"];
