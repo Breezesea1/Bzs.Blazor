@@ -253,12 +253,14 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         });
         await Expect(Page.GetByText("review.pdf", new() { Exact = true })).ToBeVisibleAsync();
 
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Review", Exact = true }).ClickAsync();
+        await reviewGrid.GetByRole(AriaRole.Button, new() { Name = "Review", Exact = true }).ClickAsync();
         await Expect(reviewGrid.GetByRole(
                 AriaRole.Columnheader,
                 new() { NameRegex = new Regex("^Review\\b") }))
             .ToHaveAttributeAsync("aria-sort", "ascending");
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Go to next page" }).Last.ClickAsync();
+        await Page.GetByTestId("productivity-grid")
+            .GetByRole(AriaRole.Button, new() { Name = "Go to next page" })
+            .ClickAsync();
         await Expect(Page).ToHaveURLAsync(new Regex($"/productivity/{renderMode}(?:\\?|$)"));
         await Expect(reviewGrid.GetByRole(AriaRole.Row)).ToHaveCountAsync(4);
         await Expect(selectAllRows).Not.ToBeCheckedAsync();
@@ -309,7 +311,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
             AriaRole.Button,
             new() { Name = "Owner column menu", Exact = true }).ClickAsync();
         var operatorOptions = reviewGrid.GetByRole(AriaRole.Radio);
-        await Expect(operatorOptions).ToHaveCountAsync(4);
+        await Expect(operatorOptions).ToHaveCountAsync(7);
         await operatorOptions.GetByText("Starts with", new() { Exact = true }).ClickAsync();
         var ownerFilter = reviewGrid.GetByRole(
             AriaRole.Textbox,
@@ -368,6 +370,96 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         await AssertScrollPositionAsync(scrollRegion, initialScrollTop);
         AssertNoUnexpectedBrowserErrors("menu keyboard scroll suppression");
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("webassembly")]
+    [InlineData("auto")]
+    public async Task WorkbenchGridSearchesSortsHidesColumnsAndSummarizesEveryQueriedRow(string renderMode)
+    {
+        BeginBrowserGateTest($"workbench-grid-{renderMode}");
+        var response = await Page.GotoAsync(
+            $"{server.BaseUrl}/productivity/{renderMode}?culture=en-US");
+        Assert.True(response?.Ok ?? false);
+        await Expect(Page.GetByTestId("productivity-workbench"))
+            .ToHaveAttributeAsync("data-bzs-interactive", "true");
+
+        var gridRoot = Page.GetByTestId("productivity-workbench-grid");
+        var grid = gridRoot.GetByRole(AriaRole.Table, new() { Name = "Review portfolio" });
+        await Expect(grid).ToBeVisibleAsync();
+
+        // Footer aggregates summarize every queried row, not only the rendered page.
+        var footer = gridRoot.Locator("tfoot");
+        await Expect(footer).ToContainTextAsync("6");
+        await Expect(footer).ToContainTextAsync("55.0");
+        await Expect(gridRoot.GetByText("Showing 1-4 of 6", new() { Exact = true })).ToBeVisibleAsync();
+
+        // Global search narrows rows and the aggregates follow it.
+        var search = gridRoot.GetByRole(AriaRole.Searchbox, new() { Name = "Search reviews" });
+        await search.FillAsync("Warehouse");
+        await Expect(gridRoot.GetByText("Showing 1-1 of 1", new() { Exact = true })).ToBeVisibleAsync();
+        await Expect(footer).ToContainTextAsync("8");
+        await gridRoot.GetByRole(AriaRole.Button, new() { Name = "Clear search", Exact = true })
+            .ClickAsync();
+        await Expect(gridRoot.GetByText("Showing 1-4 of 6", new() { Exact = true })).ToBeVisibleAsync();
+
+        // Multi-sort accumulates precedence across two columns.
+        await grid.GetByRole(AriaRole.Columnheader, new() { NameRegex = new Regex("^Owner\\b") })
+            .GetByRole(AriaRole.Button, new() { Name = "Owner", Exact = true })
+            .ClickAsync();
+        await grid.GetByRole(AriaRole.Button, new() { Name = "Hours column menu", Exact = true })
+            .ClickAsync();
+        await grid.GetByRole(AriaRole.Button, new() { Name = "Add to sort", Exact = true }).ClickAsync();
+        await Expect(gridRoot.Locator(".bzs-data-grid__sort-precedence")).ToHaveCountAsync(2);
+
+        // Row details expand through the controlled expansion keys.
+        var detailToggles = gridRoot.Locator(".bzs-data-grid__detail-toggle");
+        await detailToggles.First.ClickAsync();
+        await Expect(gridRoot.Locator(".bzs-data-grid__detail-panel")).ToHaveCountAsync(1);
+        await Expect(gridRoot.GetByText("Current status", new() { Exact = true })).ToBeVisibleAsync();
+
+        // The column chooser removes a column from the rendered table.
+        await gridRoot.GetByRole(AriaRole.Button, new() { Name = "Choose visible columns", Exact = true })
+            .ClickAsync();
+        await gridRoot.Locator(".bzs-data-grid__chooser-option")
+            .Filter(new() { HasText = "Status" })
+            .GetByRole(AriaRole.Checkbox)
+            .ClickAsync();
+        await Expect(grid.GetByRole(AriaRole.Columnheader, new() { NameRegex = new Regex("^Status\\b") }))
+            .ToHaveCountAsync(0);
+
+        AssertNoUnexpectedBrowserErrors($"workbench DataGrid {renderMode}");
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("auto")]
+    public async Task WorkbenchGridColumnsResizeThroughTheKeyboard(string renderMode)
+    {
+        BeginBrowserGateTest($"workbench-resize-{renderMode}");
+        var response = await Page.GotoAsync(
+            $"{server.BaseUrl}/productivity/{renderMode}?culture=en-US");
+        Assert.True(response?.Ok ?? false);
+        await Expect(Page.GetByTestId("productivity-workbench"))
+            .ToHaveAttributeAsync("data-bzs-interactive", "true");
+
+        var gridRoot = Page.GetByTestId("productivity-workbench-grid");
+        var handle = gridRoot.Locator("[data-bzs-data-grid-resize='owner']");
+        await Expect(handle).ToHaveAttributeAsync("aria-label", "Resize Owner column");
+
+        var header = gridRoot.Locator("thead th[data-bzs-data-grid-column='owner']");
+        var before = await MeasureWidthAsync(header);
+        await handle.PressAsync("ArrowRight");
+        await handle.PressAsync("ArrowRight");
+        await Expect(gridRoot.Locator("colgroup col[data-bzs-data-grid-column='owner']"))
+            .ToHaveAttributeAsync("style", new Regex("width:"));
+        Assert.True(await MeasureWidthAsync(header) > before);
+
+        AssertNoUnexpectedBrowserErrors($"workbench DataGrid resize {renderMode}");
+    }
+
+    private static async Task<double> MeasureWidthAsync(ILocator locator) =>
+        await locator.EvaluateAsync<double>("element => element.getBoundingClientRect().width");
 
     private static async Task AssertScrollPositionAsync(
         ILocator scrollRegion,

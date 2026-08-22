@@ -11,6 +11,27 @@
     padding-block-start: 1rem;
 }
 
+.demo-data-grid-example--wide {
+    grid-column: 1 / -1;
+}
+
+.demo-grid-detail {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.25rem 0.75rem;
+    margin: 0;
+    font-size: var(--bzs-font-size-small);
+}
+
+.demo-grid-detail dt {
+    color: var(--bzs-text-muted);
+    font-weight: 600;
+}
+
+.demo-grid-detail dd {
+    margin: 0;
+}
+
 .demo-data-grid-example h3 {
     margin: 0;
     font-size: 1rem;

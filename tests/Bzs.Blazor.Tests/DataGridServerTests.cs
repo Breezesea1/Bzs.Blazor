@@ -594,7 +594,9 @@ public sealed class DataGridServerTests
 
         cut.Find("button[aria-label='Name column menu']").Click();
         var operatorOptions = cut.FindAll("[role='radiogroup'][aria-label='Name filter operator'] button[role='radio']");
-        Assert.Equal(4, operatorOptions.Count);
+        Assert.Equal(
+            new[] { "Contains", "Does not contain", "Starts with", "Ends with", "Equals", "Is empty", "Is not empty" },
+            operatorOptions.Select(option => option.TextContent.Trim()));
         operatorOptions.Single(option => option.TextContent.Trim() == "Starts with").Click();
         var input = cut.Find("input[aria-label='Name filter value']");
         Assert.Null(input.Closest("[role='menu']"));

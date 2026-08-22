@@ -208,6 +208,100 @@
             </ChildContent>
         </BzsDataGrid>
         <div class="demo-data-grid-examples">
+            <section class="demo-data-grid-example demo-data-grid-example--wide"
+                     aria-labelledby="workbench-grid-title">
+                <h3 id="workbench-grid-title">@DemoText.Productivity.WorkbenchGridTitle</h3>
+                <p>@DemoText.Productivity.WorkbenchGridDescription</p>
+                <BzsDataGrid TItem="WorkbenchRow"
+                             Items="@WorkbenchRows"
+                             ClientFiltering="true"
+                             Page="@_workbenchPage"
+                             PageChanged="value => _workbenchPage = value"
+                             PageSize="@_workbenchPageSize"
+                             PageSizeChanged="value => _workbenchPageSize = value"
+                             PageSizeOptions="@WorkbenchPageSizeOptions"
+                             MultiSort="true"
+                             Sorts="@_workbenchSorts"
+                             SortsChanged="value => _workbenchSorts = value"
+                             Filters="@_workbenchFilters"
+                             FiltersChanged="value => _workbenchFilters = value"
+                             SearchText="@_workbenchSearch"
+                             SearchTextChanged="value => _workbenchSearch = value"
+                             SearchTextLabel="@DemoText.Productivity.GridSearchLabel"
+                             ShowSearch="true"
+                             ShowColumnChooser="true"
+                             ColumnChooserText="@DemoText.Productivity.GridColumnChooser"
+                             HiddenColumnKeys="@_workbenchHiddenColumns"
+                             HiddenColumnKeysChanged="value => _workbenchHiddenColumns = value"
+                             Density="BzsDataGridDensity.Comfortable"
+                             Striped="true"
+                             Bordered="true"
+                             StickyHeader="true"
+                             ResizableColumns="true"
+                             ShowResultSummary="true"
+                             ItemKey="row => row.Id"
+                             ExpandedItemKeys="@_workbenchExpandedRows"
+                             ExpandedItemKeysChanged="value => _workbenchExpandedRows = value"
+                             Caption="@DemoText.Productivity.WorkbenchGridCaption"
+                             AccessibleName="@DemoText.Productivity.WorkbenchGridCaption"
+                             data-testid="productivity-workbench-grid">
+                    <DetailTemplate Context="row">
+                        <dl class="demo-grid-detail">
+                            <dt>@DemoText.Productivity.DetailStatus</dt>
+                            <dd>@row.Status</dd>
+                            <dt>@DemoText.Productivity.DetailNotes</dt>
+                            <dd>@row.Notes</dd>
+                        </dl>
+                    </DetailTemplate>
+                    <ChildContent>
+                        <BzsDataGridColumn TItem="WorkbenchRow"
+                                           Key="title"
+                                           Title="@DemoText.Productivity.ReviewColumn"
+                                           ValueSelector="row => row.Title"
+                                           Sortable="true"
+                                           FilterKind="BzsDataGridFilterKind.Text"
+                                           MinWidth="12rem"
+                                           Sticky="BzsDataGridColumnSticky.Start"
+                                           Aggregate="BzsDataGridAggregate.Count"
+                                           Hideable="false" />
+                        <BzsDataGridColumn TItem="WorkbenchRow"
+                                           Key="owner"
+                                           Title="@DemoText.Productivity.OwnerColumn"
+                                           ValueSelector="row => row.Owner"
+                                           Sortable="true"
+                                           FilterKind="BzsDataGridFilterKind.Choice"
+                                           FilterChoices="@WorkbenchOwners"
+                                           Width="10rem" />
+                        <BzsDataGridColumn TItem="WorkbenchRow"
+                                           Key="status"
+                                           Title="@DemoText.Productivity.StatusColumn"
+                                           ValueSelector="row => row.Status"
+                                           Sortable="true"
+                                           FilterKind="BzsDataGridFilterKind.Text"
+                                           Align="BzsDataGridAlignment.Center"
+                                           Width="8rem" />
+                        <BzsDataGridColumn TItem="WorkbenchRow"
+                                           Key="hours"
+                                           Title="@DemoText.Productivity.HoursColumn"
+                                           ValueSelector="row => row.Hours"
+                                           Sortable="true"
+                                           FilterKind="BzsDataGridFilterKind.Number"
+                                           Align="BzsDataGridAlignment.End"
+                                           Width="7rem"
+                                           Aggregate="BzsDataGridAggregate.Sum"
+                                           AggregateValueSelector="row => row.Hours" />
+                        <BzsDataGridColumn TItem="WorkbenchRow"
+                                           Key="due"
+                                           Title="@DemoText.Productivity.DueColumn"
+                                           ValueSelector="row => row.Due"
+                                           Format="yyyy-MM-dd"
+                                           Sortable="true"
+                                           FilterKind="BzsDataGridFilterKind.Date"
+                                           Align="BzsDataGridAlignment.End"
+                                           Width="9rem" />
+                    </ChildContent>
+                </BzsDataGrid>
+            </section>
             <section class="demo-data-grid-example" aria-labelledby="page-size-only-grid-title">
                 <h3 id="page-size-only-grid-title">@DemoText.Productivity.PageSizeOnlyGridTitle</h3>
                 <p>@DemoText.Productivity.PageSizeOnlyGridDescription</p>
@@ -270,6 +364,18 @@
     private readonly OwnerProvider _ownerProvider = new();
     private readonly DemoGridProvider _gridProvider = new();
     private static readonly IReadOnlyList<int> PageSizeOnlyGridOptions = [1, 2];
+    private static readonly IReadOnlyList<int> WorkbenchPageSizeOptions = [4, 8];
+    private static readonly IReadOnlyList<string> WorkbenchOwners =
+        ["Alicia Santos", "Ben Carter", "Mei Lin"];
+    private IReadOnlyList<WorkbenchRow> WorkbenchRows =>
+    [
+        new(1, DemoText.Productivity.HarborLighting, "Alicia Santos", DemoText.Productivity.StatusOpen, 12.5m, new DateOnly(2026, 9, 4), DemoText.Productivity.HarborLightingNotes),
+        new(2, DemoText.Productivity.WarehouseAccessibility, "Ben Carter", DemoText.Productivity.StatusBlocked, 8m, new DateOnly(2026, 9, 11), DemoText.Productivity.WarehouseAccessibilityNotes),
+        new(3, DemoText.Productivity.ReleaseNotesReview, "Mei Lin", DemoText.Productivity.StatusDone, 3.5m, new DateOnly(2026, 8, 28), DemoText.Productivity.ReleaseNotesReviewNotes),
+        new(4, DemoText.Productivity.TabletNavigation, "Alicia Santos", DemoText.Productivity.StatusOpen, 16m, new DateOnly(2026, 9, 18), DemoText.Productivity.TabletNavigationNotes),
+        new(5, DemoText.Productivity.ContrastAudit, "Ben Carter", DemoText.Productivity.StatusOpen, 6m, new DateOnly(2026, 9, 2), DemoText.Productivity.ContrastAuditNotes),
+        new(6, DemoText.Productivity.LocalizationPass, "Mei Lin", DemoText.Productivity.StatusDone, 9m, new DateOnly(2026, 8, 25), DemoText.Productivity.LocalizationPassNotes),
+    ];
     private IReadOnlyList<ReviewRow> CompactGridRows =>
     [
         new(
@@ -301,6 +407,13 @@
     private BzsDataGrid<ReviewRow>? _grid;
     private bool _gridRefreshed;
     private int _pageSizeOnlyGridPageSize = 1;
+    private int _workbenchPage = 1;
+    private int _workbenchPageSize = 4;
+    private IReadOnlyList<BzsDataGridSort> _workbenchSorts = Array.Empty<BzsDataGridSort>();
+    private IReadOnlyList<BzsDataGridFilter> _workbenchFilters = Array.Empty<BzsDataGridFilter>();
+    private IReadOnlyList<string> _workbenchHiddenColumns = Array.Empty<string>();
+    private IReadOnlyList<object?> _workbenchExpandedRows = Array.Empty<object?>();
+    private string? _workbenchSearch;
 
     private string GridRefreshStatus => _gridRefreshed
         ? DemoText.Productivity.GridRefreshed
@@ -422,4 +535,13 @@
     }
 
     private sealed record ReviewRow(int Id, string Title, string Owner, string Priority);
+
+    private sealed record WorkbenchRow(
+        int Id,
+        string Title,
+        string Owner,
+        string Status,
+        decimal Hours,
+        DateOnly Due,
+        string Notes);
 }

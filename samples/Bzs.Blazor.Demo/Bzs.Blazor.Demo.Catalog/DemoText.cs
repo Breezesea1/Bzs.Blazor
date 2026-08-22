@@ -336,6 +336,68 @@ public static class DemoText
             "Keep the page-size selector while independently hiding numeric pagination.");
 
         public static string SelectCurrentPage => Get("选择本页所有行", "Select all rows on this page");
+
+        public static string GridSearchLabel => Get("搜索评审", "Search reviews");
+
+        public static string GridColumnChooser => Get("选择显示的列", "Choose visible columns");
+
+        public static string WorkbenchGridTitle => Get("成熟表格能力", "Mature grid capabilities");
+
+        public static string WorkbenchGridDescription => Get(
+            "同一个受控表格同时提供全局搜索、多列排序、列选择器、列宽调整、粘性表头、行详情与页脚聚合。",
+            "One controlled grid combines global search, multi-column sorting, a column chooser, column resizing, a sticky header, row details, and footer aggregates.");
+
+        public static string WorkbenchGridCaption => Get("评审组合", "Review portfolio");
+
+        public static string StatusColumn => Get("状态", "Status");
+
+        public static string HoursColumn => Get("工时", "Hours");
+
+        public static string DueColumn => Get("截止日期", "Due");
+
+        public static string ReviewCount => Get("评审数量", "Reviews");
+
+        public static string DetailStatus => Get("当前状态", "Current status");
+
+        public static string DetailNotes => Get("备注", "Notes");
+
+        public static string StatusOpen => Get("进行中", "Open");
+
+        public static string StatusBlocked => Get("已阻塞", "Blocked");
+
+        public static string StatusDone => Get("已完成", "Done");
+
+        public static string HarborLighting => Get("北港照明改造", "North Harbor lighting");
+
+        public static string WarehouseAccessibility => Get("仓库无障碍评审", "Warehouse accessibility");
+
+        public static string ReleaseNotesReview => Get("发布说明评审", "Release notes review");
+
+        public static string TabletNavigation => Get("平板导航适配", "Tablet navigation");
+
+        public static string ContrastAudit => Get("对比度审计", "Color contrast audit");
+
+        public static string LocalizationPass => Get("本地化校对", "Localization pass");
+
+        public static string HarborLightingNotes => Get("现场勘察待安排。", "Site survey pending.");
+
+        public static string WarehouseAccessibilityNotes => Get(
+            "等待对比度令牌确认。",
+            "Waiting on contrast tokens.");
+
+        public static string ReleaseNotesReviewNotes => Get(
+            "已随 0.4.0 发布说明一同发布。",
+            "Published with the 0.4.0 notes.");
+
+        public static string TabletNavigationNotes => Get(
+            "抽屉宽度调整需要键盘复核。",
+            "Drawer resize needs a keyboard pass.");
+
+        public static string ContrastAuditNotes => Get("强制颜色模式复核排期中。", "Forced-colors sweep queued.");
+
+        public static string LocalizationPassNotes => Get(
+            "zh-Hans 与 en-US 文案已核对。",
+            "zh-Hans and en-US copy verified.");
     }
 
     public static class NavigationDrawer

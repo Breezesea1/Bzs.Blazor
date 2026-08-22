@@ -24,8 +24,12 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     private readonly Dictionary<string, int> _filterOperatorDrafts = new(StringComparer.Ordinal);
     private readonly Dictionary<string, BzsDataGridFilter> _observedFilters = new(StringComparer.Ordinal);
     private ElementReference _selectAllReference;
-    private BzsJsModule? _selectAllInterop;
+    private ElementReference _tableReference;
+    private BzsJsModule? _interop;
+    private DotNetObjectReference<BzsDataGrid<TItem>>? _selfReference;
     private HashSet<object?>? _selectedItemKeys;
+    private HashSet<object?>? _expandedItemKeys;
+    private IReadOnlyList<TItem>? _queriedItems;
     private BzsDataGridRequestCoordinator<TItem>? _requestCoordinator;
     private IBzsDataGridProvider<TItem>? _coordinatorProvider;
     private ProviderRefresh? _pendingRefresh;
@@ -36,6 +40,8 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     private Exception? _providerError;
     private string? _openColumnMenuKey;
     private bool _pageSizeMenuOpen;
+    private bool _columnChooserOpen;
+    private string? _columnLayoutFingerprint;
     private int _nextColumnCompositionOrder;
     private int _interactionBatchDepth;
     private bool _providerLoading;
@@ -125,9 +131,119 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     [Parameter]
     public bool ShowResultSummary { get; set; }
 
-    /// <summary>Gets or sets whether active provider filters are summarized below the caption.</summary>
+    /// <summary>Gets or sets whether active filters are summarized below the caption.</summary>
     [Parameter]
     public bool ShowFilterSummary { get; set; } = true;
+
+    /// <summary>Gets or sets the controlled global search text used by client-side and provider queries.</summary>
+    [Parameter]
+    public string? SearchText { get; set; }
+
+    /// <summary>Gets or sets the callback that requests a global search text change.</summary>
+    [Parameter]
+    public EventCallback<string?> SearchTextChanged { get; set; }
+
+    /// <summary>Gets or sets the accessible label of the global search field.</summary>
+    [Parameter]
+    public string? SearchTextLabel { get; set; }
+
+    /// <summary>Gets or sets whether the toolbar displays the global search field.</summary>
+    [Parameter]
+    public bool ShowSearch { get; set; }
+
+    /// <summary>Gets or sets whether client-side filtering and searching are applied to Items.</summary>
+    [Parameter]
+    public bool ClientFiltering { get; set; }
+
+    /// <summary>Gets or sets the controlled visible-column keys.</summary>
+    [Parameter]
+    public IReadOnlyList<string> HiddenColumnKeys { get; set; } = Array.Empty<string>();
+
+    /// <summary>Gets or sets the callback that requests a visible-column snapshot.</summary>
+    [Parameter]
+    public EventCallback<IReadOnlyList<string>> HiddenColumnKeysChanged { get; set; }
+
+    /// <summary>Gets or sets whether the toolbar displays the column chooser.</summary>
+    [Parameter]
+    public bool ShowColumnChooser { get; set; }
+
+    /// <summary>Gets or sets the accessible label of the column chooser.</summary>
+    [Parameter]
+    public string? ColumnChooserText { get; set; }
+
+    /// <summary>Gets or sets the table density.</summary>
+    [Parameter]
+    public BzsDataGridDensity Density { get; set; }
+
+    /// <summary>Gets or sets whether alternating rows receive a striped treatment.</summary>
+    [Parameter]
+    public bool Striped { get; set; }
+
+    /// <summary>Gets or sets whether every cell receives a visible border.</summary>
+    [Parameter]
+    public bool Bordered { get; set; }
+
+    /// <summary>Gets or sets whether the header remains visible while the viewport scrolls.</summary>
+    [Parameter]
+    public bool StickyHeader { get; set; }
+
+    /// <summary>Gets or sets the row template rendered beneath an expanded row.</summary>
+    [Parameter]
+    public RenderFragment<TItem>? DetailTemplate { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether rows are expanded unless listed in <see cref="ExpandedItemKeys" />.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="ExpandedItemKeys" /> always lists the rows whose expansion differs from this
+    /// default, so a grid that starts expanded receives its collapsed keys through the same
+    /// controlled parameter.
+    /// </remarks>
+    [Parameter]
+    public bool DetailRowsExpanded { get; set; }
+
+    /// <summary>
+    /// Gets or sets the controlled row keys whose expansion differs from
+    /// <see cref="DetailRowsExpanded" />.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<object?> ExpandedItemKeys { get; set; } = Array.Empty<object?>();
+
+    /// <summary>Gets or sets the callback that requests expanded row keys.</summary>
+    [Parameter]
+    public EventCallback<IReadOnlyList<object?>> ExpandedItemKeysChanged { get; set; }
+
+    /// <summary>Gets or sets the callback invoked when a row is activated.</summary>
+    [Parameter]
+    public EventCallback<BzsDataGridRowEventArgs<TItem>> RowClick { get; set; }
+
+    /// <summary>Gets or sets a function that supplies an additional class for each row.</summary>
+    [Parameter]
+    public Func<TItem, string?>? RowClass { get; set; }
+
+    /// <summary>Gets or sets whether rows expose an activation command.</summary>
+    [Parameter]
+    public bool RowClickable { get; set; }
+
+    /// <summary>Gets or sets whether resizable columns expose a pointer and keyboard resize handle.</summary>
+    [Parameter]
+    public bool ResizableColumns { get; set; }
+
+    /// <summary>Gets or sets the callback invoked after a browser-owned column resize completes.</summary>
+    [Parameter]
+    public EventCallback<BzsDataGridColumnResizeEventArgs> ColumnResized { get; set; }
+
+    /// <summary>Gets or sets the precedence-ordered controlled sorts used when <see cref="MultiSort" /> is enabled.</summary>
+    [Parameter]
+    public IReadOnlyList<BzsDataGridSort> Sorts { get; set; } = Array.Empty<BzsDataGridSort>();
+
+    /// <summary>Gets or sets the callback that requests a precedence-ordered sort snapshot.</summary>
+    [Parameter]
+    public EventCallback<IReadOnlyList<BzsDataGridSort>> SortsChanged { get; set; }
+
+    /// <summary>Gets or sets whether sorting accumulates across columns through <see cref="Sorts" />.</summary>
+    [Parameter]
+    public bool MultiSort { get; set; }
 
     /// <summary>Gets or sets the controlled single-column sort.</summary>
     [Parameter]
@@ -276,9 +392,155 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 
     internal IReadOnlyList<BzsDataGridColumn<TItem>> Columns => _columns;
 
+    private IReadOnlyList<BzsDataGridColumn<TItem>> VisibleColumns
+    {
+        get
+        {
+            if (_columns.Count == 0)
+            {
+                return Array.Empty<BzsDataGridColumn<TItem>>();
+            }
+
+            var visible = new List<BzsDataGridColumn<TItem>>(_columns.Count);
+            foreach (var column in _columns)
+            {
+                if (IsColumnVisible(column))
+                {
+                    visible.Add(column);
+                }
+            }
+            return visible;
+        }
+    }
+
+    private bool IsColumnVisible(BzsDataGridColumn<TItem> column)
+    {
+        if (!column.Visible)
+        {
+            return false;
+        }
+
+        foreach (var key in HiddenColumnKeys)
+        {
+            if (string.Equals(key, column.EffectiveKey, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private IReadOnlyList<BzsDataGridColumn<TItem>> HideableColumns
+    {
+        get
+        {
+            var hideable = new List<BzsDataGridColumn<TItem>>(_columns.Count);
+            foreach (var column in _columns)
+            {
+                if (column.Hideable)
+                {
+                    hideable.Add(column);
+                }
+            }
+            return hideable;
+        }
+    }
+
     private IReadOnlyList<TItem> SourceItems => Provider is null
         ? Items ?? Array.Empty<TItem>()
         : _acceptedResult?.Items ?? Array.Empty<TItem>();
+
+    /// <summary>
+    /// Gets the client-side items after filtering and searching, before sorting and paging.
+    /// </summary>
+    private IReadOnlyList<TItem> QueriedItems
+    {
+        get
+        {
+            if (Provider is not null || !ClientFiltering)
+            {
+                return SourceItems;
+            }
+
+            return _queriedItems ??= BuildQueriedItems();
+        }
+    }
+
+    private IReadOnlyList<TItem> BuildQueriedItems()
+    {
+        var items = SourceItems;
+        var predicates = new List<Func<TItem, bool>>(Filters.Count + 1);
+        foreach (var filter in Filters)
+        {
+            var column = FindColumn(filter.ColumnKey);
+            if (column is null)
+            {
+                continue;
+            }
+
+            var captured = filter;
+            var capturedColumn = column;
+            predicates.Add(item => BzsDataGridOperations.Matches(captured, capturedColumn.GetFilterValue(item)));
+        }
+
+        if (EffectiveSearchText is { } search)
+        {
+            var searchColumns = new List<BzsDataGridColumn<TItem>>(_columns.Count);
+            foreach (var column in _columns)
+            {
+                if (IsColumnVisible(column))
+                {
+                    searchColumns.Add(column);
+                }
+            }
+
+            predicates.Add(item =>
+            {
+                var texts = new string?[searchColumns.Count];
+                for (var index = 0; index < searchColumns.Count; index++)
+                {
+                    texts[index] = searchColumns[index].GetSearchText(item);
+                }
+                return BzsDataGridOperations.MatchesSearch(texts, search);
+            });
+        }
+
+        return BzsDataGridOperations.Filter(items, predicates);
+    }
+
+    private IReadOnlyList<TItem> SortedItems
+    {
+        get
+        {
+            var queried = QueriedItems;
+            var steps = BuildSortSteps();
+            return steps.Count == 0
+                ? queried
+                : BzsDataGridOperations.Sort(queried, steps);
+        }
+    }
+
+    private IReadOnlyList<BzsDataGridOperations.SortStep<TItem>> BuildSortSteps()
+    {
+        var sorts = EffectiveSorts;
+        if (sorts.Count == 0)
+        {
+            return Array.Empty<BzsDataGridOperations.SortStep<TItem>>();
+        }
+
+        var steps = new List<BzsDataGridOperations.SortStep<TItem>>(sorts.Count);
+        foreach (var sort in sorts)
+        {
+            var column = FindColumn(sort.ColumnKey);
+            if (column is null)
+            {
+                continue;
+            }
+
+            steps.Add(new BzsDataGridOperations.SortStep<TItem>(column.Compare, sort.Direction));
+        }
+        return steps;
+    }
 
     private IReadOnlyList<TItem> Rows
     {
@@ -289,19 +551,29 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
                 return SourceItems;
             }
 
-            var column = GetSortColumn();
-            return BzsDataGridOperations.Apply(
-                SourceItems,
-                column is null ? null : column.Compare,
-                Sort?.Direction,
-                Page,
-                PageSize);
+            return BzsDataGridOperations.Paginate(SortedItems, ClientPage, PageSize);
         }
     }
 
-    private int PageCount => SourceItems.Count == 0
+    private int ClientItemCount => Provider is null ? QueriedItems.Count : SourceItems.Count;
+
+    private int PageCount => ClientItemCount == 0
+        ? 0
+        : (int)((ClientItemCount + (long)PageSize - 1) / PageSize);
+
+    /// <summary>
+    /// Gets the page count derived from the unfiltered items, which is the range a consumer
+    /// can validate <see cref="Page" /> against before client filtering narrows the result.
+    /// </summary>
+    private int SourcePageCount => SourceItems.Count == 0
         ? 0
         : (int)((SourceItems.Count + (long)PageSize - 1) / PageSize);
+
+    /// <summary>
+    /// Gets the page actually rendered, which client filtering may clamp below the controlled
+    /// <see cref="Page" /> until the consumer accepts the requested correction.
+    /// </summary>
+    private int ClientPage => Math.Min(Page, Math.Max(1, PageCount));
 
     private bool EffectiveLoading => Provider is null
         ? Loading
@@ -326,7 +598,22 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 
     private BzsDataGridSort? DisplayedSort => Provider is null ? Sort : _acceptedRequest?.Sort;
 
-    private int ColumnSpan => Math.Max(1, Columns.Count + (SelectionMode == BzsDataGridSelectionMode.None ? 0 : 1));
+    private IReadOnlyList<BzsDataGridSort> DisplayedSorts => Provider is null
+        ? EffectiveSorts
+        : _acceptedRequest?.Sorts ?? Array.Empty<BzsDataGridSort>();
+
+    /// <summary>Gets the precedence-ordered controlled sorts, projecting single sort when multi-sort is off.</summary>
+    private IReadOnlyList<BzsDataGridSort> EffectiveSorts => MultiSort
+        ? Sorts
+        : Sort is null
+            ? Array.Empty<BzsDataGridSort>()
+            : [Sort];
+
+    private int ColumnSpan => Math.Max(1, VisibleColumns.Count + LeadingColumnCount);
+
+    private int LeadingColumnCount =>
+        (SelectionMode == BzsDataGridSelectionMode.None ? 0 : 1)
+        + (DetailTemplate is null ? 0 : 1);
 
     private string CaptionId => $"{_instanceId}-caption";
 
@@ -334,10 +621,19 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 
     private bool HasCaption => CaptionContent is not null || !string.IsNullOrWhiteSpace(Caption);
 
+    private bool ShowToolbarControls => ShowSearch || ShowColumnChooser && HideableColumns.Count > 0;
+
     private bool ShowCaptionArea => ToolbarContent is not null
+        || ShowToolbarControls
         || SelectedCount > 0
         || ShowFilterSummary && Filters.Count > 0
         || CaptionContent is null && HasCaption;
+
+    private bool ShowFooterRow => VisibleColumns.Any(static column => column.HasFooter);
+
+    private string DensityName => Density == BzsDataGridDensity.Comfortable ? "comfortable" : "compact";
+
+    private string? EffectiveSearchText => Normalize(SearchText);
 
     private string? TableAccessibleName => HasCaption
         ? null
@@ -362,7 +658,7 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
                 return null;
             }
 
-            var totalCount = Provider is null ? SourceItems.Count : AcceptedTotalCount;
+            var totalCount = Provider is null ? ClientItemCount : AcceptedTotalCount;
             if (totalCount is null)
             {
                 return Localize("DataGridUnknownResultSummaryText", rows.Count);
@@ -372,7 +668,7 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
                 return Localize("DataGridZeroResultSummaryText");
             }
 
-            var page = Provider is null ? Page : AcceptedPage;
+            var page = Provider is null ? ClientPage : AcceptedPage;
             var pageSize = Provider is null ? PageSize : _acceptedRequest?.PageSize ?? PageSize;
             var first = (page - 1L) * pageSize + 1;
             var last = Math.Min(totalCount.Value, first + rows.Count - 1L);
@@ -402,9 +698,13 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     private string EffectiveValueText => Localize("DataGridValueText");
     private string EffectiveApplyText => Localize("DataGridApplyText");
     private string EffectiveContainsText => Localize("DataGridContainsText");
+    private string EffectiveNotContainsText => Localize("DataGridNotContainsText");
     private string EffectiveStartsWithText => Localize("DataGridStartsWithText");
     private string EffectiveEndsWithText => Localize("DataGridEndsWithText");
     private string EffectiveEqualsText => Localize("DataGridEqualsText");
+    private string EffectiveIsEmptyText => Localize("DataGridIsEmptyText");
+    private string EffectiveIsNotEmptyText => Localize("DataGridIsNotEmptyText");
+    private string EffectiveAnyOfText => Localize("DataGridAnyOfText");
     private string EffectiveNotEqualsText => Localize("DataGridNotEqualsText");
     private string EffectiveLessThanText => Localize("DataGridLessThanText");
     private string EffectiveLessThanOrEqualText => Localize("DataGridLessThanOrEqualText");
@@ -415,16 +715,30 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     private string EffectiveFalseText => Localize("DataGridFalseText");
     private string EffectivePreviousPageText => Localize("DataGridPreviousPageText");
     private string EffectiveNextPageText => Localize("DataGridNextPageText");
+    private string EffectiveSearchTextLabel => Normalize(SearchTextLabel) ?? Localize("DataGridSearchText");
+    private string EffectiveClearSearchText => Localize("DataGridClearSearchText");
+    private string EffectiveColumnChooserText => Normalize(ColumnChooserText) ?? Localize("DataGridColumnChooserText");
+    private string EffectiveDetailColumnText => Localize("DataGridDetailColumnText");
+    private string EffectiveAddSortText => Localize("DataGridAddSortText");
+    private string EffectiveResizeText => Localize("DataGridResizeColumnText");
+    private string EffectiveExpandText => Localize("DataGridExpandRowText");
+    private string EffectiveCollapseText => Localize("DataGridCollapseRowText");
 
     private IReadOnlyDictionary<string, object> RootAttributes
     {
         get
         {
+            var classes = $"bzs-data-grid bzs-data-grid--{DensityName}";
             var attributes = new Dictionary<string, object>(
-                BuildAttributes("bzs-data-grid"),
+                BuildAttributes(classes),
                 StringComparer.OrdinalIgnoreCase)
             {
                 ["data-bzs-data-grid"] = "true",
+                ["data-bzs-density"] = DensityName,
+                ["data-bzs-striped"] = Striped ? "true" : "false",
+                ["data-bzs-bordered"] = Bordered ? "true" : "false",
+                ["data-bzs-sticky-header"] = StickyHeader ? "true" : "false",
+                ["data-bzs-resizable-columns"] = ResizableColumns ? "true" : "false",
             };
             return attributes;
         }
@@ -447,6 +761,26 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         if (Filters is null)
         {
             throw new InvalidOperationException("BzsDataGrid Filters cannot be null.");
+        }
+
+        if (Sorts is null || HiddenColumnKeys is null || ExpandedItemKeys is null)
+        {
+            throw new InvalidOperationException("BzsDataGrid collection parameters cannot be null.");
+        }
+
+        if (!Enum.IsDefined(Density))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Density), Density, "The DataGrid density is not supported.");
+        }
+
+        if (!MultiSort && Sorts.Count > 1)
+        {
+            throw new InvalidOperationException("BzsDataGrid Sorts requires MultiSort when more than one sort is supplied.");
+        }
+
+        if (Provider is null && Filters.Count > 0 && !ClientFiltering)
+        {
+            throw new InvalidOperationException("DataGrid filters in Items mode require ClientFiltering.");
         }
 
         if (ChildContent is null)
@@ -495,6 +829,7 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 
         if (Provider is null)
         {
+            _queriedItems = null;
             ValidatePage();
         }
         else if (Page < 1)
@@ -505,6 +840,7 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         SynchronizeProvider();
         ValidateItemKeys();
         _selectedItemKeys = CreateSelectedItemKeys();
+        _expandedItemKeys = CreateExpandedItemKeys();
         SynchronizeFilterDrafts();
     }
 
@@ -519,6 +855,11 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         if (ShowCurrentPageSelectAll && RendererInfo.IsInteractive)
         {
             await SynchronizeSelectAllAsync();
+        }
+
+        if (RendererInfo.IsInteractive)
+        {
+            await SynchronizeColumnLayoutAsync();
         }
 
         if (Provider is null
@@ -725,6 +1066,7 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         var nextOrder = Math.Min(compositionOrder, _columns.Count);
         _columns.Insert(nextOrder, column);
         _columnStates[column] = state;
+        _queriedItems = null;
         if (stateChanged || previousOrder != nextOrder)
         {
             StateHasChanged();
@@ -739,6 +1081,7 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         }
 
         _columns.Remove(column);
+        _queriedItems = null;
         StateHasChanged();
     }
 
@@ -776,20 +1119,57 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 
     private Task RequestSortAsync(BzsDataGridColumn<TItem> column)
     {
-        BzsDataGridSort? requested = Sort is null
-            || !string.Equals(Sort.ColumnKey, column.EffectiveKey, StringComparison.Ordinal)
+        // The cycle follows the direction the column currently renders, so a multi-sort
+        // grid that supplies only Sorts still advances the column a consumer can see.
+        var current = GetSortDirection(column);
+        if (MultiSort && EffectiveSorts.Count > 1)
+        {
+            return current is null
+                ? RequestMultiSortAsync(column)
+                : current == BzsDataGridSortDirection.Ascending
+                    ? RequestReplaceColumnSortAsync(column, BzsDataGridSortDirection.Descending)
+                    : RequestClearColumnSortAsync(column);
+        }
+
+        BzsDataGridSort? requested = current is null
             ? new(column.EffectiveKey, BzsDataGridSortDirection.Ascending)
-            : Sort.Direction == BzsDataGridSortDirection.Ascending
+            : current == BzsDataGridSortDirection.Ascending
                 ? new(column.EffectiveKey, BzsDataGridSortDirection.Descending)
                 : null;
         return RequestSortChangeAsync(requested);
+    }
+
+    /// <summary>Replaces one column's direction while preserving multi-sort precedence.</summary>
+    private async Task RequestReplaceColumnSortAsync(
+        BzsDataGridColumn<TItem> column,
+        BzsDataGridSortDirection direction)
+    {
+        var replaced = EffectiveSorts
+            .Select(sort => string.Equals(sort.ColumnKey, column.EffectiveKey, StringComparison.Ordinal)
+                ? new BzsDataGridSort(column.EffectiveKey, direction)
+                : sort)
+            .ToArray();
+        await RequestStateWithPageResetAsync(async () =>
+        {
+            IReadOnlyList<BzsDataGridSort> snapshot = Array.AsReadOnly(replaced);
+            await SortsChanged.InvokeAsync(snapshot);
+            await SortChanged.InvokeAsync(snapshot.Count == 0 ? null : snapshot[0]);
+        });
     }
 
     private async Task RequestSpecificSortAsync(
         BzsDataGridColumn<TItem> column,
         BzsDataGridSortDirection direction)
     {
-        await RequestSortChangeAsync(new BzsDataGridSort(column.EffectiveKey, direction));
+        if (MultiSort && GetSortDirection(column) is not null && EffectiveSorts.Count > 1)
+        {
+            await RequestReplaceColumnSortAsync(column, direction);
+        }
+        else
+        {
+            await RequestSortChangeAsync(new BzsDataGridSort(column.EffectiveKey, direction));
+        }
+
         _openColumnMenuKey = null;
     }
 
@@ -799,14 +1179,107 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         _openColumnMenuKey = null;
     }
 
+    /// <summary>Removes one column from the controlled sort, keeping other multi-sort entries.</summary>
+    private async Task RequestClearColumnSortAsync(BzsDataGridColumn<TItem> column)
+    {
+        if (!MultiSort)
+        {
+            await RequestClearSortAsync();
+            return;
+        }
+
+        var remaining = EffectiveSorts
+            .Where(sort => !string.Equals(sort.ColumnKey, column.EffectiveKey, StringComparison.Ordinal))
+            .ToArray();
+        if (remaining.Length == EffectiveSorts.Count)
+        {
+            return;
+        }
+
+        await RequestStateWithPageResetAsync(async () =>
+        {
+            IReadOnlyList<BzsDataGridSort> snapshot = Array.AsReadOnly(remaining);
+            await SortsChanged.InvokeAsync(snapshot);
+            await SortChanged.InvokeAsync(snapshot.Count == 0 ? null : snapshot[0]);
+        });
+        _openColumnMenuKey = null;
+    }
+
+    private string GetResizeColumnLabel(BzsDataGridColumn<TItem> column) =>
+        Localize("DataGridResizeColumnText", column.EffectiveAccessibleName!);
+
+    /// <summary>
+    /// Gets the resize separator position as a percentage of the visible columns, which keeps the
+    /// separator role valid before the browser reports a measured width.
+    /// </summary>
+    private int GetColumnWidthValue(BzsDataGridColumn<TItem> column)
+    {
+        var columns = VisibleColumns;
+        for (var index = 0; index < columns.Count; index++)
+        {
+            if (ReferenceEquals(columns[index], column))
+            {
+                return columns.Count == 0 ? 0 : (index + 1) * 100 / columns.Count;
+            }
+        }
+        return 0;
+    }
+
+    private object GetDetailRenderKey(TItem item, int rowIndex) => ItemKey is null
+        ? $"detail-{rowIndex}"
+        : new DetailKey(GetItemKey(item), KeyComparer);
+
     private Task RequestSortChangeAsync(BzsDataGridSort? requested)
     {
-        if (SortsEqual(Sort, requested))
+        var currentSorts = EffectiveSorts;
+        var requestedSorts = requested is null
+            ? Array.Empty<BzsDataGridSort>()
+            : new[] { requested };
+        if (SortListsEqual(currentSorts, requestedSorts))
         {
             return Task.CompletedTask;
         }
 
-        return RequestStateWithPageResetAsync(() => SortChanged.InvokeAsync(requested));
+        return RequestStateWithPageResetAsync(async () =>
+        {
+            if (MultiSort)
+            {
+                await SortsChanged.InvokeAsync(Array.AsReadOnly(requestedSorts));
+            }
+
+            await SortChanged.InvokeAsync(requested);
+        });
+    }
+
+    private async Task RequestMultiSortAsync(BzsDataGridColumn<TItem> column)
+    {
+        if (!column.Sortable || ControlsDisabled)
+        {
+            return;
+        }
+
+        var current = EffectiveSorts.ToList();
+        var index = current.FindIndex(sort => string.Equals(sort.ColumnKey, column.EffectiveKey, StringComparison.Ordinal));
+        if (index < 0)
+        {
+            current.Add(new BzsDataGridSort(column.EffectiveKey, BzsDataGridSortDirection.Ascending));
+        }
+        else if (current[index].Direction == BzsDataGridSortDirection.Ascending)
+        {
+            current[index] = new BzsDataGridSort(column.EffectiveKey, BzsDataGridSortDirection.Descending);
+        }
+        else
+        {
+            current.RemoveAt(index);
+        }
+
+        await RequestStateWithPageResetAsync(async () =>
+        {
+            IReadOnlyList<BzsDataGridSort> snapshot = Array.AsReadOnly(current.ToArray());
+            await SortsChanged.InvokeAsync(snapshot);
+            await SortChanged.InvokeAsync(snapshot.Count == 0 ? null : snapshot[0]);
+        });
+        _openColumnMenuKey = null;
     }
 
     private async Task RequestPageSizeAsync(int requested)
@@ -977,9 +1450,7 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         Columns.FirstOrDefault(column => string.Equals(column.EffectiveKey, columnKey, StringComparison.Ordinal));
 
     private bool IsSort(BzsDataGridColumn<TItem> column, BzsDataGridSortDirection direction) =>
-        Sort is not null
-        && Sort.Direction == direction
-        && string.Equals(Sort.ColumnKey, column.EffectiveKey, StringComparison.Ordinal);
+        GetSortDirection(column) == direction;
 
     private BzsDataGridFilter? GetFilter(BzsDataGridColumn<TItem> column) =>
         Filters.FirstOrDefault(filter => string.Equals(
@@ -1015,6 +1486,59 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         new((int)BzsDataGridComparisonOperator.GreaterThanOrEqual, EffectiveGreaterThanOrEqualText),
     ];
 
+    private IReadOnlyList<FilterOption> GetTextFilterOptions() =>
+    [
+        new((int)BzsDataGridTextOperator.Contains, EffectiveContainsText),
+        new((int)BzsDataGridTextOperator.NotContains, EffectiveNotContainsText),
+        new((int)BzsDataGridTextOperator.StartsWith, EffectiveStartsWithText),
+        new((int)BzsDataGridTextOperator.EndsWith, EffectiveEndsWithText),
+        new((int)BzsDataGridTextOperator.Equals, EffectiveEqualsText),
+        new((int)BzsDataGridTextOperator.IsEmpty, EffectiveIsEmptyText),
+        new((int)BzsDataGridTextOperator.IsNotEmpty, EffectiveIsNotEmptyText),
+    ];
+
+    private bool TextFilterDraftRequiresValue(BzsDataGridColumn<TItem> column)
+    {
+        var @operator = (BzsDataGridTextOperator)GetFilterOperatorValue(column);
+        return !Enum.IsDefined(@operator) || BzsDataGridTextFilter.RequiresValue(@operator);
+    }
+
+    private IReadOnlyList<string> GetChoiceDraft(BzsDataGridColumn<TItem> column)
+    {
+        var draft = GetFilterDraft(column);
+        return draft.Length == 0
+            ? Array.Empty<string>()
+            : draft.Split('\u001f', StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    private bool IsChoiceSelected(BzsDataGridColumn<TItem> column, string choice)
+    {
+        foreach (var value in GetChoiceDraft(column))
+        {
+            if (string.Equals(value, choice, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void ToggleChoiceDraft(BzsDataGridColumn<TItem> column, string choice)
+    {
+        var selected = new List<string>(GetChoiceDraft(column));
+        var index = selected.FindIndex(value => string.Equals(value, choice, StringComparison.Ordinal));
+        if (index >= 0)
+        {
+            selected.RemoveAt(index);
+        }
+        else
+        {
+            selected.Add(choice);
+        }
+
+        _filterDrafts[column.EffectiveKey] = string.Join('\u001f', selected);
+    }
+
     private Task HandleFilterKeyDownAsync(
         BzsDataGridColumn<TItem> column,
         KeyboardEventArgs args) =>
@@ -1023,6 +1547,16 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     private async Task RequestApplyFilterAsync(BzsDataGridColumn<TItem> column)
     {
         var draft = GetFilterDraft(column);
+        if (column.FilterKind == BzsDataGridFilterKind.Text && !TextFilterDraftRequiresValue(column))
+        {
+            var @operator = (BzsDataGridTextOperator)GetFilterOperatorValue(column);
+            await RequestFilterChangeAsync(
+                column.EffectiveKey,
+                new BzsDataGridTextFilter(column.EffectiveKey, @operator));
+            _openColumnMenuKey = null;
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(draft))
         {
             await RequestFilterChangeAsync(column.EffectiveKey, null);
@@ -1049,6 +1583,8 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
                 CreateDateFilter(column, date),
             BzsDataGridFilterKind.Boolean when bool.TryParse(draft, out var boolean) =>
                 new BzsDataGridBooleanFilter(column.EffectiveKey, boolean),
+            BzsDataGridFilterKind.Choice =>
+                new BzsDataGridChoiceFilter(column.EffectiveKey, draft.Split('\u001f', StringSplitOptions.RemoveEmptyEntries)),
             _ => GetFilter(column),
         };
 
@@ -1093,8 +1629,11 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     private string GetFilterOperatorText(BzsDataGridFilter filter) => filter switch
     {
         BzsDataGridTextFilter { Operator: BzsDataGridTextOperator.Contains } => EffectiveContainsText,
+        BzsDataGridTextFilter { Operator: BzsDataGridTextOperator.NotContains } => EffectiveNotContainsText,
         BzsDataGridTextFilter { Operator: BzsDataGridTextOperator.StartsWith } => EffectiveStartsWithText,
         BzsDataGridTextFilter { Operator: BzsDataGridTextOperator.EndsWith } => EffectiveEndsWithText,
+        BzsDataGridTextFilter { Operator: BzsDataGridTextOperator.IsEmpty } => EffectiveIsEmptyText,
+        BzsDataGridTextFilter { Operator: BzsDataGridTextOperator.IsNotEmpty } => EffectiveIsNotEmptyText,
         BzsDataGridTextFilter => EffectiveEqualsText,
         BzsDataGridNumberFilter { Operator: BzsDataGridComparisonOperator.NotEquals }
             or BzsDataGridDateFilter { Operator: BzsDataGridComparisonOperator.NotEquals } => EffectiveNotEqualsText,
@@ -1107,6 +1646,7 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         BzsDataGridNumberFilter { Operator: BzsDataGridComparisonOperator.GreaterThanOrEqual }
             or BzsDataGridDateFilter { Operator: BzsDataGridComparisonOperator.GreaterThanOrEqual } => EffectiveGreaterThanOrEqualText,
         BzsDataGridBooleanFilter => EffectiveEqualsText,
+        BzsDataGridChoiceFilter => EffectiveAnyOfText,
         _ => EffectiveEqualsText,
     };
 
@@ -1190,6 +1730,179 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         return Task.CompletedTask;
     }
 
+    private Task RequestSearchTextAsync(ChangeEventArgs args)
+    {
+        var requested = Normalize(args.Value?.ToString());
+        if (string.Equals(requested, EffectiveSearchText, StringComparison.Ordinal))
+        {
+            return Task.CompletedTask;
+        }
+
+        return RequestStateWithPageResetAsync(() => SearchTextChanged.InvokeAsync(requested));
+    }
+
+    private Task ClearSearchTextAsync() => EffectiveSearchText is null
+        ? Task.CompletedTask
+        : RequestStateWithPageResetAsync(() => SearchTextChanged.InvokeAsync(null));
+
+    private Task RequestColumnVisibilityAsync(BzsDataGridColumn<TItem> column, bool visible)
+    {
+        if (!column.Hideable)
+        {
+            return Task.CompletedTask;
+        }
+
+        var hidden = new List<string>(HiddenColumnKeys.Count + 1);
+        foreach (var key in HiddenColumnKeys)
+        {
+            if (!string.Equals(key, column.EffectiveKey, StringComparison.Ordinal))
+            {
+                hidden.Add(key);
+            }
+        }
+
+        if (!visible)
+        {
+            hidden.Add(column.EffectiveKey);
+        }
+
+        if (hidden.Count == HiddenColumnKeys.Count && visible)
+        {
+            return Task.CompletedTask;
+        }
+
+        IReadOnlyList<string> snapshot = Array.AsReadOnly(hidden.ToArray());
+        return HiddenColumnKeysChanged.InvokeAsync(snapshot);
+    }
+
+    private Task ToggleColumnVisibilityAsync(BzsDataGridColumn<TItem> column) =>
+        RequestColumnVisibilityAsync(column, !IsColumnVisible(column));
+
+    private bool IsRowExpanded(TItem item)
+    {
+        if (DetailTemplate is null)
+        {
+            return false;
+        }
+
+        if (ItemKey is null)
+        {
+            return DetailRowsExpanded;
+        }
+
+        var contains = _expandedItemKeys?.Contains(GetItemKey(item)) == true;
+        return DetailRowsExpanded ? !contains : contains;
+    }
+
+    private Task ToggleRowExpansionAsync(TItem item)
+    {
+        if (DetailTemplate is null || ItemKey is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        var key = GetItemKey(item);
+        var keys = new List<object?>(ExpandedItemKeys.Count + 1);
+        var removed = false;
+        foreach (var existing in ExpandedItemKeys)
+        {
+            if (KeyComparer.Equals(existing, key))
+            {
+                removed = true;
+                continue;
+            }
+
+            keys.Add(existing);
+        }
+
+        if (!removed)
+        {
+            keys.Add(key);
+        }
+
+        IReadOnlyList<object?> snapshot = Array.AsReadOnly(keys.ToArray());
+        return ExpandedItemKeysChanged.InvokeAsync(snapshot);
+    }
+
+    private Task RequestRowActivationAsync(TItem item, int rowIndex) =>
+        RowClickable && RowClick.HasDelegate
+            ? RowClick.InvokeAsync(new BzsDataGridRowEventArgs<TItem>(item, rowIndex))
+            : Task.CompletedTask;
+
+    private Task HandleRowKeyDownAsync(TItem item, int rowIndex, KeyboardEventArgs args) =>
+        RowClickable && args.Key is "Enter" or " " or "Spacebar"
+            ? RequestRowActivationAsync(item, rowIndex)
+            : Task.CompletedTask;
+
+    private string GetRowClass(TItem item)
+    {
+        var custom = Normalize(RowClass?.Invoke(item));
+        return custom is null ? "bzs-data-grid__row" : $"bzs-data-grid__row {custom}";
+    }
+
+    private string GetExpandRowLabel(TItem item, int rowIndex) => IsRowExpanded(item)
+        ? Localize("DataGridCollapseRowText", GetRowOrdinal(rowIndex))
+        : Localize("DataGridExpandRowText", GetRowOrdinal(rowIndex));
+
+    private long GetRowOrdinal(int rowIndex) =>
+        ((long)(Provider is null ? ClientPage : AcceptedPage) - 1)
+            * (Provider is null ? PageSize : _acceptedRequest?.PageSize ?? PageSize)
+        + rowIndex
+        + 1;
+
+    private IReadOnlyList<TItem> FooterItems => Provider is null ? SortedItems : SourceItems;
+
+    private async ValueTask SynchronizeColumnLayoutAsync()
+    {
+        var fingerprint = CreateColumnLayoutFingerprint();
+        if (string.Equals(_columnLayoutFingerprint, fingerprint, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _columnLayoutFingerprint = fingerprint;
+        _selfReference ??= DotNetObjectReference.Create(this);
+        await GetInterop().TryInvokeVoidAsync(
+            "applyColumnLayout",
+            _tableReference,
+            ResizableColumns,
+            _selfReference);
+    }
+
+    private string CreateColumnLayoutFingerprint()
+    {
+        var builder = new System.Text.StringBuilder();
+        builder.Append(ResizableColumns ? '1' : '0').Append(LeadingColumnCount);
+        foreach (var column in VisibleColumns)
+        {
+            builder
+                .Append('\u001f')
+                .Append(column.EffectiveKey)
+                .Append('\u001e')
+                .Append(column.EffectiveWidth)
+                .Append('\u001e')
+                .Append(column.EffectiveMinWidth)
+                .Append('\u001e')
+                .Append(column.Resizable ? '1' : '0')
+                .Append(column.StickyName);
+        }
+        return builder.ToString();
+    }
+
+    /// <summary>Receives a browser-owned column width after a pointer or keyboard resize.</summary>
+    /// <param name="columnKey">The unique key of the resized column.</param>
+    /// <param name="width">The committed width in CSS pixels.</param>
+    [JSInvokable]
+    public Task ReportColumnResizedAsync(string columnKey, double width)
+    {
+        if (_disposed || string.IsNullOrWhiteSpace(columnKey) || width <= 0)
+        {
+            return Task.CompletedTask;
+        }
+
+        return ColumnResized.InvokeAsync(new BzsDataGridColumnResizeEventArgs(columnKey.Trim(), width));
+    }
+
     private static void SupersedeRefresh(ProviderRefresh? refresh) =>
         refresh?.Completion.TrySetResult();
 
@@ -1234,14 +1947,14 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         var rows = Rows;
         var allSelected = AreAllCurrentRowsSelected(rows);
         var indeterminate = !allSelected && rows.Any(IsSelectedMultiple);
-        return GetSelectAllInterop().TryInvokeVoidAsync(
+        return GetInterop().TryInvokeVoidAsync(
             "synchronize",
             _selectAllReference,
             allSelected,
             indeterminate);
     }
 
-    private BzsJsModule GetSelectAllInterop() => _selectAllInterop ??= new BzsJsModule(
+    private BzsJsModule GetInterop() => _interop ??= new BzsJsModule(
         JsRuntime,
         ModulePath,
         options: new BzsJsModuleOptions(TreatInvalidOperationDuringImportAsTransient: true));
@@ -1266,7 +1979,7 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         return Normalize(RowAccessibleName?.Invoke(item))
             ?? Localize(
                 "DataGridSelectRowText",
-                ((long)(Provider is null ? Page : AcceptedPage) - 1)
+                ((long)(Provider is null ? ClientPage : AcceptedPage) - 1)
                     * (Provider is null ? PageSize : _acceptedRequest?.PageSize ?? PageSize)
                     + rowIndex
                     + 1);
@@ -1274,20 +1987,55 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 
     private BzsIconData? GetSortIcon(BzsDataGridColumn<TItem> column)
     {
-        var sort = DisplayedSort;
-        if (sort is null || !string.Equals(sort.ColumnKey, column.EffectiveKey, StringComparison.Ordinal))
+        var direction = GetSortDirection(column);
+        if (direction is null)
         {
             return null;
         }
 
-        return sort.Direction == BzsDataGridSortDirection.Ascending
+        return direction == BzsDataGridSortDirection.Ascending
             ? BzsIcons.ChevronUp
             : BzsIcons.ChevronDown;
     }
 
+    private BzsDataGridSortDirection? GetSortDirection(BzsDataGridColumn<TItem> column)
+    {
+        foreach (var sort in DisplayedSorts)
+        {
+            if (string.Equals(sort.ColumnKey, column.EffectiveKey, StringComparison.Ordinal))
+            {
+                return sort.Direction;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>Gets the one-based precedence of a column within a multi-sort, or zero when unsorted.</summary>
+    private int GetSortPrecedence(BzsDataGridColumn<TItem> column)
+    {
+        var sorts = DisplayedSorts;
+        if (sorts.Count < 2)
+        {
+            return 0;
+        }
+
+        for (var index = 0; index < sorts.Count; index++)
+        {
+            if (string.Equals(sorts[index].ColumnKey, column.EffectiveKey, StringComparison.Ordinal))
+            {
+                return index + 1;
+            }
+        }
+        return 0;
+    }
+
     private void ValidatePage()
     {
-        if (Page < 1 || PageCount == 0 && Page != 1 || PageCount > 0 && Page > PageCount)
+        // Client filtering can narrow the result below the controlled page, which is a
+        // transient state the consumer resets on its own; only the unfiltered range is a
+        // configuration error.
+        var pageCount = SourcePageCount;
+        if (Page < 1 || pageCount == 0 && Page != 1 || pageCount > 0 && Page > pageCount)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(Page),
@@ -1331,9 +2079,41 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         return keys;
     }
 
+    private HashSet<object?>? CreateExpandedItemKeys()
+    {
+        if (DetailTemplate is null || ItemKey is null)
+        {
+            return null;
+        }
+
+        var keys = new HashSet<object?>(KeyComparer);
+        foreach (var key in ExpandedItemKeys)
+        {
+            if (key is not null)
+            {
+                keys.Add(key);
+            }
+        }
+        return keys;
+    }
+
     private BzsDataGridRequest CreateProviderRequest()
     {
-        _ = GetSortColumn();
+        var sorts = EffectiveSorts;
+        foreach (var sort in sorts)
+        {
+            var column = _columns.FirstOrDefault(candidate => string.Equals(
+                candidate.EffectiveKey,
+                sort.ColumnKey,
+                StringComparison.Ordinal))
+                ?? throw new InvalidOperationException(
+                    $"The DataGrid sort column '{sort.ColumnKey}' is not registered.");
+            if (!column.Sortable)
+            {
+                throw new InvalidOperationException($"The DataGrid column '{sort.ColumnKey}' is not sortable.");
+            }
+        }
+
         var filters = Filters
             .OrderBy(static filter => filter.ColumnKey, StringComparer.Ordinal)
             .ToArray();
@@ -1352,16 +2132,17 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
             }
         }
 
-        return new BzsDataGridRequest(Page, PageSize, Sort, filters);
+        return new BzsDataGridRequest(
+            Page,
+            PageSize,
+            sorts.Count == 0 ? null : sorts[0],
+            filters,
+            sorts,
+            EffectiveSearchText);
     }
 
     private void SynchronizeFilterDrafts()
     {
-        if (Provider is null && Filters.Count != 0)
-        {
-            throw new InvalidOperationException("DataGrid filters require Provider mode.");
-        }
-
         var current = Filters.ToDictionary(static filter => filter.ColumnKey, StringComparer.Ordinal);
         foreach (var observed in _observedFilters.ToArray())
         {
@@ -1395,6 +2176,7 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         BzsDataGridNumberFilter number => number.Value.ToString(CultureInfo.InvariantCulture),
         BzsDataGridDateFilter date => date.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
         BzsDataGridBooleanFilter boolean => boolean.Value ? "true" : "false",
+        BzsDataGridChoiceFilter choice => string.Join(", ", choice.Values),
         _ => string.Empty,
     };
 
@@ -1420,6 +2202,7 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
             BzsDataGridNumberFilter => kind == BzsDataGridFilterKind.Number,
             BzsDataGridDateFilter => kind == BzsDataGridFilterKind.Date,
             BzsDataGridBooleanFilter => kind == BzsDataGridFilterKind.Boolean,
+            BzsDataGridChoiceFilter => kind == BzsDataGridFilterKind.Choice,
             _ => false,
         };
 
@@ -1427,7 +2210,8 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         left is not null
         && left.Page == right.Page
         && left.PageSize == right.PageSize
-        && SortsEqual(left.Sort, right.Sort)
+        && SortListsEqual(left.Sorts, right.Sorts)
+        && string.Equals(left.SearchText, right.SearchText, StringComparison.Ordinal)
         && FilterListsEqual(left.Filters, right.Filters);
 
     private static bool SortsEqual(BzsDataGridSort? left, BzsDataGridSort? right) =>
@@ -1436,6 +2220,25 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
             && right is not null
             && left.Direction == right.Direction
             && string.Equals(left.ColumnKey, right.ColumnKey, StringComparison.Ordinal);
+
+    private static bool SortListsEqual(
+        IReadOnlyList<BzsDataGridSort> left,
+        IReadOnlyList<BzsDataGridSort> right)
+    {
+        if (left.Count != right.Count)
+        {
+            return false;
+        }
+
+        for (var index = 0; index < left.Count; index++)
+        {
+            if (!SortsEqual(left[index], right[index]))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 
     private static bool FilterListsEqual(
         IReadOnlyList<BzsDataGridFilter> left,
@@ -1472,6 +2275,8 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
                 first.Operator == second.Operator && first.Value == second.Value,
             (BzsDataGridBooleanFilter first, BzsDataGridBooleanFilter second) =>
                 first.Value == second.Value,
+            (BzsDataGridChoiceFilter first, BzsDataGridChoiceFilter second) =>
+                first.Values.SequenceEqual(second.Values, StringComparer.Ordinal),
             _ => false,
         };
 
@@ -1491,10 +2296,18 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
         _requestCoordinator?.Dispose();
         _requestCoordinator = null;
         _coordinatorProvider = null;
-        if (_selectAllInterop is not null)
+        if (_interop is not null)
         {
-            await _selectAllInterop.DisposeAsync();
+            if (_columnLayoutFingerprint is not null)
+            {
+                await _interop.TryInvokeVoidAsync("disposeColumnLayout", _tableReference);
+            }
+
+            await _interop.DisposeAsync();
         }
+
+        _selfReference?.Dispose();
+        _selfReference = null;
     }
 
     private static string? Normalize(string? value) =>
@@ -1576,5 +2389,24 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
             && _comparer.Equals(_key, other._key);
 
         public override int GetHashCode() => _comparer.GetHashCode(_key);
+    }
+
+    private sealed class DetailKey
+    {
+        private readonly object _key;
+        private readonly IEqualityComparer<object?> _comparer;
+
+        internal DetailKey(object key, IEqualityComparer<object?> comparer)
+        {
+            _key = key;
+            _comparer = comparer;
+        }
+
+        public override bool Equals(object? obj) =>
+            obj is DetailKey other
+            && ReferenceEquals(_comparer, other._comparer)
+            && _comparer.Equals(_key, other._key);
+
+        public override int GetHashCode() => _comparer.GetHashCode(_key) ^ 0x5f5f;
     }
 }

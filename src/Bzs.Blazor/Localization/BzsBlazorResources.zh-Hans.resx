@@ -207,6 +207,42 @@
   <data name="DataGridContainsText" xml:space="preserve">
     <value>包含</value>
   </data>
+  <data name="DataGridNotContainsText" xml:space="preserve">
+    <value>不包含</value>
+  </data>
+  <data name="DataGridIsEmptyText" xml:space="preserve">
+    <value>为空</value>
+  </data>
+  <data name="DataGridIsNotEmptyText" xml:space="preserve">
+    <value>不为空</value>
+  </data>
+  <data name="DataGridAnyOfText" xml:space="preserve">
+    <value>属于任意值</value>
+  </data>
+  <data name="DataGridSearchText" xml:space="preserve">
+    <value>搜索</value>
+  </data>
+  <data name="DataGridClearSearchText" xml:space="preserve">
+    <value>清除搜索</value>
+  </data>
+  <data name="DataGridColumnChooserText" xml:space="preserve">
+    <value>列</value>
+  </data>
+  <data name="DataGridDetailColumnText" xml:space="preserve">
+    <value>行详情</value>
+  </data>
+  <data name="DataGridAddSortText" xml:space="preserve">
+    <value>添加到排序</value>
+  </data>
+  <data name="DataGridResizeColumnText" xml:space="preserve">
+    <value>调整 {0} 列宽度</value>
+  </data>
+  <data name="DataGridExpandRowText" xml:space="preserve">
+    <value>展开第 {0} 行</value>
+  </data>
+  <data name="DataGridCollapseRowText" xml:space="preserve">
+    <value>折叠第 {0} 行</value>
+  </data>
   <data name="DataGridStartsWithText" xml:space="preserve">
     <value>开头为</value>
   </data>

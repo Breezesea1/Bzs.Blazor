@@ -58,6 +58,10 @@ public static class BzsIcons
     public static BzsIconData Search { get; } = new(
         "m21 21-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16");
 
+    /// <summary>Gets the columns icon.</summary>
+    public static BzsIconData Columns { get; } = new(
+        "M12 3v18M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z");
+
     /// <summary>Gets the filter icon.</summary>
     public static BzsIconData Filter { get; } = new(
         "M22 3H2l8 9.46V19l4 2v-8.54L22 3Z");

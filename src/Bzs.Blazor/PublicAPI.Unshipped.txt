@@ -1,28 +1,4 @@
 #nullable enable
-Bzs.Blazor.BzsPasswordInput
-Bzs.Blazor.BzsPasswordInput.BzsPasswordInput() -> void
-Bzs.Blazor.BzsPasswordInput.DisposeAsync() -> System.Threading.Tasks.ValueTask
-Bzs.Blazor.BzsPasswordInput.HidePasswordText.get -> string?
-Bzs.Blazor.BzsPasswordInput.HidePasswordText.set -> void
-Bzs.Blazor.BzsPasswordInput.Revealable.get -> bool
-Bzs.Blazor.BzsPasswordInput.Revealable.set -> void
-Bzs.Blazor.BzsPasswordInput.ShowPasswordText.get -> string?
-Bzs.Blazor.BzsPasswordInput.ShowPasswordText.set -> void
-static Bzs.Blazor.BzsIcons.Eye.get -> Bzs.Blazor.BzsIconData!
-static Bzs.Blazor.BzsIcons.EyeOff.get -> Bzs.Blazor.BzsIconData!
-static Bzs.Blazor.BzsIcons.Filter.get -> Bzs.Blazor.BzsIconData!
-static Bzs.Blazor.BzsIcons.Refresh.get -> Bzs.Blazor.BzsIconData!
-Bzs.Blazor.BzsInputUpdateMode
-Bzs.Blazor.BzsInputUpdateMode.Change = 0 -> Bzs.Blazor.BzsInputUpdateMode
-Bzs.Blazor.BzsInputUpdateMode.Input = 1 -> Bzs.Blazor.BzsInputUpdateMode
-Bzs.Blazor.BzsTextInput.InputType.get -> Bzs.Blazor.BzsTextInputType
-Bzs.Blazor.BzsTextInput.InputType.set -> void
-Bzs.Blazor.BzsTextInput.UpdateMode.get -> Bzs.Blazor.BzsInputUpdateMode
-Bzs.Blazor.BzsTextInput.UpdateMode.set -> void
-Bzs.Blazor.BzsTextInputType
-Bzs.Blazor.BzsTextInputType.Email = 1 -> Bzs.Blazor.BzsTextInputType
-Bzs.Blazor.BzsTextInputType.Search = 2 -> Bzs.Blazor.BzsTextInputType
-Bzs.Blazor.BzsTextInputType.Text = 0 -> Bzs.Blazor.BzsTextInputType
 Bzs.Blazor.BzsAutocomplete<TValue>
 Bzs.Blazor.BzsAutocomplete<TValue>.BzsAutocomplete() -> void
 Bzs.Blazor.BzsAutocomplete<TValue>.ClearText.get -> string?
@@ -62,10 +38,10 @@ Bzs.Blazor.BzsAutocompleteOption<TValue>.Label.get -> string!
 Bzs.Blazor.BzsAutocompleteOption<TValue>.Value.get -> TValue
 Bzs.Blazor.BzsAutocompleteOption<TValue>.ValueText.get -> string!
 Bzs.Blazor.BzsAvatar
-Bzs.Blazor.BzsAvatar.ActionContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
-Bzs.Blazor.BzsAvatar.ActionContent.set -> void
 Bzs.Blazor.BzsAvatar.AccessibleName.get -> string?
 Bzs.Blazor.BzsAvatar.AccessibleName.set -> void
+Bzs.Blazor.BzsAvatar.ActionContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
+Bzs.Blazor.BzsAvatar.ActionContent.set -> void
 Bzs.Blazor.BzsAvatar.BzsAvatar() -> void
 Bzs.Blazor.BzsAvatar.Icon.get -> Bzs.Blazor.BzsIconData?
 Bzs.Blazor.BzsAvatar.Icon.set -> void
@@ -112,10 +88,10 @@ Bzs.Blazor.BzsBreadcrumbs
 Bzs.Blazor.BzsBreadcrumbs.AccessibleName.get -> string?
 Bzs.Blazor.BzsBreadcrumbs.AccessibleName.set -> void
 Bzs.Blazor.BzsBreadcrumbs.BzsBreadcrumbs() -> void
-Bzs.Blazor.BzsBreadcrumbs.Items.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsBreadcrumbItem!>!
-Bzs.Blazor.BzsBreadcrumbs.Items.set -> void
 Bzs.Blazor.BzsBreadcrumbs.ItemTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment<Bzs.Blazor.BzsBreadcrumbItem!>?
 Bzs.Blazor.BzsBreadcrumbs.ItemTemplate.set -> void
+Bzs.Blazor.BzsBreadcrumbs.Items.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsBreadcrumbItem!>!
+Bzs.Blazor.BzsBreadcrumbs.Items.set -> void
 Bzs.Blazor.BzsBreadcrumbs.SeparatorContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
 Bzs.Blazor.BzsBreadcrumbs.SeparatorContent.set -> void
 Bzs.Blazor.BzsChip
@@ -161,6 +137,8 @@ Bzs.Blazor.BzsContextMenu.TargetContent.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>
 Bzs.Blazor.BzsDataGrid<TItem>.AccessibleName.get -> string?
 Bzs.Blazor.BzsDataGrid<TItem>.AccessibleName.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.Bordered.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.Bordered.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.BzsDataGrid() -> void
 Bzs.Blazor.BzsDataGrid<TItem>.Caption.get -> string?
 Bzs.Blazor.BzsDataGrid<TItem>.Caption.set -> void
@@ -170,8 +148,20 @@ Bzs.Blazor.BzsDataGrid<TItem>.ChildContent.get -> Microsoft.AspNetCore.Component
 Bzs.Blazor.BzsDataGrid<TItem>.ChildContent.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ClearAllFiltersText.get -> string?
 Bzs.Blazor.BzsDataGrid<TItem>.ClearAllFiltersText.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ClientFiltering.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ClientFiltering.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ColumnChooserText.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.ColumnChooserText.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ColumnResized.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsDataGridColumnResizeEventArgs!>
+Bzs.Blazor.BzsDataGrid<TItem>.ColumnResized.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.CompactPagination.get -> bool
 Bzs.Blazor.BzsDataGrid<TItem>.CompactPagination.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.Density.get -> Bzs.Blazor.BzsDataGridDensity
+Bzs.Blazor.BzsDataGrid<TItem>.Density.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.DetailRowsExpanded.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.DetailRowsExpanded.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.DetailTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment<TItem>?
+Bzs.Blazor.BzsDataGrid<TItem>.DetailTemplate.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.DisposeAsync() -> System.Threading.Tasks.ValueTask
 Bzs.Blazor.BzsDataGrid<TItem>.EmptyTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment?
 Bzs.Blazor.BzsDataGrid<TItem>.EmptyTemplate.set -> void
@@ -183,10 +173,18 @@ Bzs.Blazor.BzsDataGrid<TItem>.ErrorTemplate.get -> Microsoft.AspNetCore.Componen
 Bzs.Blazor.BzsDataGrid<TItem>.ErrorTemplate.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ErrorText.get -> string?
 Bzs.Blazor.BzsDataGrid<TItem>.ErrorText.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ExpandedItemKeys.get -> System.Collections.Generic.IReadOnlyList<object?>!
+Bzs.Blazor.BzsDataGrid<TItem>.ExpandedItemKeys.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ExpandedItemKeysChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<object?>!>
+Bzs.Blazor.BzsDataGrid<TItem>.ExpandedItemKeysChanged.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.Filters.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridFilter!>!
 Bzs.Blazor.BzsDataGrid<TItem>.Filters.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.FiltersChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridFilter!>!>
 Bzs.Blazor.BzsDataGrid<TItem>.FiltersChanged.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.HiddenColumnKeys.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Bzs.Blazor.BzsDataGrid<TItem>.HiddenColumnKeys.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.HiddenColumnKeysChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<string!>!>
+Bzs.Blazor.BzsDataGrid<TItem>.HiddenColumnKeysChanged.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ItemKey.get -> System.Func<TItem, object?>?
 Bzs.Blazor.BzsDataGrid<TItem>.ItemKey.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ItemKeyComparer.get -> System.Collections.Generic.IEqualityComparer<object?>?
@@ -199,6 +197,8 @@ Bzs.Blazor.BzsDataGrid<TItem>.LoadingTemplate.get -> Microsoft.AspNetCore.Compon
 Bzs.Blazor.BzsDataGrid<TItem>.LoadingTemplate.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.LoadingText.get -> string?
 Bzs.Blazor.BzsDataGrid<TItem>.LoadingText.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.MultiSort.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.MultiSort.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.Page.get -> int
 Bzs.Blazor.BzsDataGrid<TItem>.Page.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.PageChanged.get -> Microsoft.AspNetCore.Components.EventCallback<int>
@@ -218,16 +218,31 @@ Bzs.Blazor.BzsDataGrid<TItem>.Provider.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ProviderFailed.get -> Microsoft.AspNetCore.Components.EventCallback<System.Exception!>
 Bzs.Blazor.BzsDataGrid<TItem>.ProviderFailed.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.RefreshAsync() -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsDataGrid<TItem>.ReportColumnResizedAsync(string! columnKey, double width) -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsDataGrid<TItem>.ResizableColumns.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ResizableColumns.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.RetryText.get -> string?
 Bzs.Blazor.BzsDataGrid<TItem>.RetryText.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.RowAccessibleName.get -> System.Func<TItem, string!>?
 Bzs.Blazor.BzsDataGrid<TItem>.RowAccessibleName.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.RowClass.get -> System.Func<TItem, string?>?
+Bzs.Blazor.BzsDataGrid<TItem>.RowClass.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.RowClick.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsDataGridRowEventArgs<TItem>!>
+Bzs.Blazor.BzsDataGrid<TItem>.RowClick.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.RowClickable.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.RowClickable.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SearchText.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.SearchText.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SearchTextChanged.get -> Microsoft.AspNetCore.Components.EventCallback<string?>
+Bzs.Blazor.BzsDataGrid<TItem>.SearchTextChanged.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SearchTextLabel.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.SearchTextLabel.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SelectAllText.get -> string?
+Bzs.Blazor.BzsDataGrid<TItem>.SelectAllText.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItem.get -> TItem?
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItem.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemChanged.get -> Microsoft.AspNetCore.Components.EventCallback<TItem?>
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemChanged.set -> void
-Bzs.Blazor.BzsDataGrid<TItem>.SelectAllText.get -> string?
-Bzs.Blazor.BzsDataGrid<TItem>.SelectAllText.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItems.get -> System.Collections.Generic.IReadOnlyList<TItem>!
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItems.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectedItemsChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<TItem>!>
@@ -236,48 +251,108 @@ Bzs.Blazor.BzsDataGrid<TItem>.SelectionColumnText.get -> string?
 Bzs.Blazor.BzsDataGrid<TItem>.SelectionColumnText.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SelectionMode.get -> Bzs.Blazor.BzsDataGridSelectionMode
 Bzs.Blazor.BzsDataGrid<TItem>.SelectionMode.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ShowColumnChooser.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ShowColumnChooser.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ShowFilterSummary.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ShowFilterSummary.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ShowPageSizeSelector.get -> bool
 Bzs.Blazor.BzsDataGrid<TItem>.ShowPageSizeSelector.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ShowPagination.get -> bool
 Bzs.Blazor.BzsDataGrid<TItem>.ShowPagination.set -> void
-Bzs.Blazor.BzsDataGrid<TItem>.ShowFilterSummary.get -> bool
-Bzs.Blazor.BzsDataGrid<TItem>.ShowFilterSummary.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ShowResultSummary.get -> bool
 Bzs.Blazor.BzsDataGrid<TItem>.ShowResultSummary.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.ShowSearch.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.ShowSearch.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ShowSelectAll.get -> bool
 Bzs.Blazor.BzsDataGrid<TItem>.ShowSelectAll.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.Sort.get -> Bzs.Blazor.BzsDataGridSort?
 Bzs.Blazor.BzsDataGrid<TItem>.Sort.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.SortChanged.get -> Microsoft.AspNetCore.Components.EventCallback<Bzs.Blazor.BzsDataGridSort?>
 Bzs.Blazor.BzsDataGrid<TItem>.SortChanged.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.Sorts.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridSort!>!
+Bzs.Blazor.BzsDataGrid<TItem>.Sorts.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.SortsChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridSort!>!>
+Bzs.Blazor.BzsDataGrid<TItem>.SortsChanged.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.StickyHeader.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.StickyHeader.set -> void
+Bzs.Blazor.BzsDataGrid<TItem>.Striped.get -> bool
+Bzs.Blazor.BzsDataGrid<TItem>.Striped.set -> void
 Bzs.Blazor.BzsDataGrid<TItem>.ToolbarContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
 Bzs.Blazor.BzsDataGrid<TItem>.ToolbarContent.set -> void
+Bzs.Blazor.BzsDataGridAggregate
+Bzs.Blazor.BzsDataGridAggregate.Average = 3 -> Bzs.Blazor.BzsDataGridAggregate
+Bzs.Blazor.BzsDataGridAggregate.Count = 1 -> Bzs.Blazor.BzsDataGridAggregate
+Bzs.Blazor.BzsDataGridAggregate.Maximum = 5 -> Bzs.Blazor.BzsDataGridAggregate
+Bzs.Blazor.BzsDataGridAggregate.Minimum = 4 -> Bzs.Blazor.BzsDataGridAggregate
+Bzs.Blazor.BzsDataGridAggregate.None = 0 -> Bzs.Blazor.BzsDataGridAggregate
+Bzs.Blazor.BzsDataGridAggregate.Sum = 2 -> Bzs.Blazor.BzsDataGridAggregate
+Bzs.Blazor.BzsDataGridAlignment
+Bzs.Blazor.BzsDataGridAlignment.Center = 1 -> Bzs.Blazor.BzsDataGridAlignment
+Bzs.Blazor.BzsDataGridAlignment.End = 2 -> Bzs.Blazor.BzsDataGridAlignment
+Bzs.Blazor.BzsDataGridAlignment.Start = 0 -> Bzs.Blazor.BzsDataGridAlignment
 Bzs.Blazor.BzsDataGridBooleanFilter
 Bzs.Blazor.BzsDataGridBooleanFilter.BzsDataGridBooleanFilter(string! columnKey, bool value) -> void
 Bzs.Blazor.BzsDataGridBooleanFilter.Value.get -> bool
+Bzs.Blazor.BzsDataGridChoiceFilter
+Bzs.Blazor.BzsDataGridChoiceFilter.BzsDataGridChoiceFilter(string! columnKey, System.Collections.Generic.IReadOnlyList<string!>! values) -> void
+Bzs.Blazor.BzsDataGridChoiceFilter.Values.get -> System.Collections.Generic.IReadOnlyList<string!>!
 Bzs.Blazor.BzsDataGridColumn<TItem>
 Bzs.Blazor.BzsDataGridColumn<TItem>.AccessibleName.get -> string?
 Bzs.Blazor.BzsDataGridColumn<TItem>.AccessibleName.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Aggregate.get -> Bzs.Blazor.BzsDataGridAggregate
+Bzs.Blazor.BzsDataGridColumn<TItem>.Aggregate.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.AggregateValueSelector.get -> System.Func<TItem, decimal?>?
+Bzs.Blazor.BzsDataGridColumn<TItem>.AggregateValueSelector.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Align.get -> Bzs.Blazor.BzsDataGridAlignment
+Bzs.Blazor.BzsDataGridColumn<TItem>.Align.set -> void
 Bzs.Blazor.BzsDataGridColumn<TItem>.BzsDataGridColumn() -> void
 Bzs.Blazor.BzsDataGridColumn<TItem>.CellTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment<TItem>?
 Bzs.Blazor.BzsDataGridColumn<TItem>.CellTemplate.set -> void
 Bzs.Blazor.BzsDataGridColumn<TItem>.Dispose() -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.FilterChoices.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Bzs.Blazor.BzsDataGridColumn<TItem>.FilterChoices.set -> void
 Bzs.Blazor.BzsDataGridColumn<TItem>.FilterKind.get -> Bzs.Blazor.BzsDataGridFilterKind
 Bzs.Blazor.BzsDataGridColumn<TItem>.FilterKind.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.FilterValueSelector.get -> System.Func<TItem, object?>?
+Bzs.Blazor.BzsDataGridColumn<TItem>.FilterValueSelector.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.FooterTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment<Bzs.Blazor.BzsDataGridFooterContext<TItem>!>?
+Bzs.Blazor.BzsDataGridColumn<TItem>.FooterTemplate.set -> void
 Bzs.Blazor.BzsDataGridColumn<TItem>.Format.get -> string?
 Bzs.Blazor.BzsDataGridColumn<TItem>.Format.set -> void
 Bzs.Blazor.BzsDataGridColumn<TItem>.HeaderTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment?
 Bzs.Blazor.BzsDataGridColumn<TItem>.HeaderTemplate.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Hideable.get -> bool
+Bzs.Blazor.BzsDataGridColumn<TItem>.Hideable.set -> void
 Bzs.Blazor.BzsDataGridColumn<TItem>.Key.get -> string?
 Bzs.Blazor.BzsDataGridColumn<TItem>.Key.set -> void
-Bzs.Blazor.BzsDataGridColumn<TItem>.Sortable.get -> bool
-Bzs.Blazor.BzsDataGridColumn<TItem>.Sortable.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.MinWidth.get -> string?
+Bzs.Blazor.BzsDataGridColumn<TItem>.MinWidth.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Resizable.get -> bool
+Bzs.Blazor.BzsDataGridColumn<TItem>.Resizable.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.SearchTextSelector.get -> System.Func<TItem, string?>?
+Bzs.Blazor.BzsDataGridColumn<TItem>.SearchTextSelector.set -> void
 Bzs.Blazor.BzsDataGridColumn<TItem>.SortComparison.get -> System.Comparison<TItem>?
 Bzs.Blazor.BzsDataGridColumn<TItem>.SortComparison.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Sortable.get -> bool
+Bzs.Blazor.BzsDataGridColumn<TItem>.Sortable.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Sticky.get -> Bzs.Blazor.BzsDataGridColumnSticky
+Bzs.Blazor.BzsDataGridColumn<TItem>.Sticky.set -> void
 Bzs.Blazor.BzsDataGridColumn<TItem>.Title.get -> string?
 Bzs.Blazor.BzsDataGridColumn<TItem>.Title.set -> void
 Bzs.Blazor.BzsDataGridColumn<TItem>.ValueSelector.get -> System.Func<TItem, object?>?
 Bzs.Blazor.BzsDataGridColumn<TItem>.ValueSelector.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Visible.get -> bool
+Bzs.Blazor.BzsDataGridColumn<TItem>.Visible.set -> void
+Bzs.Blazor.BzsDataGridColumn<TItem>.Width.get -> string?
+Bzs.Blazor.BzsDataGridColumn<TItem>.Width.set -> void
+Bzs.Blazor.BzsDataGridColumnResizeEventArgs
+Bzs.Blazor.BzsDataGridColumnResizeEventArgs.BzsDataGridColumnResizeEventArgs(string! columnKey, double width) -> void
+Bzs.Blazor.BzsDataGridColumnResizeEventArgs.ColumnKey.get -> string!
+Bzs.Blazor.BzsDataGridColumnResizeEventArgs.Width.get -> double
+Bzs.Blazor.BzsDataGridColumnSticky
+Bzs.Blazor.BzsDataGridColumnSticky.End = 2 -> Bzs.Blazor.BzsDataGridColumnSticky
+Bzs.Blazor.BzsDataGridColumnSticky.None = 0 -> Bzs.Blazor.BzsDataGridColumnSticky
+Bzs.Blazor.BzsDataGridColumnSticky.Start = 1 -> Bzs.Blazor.BzsDataGridColumnSticky
 Bzs.Blazor.BzsDataGridComparisonOperator
 Bzs.Blazor.BzsDataGridComparisonOperator.Equals = 0 -> Bzs.Blazor.BzsDataGridComparisonOperator
 Bzs.Blazor.BzsDataGridComparisonOperator.GreaterThan = 4 -> Bzs.Blazor.BzsDataGridComparisonOperator
@@ -289,30 +364,43 @@ Bzs.Blazor.BzsDataGridDateFilter
 Bzs.Blazor.BzsDataGridDateFilter.BzsDataGridDateFilter(string! columnKey, System.DateOnly value, Bzs.Blazor.BzsDataGridComparisonOperator operator = Bzs.Blazor.BzsDataGridComparisonOperator.Equals) -> void
 Bzs.Blazor.BzsDataGridDateFilter.Operator.get -> Bzs.Blazor.BzsDataGridComparisonOperator
 Bzs.Blazor.BzsDataGridDateFilter.Value.get -> System.DateOnly
+Bzs.Blazor.BzsDataGridDensity
+Bzs.Blazor.BzsDataGridDensity.Comfortable = 1 -> Bzs.Blazor.BzsDataGridDensity
+Bzs.Blazor.BzsDataGridDensity.Compact = 0 -> Bzs.Blazor.BzsDataGridDensity
 Bzs.Blazor.BzsDataGridFilter
 Bzs.Blazor.BzsDataGridFilter.ColumnKey.get -> string!
 Bzs.Blazor.BzsDataGridFilterKind
 Bzs.Blazor.BzsDataGridFilterKind.Boolean = 4 -> Bzs.Blazor.BzsDataGridFilterKind
+Bzs.Blazor.BzsDataGridFilterKind.Choice = 5 -> Bzs.Blazor.BzsDataGridFilterKind
 Bzs.Blazor.BzsDataGridFilterKind.Date = 3 -> Bzs.Blazor.BzsDataGridFilterKind
 Bzs.Blazor.BzsDataGridFilterKind.None = 0 -> Bzs.Blazor.BzsDataGridFilterKind
 Bzs.Blazor.BzsDataGridFilterKind.Number = 2 -> Bzs.Blazor.BzsDataGridFilterKind
 Bzs.Blazor.BzsDataGridFilterKind.Text = 1 -> Bzs.Blazor.BzsDataGridFilterKind
+Bzs.Blazor.BzsDataGridFooterContext<TItem>
+Bzs.Blazor.BzsDataGridFooterContext<TItem>.BzsDataGridFooterContext(System.Collections.Generic.IReadOnlyList<TItem>! items) -> void
+Bzs.Blazor.BzsDataGridFooterContext<TItem>.Items.get -> System.Collections.Generic.IReadOnlyList<TItem>!
 Bzs.Blazor.BzsDataGridNumberFilter
 Bzs.Blazor.BzsDataGridNumberFilter.BzsDataGridNumberFilter(string! columnKey, decimal value, Bzs.Blazor.BzsDataGridComparisonOperator operator = Bzs.Blazor.BzsDataGridComparisonOperator.Equals) -> void
 Bzs.Blazor.BzsDataGridNumberFilter.Operator.get -> Bzs.Blazor.BzsDataGridComparisonOperator
 Bzs.Blazor.BzsDataGridNumberFilter.Value.get -> decimal
 Bzs.Blazor.BzsDataGridRequest
-Bzs.Blazor.BzsDataGridRequest.BzsDataGridRequest(int page, int pageSize, Bzs.Blazor.BzsDataGridSort? sort = null, System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridFilter!>? filters = null) -> void
+Bzs.Blazor.BzsDataGridRequest.BzsDataGridRequest(int page, int pageSize, Bzs.Blazor.BzsDataGridSort? sort = null, System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridFilter!>? filters = null, System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridSort!>? sorts = null, string? searchText = null) -> void
 Bzs.Blazor.BzsDataGridRequest.Filters.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridFilter!>!
 Bzs.Blazor.BzsDataGridRequest.Page.get -> int
 Bzs.Blazor.BzsDataGridRequest.PageSize.get -> int
+Bzs.Blazor.BzsDataGridRequest.SearchText.get -> string?
 Bzs.Blazor.BzsDataGridRequest.Sort.get -> Bzs.Blazor.BzsDataGridSort?
+Bzs.Blazor.BzsDataGridRequest.Sorts.get -> System.Collections.Generic.IReadOnlyList<Bzs.Blazor.BzsDataGridSort!>!
 Bzs.Blazor.BzsDataGridResult<TItem>
 Bzs.Blazor.BzsDataGridResult<TItem>.BzsDataGridResult(System.Collections.Generic.IReadOnlyList<TItem>! items, bool hasNextPage) -> void
 Bzs.Blazor.BzsDataGridResult<TItem>.BzsDataGridResult(System.Collections.Generic.IReadOnlyList<TItem>! items, int totalCount) -> void
 Bzs.Blazor.BzsDataGridResult<TItem>.HasNextPage.get -> bool?
 Bzs.Blazor.BzsDataGridResult<TItem>.Items.get -> System.Collections.Generic.IReadOnlyList<TItem>!
 Bzs.Blazor.BzsDataGridResult<TItem>.TotalCount.get -> int?
+Bzs.Blazor.BzsDataGridRowEventArgs<TItem>
+Bzs.Blazor.BzsDataGridRowEventArgs<TItem>.BzsDataGridRowEventArgs(TItem item, int rowIndex) -> void
+Bzs.Blazor.BzsDataGridRowEventArgs<TItem>.Item.get -> TItem
+Bzs.Blazor.BzsDataGridRowEventArgs<TItem>.RowIndex.get -> int
 Bzs.Blazor.BzsDataGridSelectionMode
 Bzs.Blazor.BzsDataGridSelectionMode.Multiple = 2 -> Bzs.Blazor.BzsDataGridSelectionMode
 Bzs.Blazor.BzsDataGridSelectionMode.None = 0 -> Bzs.Blazor.BzsDataGridSelectionMode
@@ -327,6 +415,7 @@ Bzs.Blazor.BzsDataGridSortDirection
 Bzs.Blazor.BzsDataGridSortDirection.Ascending = 0 -> Bzs.Blazor.BzsDataGridSortDirection
 Bzs.Blazor.BzsDataGridSortDirection.Descending = 1 -> Bzs.Blazor.BzsDataGridSortDirection
 Bzs.Blazor.BzsDataGridTextFilter
+Bzs.Blazor.BzsDataGridTextFilter.BzsDataGridTextFilter(string! columnKey, Bzs.Blazor.BzsDataGridTextOperator operator) -> void
 Bzs.Blazor.BzsDataGridTextFilter.BzsDataGridTextFilter(string! columnKey, string! value, Bzs.Blazor.BzsDataGridTextOperator operator = Bzs.Blazor.BzsDataGridTextOperator.Contains, bool caseSensitive = false) -> void
 Bzs.Blazor.BzsDataGridTextFilter.CaseSensitive.get -> bool
 Bzs.Blazor.BzsDataGridTextFilter.Operator.get -> Bzs.Blazor.BzsDataGridTextOperator
@@ -335,25 +424,28 @@ Bzs.Blazor.BzsDataGridTextOperator
 Bzs.Blazor.BzsDataGridTextOperator.Contains = 0 -> Bzs.Blazor.BzsDataGridTextOperator
 Bzs.Blazor.BzsDataGridTextOperator.EndsWith = 2 -> Bzs.Blazor.BzsDataGridTextOperator
 Bzs.Blazor.BzsDataGridTextOperator.Equals = 3 -> Bzs.Blazor.BzsDataGridTextOperator
+Bzs.Blazor.BzsDataGridTextOperator.IsEmpty = 5 -> Bzs.Blazor.BzsDataGridTextOperator
+Bzs.Blazor.BzsDataGridTextOperator.IsNotEmpty = 6 -> Bzs.Blazor.BzsDataGridTextOperator
+Bzs.Blazor.BzsDataGridTextOperator.NotContains = 4 -> Bzs.Blazor.BzsDataGridTextOperator
 Bzs.Blazor.BzsDataGridTextOperator.StartsWith = 1 -> Bzs.Blazor.BzsDataGridTextOperator
 Bzs.Blazor.BzsFileUpload
 Bzs.Blazor.BzsFileUpload.Accept.get -> string?
 Bzs.Blazor.BzsFileUpload.Accept.set -> void
 Bzs.Blazor.BzsFileUpload.BzsFileUpload() -> void
-Bzs.Blazor.BzsFileUpload.Cleared.get -> Microsoft.AspNetCore.Components.EventCallback
-Bzs.Blazor.BzsFileUpload.Cleared.set -> void
 Bzs.Blazor.BzsFileUpload.ClearText.get -> string?
 Bzs.Blazor.BzsFileUpload.ClearText.set -> void
+Bzs.Blazor.BzsFileUpload.Cleared.get -> Microsoft.AspNetCore.Components.EventCallback
+Bzs.Blazor.BzsFileUpload.Cleared.set -> void
 Bzs.Blazor.BzsFileUpload.EmptyTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment?
 Bzs.Blazor.BzsFileUpload.EmptyTemplate.set -> void
 Bzs.Blazor.BzsFileUpload.EmptyText.get -> string?
 Bzs.Blazor.BzsFileUpload.EmptyText.set -> void
 Bzs.Blazor.BzsFileUpload.FileRemoved.get -> Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Forms.IBrowserFile!>
 Bzs.Blazor.BzsFileUpload.FileRemoved.set -> void
-Bzs.Blazor.BzsFileUpload.FilesLabel.get -> string?
-Bzs.Blazor.BzsFileUpload.FilesLabel.set -> void
 Bzs.Blazor.BzsFileUpload.FileTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment<Microsoft.AspNetCore.Components.Forms.IBrowserFile!>?
 Bzs.Blazor.BzsFileUpload.FileTemplate.set -> void
+Bzs.Blazor.BzsFileUpload.FilesLabel.get -> string?
+Bzs.Blazor.BzsFileUpload.FilesLabel.set -> void
 Bzs.Blazor.BzsFileUpload.MaximumFileCount.get -> int?
 Bzs.Blazor.BzsFileUpload.MaximumFileCount.set -> void
 Bzs.Blazor.BzsFileUpload.MaximumFileCountValidationMessage.get -> string?
@@ -378,6 +470,9 @@ Bzs.Blazor.BzsFileUpload.RequiredValidationMessage.get -> string?
 Bzs.Blazor.BzsFileUpload.RequiredValidationMessage.set -> void
 Bzs.Blazor.BzsFileUpload.SelectionChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Components.Forms.IBrowserFile!>!>
 Bzs.Blazor.BzsFileUpload.SelectionChanged.set -> void
+Bzs.Blazor.BzsInputUpdateMode
+Bzs.Blazor.BzsInputUpdateMode.Change = 0 -> Bzs.Blazor.BzsInputUpdateMode
+Bzs.Blazor.BzsInputUpdateMode.Input = 1 -> Bzs.Blazor.BzsInputUpdateMode
 Bzs.Blazor.BzsMenu
 Bzs.Blazor.BzsMenu.AccessibleName.get -> string?
 Bzs.Blazor.BzsMenu.AccessibleName.set -> void
@@ -453,6 +548,24 @@ Bzs.Blazor.BzsNavMenu.AccessibleName.set -> void
 Bzs.Blazor.BzsNavMenu.BzsNavMenu() -> void
 Bzs.Blazor.BzsNavMenu.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
 Bzs.Blazor.BzsNavMenu.ChildContent.set -> void
+Bzs.Blazor.BzsNavigationDrawer.CloseOnEscape.get -> bool
+Bzs.Blazor.BzsNavigationDrawer.CloseOnEscape.set -> void
+Bzs.Blazor.BzsNavigationDrawer.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsNavigationDrawer.InitialFocusSelector.get -> string?
+Bzs.Blazor.BzsNavigationDrawer.InitialFocusSelector.set -> void
+Bzs.Blazor.BzsNavigationDrawer.MaximumWidth.get -> double
+Bzs.Blazor.BzsNavigationDrawer.MaximumWidth.set -> void
+Bzs.Blazor.BzsNavigationDrawer.MinimumWidth.get -> double
+Bzs.Blazor.BzsNavigationDrawer.MinimumWidth.set -> void
+Bzs.Blazor.BzsNavigationDrawer.NotifyResizeCompletedAsync(double width) -> System.Threading.Tasks.Task!
+Bzs.Blazor.BzsNavigationDrawer.Resizable.get -> bool
+Bzs.Blazor.BzsNavigationDrawer.Resizable.set -> void
+Bzs.Blazor.BzsNavigationDrawer.ResizeCompleted.get -> Microsoft.AspNetCore.Components.EventCallback<double>
+Bzs.Blazor.BzsNavigationDrawer.ResizeCompleted.set -> void
+Bzs.Blazor.BzsNavigationDrawer.ResizeHandleAccessibleName.get -> string?
+Bzs.Blazor.BzsNavigationDrawer.ResizeHandleAccessibleName.set -> void
+Bzs.Blazor.BzsNavigationDrawer.ResizeStep.get -> double
+Bzs.Blazor.BzsNavigationDrawer.ResizeStep.set -> void
 Bzs.Blazor.BzsPagination
 Bzs.Blazor.BzsPagination.AccessibleName.get -> string?
 Bzs.Blazor.BzsPagination.AccessibleName.set -> void
@@ -479,6 +592,15 @@ Bzs.Blazor.BzsPagination.PreviousPageLabel.get -> string?
 Bzs.Blazor.BzsPagination.PreviousPageLabel.set -> void
 Bzs.Blazor.BzsPagination.SiblingCount.get -> int
 Bzs.Blazor.BzsPagination.SiblingCount.set -> void
+Bzs.Blazor.BzsPasswordInput
+Bzs.Blazor.BzsPasswordInput.BzsPasswordInput() -> void
+Bzs.Blazor.BzsPasswordInput.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Bzs.Blazor.BzsPasswordInput.HidePasswordText.get -> string?
+Bzs.Blazor.BzsPasswordInput.HidePasswordText.set -> void
+Bzs.Blazor.BzsPasswordInput.Revealable.get -> bool
+Bzs.Blazor.BzsPasswordInput.Revealable.set -> void
+Bzs.Blazor.BzsPasswordInput.ShowPasswordText.get -> string?
+Bzs.Blazor.BzsPasswordInput.ShowPasswordText.set -> void
 Bzs.Blazor.BzsPopover
 Bzs.Blazor.BzsPopover.BzsPopover() -> void
 Bzs.Blazor.BzsPopover.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
@@ -532,6 +654,14 @@ Bzs.Blazor.BzsSkeletonSize
 Bzs.Blazor.BzsSkeletonSize.Large = 2 -> Bzs.Blazor.BzsSkeletonSize
 Bzs.Blazor.BzsSkeletonSize.Medium = 1 -> Bzs.Blazor.BzsSkeletonSize
 Bzs.Blazor.BzsSkeletonSize.Small = 0 -> Bzs.Blazor.BzsSkeletonSize
+Bzs.Blazor.BzsTextInput.InputType.get -> Bzs.Blazor.BzsTextInputType
+Bzs.Blazor.BzsTextInput.InputType.set -> void
+Bzs.Blazor.BzsTextInput.UpdateMode.get -> Bzs.Blazor.BzsInputUpdateMode
+Bzs.Blazor.BzsTextInput.UpdateMode.set -> void
+Bzs.Blazor.BzsTextInputType
+Bzs.Blazor.BzsTextInputType.Email = 1 -> Bzs.Blazor.BzsTextInputType
+Bzs.Blazor.BzsTextInputType.Search = 2 -> Bzs.Blazor.BzsTextInputType
+Bzs.Blazor.BzsTextInputType.Text = 0 -> Bzs.Blazor.BzsTextInputType
 Bzs.Blazor.BzsTooltip
 Bzs.Blazor.BzsTooltip.BzsTooltip() -> void
 Bzs.Blazor.BzsTooltip.CloseFromBrowserAsync(bool restoreFocus = false) -> System.Threading.Tasks.Task!
@@ -573,21 +703,9 @@ static Bzs.Blazor.BzsBreadcrumbItem.operator !=(Bzs.Blazor.BzsBreadcrumbItem? le
 static Bzs.Blazor.BzsBreadcrumbItem.operator ==(Bzs.Blazor.BzsBreadcrumbItem? left, Bzs.Blazor.BzsBreadcrumbItem? right) -> bool
 static Bzs.Blazor.BzsDataGridSort.operator !=(Bzs.Blazor.BzsDataGridSort? left, Bzs.Blazor.BzsDataGridSort? right) -> bool
 static Bzs.Blazor.BzsDataGridSort.operator ==(Bzs.Blazor.BzsDataGridSort? left, Bzs.Blazor.BzsDataGridSort? right) -> bool
-Bzs.Blazor.BzsNavigationDrawer.CloseOnEscape.get -> bool
-Bzs.Blazor.BzsNavigationDrawer.CloseOnEscape.set -> void
-Bzs.Blazor.BzsNavigationDrawer.InitialFocusSelector.get -> string?
-Bzs.Blazor.BzsNavigationDrawer.InitialFocusSelector.set -> void
-Bzs.Blazor.BzsNavigationDrawer.MaximumWidth.get -> double
-Bzs.Blazor.BzsNavigationDrawer.MaximumWidth.set -> void
-Bzs.Blazor.BzsNavigationDrawer.MinimumWidth.get -> double
-Bzs.Blazor.BzsNavigationDrawer.MinimumWidth.set -> void
-Bzs.Blazor.BzsNavigationDrawer.NotifyResizeCompletedAsync(double width) -> System.Threading.Tasks.Task!
-Bzs.Blazor.BzsNavigationDrawer.Resizable.get -> bool
-Bzs.Blazor.BzsNavigationDrawer.Resizable.set -> void
-Bzs.Blazor.BzsNavigationDrawer.ResizeCompleted.get -> Microsoft.AspNetCore.Components.EventCallback<double>
-Bzs.Blazor.BzsNavigationDrawer.ResizeCompleted.set -> void
-Bzs.Blazor.BzsNavigationDrawer.ResizeHandleAccessibleName.get -> string?
-Bzs.Blazor.BzsNavigationDrawer.ResizeHandleAccessibleName.set -> void
-Bzs.Blazor.BzsNavigationDrawer.ResizeStep.get -> double
-Bzs.Blazor.BzsNavigationDrawer.ResizeStep.set -> void
-Bzs.Blazor.BzsNavigationDrawer.DisposeAsync() -> System.Threading.Tasks.ValueTask
+static Bzs.Blazor.BzsDataGridTextFilter.RequiresValue(Bzs.Blazor.BzsDataGridTextOperator operator) -> bool
+static Bzs.Blazor.BzsIcons.Columns.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Eye.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.EyeOff.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Filter.get -> Bzs.Blazor.BzsIconData!
+static Bzs.Blazor.BzsIcons.Refresh.get -> Bzs.Blazor.BzsIconData!

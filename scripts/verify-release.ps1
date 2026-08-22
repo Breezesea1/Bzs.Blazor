@@ -43,8 +43,8 @@ $consumerPackagesDirectory = Join-Path $releaseRoot "consumer-packages"
 $publishDirectory = Join-Path $releaseRoot "publish"
 $aotDirectory = Join-Path $releaseRoot "aot-client"
 $summaryPath = Join-Path $releaseRoot "verification-summary.md"
-$packageSizeBudgetBytes = 303104
-$symbolPackageSizeBudgetBytes = 176128
+$packageSizeBudgetBytes = 335872
+$symbolPackageSizeBudgetBytes = 180224
 $aotFrameworkSizeBudgetBytes = 41943040
 $versionPattern = '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$'
 

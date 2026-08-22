@@ -207,6 +207,42 @@
   <data name="DataGridContainsText" xml:space="preserve">
     <value>Contains</value>
   </data>
+  <data name="DataGridNotContainsText" xml:space="preserve">
+    <value>Does not contain</value>
+  </data>
+  <data name="DataGridIsEmptyText" xml:space="preserve">
+    <value>Is empty</value>
+  </data>
+  <data name="DataGridIsNotEmptyText" xml:space="preserve">
+    <value>Is not empty</value>
+  </data>
+  <data name="DataGridAnyOfText" xml:space="preserve">
+    <value>Is any of</value>
+  </data>
+  <data name="DataGridSearchText" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="DataGridClearSearchText" xml:space="preserve">
+    <value>Clear search</value>
+  </data>
+  <data name="DataGridColumnChooserText" xml:space="preserve">
+    <value>Columns</value>
+  </data>
+  <data name="DataGridDetailColumnText" xml:space="preserve">
+    <value>Row details</value>
+  </data>
+  <data name="DataGridAddSortText" xml:space="preserve">
+    <value>Add to sort</value>
+  </data>
+  <data name="DataGridResizeColumnText" xml:space="preserve">
+    <value>Resize {0} column</value>
+  </data>
+  <data name="DataGridExpandRowText" xml:space="preserve">
+    <value>Expand row {0}</value>
+  </data>
+  <data name="DataGridCollapseRowText" xml:space="preserve">
+    <value>Collapse row {0}</value>
+  </data>
   <data name="DataGridStartsWithText" xml:space="preserve">
     <value>Starts with</value>
   </data>
