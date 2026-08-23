@@ -51,6 +51,13 @@ jobs:
           --no-restore
           --filter "FullyQualifiedName~VisualRegressionTests"
 
+      # PNG encoding is not byte-reproducible across runs, so a byte diff would
+      # propose a branch on every dispatch. Keep only captures the gate itself
+      # would reject.
+      - name: Discard captures the gate already accepts
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/restore-equivalent-baselines.ps1
+
       - name: Push refreshed baselines
         env:
           GH_TOKEN: ${{ github.token }}
