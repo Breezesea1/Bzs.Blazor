@@ -5,7 +5,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 env:
   PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
@@ -52,7 +51,7 @@ jobs:
           --no-restore
           --filter "FullyQualifiedName~VisualRegressionTests"
 
-      - name: Open refresh pull request
+      - name: Push refreshed baselines
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -67,7 +66,11 @@ jobs:
           fi
           git commit -m "test: refresh visual baselines from CI Linux"
           git push origin "$branch"
-          gh pr create \
-            --title "test: refresh visual baselines from CI Linux" \
-            --body "Captured by the \`Refresh visual baselines\` workflow (run ${{ github.run_id }}) in the pinned CI Linux font environment. Review the image diff before merging; verification runs on main after merge because pushes from \`GITHUB_TOKEN\` do not trigger pull-request workflows." \
-            --base main
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## Refreshed visual baselines
+
+          Branch \`$branch\` holds the recaptured baselines from the pinned CI
+          Linux environment. Open the pull request here:
+
+          ${{ github.server_url }}/${{ github.repository }}/compare/main...$branch
+          EOF
