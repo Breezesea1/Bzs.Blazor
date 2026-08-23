@@ -386,8 +386,8 @@ public static class DemoText
             "Waiting on contrast tokens.");
 
         public static string ReleaseNotesReviewNotes => Get(
-            "已随 0.4.0 发布说明一同发布。",
-            "Published with the 0.4.0 notes.");
+            "已随 0.4.1 发布说明一同发布。",
+            "Published with the 0.4.1 notes.");
 
         public static string TabletNavigationNotes => Get(
             "抽屉宽度调整需要键盘复核。",

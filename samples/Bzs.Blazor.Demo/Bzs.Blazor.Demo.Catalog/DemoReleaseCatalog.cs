@@ -25,6 +25,63 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.4.1",
+            "0.4.1",
+            new DateTimeOffset(2026, 8, 23, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Patch release", "补丁版本"),
+            new DemoLocalizedText(
+                "A mature DataGrid: querying, columns, and presentation",
+                "成熟的 DataGrid：查询、列与呈现"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.4.1 completes the DataGrid core expected of an established grid library: client-side filtering with global search, multi-column sorting, richer column control, resizable and sticky columns, row details, and footer aggregates, all remaining controlled and bilingual.",
+                "Bzs.Blazor 0.4.1 补齐 DataGrid 作为成熟表格库的核心能力：客户端筛选与全局搜索、多列排序、更完整的列控制、可调整与冻结列、行详情与页脚聚合，全部保持受控与双语。"),
+            [
+                new DemoLocalizedText(
+                    "Items mode gains client-side filtering and global search, plus NotContains, IsEmpty, IsNotEmpty text operators and multi-value Choice filters.",
+                    "Items 模式获得客户端筛选与全局搜索，新增不包含、为空、不为空文本运算符与多值 Choice 筛选。"),
+                new DemoLocalizedText(
+                    "Multi-column sorting with precedence badges, per-column Align, Width, MinWidth, Sticky, Visible, Hideable, and Resizable options, and a toolbar column chooser.",
+                    "多列排序带优先级序号，列级 Align、Width、MinWidth、Sticky、Visible、Hideable、Resizable 选项，以及工具栏列选择器。"),
+                new DemoLocalizedText(
+                    "Density, striped, bordered, and sticky-header presentation with expandable row details, row activation, and footer aggregates that summarize every queried row.",
+                    "密度、斑马纹、边框与粘性表头呈现，配合可展开行详情、行激活，以及汇总全部查询行的页脚聚合。"),
+                new DemoLocalizedText(
+                    "Fixes the undefined --bzs-primary-contrast token, keeps column resizing CSP-safe through the CSSOM, clamps pages narrowed by client filters, and passes the axe gate for resize separators.",
+                    "修复未定义的 --bzs-primary-contrast 令牌，列宽调整经 CSSOM 保持 CSP 安全，客户端筛选收窄时夹取页码，并修复调整手柄的 axe 违规。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Querying", "查询"),
+                    [
+                        new DemoLocalizedText(
+                            "ClientFiltering applies typed filters and SearchText to Items before sorting and paging; provider requests now carry Sorts and SearchText alongside Sort.",
+                            "ClientFiltering 在排序与分页前将类型化筛选与 SearchText 应用于 Items；提供器请求现在随 Sort 一并携带 Sorts 与 SearchText。"),
+                        new DemoLocalizedText(
+                            "Multi-sort cycles per column from the header, accumulates precedence through the column menu, and keeps the single-sort contract unchanged.",
+                            "多列排序可从表头逐列循环，经列菜单累积优先级，单列排序契约保持不变。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Columns and interaction", "列与交互"),
+                    [
+                        new DemoLocalizedText(
+                            "Pointer and keyboard column resizing report committed widths through ColumnResized while widths live on col elements through the CSSOM.",
+                            "指针与键盘调整列宽经 ColumnResized 上报最终宽度，宽度本身通过 CSSOM 写在 col 元素上。"),
+                        new DemoLocalizedText(
+                            "Detail rows expand through controlled ExpandedItemKeys and rows activate through RowClick with keyboard support.",
+                            "行详情经受控 ExpandedItemKeys 展开，行激活经 RowClick 触发并支持键盘。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Delivery", "交付"),
+                    [
+                        new DemoLocalizedText(
+                            "Static SSR keeps emitting useful inert markup without inline styles; the package budgets grow to fit the larger assembly.",
+                            "静态 SSR 继续输出有用的惰性标记且不产生内联样式；包体积预算随程序集增大而上调。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "No breaking changes to previously shipped public APIs.",
+                "对已发布的公共 API 没有破坏性变更。")),
+        new(
             "v0.4.0",
             "0.4.0",
             new DateTimeOffset(2026, 8, 20, 0, 0, 0, TimeSpan.Zero),
