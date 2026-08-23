@@ -1,0 +1,73 @@
+name: Refresh visual baselines
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
+
+jobs:
+  refresh:
+    name: Capture and propose refreshed baselines
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.302
+
+      - name: Install pinned fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-liberation fonts-noto-core fonts-noto-cjk
+
+      - name: Build Playwright runner
+        shell: pwsh
+        run: dotnet build tests/Bzs.Blazor.BrowserTests/Bzs.Blazor.BrowserTests.csproj --configuration Release
+
+      - name: Install Playwright browser
+        shell: pwsh
+        run: pwsh tests/Bzs.Blazor.BrowserTests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      # verify-visual-regression.ps1 refuses baseline updates by design; refreshes go
+      # through the test project directly so every capture comes from this exact
+      # font and browser environment (ADR-0029).
+      - name: Capture visual baselines
+        shell: pwsh
+        env:
+          BZS_UPDATE_VISUAL_BASELINES: "1"
+        run: >
+          dotnet test tests/Bzs.Blazor.BrowserTests/Bzs.Blazor.BrowserTests.csproj
+          --configuration Release
+          --no-build
+          --no-restore
+          --filter "FullyQualifiedName~VisualRegressionTests"
+
+      - name: Open refresh pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          branch="visual-baselines/${{ github.run_id }}"
+          git checkout -b "$branch"
+          git add tests/Bzs.Blazor.BrowserTests/VisualBaselines
+          if git diff --cached --quiet; then
+            echo "Baselines already match the pinned CI Linux environment; nothing to propose."
+            exit 0
+          fi
+          git commit -m "test: refresh visual baselines from CI Linux"
+          git push origin "$branch"
+          gh pr create \
+            --title "test: refresh visual baselines from CI Linux" \
+            --body "Captured by the \`Refresh visual baselines\` workflow (run ${{ github.run_id }}) in the pinned CI Linux font environment. Review the image diff before merging; verification runs on main after merge because pushes from \`GITHUB_TOKEN\` do not trigger pull-request workflows." \
+            --base main

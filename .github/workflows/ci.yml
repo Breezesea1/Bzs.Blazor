@@ -103,10 +103,6 @@ jobs:
         shell: pwsh
         run: pwsh tests/Bzs.Blazor.BrowserTests/bin/Release/net10.0/playwright.ps1 install chromium
 
-      - name: Run Windows visual regression baselines
-        shell: pwsh
-        run: pwsh -NoProfile -File scripts/verify-visual-regression.ps1 -Configuration Release
-
       - name: Run Chrome and Edge browser matrix
         shell: pwsh
         run: ./tests/Bzs.Blazor.BrowserTests/run-browser-matrix.ps1 -Configuration Release -Targets chrome,msedge -RequireAllTargets -ArtifactsDirectory TestResults/browser-matrix
@@ -119,3 +115,46 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           path: TestResults/**
+
+  visual-regression:
+    name: Visual regression baselines
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.302
+
+      - name: Install pinned fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-liberation fonts-noto-core fonts-noto-cjk
+
+      - name: Build Playwright runner
+        shell: pwsh
+        run: dotnet build tests/Bzs.Blazor.BrowserTests/Bzs.Blazor.BrowserTests.csproj --configuration Release
+
+      - name: Install Playwright browser
+        shell: pwsh
+        run: pwsh tests/Bzs.Blazor.BrowserTests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run visual regression gate
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/verify-visual-regression.ps1 -Configuration Release
+
+      - name: Upload visual evidence
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: visual-regression-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            TestResults/visual-regression/**
+            tests/Bzs.Blazor.BrowserTests/TestResults/**
