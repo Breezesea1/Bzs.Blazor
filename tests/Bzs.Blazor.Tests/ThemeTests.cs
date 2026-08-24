@@ -70,7 +70,11 @@ public sealed class ThemeTests
         using var context = new BunitContext();
         var customTheme = BzsThemes.Default with
         {
-            LightColors = BzsThemes.Light with { Primary = "#0055aa" },
+            LightColors = BzsThemes.Light with
+            {
+                Primary = "#0055aa",
+                Scrim = "rgb(1 2 3 / 0.5)",
+            },
         };
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
@@ -87,6 +91,7 @@ public sealed class ThemeTests
         var style = cut.Find("style");
         Assert.Equal("test-nonce", style.GetAttribute("nonce"));
         Assert.Contains("--bzs-primary:#0055aa", style.TextContent, StringComparison.Ordinal);
+        Assert.Contains("--bzs-scrim:rgb(1 2 3 / 0.5)", style.TextContent, StringComparison.Ordinal);
         Assert.Contains("prefers-reduced-motion:reduce", style.TextContent, StringComparison.Ordinal);
         Assert.Contains("forced-colors:active", style.TextContent, StringComparison.Ordinal);
     }
@@ -264,6 +269,7 @@ public sealed class ThemeTests
             ("info", colors.Info),
             ("disabled-surface", colors.DisabledSurface),
             ("disabled-text", colors.DisabledText),
+            ("scrim", colors.Scrim),
             ("shadow-raised", depth.RaisedShadow),
             ("shadow-inset", depth.InsetShadow),
             ("shadow-overlay", depth.OverlayShadow),

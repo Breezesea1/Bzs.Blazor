@@ -25,6 +25,56 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.5.0",
+            "0.5.0",
+            new DateTimeOffset(2026, 8, 24, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Feature release", "功能版本"),
+            new DemoLocalizedText(
+                "One semantic surface system",
+                "统一的语义化表面系统"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.5.0 routes every component background, shadow, border, and scrim through semantic tokens: floating overlays share one surface, shadow, and radius set, modal scrims gain a per-scheme --bzs-scrim exposed as BzsThemeColors.Scrim, and the Demo Catalog now aliases library tokens instead of maintaining parallel palettes.",
+                "Bzs.Blazor 0.5.0 将所有组件的背景、阴影、边框和遮罩统一接入语义令牌：浮层共享同一套表面、阴影与圆角令牌，模态遮罩获得按配色方案定义的 --bzs-scrim 并以 BzsThemeColors.Scrim 暴露，Demo 目录也不再维护平行调色板，而是别名引用库令牌。"),
+            [
+                new DemoLocalizedText(
+                    "Every component surface resolves through --bzs-* tokens, so one theme change still moves the whole library; literal values survive only where the shape is the point.",
+                    "所有组件表面均经 --bzs-* 令牌解析，一次主题变更即可移动整个库；只有形状本身即语义的地方保留字面值。"),
+                new DemoLocalizedText(
+                    "Dialogs, drawers, menus, popovers, tooltips, selects, autocomplete, and the date picker panel share --bzs-surface-overlay, --bzs-shadow-overlay, and --bzs-radius-overlay.",
+                    "对话框、抽屉、菜单、弹出层、工具提示、选择器、自动完成与日期选择面板共享 --bzs-surface-overlay、--bzs-shadow-overlay 和 --bzs-radius-overlay。"),
+                new DemoLocalizedText(
+                    "Modal scrims use a per-scheme --bzs-scrim token backed by the strongly typed BzsThemeColors.Scrim, so dark mode stops reusing a light-mode wash.",
+                    "模态遮罩使用按配色方案定义的 --bzs-scrim 令牌，并由强类型的 BzsThemeColors.Scrim 提供支持，深色模式不再复用浅色遮罩。"),
+                new DemoLocalizedText(
+                    "Dense list rows and calendar day cells tint with --bzs-surface-inset on hover and reserve depth for the pressed state, per the flat-lists rule.",
+                    "按扁平列表规则，密集列表行与日历日期格悬停时以 --bzs-surface-inset 着色，并将立体感保留给按下状态。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Theme and public API", "主题与公共 API"),
+                    [
+                        new DemoLocalizedText(
+                            "BzsThemeColors gains a positional Scrim member, which is a breaking constructor and Deconstruct change accepted before 1.0 in favor of a token that custom themes can actually control.",
+                            "BzsThemeColors 新增按位置的 Scrim 成员，这是一次在 1.0 之前被接受的构造函数与 Deconstruct 破坏性变更，以换取自定义主题真正可控的令牌。"),
+                        new DemoLocalizedText(
+                            "Consumer override hooks such as --bzs-app-bar-shadow and the navigation drawer background keep their names but now fall back to semantic tokens.",
+                            "--bzs-app-bar-shadow 等使用方覆盖钩子与导航抽屉背景保留原名称，但会回退到语义令牌。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Demo alignment", "Demo 对齐"),
+                    [
+                        new DemoLocalizedText(
+                            "The Demo's --demo-* and --layout-* surface, text, border, status, shadow, and radius tokens alias the library tokens, and its two divergent purples collapse into one brand accent.",
+                            "Demo 的 --demo-* 与 --layout-* 表面、文本、边框、状态、阴影和圆角令牌改为别名引用库令牌，两种分叉的紫色合并为一个品牌强调色。"),
+                        new DemoLocalizedText(
+                            "The Demo only still owns the brand accent, the status -text variants without library counterparts, and non-colour geometry; --bzs-primary and --bzs-focus-ring continue to demonstrate consumer overrides.",
+                            "Demo 仅保留品牌强调色、库中没有对应物的状态 -text 变体以及非颜色几何值；--bzs-primary 与 --bzs-focus-ring 继续演示使用方覆盖。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "BzsThemeColors.Scrim is a breaking positional constructor and Deconstruct change for custom themes; all other surface work is token-level and keeps existing override hook names.",
+                "对自定义主题而言，BzsThemeColors.Scrim 是一次按位置传参的构造函数与 Deconstruct 破坏性变更；其余表面工作均发生在令牌层面，并保留既有覆盖钩子名称。")),
+        new(
             "v0.4.1",
             "0.4.1",
             new DateTimeOffset(2026, 8, 23, 0, 0, 0, TimeSpan.Zero),

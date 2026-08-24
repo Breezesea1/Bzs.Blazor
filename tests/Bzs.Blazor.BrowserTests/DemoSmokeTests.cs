@@ -496,11 +496,11 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         await Expect(palette).ToBeVisibleAsync();
         var lightPaletteColors = new[]
         {
-            (Tone: "primary", Color: "rgb(87, 86, 216)"),
-            (Tone: "info", Color: "rgb(11, 116, 148)"),
-            (Tone: "success", Color: "rgb(20, 122, 99)"),
-            (Tone: "warning", Color: "rgb(164, 95, 8)"),
-            (Tone: "error", Color: "rgb(193, 63, 89)"),
+            (Tone: "primary", Color: "rgb(83, 82, 206)"),
+            (Tone: "info", Color: "rgb(51, 104, 129)"),
+            (Tone: "success", Color: "rgb(47, 125, 98)"),
+            (Tone: "warning", Color: "rgb(154, 100, 31)"),
+            (Tone: "error", Color: "rgb(180, 35, 24)"),
         };
         foreach (var (tone, color) in lightPaletteColors)
         {
@@ -509,11 +509,11 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         }
 
         Assert.Equal(
-            "#edf1f5",
+            "#dde2e9",
             await layoutPage.EvaluateAsync<string>(
                 "element => getComputedStyle(element).getPropertyValue('--layout-canvas').trim()"));
         Assert.Equal(
-            "#f6f8fb",
+            "#fafbfc",
             await layoutPage.EvaluateAsync<string>(
                 "element => getComputedStyle(element).getPropertyValue('--layout-surface').trim()"));
         var swatchColors = await palette.Locator(".demo-layout-swatch")
@@ -524,10 +524,10 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         var darkPaletteColors = new[]
         {
             (Tone: "primary", Color: "rgb(154, 156, 241)"),
-            (Tone: "info", Color: "rgb(104, 204, 225)"),
-            (Tone: "success", Color: "rgb(96, 208, 168)"),
-            (Tone: "warning", Color: "rgb(239, 183, 98)"),
-            (Tone: "error", Color: "rgb(255, 141, 163)"),
+            (Tone: "info", Color: "rgb(122, 185, 214)"),
+            (Tone: "success", Color: "rgb(95, 198, 158)"),
+            (Tone: "warning", Color: "rgb(232, 180, 92)"),
+            (Tone: "error", Color: "rgb(242, 125, 136)"),
         };
         foreach (var (tone, color) in darkPaletteColors)
         {
@@ -536,11 +536,11 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         }
 
         Assert.Equal(
-            "#15181e",
+            "#0c0f14",
             await layoutPage.EvaluateAsync<string>(
                 "element => getComputedStyle(element).getPropertyValue('--layout-canvas').trim()"));
         Assert.Equal(
-            "#1b1f27",
+            "#20272f",
             await layoutPage.EvaluateAsync<string>(
                 "element => getComputedStyle(element).getPropertyValue('--layout-surface').trim()"));
         await layoutPage.EvaluateAsync("element => element.removeAttribute('data-bzs-theme')");

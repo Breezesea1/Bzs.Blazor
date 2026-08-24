@@ -47,6 +47,7 @@ internal static class BzsThemeCssBuilder
         Append(builder, "info", colors.Info);
         Append(builder, "disabled-surface", colors.DisabledSurface);
         Append(builder, "disabled-text", colors.DisabledText);
+        Append(builder, "scrim", colors.Scrim);
         Append(builder, "shadow-raised", depth.RaisedShadow);
         Append(builder, "shadow-inset", depth.InsetShadow);
         Append(builder, "shadow-overlay", depth.OverlayShadow);

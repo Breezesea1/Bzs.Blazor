@@ -30,7 +30,7 @@
 
 .bzs-app-bar--level-raised {
     background: var(--bzs-surface-raised);
-    box-shadow: var(--bzs-app-bar-shadow, 0 0.35rem 1rem rgb(38 45 56 / 0.1));
+    box-shadow: var(--bzs-app-bar-shadow, var(--bzs-shadow-raised));
 }
 
 .bzs-app-bar--level-inset {

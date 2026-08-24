@@ -373,7 +373,7 @@ public abstract class BrowserGatePageTest : PageTest
 
         var snippet = Page.GetByTestId("landing-install-snippet");
         await Expect(snippet).ToContainTextAsync("dotnet add package Bzs.Blazor");
-        await Expect(snippet).ToContainTextAsync("--version 0.4.1");
+        await Expect(snippet).ToContainTextAsync("--version 0.5.0");
         await Expect(snippet).ToContainTextAsync("AddBzsBlazor()");
 
         await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync("data-interactive", "true");
@@ -402,9 +402,9 @@ public abstract class BrowserGatePageTest : PageTest
 
         Assert.Equal(
             [
+                "One semantic surface system",
                 "A mature DataGrid: querying, columns, and presentation",
                 "Productivity workflows, resizable navigation, and identity",
-                "Forms, data workflows, and navigation drawers",
             ],
             releaseHeadings.Take(3));
     }
