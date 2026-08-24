@@ -54,7 +54,7 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     border: var(--bzs-border-width) solid var(--bzs-border);
-    border-radius: var(--bzs-radius-container);
+    border-radius: var(--bzs-radius-overlay);
     padding: 0.375rem;
     background: var(--bzs-surface-overlay);
     box-shadow: var(--bzs-shadow-overlay);

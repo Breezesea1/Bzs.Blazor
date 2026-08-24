@@ -3,7 +3,7 @@
 
 <PageTitle>Overlays - Bzs.Blazor</PageTitle>
 
-<BzsThemeProvider Mode="BzsThemeMode.Light" Density="BzsDensity.Compact" Class="demo-overlays-stage">
+<div class="demo-overlays-stage">
     <section class="demo-page" aria-labelledby="overlays-title" data-testid="overlays-workbench">
         <header class="demo-page-header">
             <p class="demo-eyebrow">Overlay workflow</p>
@@ -146,7 +146,7 @@
 
         <BzsOverlayHost data-testid="overlays-host" />
     </section>
-</BzsThemeProvider>
+</div>
 
 @code {
     private bool _allowControlledDialogBackdropDismissal;

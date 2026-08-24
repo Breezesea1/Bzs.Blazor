@@ -8,7 +8,7 @@
 .bzs-drawer__backdrop {
     position: absolute;
     inset: 0;
-    background-color: rgb(23 32 51 / 0.42);
+    background-color: var(--bzs-scrim);
     pointer-events: auto;
 }
 

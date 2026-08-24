@@ -65,7 +65,8 @@ public sealed record BzsThemeColors(
     string Error,
     string Info,
     string DisabledSurface,
-    string DisabledText);
+    string DisabledText,
+    string Scrim);
 
 /// <summary>
 /// Defines semantic shadows and focus depth tokens.
@@ -164,7 +165,8 @@ public static class BzsThemes
         Error: "#b42318",
         Info: "#336881",
         DisabledSurface: "#c9ced6",
-        DisabledText: "#89919c");
+        DisabledText: "#89919c",
+        Scrim: "rgb(23 32 51 / 0.42)");
 
     /// <summary>
     /// Gets the independently designed built-in dark color scheme.
@@ -186,7 +188,8 @@ public static class BzsThemes
         Error: "#f27d88",
         Info: "#7ab9d6",
         DisabledSurface: "#242b34",
-        DisabledText: "#7f8996");
+        DisabledText: "#7f8996",
+        Scrim: "rgb(4 6 10 / 0.62)");
 
     /// <summary>
     /// Gets the complete built-in theme with independently designed light and dark schemes.
