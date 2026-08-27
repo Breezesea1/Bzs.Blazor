@@ -55,7 +55,7 @@
             </select>
         }
 
-        @if (_isOpen)
+        @if (_listbox.IsOpen)
         {
             <div class="bzs-select__panel" data-bzs-select-panel="true">
                 @if (SearchEnabled)
@@ -65,7 +65,7 @@
                         <input id="@SearchId"
                                @ref="_searchReference"
                                type="search"
-                               value="@_searchText"
+                               value="@_listbox.SearchText"
                                placeholder="@EffectiveSearchPlaceholder"
                                aria-label="@EffectiveSearchPlaceholder"
                                aria-controls="@ListboxId"

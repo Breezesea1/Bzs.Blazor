@@ -22,19 +22,21 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
     [Parameter] public string? EmptyText { get; set; }
 
     private readonly string _instanceId = $"bzs-select-{Guid.NewGuid():N}";
+    private readonly BzsListboxState<TValue> _listbox;
     private ElementReference _rootReference;
     private ElementReference _triggerReference;
     private ElementReference _searchReference;
     private DotNetObjectReference<BzsSelect<TValue>>? _dotNetReference;
     private BzsSelectInterop? _interop;
-    private bool _isOpen;
     private bool _isInteractive;
     private bool _interopInitialized;
-    private bool _positionPending;
-    private bool _focusSearchPending;
     private bool _disposed;
-    private int _activeIndex = -1;
-    private string _searchText = string.Empty;
+
+    /// <summary>Initializes a new instance of the <see cref="BzsSelect{TValue}"/> class.</summary>
+    public BzsSelect() => _listbox = new BzsListboxState<TValue>(
+        () => Options,
+        () => SearchEnabled,
+        () => CurrentValue);
 
     private string ListboxId => $"{InputId}-listbox";
     private string SearchId => $"{InputId}-search";
@@ -45,15 +47,12 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
     private string EffectiveEmptyText => string.IsNullOrWhiteSpace(EmptyText)
         ? Localize("SelectNoMatches")
         : EmptyText.Trim();
-    private string? ActiveOptionId => _activeIndex >= 0 && _activeIndex < FilteredOptions.Count
-        ? GetOptionId(FilteredOptions[_activeIndex])
-        : null;
+    private string? ActiveOptionId => _listbox.ActiveOption is { } active ? GetOptionId(active) : null;
     private BzsSelectOption<TValue>? SelectedOption => Options.FirstOrDefault(option => IsSelected(option.Value));
     private string SelectedText => SelectedOption?.Label
         ?? (string.IsNullOrWhiteSpace(PlaceholderOption) ? Localize("SelectPlaceholder") : PlaceholderOption.Trim());
     private string EffectiveAccessibleName => !string.IsNullOrWhiteSpace(Label) ? Label.Trim() : SelectedText;
-    private IReadOnlyList<BzsSelectOption<TValue>> FilteredOptions =>
-        BzsSelectNavigation.Filter(Options, _searchText);
+    private IReadOnlyList<BzsSelectOption<TValue>> FilteredOptions => _listbox.VisibleOptions;
 
     private IReadOnlyDictionary<string, object> TriggerAttributes
     {
@@ -66,7 +65,7 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
                 ["type"] = "button",
                 ["role"] = "combobox",
                 ["aria-haspopup"] = "listbox",
-                ["aria-expanded"] = _isOpen ? "true" : "false",
+                ["aria-expanded"] = _listbox.IsOpen ? "true" : "false",
                 ["aria-controls"] = ListboxId,
                 ["aria-autocomplete"] = SearchEnabled ? "list" : "none",
             };
@@ -74,9 +73,9 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
             attributes.Remove("name");
             attributes.Remove("placeholder");
             attributes.Remove("required");
-            if (_activeIndex >= 0 && _activeIndex < FilteredOptions.Count)
+            if (ActiveOptionId is { } activeOptionId)
             {
-                attributes["aria-activedescendant"] = ActiveOptionId!;
+                attributes["aria-activedescendant"] = activeOptionId;
             }
             if (string.IsNullOrWhiteSpace(Label)
                 && !HasAdditionalAccessibleName(attributes))
@@ -164,12 +163,10 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
             }
         }
 
-        if (_positionPending && _interop is not null)
+        if (_interop is not null && _listbox.TakePositionRequest(out var focusSearch))
         {
-            _positionPending = false;
-            var focus = _focusSearchPending ? _searchReference : (ElementReference?)null;
-            _focusSearchPending = false;
-            await _interop.SetOpenAsync(_instanceId, _isOpen, focus);
+            var focus = focusSearch ? _searchReference : (ElementReference?)null;
+            await _interop.SetOpenAsync(_instanceId, _listbox.IsOpen, focus);
         }
     }
 
@@ -192,20 +189,14 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
     {
         "bzs-select__option",
         selected ? "bzs-select__option--selected" : null,
-        index == _activeIndex ? "bzs-select__option--active" : null,
+        index == _listbox.ActiveIndex ? "bzs-select__option--active" : null,
         disabled ? "bzs-select__option--disabled" : null,
     }.Where(static value => value is not null));
 
     private static bool HasAdditionalAccessibleName(IReadOnlyDictionary<string, object> attributes) =>
         attributes.ContainsKey("aria-label") || attributes.ContainsKey("aria-labelledby");
 
-    private void Activate(int index)
-    {
-        if (index >= 0 && index < FilteredOptions.Count && !FilteredOptions[index].Disabled)
-        {
-            _activeIndex = index;
-        }
-    }
+    private void Activate(int index) => _listbox.Activate(index);
 
     private async Task ToggleAsync()
     {
@@ -214,46 +205,28 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
             return;
         }
 
-        if (_isOpen)
+        if (_listbox.IsOpen)
         {
             await CloseAsync(false);
         }
         else
         {
-            Open();
+            _listbox.Open();
         }
-    }
-
-    private void Open()
-    {
-        _isOpen = true;
-        _searchText = string.Empty;
-        _activeIndex = BzsSelectNavigation.FindInitialActiveIndex<TValue>(FilteredOptions, CurrentValue);
-        _positionPending = true;
-        _focusSearchPending = SearchEnabled;
     }
 
     private async Task CloseAsync(bool restoreFocus)
     {
-        if (!_isOpen)
+        if (!_listbox.IsOpen)
         {
             return;
         }
 
-        SetClosedState();
+        _listbox.Close();
         if (_interop is not null)
         {
             await _interop.SetOpenAsync(_instanceId, false, restoreFocus ? _triggerReference : null);
         }
-    }
-
-    private void SetClosedState()
-    {
-        _isOpen = false;
-        _searchText = string.Empty;
-        _activeIndex = -1;
-        _positionPending = false;
-        _focusSearchPending = false;
     }
 
     private async Task SelectAsync(BzsSelectOption<TValue> option)
@@ -267,11 +240,7 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
         await CloseAsync(true);
     }
 
-    private void OnSearchInput(ChangeEventArgs args)
-    {
-        _searchText = args.Value?.ToString() ?? string.Empty;
-        _activeIndex = BzsSelectNavigation.FindFirstEnabledIndex(FilteredOptions);
-    }
+    private void OnSearchInput(ChangeEventArgs args) => _listbox.Search(args.Value?.ToString());
 
     private void OnNativeChanged(ChangeEventArgs args)
     {
@@ -288,44 +257,21 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
             return;
         }
 
-        switch (args.Key)
+        switch (_listbox.HandleKey(args.Key))
         {
-            case "ArrowDown":
-                if (!_isOpen) Open(); else MoveActive(1);
+            case BzsListboxAction.CommitActive:
+                if (_listbox.ActiveOption is { } active)
+                {
+                    await SelectAsync(active);
+                }
                 break;
-            case "ArrowUp":
-                if (!_isOpen) Open(); else MoveActive(-1);
-                break;
-            case "Home" when _isOpen:
-                _activeIndex = BzsSelectNavigation.FindFirstEnabledIndex(FilteredOptions);
-                break;
-            case "End" when _isOpen:
-                _activeIndex = BzsSelectNavigation.FindLastEnabledIndex(FilteredOptions);
-                break;
-            case "Enter" when _isOpen:
-                await SelectActiveAsync();
-                break;
-            case " " when !_isOpen:
-                Open();
-                break;
-            case "Escape" when _isOpen:
-                await CloseAsync(true);
+            case BzsListboxAction.Closed:
+                if (_interop is not null)
+                {
+                    await _interop.SetOpenAsync(_instanceId, false, _triggerReference);
+                }
                 break;
         }
-    }
-
-    private async Task SelectActiveAsync()
-    {
-        var options = FilteredOptions;
-        if (_activeIndex >= 0 && _activeIndex < options.Count)
-        {
-            await SelectAsync(options[_activeIndex]);
-        }
-    }
-
-    private void MoveActive(int delta)
-    {
-        _activeIndex = BzsSelectNavigation.MoveActiveIndex(FilteredOptions, _activeIndex, delta);
     }
 
     private void ValidateOptions()
@@ -353,12 +299,12 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
     [JSInvokable]
     public Task CloseFromBrowserAsync() => InvokeAsync(() =>
     {
-        if (!_isOpen)
+        if (!_listbox.IsOpen)
         {
             return;
         }
 
-        SetClosedState();
+        _listbox.Close();
         StateHasChanged();
     });
 

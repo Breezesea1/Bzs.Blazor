@@ -438,31 +438,11 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
         }
     }
 
-    private int FindFirstEnabledIndex()
-    {
-        for (var index = 0; index < _suggestions.Count; index++)
-        {
-            if (!_suggestions[index].Disabled)
-            {
-                return index;
-            }
-        }
+    private int FindFirstEnabledIndex() =>
+        BzsListboxNavigation.FindFirstEnabled(_suggestions, static suggestion => suggestion.Disabled);
 
-        return -1;
-    }
-
-    private int FindLastEnabledIndex()
-    {
-        for (var index = _suggestions.Count - 1; index >= 0; index--)
-        {
-            if (!_suggestions[index].Disabled)
-            {
-                return index;
-            }
-        }
-
-        return -1;
-    }
+    private int FindLastEnabledIndex() =>
+        BzsListboxNavigation.FindLastEnabled(_suggestions, static suggestion => suggestion.Disabled);
 
     private void MoveActive(int delta)
     {
@@ -471,20 +451,11 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
             return;
         }
 
-        for (var offset = 1; offset <= _suggestions.Count; offset++)
-        {
-            var candidate = (_activeIndex + (delta * offset)) % _suggestions.Count;
-            if (candidate < 0)
-            {
-                candidate += _suggestions.Count;
-            }
-
-            if (!_suggestions[candidate].Disabled)
-            {
-                _activeIndex = candidate;
-                return;
-            }
-        }
+        _activeIndex = BzsListboxNavigation.Move(
+            _suggestions,
+            static suggestion => suggestion.Disabled,
+            _activeIndex,
+            delta);
     }
 
     private void ResetProviderState()

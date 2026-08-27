@@ -30,10 +30,18 @@ public sealed class SelectNavigationLogicTests
     }
 
     [Fact]
+    public void FilterOfEmptyOptionsYieldsNothing()
+    {
+        BzsSelectOption<string>[] options = [];
+
+        Assert.Empty(BzsSelectNavigation.Filter(options, "anything"));
+    }
+
+    [Fact]
     public void FindsFirstAndLastEnabledOptions()
     {
-        Assert.Equal(0, BzsSelectNavigation.FindFirstEnabledIndex(Options));
-        Assert.Equal(2, BzsSelectNavigation.FindLastEnabledIndex(Options));
+        Assert.Equal(0, BzsListboxNavigation.FindFirstEnabled(Options, static option => option.Disabled));
+        Assert.Equal(2, BzsListboxNavigation.FindLastEnabled(Options, static option => option.Disabled));
     }
 
     [Theory]
@@ -43,23 +51,9 @@ public sealed class SelectNavigationLogicTests
     [InlineData(0, -1, 2)]
     public void MovementSkipsDisabledOptionsAndWraps(int activeIndex, int delta, int expectedIndex)
     {
-        var result = BzsSelectNavigation.MoveActiveIndex(Options, activeIndex, delta);
+        var result = BzsListboxNavigation.Move(Options, static option => option.Disabled, activeIndex, delta);
 
         Assert.Equal(expectedIndex, result);
-    }
-
-    [Fact]
-    public void InitialIndexUsesTheEnabledSelectedOption()
-    {
-        Assert.Equal(2, BzsSelectNavigation.FindInitialActiveIndex(Options, "gamma"));
-    }
-
-    [Theory]
-    [InlineData("beta")]
-    [InlineData("missing")]
-    public void InitialIndexFallsBackToFirstEnabledOption(string selectedValue)
-    {
-        Assert.Equal(0, BzsSelectNavigation.FindInitialActiveIndex(Options, selectedValue));
     }
 
     [Fact]
@@ -67,11 +61,9 @@ public sealed class SelectNavigationLogicTests
     {
         BzsSelectOption<string>[] options = [];
 
-        Assert.Empty(BzsSelectNavigation.Filter(options, "anything"));
-        Assert.Equal(-1, BzsSelectNavigation.FindFirstEnabledIndex(options));
-        Assert.Equal(-1, BzsSelectNavigation.FindLastEnabledIndex(options));
-        Assert.Equal(-1, BzsSelectNavigation.FindInitialActiveIndex(options, "missing"));
-        Assert.Equal(-1, BzsSelectNavigation.MoveActiveIndex(options, 0, 1));
+        Assert.Equal(-1, BzsListboxNavigation.FindFirstEnabled(options, static option => option.Disabled));
+        Assert.Equal(-1, BzsListboxNavigation.FindLastEnabled(options, static option => option.Disabled));
+        Assert.Equal(-1, BzsListboxNavigation.Move(options, static option => option.Disabled, 0, 1));
     }
 
     [Fact]
@@ -83,10 +75,9 @@ public sealed class SelectNavigationLogicTests
             new("beta", "Beta", disabled: true),
         ];
 
-        Assert.Equal(-1, BzsSelectNavigation.FindFirstEnabledIndex(options));
-        Assert.Equal(-1, BzsSelectNavigation.FindLastEnabledIndex(options));
-        Assert.Equal(-1, BzsSelectNavigation.FindInitialActiveIndex(options, "alpha"));
-        Assert.Equal(-1, BzsSelectNavigation.MoveActiveIndex(options, -1, 1));
-        Assert.Equal(-1, BzsSelectNavigation.MoveActiveIndex(options, -1, -1));
+        Assert.Equal(-1, BzsListboxNavigation.FindFirstEnabled(options, static option => option.Disabled));
+        Assert.Equal(-1, BzsListboxNavigation.FindLastEnabled(options, static option => option.Disabled));
+        Assert.Equal(-1, BzsListboxNavigation.Move(options, static option => option.Disabled, -1, 1));
+        Assert.Equal(-1, BzsListboxNavigation.Move(options, static option => option.Disabled, -1, -1));
     }
 }
