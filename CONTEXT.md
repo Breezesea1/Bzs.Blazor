@@ -25,8 +25,12 @@ The active light, dark, or system-following appearance selected by a consumer ap
 _Avoid_: Stored theme, application preference, color scheme setting
 
 **Anchored Overlay**:
-Transient content positioned relative to an on-page anchor or invocation point, including popovers, tooltips, menus, context menus, and autocomplete suggestions.
+Transient content positioned relative to an on-page anchor or invocation point, including popovers, tooltips, menus, context menus, autocomplete suggestions, select panels, and date picker calendars.
 _Avoid_: Floating panel, popover infrastructure, portal
+
+**Option List**:
+A set of selectable options presented in an Anchored Overlay, together with which option is currently active for keyboard interaction. Distinct from the selection itself, which the owning control holds and may be single or multiple.
+_Avoid_: Dropdown, listbox state, option collection
 
 **Demo Catalog**:
 The shared set of demonstration pages and chrome, hosted in `Bzs.Blazor.Demo.Catalog` and reused by the standalone WebAssembly and server demo hosts, through which visitors explore the component library. All visitor-facing copy is bilingual: zh-Hans is the default culture and en-US is available through the language switcher.
