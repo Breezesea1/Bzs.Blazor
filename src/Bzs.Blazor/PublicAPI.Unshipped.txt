@@ -1,4 +1,7 @@
 #nullable enable
+*REMOVED*Bzs.Blazor.BzsDateInput<TValue>.CloseFromBrowserAsync() -> System.Threading.Tasks.Task!
+*REMOVED*Bzs.Blazor.BzsMultiSelect<TValue>.CloseFromBrowserAsync() -> System.Threading.Tasks.Task!
+*REMOVED*Bzs.Blazor.BzsSelect<TValue>.CloseFromBrowserAsync() -> System.Threading.Tasks.Task!
 *REMOVED*Bzs.Blazor.BzsThemeColors.BzsThemeColors(string! Canvas, string! Surface, string! SurfaceRaised, string! SurfaceInset, string! SurfaceOverlay, string! Text, string! TextMuted, string! Border, string! FocusRing, string! Primary, string! OnPrimary, string! Success, string! Warning, string! Error, string! Info, string! DisabledSurface, string! DisabledText) -> void
 *REMOVED*Bzs.Blazor.BzsThemeColors.Deconstruct(out string! Canvas, out string! Surface, out string! SurfaceRaised, out string! SurfaceInset, out string! SurfaceOverlay, out string! Text, out string! TextMuted, out string! Border, out string! FocusRing, out string! Primary, out string! OnPrimary, out string! Success, out string! Warning, out string! Error, out string! Info, out string! DisabledSurface, out string! DisabledText) -> void
 Bzs.Blazor.BzsAutocomplete<TValue>
@@ -430,6 +433,7 @@ Bzs.Blazor.BzsDataGridTextOperator.IsEmpty = 5 -> Bzs.Blazor.BzsDataGridTextOper
 Bzs.Blazor.BzsDataGridTextOperator.IsNotEmpty = 6 -> Bzs.Blazor.BzsDataGridTextOperator
 Bzs.Blazor.BzsDataGridTextOperator.NotContains = 4 -> Bzs.Blazor.BzsDataGridTextOperator
 Bzs.Blazor.BzsDataGridTextOperator.StartsWith = 1 -> Bzs.Blazor.BzsDataGridTextOperator
+Bzs.Blazor.BzsDateInput<TValue>.CloseFromBrowserAsync(bool restoreFocus = false) -> System.Threading.Tasks.Task!
 Bzs.Blazor.BzsFileUpload
 Bzs.Blazor.BzsFileUpload.Accept.get -> string?
 Bzs.Blazor.BzsFileUpload.Accept.set -> void
@@ -518,6 +522,7 @@ Bzs.Blazor.BzsMenuItem.ShortcutContent.get -> Microsoft.AspNetCore.Components.Re
 Bzs.Blazor.BzsMenuItem.ShortcutContent.set -> void
 Bzs.Blazor.BzsMenuItem.Text.get -> string?
 Bzs.Blazor.BzsMenuItem.Text.set -> void
+Bzs.Blazor.BzsMultiSelect<TValue>.CloseFromBrowserAsync(bool restoreFocus = false) -> System.Threading.Tasks.Task!
 Bzs.Blazor.BzsNavItem
 Bzs.Blazor.BzsNavItem.AccessibleName.get -> string?
 Bzs.Blazor.BzsNavItem.AccessibleName.set -> void
@@ -640,6 +645,7 @@ Bzs.Blazor.BzsPopoverPlacement.Start = 6 -> Bzs.Blazor.BzsPopoverPlacement
 Bzs.Blazor.BzsPopoverPlacement.Top = 4 -> Bzs.Blazor.BzsPopoverPlacement
 Bzs.Blazor.BzsPopoverPlacement.TopEnd = 5 -> Bzs.Blazor.BzsPopoverPlacement
 Bzs.Blazor.BzsPopoverPlacement.TopStart = 3 -> Bzs.Blazor.BzsPopoverPlacement
+Bzs.Blazor.BzsSelect<TValue>.CloseFromBrowserAsync(bool restoreFocus = false) -> System.Threading.Tasks.Task!
 Bzs.Blazor.BzsSkeleton
 Bzs.Blazor.BzsSkeleton.Animated.get -> bool
 Bzs.Blazor.BzsSkeleton.Animated.set -> void

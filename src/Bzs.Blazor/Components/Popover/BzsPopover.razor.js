@@ -92,9 +92,21 @@ function setOpenCore(
             const panel = getPanel(instance);
             if (panel) instance.resizeObserver.observe(panel);
         }
-    } else if (restoreFocus) {
-        getAnchor(instance)?.focus({ preventScroll: true });
+        focusInitialTarget(instance);
+    } else {
+        hideTopLayer(instance);
+        if (restoreFocus) {
+            getAnchor(instance)?.focus({ preventScroll: true });
+        }
     }
+}
+
+// A panel may nominate the element that receives focus once it opens — a select's search field.
+// Without the marker the panel opens without moving focus, which is the menu and popover default.
+function focusInitialTarget(instance) {
+    const target = getPanel(instance)?.querySelector('[data-bzs-anchored-initial-focus="true"]');
+    if (!target) return;
+    requestAnimationFrame(() => target.focus({ preventScroll: true }));
 }
 
 function ensureDocumentListeners() {
@@ -115,33 +127,94 @@ function handlePointerDown(event) {
 }
 
 function handleKeyDown(event) {
-    preventMenuNavigationDefault(event);
+    preventNavigationDefault(event);
     if (event.key !== 'Escape') return;
     const openInstances = [...instances.values()].filter(instance => instance.open && instance.closeOnEscape);
     const instance = openInstances.at(-1);
     if (!instance) return;
+    if (hasNestedOpenSurface(instance, event.target)) return;
     event.preventDefault();
     event.stopPropagation();
     requestClose(instance, true);
 }
 
-function preventMenuNavigationDefault(event) {
+// An anchored surface may contain its own closable surface — a period menu inside a calendar. The
+// inner level marks itself, and the surface's own key handler owns Escape while focus is inside it.
+// Focus outside the surface has no inner handler to reach, so the outer surface still closes.
+function hasNestedOpenSurface(instance, target) {
+    return instance.root.querySelector('[data-bzs-anchored-nested-open="true"]') !== null
+        && target instanceof Node
+        && instance.root.contains(target);
+}
+
+function preventNavigationDefault(event) {
     if (!(event.target instanceof Element)) return;
 
     const instance = [...instances.values()]
         .reverse()
-        .find(candidate => (candidate.root.matches('[data-bzs-menu="true"]')
-                || candidate.root.matches('[data-bzs-context-menu="true"]'))
+        .find(candidate => candidate.root.hasAttribute('data-bzs-anchored-keys')
             && candidate.root.contains(event.target));
     if (!instance) return;
 
-    const isMenuTrigger = instance.root.matches('[data-bzs-menu="true"]')
+    switch (instance.root.getAttribute('data-bzs-anchored-keys')) {
+        case 'menu':
+            preventMenuNavigationDefault(instance, event, true);
+            break;
+        case 'context-menu':
+            preventMenuNavigationDefault(instance, event, false);
+            break;
+        case 'listbox':
+            preventListboxNavigationDefault(instance, event);
+            break;
+        case 'calendar':
+            preventCalendarNavigationDefault(instance, event);
+            break;
+    }
+}
+
+function preventMenuNavigationDefault(instance, event, anchorOpensMenu) {
+    const isMenuTrigger = anchorOpensMenu
         && event.target.matches('[data-bzs-anchor="true"]')
         && (event.key === 'ArrowDown' || event.key === 'ArrowUp');
     const isMenuItem = instance.open
         && event.target.matches('[role="menuitem"], [role="menuitemcheckbox"]')
         && ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key);
     if (isMenuTrigger || isMenuItem) {
+        event.preventDefault();
+    }
+}
+
+function preventListboxNavigationDefault(instance, event) {
+    const isTrigger = event.target.matches('[role="combobox"]');
+    const isSearch = event.target.matches('input[type="search"]');
+    if (!isTrigger && !isSearch) return;
+
+    if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)
+        || (event.key === 'Enter' && instance.open)
+        || (event.key === ' ' && isTrigger)) {
+        event.preventDefault();
+    }
+}
+
+function preventCalendarNavigationDefault(instance, event) {
+    const isInput = event.target.matches('[data-bzs-anchor="true"]');
+    const isDay = event.target.matches('[data-bzs-date-picker-day="true"]');
+    const isPeriod = event.target.matches('[data-bzs-date-picker-period]');
+    if (!isInput && !isDay && !isPeriod) return;
+
+    if ((isInput && event.key === 'ArrowDown')
+        || (instance.open && [
+            'ArrowLeft',
+            'ArrowRight',
+            'ArrowUp',
+            'ArrowDown',
+            'Home',
+            'End',
+            'PageUp',
+            'PageDown',
+            'Escape'
+        ].includes(event.key))
+        || ((isDay || isPeriod) && ['Enter', ' '].includes(event.key))) {
         event.preventDefault();
     }
 }
@@ -163,6 +236,10 @@ function position(instance) {
     const panel = getPanel(instance);
     if (!anchor || !panel) return;
 
+    // Contract attributes are read on every pass: Blazor replaces the panel across renders.
+    const widthContract = panel.getAttribute('data-bzs-anchored-width');
+    showTopLayer(panel);
+
     const padding = 8;
     const gap = 4;
     const measuredAnchorRect = anchor.getBoundingClientRect();
@@ -182,7 +259,7 @@ function position(instance) {
     panel.style.top = '0';
     panel.style.visibility = 'hidden';
 
-    const containingBlock = findFixedContainingBlock(panel);
+    const containingBlock = isTopLayerOpen(panel) ? null : findFixedContainingBlock(panel);
     const containingRect = containingBlock?.getBoundingClientRect() ?? null;
     const scaleX = containingBlock?.offsetWidth > 0 && containingRect.width > 0
         ? containingRect.width / containingBlock.offsetWidth
@@ -192,7 +269,7 @@ function position(instance) {
         : 1;
     const availableWidth = Math.max(0, window.innerWidth - padding * 2);
     const availableHeight = Math.max(0, window.innerHeight - padding * 2);
-    panel.style.minWidth = `${Math.min(Math.max(measuredAnchorRect.width, 160), availableWidth) / scaleX}px`;
+    applyWidthContract(panel, widthContract, measuredAnchorRect.width, availableWidth, scaleX);
     panel.style.maxWidth = `${availableWidth / scaleX}px`;
     panel.style.maxHeight = `${availableHeight / scaleY}px`;
 
@@ -232,6 +309,53 @@ function findFixedContainingBlock(element) {
 
 function hasNonDefaultEffect(value) {
     return value !== undefined && value !== '' && value !== 'none';
+}
+
+// A panel declares how its width relates to the anchor: "match" tracks the anchor exactly (an
+// option list), "intrinsic" leaves the panel's own width alone (a calendar), and the default
+// floors the panel at the anchor width so a narrow trigger still gets a readable panel.
+function applyWidthContract(panel, contract, anchorWidth, availableWidth, scaleX) {
+    switch (contract) {
+        case 'match':
+            panel.style.width = `${Math.min(anchorWidth, availableWidth) / scaleX}px`;
+            break;
+        case 'intrinsic':
+            break;
+        default:
+            panel.style.minWidth = `${Math.min(Math.max(anchorWidth, 160), availableWidth) / scaleX}px`;
+            break;
+    }
+}
+
+// A panel may opt into the platform top layer so ancestor transforms and containment cannot
+// clip it. Browsers without a usable Popover API keep the in-place fixed-position fallback.
+function isTopLayerOpen(panel) {
+    if (typeof panel.showPopover !== 'function') return false;
+    try {
+        return panel.matches(':popover-open');
+    } catch {
+        return false;
+    }
+}
+
+function showTopLayer(panel) {
+    if (!panel.matches('[popover]') || typeof panel.showPopover !== 'function') return;
+    if (isTopLayerOpen(panel)) return;
+    try {
+        panel.showPopover();
+    } catch {
+        // The panel can be detached while an interactive render is closing.
+    }
+}
+
+function hideTopLayer(instance) {
+    const panel = getPanel(instance);
+    if (!panel || typeof panel.hidePopover !== 'function' || !isTopLayerOpen(panel)) return;
+    try {
+        panel.hidePopover();
+    } catch {
+        // The panel can be detached while an interactive render is closing.
+    }
 }
 
 function calculatePosition(placement, anchor, panel, gap, rtl) {
@@ -294,6 +418,7 @@ export function dispose(instanceId) {
     const instance = instances.get(instanceId);
     if (!instance) return;
     detachPositioning(instance);
+    hideTopLayer(instance);
     instances.delete(instanceId);
     if (instances.size === 0 && documentListenersAttached) {
         document.removeEventListener('pointerdown', handlePointerDown, true);

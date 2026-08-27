@@ -33,15 +33,15 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
     /// <summary>Gets or sets the clear-selection action text.</summary>
     [Parameter] public string? ClearSelectionText { get; set; }
 
+    private const int ImmediateInteropAttemptLimit = 2;
     private readonly string _instanceId = $"bzs-multi-select-{Guid.NewGuid():N}";
     private readonly BzsListboxState<TValue> _listbox;
     private ElementReference _rootReference;
-    private ElementReference _triggerReference;
-    private ElementReference _searchReference;
-    private DotNetObjectReference<BzsMultiSelect<TValue>>? _dotNetReference;
+    private BzsAnchoredOverlaySession? _overlaySession;
     private BzsSelectInterop? _interop;
     private bool _isInteractive;
     private bool _interopInitialized;
+    private int _interopInitializationAttemptCount;
     private bool _disposed;
 
     /// <summary>Initializes a new instance of the <see cref="BzsMultiSelect{TValue}"/> class.</summary>
@@ -97,6 +97,7 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
             {
                 ["type"] = "button",
                 ["role"] = "combobox",
+                ["data-bzs-anchor"] = "true",
                 ["aria-haspopup"] = "listbox",
                 ["aria-expanded"] = _listbox.IsOpen ? "true" : "false",
                 ["aria-controls"] = ListboxId,
@@ -156,6 +157,7 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
     {
         base.OnParametersSet();
         ValidateOptions();
+        UpdateOverlayState();
     }
 
     /// <inheritdoc />
@@ -168,24 +170,25 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
             return;
         }
 
-        if (!_interopInitialized)
+        if (_disposed)
         {
-            _interop ??= new BzsSelectInterop(JsRuntime, LoggerFactory);
-            _dotNetReference ??= DotNetObjectReference.Create(this);
-            _interopInitialized = await _interop.InitializeAsync(
-                _instanceId,
-                _rootReference,
-                _dotNetReference);
-            if (!_interopInitialized)
-            {
-                return;
-            }
+            return;
         }
 
-        if (_interop is not null && _listbox.TakePositionRequest(out var focusSearch))
+        await GetOverlaySession().AfterRenderAsync(_rootReference);
+        if (_disposed || _interopInitialized)
         {
-            var focus = focusSearch ? _searchReference : (ElementReference?)null;
-            await _interop.SetOpenAsync(_instanceId, _listbox.IsOpen, focus);
+            return;
+        }
+
+        _interop ??= new BzsSelectInterop(JsRuntime, LoggerFactory);
+        _interopInitializationAttemptCount++;
+        _interopInitialized = await _interop.InitializeAsync(_instanceId, _rootReference);
+        if (!_disposed
+            && !_interopInitialized
+            && _interopInitializationAttemptCount < ImmediateInteropAttemptLimit)
+        {
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -213,41 +216,36 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
 
     private void Activate(int index) => _listbox.Activate(index);
 
-    private async Task ToggleAsync()
+    private void ToggleAsync()
     {
         if (Disabled || ReadOnly) return;
-        if (_listbox.IsOpen) await CloseAsync(false); else _listbox.Open();
-    }
-
-    private async Task CloseAsync(bool restoreFocus)
-    {
-        if (!_listbox.IsOpen) return;
-        _listbox.Close();
-        if (_interop is not null)
+        if (_listbox.IsOpen)
         {
-            await _interop.SetOpenAsync(_instanceId, false, restoreFocus ? _triggerReference : null);
+            _ = GetOverlaySession().RequestCloseAsync(false);
+            return;
         }
+
+        _listbox.Open();
+        UpdateOverlayState();
     }
 
-    private Task ToggleOptionAsync(BzsSelectOption<TValue> option)
+    private void ToggleOptionAsync(BzsSelectOption<TValue> option)
     {
-        if (Disabled || ReadOnly || option.Disabled) return Task.CompletedTask;
+        if (Disabled || ReadOnly || option.Disabled) return;
 
         var selected = SelectedSet;
         if (!selected.Add(option.Value)) selected.Remove(option.Value);
         SetSelection(selected);
-        return Task.CompletedTask;
     }
 
-    private Task SelectVisibleAsync()
+    private void SelectVisibleAsync()
     {
         var selected = SelectedSet;
         foreach (var option in FilteredOptions.Where(static option => !option.Disabled)) selected.Add(option.Value);
         SetSelection(selected);
-        return Task.CompletedTask;
     }
 
-    private Task InvertVisibleAsync()
+    private void InvertVisibleAsync()
     {
         var selected = SelectedSet;
         foreach (var option in FilteredOptions.Where(static option => !option.Disabled))
@@ -255,10 +253,9 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
             if (!selected.Add(option.Value)) selected.Remove(option.Value);
         }
         SetSelection(selected);
-        return Task.CompletedTask;
     }
 
-    private Task ClearAsync()
+    private void ClearAsync()
     {
         var selected = SelectedSet;
         foreach (var option in FilteredOptions.Where(static option => !option.Disabled))
@@ -266,7 +263,6 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
             selected.Remove(option.Value);
         }
         SetSelection(selected);
-        return Task.CompletedTask;
     }
 
     private void SetSelection(HashSet<TValue> selected)
@@ -278,26 +274,47 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
 
     private void OnSearchInput(ChangeEventArgs args) => _listbox.Search(args.Value?.ToString());
 
-    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    private void HandleKeyDown(KeyboardEventArgs args)
     {
         if (Disabled || ReadOnly) return;
 
-        switch (_listbox.HandleKey(args.Key))
+        var action = _listbox.HandleKey(args.Key);
+        switch (action)
         {
-            case BzsListboxAction.CommitActive:
-                if (_listbox.ActiveOption is { } active)
-                {
-                    await ToggleOptionAsync(active);
-                }
+            case BzsListboxAction.CommitActive when _listbox.ActiveOption is { } active:
+                ToggleOptionAsync(active);
                 break;
-            case BzsListboxAction.Closed:
-                if (_interop is not null)
-                {
-                    await _interop.SetOpenAsync(_instanceId, false, _triggerReference);
-                }
+            case BzsListboxAction.CloseRequested:
+                _ = GetOverlaySession().RequestCloseAsync(true);
+                break;
+            case BzsListboxAction.Opened:
+                UpdateOverlayState();
                 break;
         }
     }
+
+    private BzsAnchoredOverlaySession GetOverlaySession() =>
+        _overlaySession ??= new BzsAnchoredOverlaySession(
+            JsRuntime,
+            HandleOverlayCloseRequestedAsync,
+            ImmediateInteropAttemptLimit,
+            LoggerFactory);
+
+    private void UpdateOverlayState() =>
+        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
+            _listbox.IsOpen,
+            BzsPopoverPlacement.BottomStart,
+            CloseOnOutsideInteraction: true,
+            CloseOnEscape: true));
+
+    private Task HandleOverlayCloseRequestedAsync() => InvokeAsync(() =>
+    {
+        if (!_listbox.IsOpen) return;
+
+        _listbox.Close();
+        UpdateOverlayState();
+        StateHasChanged();
+    });
 
     private void ValidateOptions()
     {
@@ -312,15 +329,16 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
         }
     }
 
-    /// <summary>Closes the option panel after an outside pointer interaction.</summary>
-    [JSInvokable]
-    public Task CloseFromBrowserAsync() => InvokeAsync(() =>
+    /// <summary>Closes the option panel after a browser-owned outside or Escape interaction.</summary>
+    public Task CloseFromBrowserAsync(bool restoreFocus = false)
     {
-        if (!_listbox.IsOpen) return;
+        if (_disposed || !_listbox.IsOpen)
+        {
+            return Task.CompletedTask;
+        }
 
-        _listbox.Close();
-        StateHasChanged();
-    });
+        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
+    }
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
@@ -334,6 +352,20 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
         try
         {
             Exception? disposalException = null;
+            if (_overlaySession is not null)
+            {
+                try
+                {
+                    await _overlaySession.DisposeAsync();
+                }
+                catch (Exception exception)
+                {
+                    disposalException = exception;
+                }
+
+                _overlaySession = null;
+            }
+
             if (_interop is not null)
             {
                 try
@@ -342,7 +374,7 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
                 }
                 catch (Exception exception)
                 {
-                    disposalException = exception;
+                    disposalException ??= exception;
                 }
 
                 try
@@ -354,16 +386,6 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
                     disposalException ??= exception;
                 }
             }
-
-            try
-            {
-                _dotNetReference?.Dispose();
-            }
-            catch (Exception exception)
-            {
-                disposalException ??= exception;
-            }
-            _dotNetReference = null;
 
             if (disposalException is not null)
             {

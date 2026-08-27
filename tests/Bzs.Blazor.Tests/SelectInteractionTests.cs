@@ -19,6 +19,10 @@ public sealed class SelectInteractionTests
     {
         using var context = new BunitContext();
         context.Services.AddBzsBlazor();
+        var overlayModule = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        overlayModule.SetupVoid("initialize", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("setOpen", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("dispose", _ => true).SetVoidResult();
         var module = context.JSInterop.SetupModule("./_content/Bzs.Blazor/Components/Form/BzsSelect.razor.js");
         module.SetupVoid("initialize", _ => true);
         module.SetupVoid("dispose", _ => true).SetException(new JSDisconnectedException("Circuit disconnected."));
@@ -37,6 +41,11 @@ public sealed class SelectInteractionTests
     {
         using var context = new BunitContext();
         context.Services.AddBzsBlazor();
+        var overlayModule = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        overlayModule.SetupVoid("initialize", _ => true)
+            .SetException(new ObjectDisposedException("DotNetObjectReference"));
+        overlayModule.SetupVoid("setOpen", _ => true);
+        overlayModule.SetupVoid("dispose", _ => true);
         var module = context.JSInterop.SetupModule("./_content/Bzs.Blazor/Components/Form/BzsSelect.razor.js");
         module.SetupVoid("initialize", _ => true)
             .SetException(new ObjectDisposedException("DotNetObjectReference"));
@@ -342,9 +351,13 @@ public sealed class SelectInteractionTests
     {
         var context = new BunitContext();
         context.Services.AddBzsBlazor();
+        var overlayModule = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        overlayModule.SetupVoid("initialize", _ => true);
+        overlayModule.SetupVoid("setOpen", _ => true);
+        overlayModule.SetupVoid("setOpenAt", _ => true);
+        overlayModule.SetupVoid("dispose", _ => true);
         var module = context.JSInterop.SetupModule("./_content/Bzs.Blazor/Components/Form/BzsSelect.razor.js");
         module.SetupVoid("initialize", _ => true);
-        module.SetupVoid("setOpen", _ => true);
         module.SetupVoid("dispose", _ => true);
         return context;
     }
@@ -369,10 +382,12 @@ public sealed class SelectInteractionTests
             EventCallback.Factory.Create<TValue>(model, _ => { }),
             addAttributes));
 
-        Assert.Equal(1, runtime.Module.InitializeAttempts);
-        cut.Find("[role='combobox']").Click();
+        // The overlay module retries a transient initialization failure immediately, so the panel
+        // still opens on the first interaction.
         Assert.Equal(2, runtime.Module.InitializeAttempts);
-        Assert.Equal(1, runtime.Module.SetOpenCalls);
+        Assert.Equal(0, runtime.Module.OpenCalls);
+        cut.Find("[role='combobox']").Click();
+        Assert.Equal(1, runtime.Module.OpenCalls);
     }
 
     private static IRenderedComponent<EditForm> RenderForm(
@@ -423,7 +438,7 @@ public sealed class SelectInteractionTests
     private sealed class RetryingJsModule : IJSObjectReference
     {
         internal int InitializeAttempts { get; private set; }
-        internal int SetOpenCalls { get; private set; }
+        internal int OpenCalls { get; private set; }
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
             InvokeAsync<TValue>(identifier, CancellationToken.None, args);
@@ -433,18 +448,29 @@ public sealed class SelectInteractionTests
             CancellationToken cancellationToken,
             object?[]? args)
         {
+            // Only the anchored overlay module owns the panel lifecycle; the select module carries
+            // native validation focus recovery and is not part of this scenario.
+            if (!IsAnchoredOverlayCall(args))
+            {
+                return ValueTask.FromResult(default(TValue)!);
+            }
+
             if (identifier == "initialize" && ++InitializeAttempts == 1)
             {
                 throw new TaskCanceledException("Transient initialization cancellation.");
             }
 
-            if (identifier == "setOpen")
+            if (identifier == "setOpen" && args is [_, true, ..])
             {
-                SetOpenCalls++;
+                OpenCalls++;
             }
 
             return ValueTask.FromResult(default(TValue)!);
         }
+
+        private static bool IsAnchoredOverlayCall(object?[]? args) =>
+            args is [string instanceId, ..]
+            && instanceId.StartsWith("bzs-anchored-overlay-", StringComparison.Ordinal);
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }

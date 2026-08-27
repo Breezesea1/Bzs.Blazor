@@ -67,6 +67,7 @@ public sealed partial class BzsMenu : BzsComponentBase, IBzsMenuOwner, IAsyncDis
                 StringComparer.OrdinalIgnoreCase)
             {
                 ["data-bzs-menu"] = "true",
+                ["data-bzs-anchored-keys"] = "menu",
                 ["data-bzs-open"] = Open ? "true" : "false",
             };
             return attributes;

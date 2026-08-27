@@ -2,11 +2,15 @@ using System.Globalization;
 
 namespace Bzs.Blazor;
 
+/// <summary>
+/// Carries the calendar-owned browser capabilities: the browser's current date, day focus, and
+/// scrolling the active period option into view. Panel positioning, outside interaction, and Escape
+/// belong to the anchored overlay module instead.
+/// </summary>
 internal sealed class BzsDateInputInterop : IAsyncDisposable
 {
     internal const string ModulePath = "./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js";
     internal const string InitializeMethod = "initialize";
-    internal const string SetOpenMethod = "setOpen";
     internal const string FocusActiveDayMethod = "focusActiveDay";
     internal const string ScrollActivePeriodOptionMethod = "scrollActivePeriodOption";
     internal const string DisposeMethod = "dispose";
@@ -24,19 +28,16 @@ internal sealed class BzsDateInputInterop : IAsyncDisposable
             new BzsJsModuleOptions(TreatObjectDisposedAsTransient: true));
     }
 
-    internal async ValueTask<BzsDateInputInitialization> InitializeAsync<T>(
+    internal async ValueTask<BzsDateInputInitialization> InitializeAsync(
         string instanceId,
         ElementReference root,
-        DotNetObjectReference<T> dotNetReference,
         CancellationToken cancellationToken = default)
-        where T : class
     {
         var invocation = await _module.TryInvokeAsync<string?>(
             InitializeMethod,
             cancellationToken,
             instanceId,
-            root,
-            dotNetReference);
+            root);
         if (!invocation.Succeeded || string.IsNullOrWhiteSpace(invocation.Result))
         {
             return default;
@@ -49,24 +50,6 @@ internal sealed class BzsDateInputInterop : IAsyncDisposable
             DateTimeStyles.None,
             out var today);
         return new BzsDateInputInitialization(true, parsed ? today : null);
-    }
-
-    internal async ValueTask<bool> SetOpenAsync(
-        string instanceId,
-        bool open,
-        double? pointerX,
-        double? pointerY,
-        bool focusCalendar,
-        ElementReference? focusTarget = null)
-    {
-        return await _module.TryInvokeVoidAsync(
-            SetOpenMethod,
-            instanceId,
-            open,
-            pointerX,
-            pointerY,
-            focusCalendar,
-            focusTarget);
     }
 
     internal async ValueTask FocusActiveDayAsync(string instanceId)

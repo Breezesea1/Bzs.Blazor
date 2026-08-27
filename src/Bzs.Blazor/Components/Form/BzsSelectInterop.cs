@@ -1,10 +1,14 @@
 namespace Bzs.Blazor;
 
+/// <summary>
+/// Carries native required-validation focus recovery for the enhanced select-family controls. The
+/// panel's positioning, outside interaction, and Escape handling belong to the anchored overlay
+/// module instead.
+/// </summary>
 internal sealed class BzsSelectInterop : IAsyncDisposable
 {
     internal const string ModulePath = "./_content/Bzs.Blazor/Components/Form/BzsSelect.razor.js";
     internal const string InitializeMethod = "initialize";
-    internal const string SetOpenMethod = "setOpen";
     internal const string DisposeMethod = "dispose";
 
     private readonly BzsJsModule _module;
@@ -20,26 +24,8 @@ internal sealed class BzsSelectInterop : IAsyncDisposable
             new BzsJsModuleOptions(TreatObjectDisposedAsTransient: true));
     }
 
-    internal async ValueTask<bool> InitializeAsync<T>(
-        string instanceId,
-        ElementReference root,
-        DotNetObjectReference<T> dotNetReference)
-        where T : class
-    {
-        return await _module.TryInvokeVoidAsync(
-            InitializeMethod,
-            instanceId,
-            root,
-            dotNetReference);
-    }
-
-    internal async ValueTask SetOpenAsync(
-        string instanceId,
-        bool open,
-        ElementReference? focusTarget = null)
-    {
-        await _module.TryInvokeVoidAsync(SetOpenMethod, instanceId, open, focusTarget);
-    }
+    internal ValueTask<bool> InitializeAsync(string instanceId, ElementReference root) =>
+        _module.TryInvokeVoidAsync(InitializeMethod, instanceId, root);
 
     internal async ValueTask DisposeInstanceAsync(string instanceId)
     {

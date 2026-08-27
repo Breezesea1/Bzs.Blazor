@@ -51,9 +51,8 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private readonly string _instanceId = $"bzs-date-picker-{Guid.NewGuid():N}";
     private readonly CancellationTokenSource _interopLifetimeCancellation = new();
     private ElementReference _rootReference;
-    private ElementReference _inputReference;
     private ElementReference _periodMenuReference;
-    private DotNetObjectReference<BzsDateInput<TValue>>? _dotNetReference;
+    private BzsAnchoredOverlaySession? _overlaySession;
     private BzsDateInputInterop? _interop;
     private Task<BzsDateInputInitialization>? _interopInitializationTask;
     private bool _disposed;
@@ -63,11 +62,6 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private bool _renderAfterInitialization;
     private bool _isOpen;
     private bool _openRequested;
-    private bool _openSyncPending;
-    private int _openSyncVersion;
-    private int _openSyncAttemptCount;
-    private bool _focusCalendarOnOpen;
-    private bool _restoreInputFocusOnClose;
     private bool _focusDayPending;
     private bool _scrollPeriodMenuPending;
     private double? _pointerX;
@@ -207,6 +201,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             {
                 SetClosedState();
             }
+            UpdateOverlayState();
             return;
         }
 
@@ -220,6 +215,8 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             _viewMonth = BzsDateCalendarMath.ClampMonth(_viewMonth, FirstAllowedDate, LastAllowedDate);
             SynchronizeOpenPeriodMenu();
         }
+
+        UpdateOverlayState();
     }
 
     /// <inheritdoc />
@@ -237,6 +234,12 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             return;
         }
 
+        await GetOverlaySession().AfterRenderAsync(_rootReference);
+        if (_disposed)
+        {
+            return;
+        }
+
         if (!_interopInitialized)
         {
             if (_interopInitializationPending)
@@ -246,7 +249,6 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             }
 
             _interop ??= new BzsDateInputInterop(JsRuntime, LoggerFactory);
-            _dotNetReference ??= DotNetObjectReference.Create(this);
             _interopInitializationPending = true;
             BzsDateInputInitialization initialization;
             try
@@ -254,7 +256,6 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
                 _interopInitializationTask = _interop.InitializeAsync(
                     _instanceId,
                     _rootReference,
-                    _dotNetReference,
                     _interopLifetimeCancellation.Token).AsTask();
                 initialization = await _interopInitializationTask;
             }
@@ -291,19 +292,8 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
                 await InvokeAsync(StateHasChanged);
                 return;
             }
-        }
 
-        if (_openSyncPending && _interop is not null)
-        {
-            var synchronized = await TrySynchronizeOpenStateAsync();
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (!synchronized
-                && _openSyncPending
-                && _openSyncAttemptCount < ImmediateOpenSyncAttemptLimit)
+            if (initialization.BrowserToday is not null)
             {
                 await InvokeAsync(StateHasChanged);
                 return;
@@ -488,6 +478,8 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 
     private void OpenAtPointer(MouseEventArgs args) => Open(args.ClientX, args.ClientY, false);
 
+    // Opening waits for the browser's current date so "today" is never rendered from the server
+    // clock. The request is replayed once initialization reports back.
     private void Open(double? pointerX, double? pointerY, bool focusCalendar)
     {
         if (Disabled || ReadOnly)
@@ -497,7 +489,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 
         _pointerX = pointerX;
         _pointerY = pointerY;
-        _focusCalendarOnOpen = focusCalendar;
+        _focusDayPending = focusCalendar;
         _openRequested = true;
         if (_interopInitialized)
         {
@@ -511,77 +503,68 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         {
             SynchronizeCalendarWithValue();
         }
+
         _isOpen = true;
         _openRequested = false;
-        RequestOpenSynchronization();
+        UpdateOverlayState();
     }
 
-    private async Task CloseAsync(bool restoreFocus)
+    private Task Close(bool restoreFocus)
     {
         if (!_isOpen && !_openRequested)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        var wasOpen = _isOpen;
-        SetClosedState(wasOpen && restoreFocus);
-        if (wasOpen && _interop is not null)
+        if (!_isOpen)
         {
-            await TrySynchronizeOpenStateAsync();
+            SetClosedState();
+            return Task.CompletedTask;
         }
+
+        // The session owns focus restoration, so it must observe the open state before it flips.
+        return GetOverlaySession().RequestCloseAsync(restoreFocus);
     }
 
-    private void SetClosedState(bool restoreInputFocus = false)
+    private void SetClosedState()
     {
         _isOpen = false;
         _openRequested = false;
         _pointerX = null;
         _pointerY = null;
-        _focusCalendarOnOpen = false;
-        _restoreInputFocusOnClose = restoreInputFocus;
         _focusDayPending = false;
         _scrollPeriodMenuPending = false;
         _openPeriodMenu = null;
-        RequestOpenSynchronization();
     }
 
-    private void RequestOpenSynchronization()
-    {
-        _openSyncVersion++;
-        _openSyncAttemptCount = 0;
-        _openSyncPending = true;
-    }
+    private BzsAnchoredOverlaySession GetOverlaySession() =>
+        _overlaySession ??= new BzsAnchoredOverlaySession(
+            JsRuntime,
+            HandleOverlayCloseRequestedAsync,
+            ImmediateOpenSyncAttemptLimit,
+            LoggerFactory);
 
-    private async Task<bool> TrySynchronizeOpenStateAsync()
+    private void UpdateOverlayState() =>
+        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
+            _isOpen,
+            BzsPopoverPlacement.BottomStart,
+            CloseOnOutsideInteraction: true,
+            CloseOnEscape: true,
+            _isOpen && _pointerX is { } x && _pointerY is { } y
+                ? new BzsAnchoredOverlayInvocationPoint(x, y)
+                : null));
+
+    private Task HandleOverlayCloseRequestedAsync() => InvokeAsync(() =>
     {
-        if (_interop is null)
+        if (!_isOpen)
         {
-            return false;
+            return;
         }
 
-        var version = _openSyncVersion;
-        var open = _isOpen;
-        var focusCalendar = open && _focusCalendarOnOpen;
-        var focusTarget = !open && _restoreInputFocusOnClose ? _inputReference : (ElementReference?)null;
-        _openSyncAttemptCount++;
-        var synchronized = await _interop.SetOpenAsync(
-            _instanceId,
-            open,
-            _pointerX,
-            _pointerY,
-            focusCalendar,
-            focusTarget);
-
-        if (!synchronized || _disposed || version != _openSyncVersion)
-        {
-            return false;
-        }
-
-        _openSyncPending = false;
-        _focusCalendarOnOpen = false;
-        _restoreInputFocusOnClose = false;
-        return true;
-    }
+        SetClosedState();
+        UpdateOverlayState();
+        StateHasChanged();
+    });
 
     private async Task HandleInputKeyDownAsync(KeyboardEventArgs args)
     {
@@ -603,8 +586,21 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         }
         else if (args.Key == "Escape" && (_isOpen || _openRequested))
         {
-            await CloseAsync(true);
+            await CloseFromEscapeAsync();
         }
+    }
+
+    // Escape closes the innermost open surface: a period menu first, the calendar only once no
+    // period menu is left open.
+    private Task CloseFromEscapeAsync()
+    {
+        if (_openPeriodMenu is not null)
+        {
+            _openPeriodMenu = null;
+            return Task.CompletedTask;
+        }
+
+        return Close(true);
     }
 
     private async Task HandleCalendarKeyDownAsync(KeyboardEventArgs args)
@@ -643,7 +639,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     }
 
     private Task HandleDialogKeyDownAsync(KeyboardEventArgs args) =>
-        args.Key == "Escape" ? CloseAsync(true) : Task.CompletedTask;
+        args.Key == "Escape" ? CloseFromEscapeAsync() : Task.CompletedTask;
 
     private void ActivatePeriodMenu(DatePeriodMenu menu, MouseEventArgs args)
     {
@@ -723,7 +719,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
                 }
                 else
                 {
-                    await CloseAsync(true);
+                    await Close(true);
                 }
                 break;
             case "Tab":
@@ -948,7 +944,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         CurrentValueAsString = FormatValueAsString(BzsDateValueAdapter<TValue>.CreateValue(date, CurrentValue));
         _focusedDate = date;
         _viewMonth = BzsDateCalendarMath.FirstOfMonth(date);
-        await CloseAsync(true);
+        await Close(true);
     }
 
     private Task SelectTodayAsync() => SelectDateAsync(Today);
@@ -958,7 +954,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         CurrentValueAsString = string.Empty;
         _focusedDate = BzsDateCalendarMath.ClampDate(Today, FirstAllowedDate, LastAllowedDate);
         _viewMonth = BzsDateCalendarMath.FirstOfMonth(_focusedDate);
-        await CloseAsync(true);
+        await Close(true);
     }
 
     private bool TryParseDateValue(string? value, out TValue result) => BzsDateValueAdapter<TValue>.TryParse(
@@ -1015,19 +1011,16 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         FirstAllowedDate,
         LastAllowedDate);
 
-    /// <summary>Closes the calendar after an outside pointer interaction.</summary>
-    [JSInvokable]
-    public Task CloseFromBrowserAsync() => InvokeAsync(() =>
+    /// <summary>Closes the calendar after a browser-owned outside or Escape interaction.</summary>
+    public Task CloseFromBrowserAsync(bool restoreFocus = false)
     {
-        if (!_isOpen)
+        if (_disposed || !_isOpen)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        SetClosedState();
-        _openSyncPending = false;
-        StateHasChanged();
-    });
+        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
+    }
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
@@ -1041,7 +1034,6 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         _interopLifetimeCancellation.Cancel();
         try
         {
-            _openRequested = false;
             _isOpen = false;
             if (_interopInitializationTask is not null)
             {
@@ -1056,6 +1048,20 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             }
 
             Exception? disposalException = null;
+            if (_overlaySession is not null)
+            {
+                try
+                {
+                    await _overlaySession.DisposeAsync();
+                }
+                catch (Exception exception)
+                {
+                    disposalException = exception;
+                }
+
+                _overlaySession = null;
+            }
+
             if (_interop is not null)
             {
                 try
@@ -1064,7 +1070,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
                 }
                 catch (Exception exception)
                 {
-                    disposalException = exception;
+                    disposalException ??= exception;
                 }
 
                 try
@@ -1076,8 +1082,6 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
                     disposalException ??= exception;
                 }
             }
-            _dotNetReference?.Dispose();
-            _dotNetReference = null;
 
             if (disposalException is not null)
             {

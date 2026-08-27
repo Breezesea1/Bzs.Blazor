@@ -12,11 +12,15 @@
     }
     else
     {
-        <div class="bzs-date-picker" lang="@ExplicitCultureName" dir="@ExplicitCultureDirection" @ref="_rootReference">
+        <div class="bzs-date-picker"
+             data-bzs-anchored-keys="calendar"
+             lang="@ExplicitCultureName"
+             dir="@ExplicitCultureDirection"
+             @ref="_rootReference">
             <div class="bzs-date-picker__input-shell">
                 <input @attributes="TextInputAttributes"
-                       @ref="_inputReference"
                        data-bzs-date-picker-input="true"
+                       data-bzs-anchor="true"
                        data-bzs-inline-overlay-owner="@_instanceId"
                        value="@CurrentValueAsString"
                        @onchange="OnTextChanged"
@@ -44,6 +48,8 @@
                      aria-modal="false"
                      aria-label="@LocalizeDatePicker("DatePickerCalendarLabel")"
                      data-bzs-date-picker-panel="true"
+                     data-bzs-anchored-panel="true"
+                     data-bzs-anchored-width="intrinsic"
                      @onkeydown="HandleDialogKeyDownAsync">
                     <header class="bzs-date-picker__header">
                         <button type="button"
@@ -78,6 +84,7 @@
                                          class="bzs-date-picker__period-menu"
                                          role="listbox"
                                          aria-label="@LocalizeDatePicker("DatePickerMonth")"
+                                         data-bzs-anchored-nested-open="true"
                                          @ref="_periodMenuReference">
                                         @foreach (var month in AvailableMonths)
                                         {
@@ -124,6 +131,7 @@
                                          class="bzs-date-picker__period-menu bzs-date-picker__period-menu--year"
                                          role="listbox"
                                          aria-label="@LocalizeDatePicker("DatePickerYear")"
+                                         data-bzs-anchored-nested-open="true"
                                          @ref="_periodMenuReference">
                                         @foreach (var year in AvailableYears)
                                         {

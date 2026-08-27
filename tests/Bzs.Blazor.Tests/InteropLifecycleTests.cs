@@ -142,13 +142,11 @@ public sealed class InteropLifecycleTests
     {
         var runtime = new LifecycleJsRuntime { BlockImport = true };
         await using var interop = new BzsDateInputInterop(runtime);
-        using var dotNetReference = DotNetObjectReference.Create(new object());
         using var cancellation = new CancellationTokenSource();
 
         var initialization = interop.InitializeAsync(
             "date-input",
             default,
-            dotNetReference,
             cancellation.Token).AsTask();
         await runtime.WaitForImportAsync();
 
@@ -168,12 +166,8 @@ public sealed class InteropLifecycleTests
     {
         var runtime = new LifecycleJsRuntime();
         await using var interop = new BzsDateInputInterop(runtime);
-        using var dotNetReference = DotNetObjectReference.Create(new object());
 
-        var initialization = await interop.InitializeAsync(
-            "date-input",
-            default,
-            dotNetReference);
+        var initialization = await interop.InitializeAsync("date-input", default);
 
         Assert.False(initialization.Initialized);
         Assert.Null(initialization.BrowserToday);

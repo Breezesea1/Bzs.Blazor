@@ -30,11 +30,10 @@
     }
     else
     {
-    <div class="bzs-select" @ref="_rootReference">
+    <div class="bzs-select" data-bzs-anchored-keys="listbox" @ref="_rootReference">
         <button @attributes="TriggerAttributes"
-                @ref="_triggerReference"
                 @onclick="ToggleAsync"
-                @onkeydown="HandleKeyDownAsync">
+                @onkeydown="HandleKeyDown">
             <span class="bzs-select__value @(SelectedOption is null ? "bzs-select__value--placeholder" : null)">
                 @SelectedText
             </span>
@@ -57,14 +56,17 @@
 
         @if (_listbox.IsOpen)
         {
-            <div class="bzs-select__panel" data-bzs-select-panel="true">
+            <div class="bzs-select__panel"
+                 data-bzs-select-panel="true"
+                 data-bzs-anchored-panel="true"
+                 data-bzs-anchored-width="match">
                 @if (SearchEnabled)
                 {
                     <label class="bzs-select__search">
                         <BzsIcon Icon="BzsIcons.Search" Class="bzs-select__search-icon" />
                         <input id="@SearchId"
-                               @ref="_searchReference"
                                type="search"
+                               data-bzs-anchored-initial-focus="true"
                                value="@_listbox.SearchText"
                                placeholder="@EffectiveSearchPlaceholder"
                                aria-label="@EffectiveSearchPlaceholder"
@@ -73,7 +75,7 @@
                                autocomplete="off"
                                spellcheck="false"
                                @oninput="OnSearchInput"
-                               @onkeydown="HandleKeyDownAsync" />
+                               @onkeydown="HandleKeyDown" />
                     </label>
                 }
 

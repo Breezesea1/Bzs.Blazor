@@ -155,16 +155,30 @@ public sealed class ListboxStateTests
     }
 
     [Fact]
-    public void EscapeClosesAndClearsTheActiveOption()
+    public void EscapeAsksTheOwnerToCloseWithoutClosingTheStateItself()
     {
         var state = CreateState();
         state.Open();
 
         var action = state.HandleKey("Escape");
 
-        Assert.Equal(BzsListboxAction.Closed, action);
+        // The owner drives the close so the overlay observes the open state before it flips.
+        Assert.Equal(BzsListboxAction.CloseRequested, action);
+        Assert.True(state.IsOpen);
+    }
+
+    [Fact]
+    public void ClosingClearsTheSearchAndTheActiveOption()
+    {
+        var state = CreateState(searchEnabled: true);
+        state.Open();
+        state.Search("gamma");
+
+        state.Close();
+
         Assert.False(state.IsOpen);
         Assert.Null(state.ActiveOption);
+        Assert.Equal(string.Empty, state.SearchText);
     }
 
     [Fact]
@@ -246,38 +260,6 @@ public sealed class ListboxStateTests
 
         Assert.Equal(string.Empty, state.SearchText);
         Assert.Equal(4, state.VisibleOptions.Count);
-    }
-
-    [Fact]
-    public void OpeningRequestsOnePositionCallCarryingTheSearchFocus()
-    {
-        var state = CreateState(searchEnabled: true);
-        state.Open();
-
-        Assert.True(state.TakePositionRequest(out var focusSearch));
-        Assert.True(focusSearch);
-        Assert.False(state.TakePositionRequest(out _));
-    }
-
-    [Fact]
-    public void OpeningWithoutSearchDoesNotRequestSearchFocus()
-    {
-        var state = CreateState();
-        state.Open();
-
-        Assert.True(state.TakePositionRequest(out var focusSearch));
-        Assert.False(focusSearch);
-    }
-
-    [Fact]
-    public void ClosingWithdrawsAnUnservedPositionRequest()
-    {
-        var state = CreateState(searchEnabled: true);
-        state.Open();
-        state.Close();
-
-        Assert.False(state.TakePositionRequest(out var focusSearch));
-        Assert.False(focusSearch);
     }
 
     [Fact]

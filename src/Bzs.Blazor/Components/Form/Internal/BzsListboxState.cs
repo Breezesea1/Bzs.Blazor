@@ -6,7 +6,7 @@ internal enum BzsListboxAction
     /// <summary>The key was not part of the option list contract.</summary>
     None,
 
-    /// <summary>The panel opened and a position request is pending.</summary>
+    /// <summary>The panel opened and the owner publishes the new open state.</summary>
     Opened,
 
     /// <summary>The active option moved within the open panel.</summary>
@@ -15,8 +15,8 @@ internal enum BzsListboxAction
     /// <summary>The owner applies its own selection semantics to the active option.</summary>
     CommitActive,
 
-    /// <summary>The panel closed and the owner restores focus to its trigger.</summary>
-    Closed,
+    /// <summary>The owner closes the panel and restores focus to its trigger.</summary>
+    CloseRequested,
 }
 
 /// <summary>
@@ -29,8 +29,6 @@ internal sealed class BzsListboxState<TValue>
     private readonly Func<bool> _searchEnabled;
     private readonly Func<TValue?>? _preferredActiveValue;
     private readonly bool _commitOnSpaceWhenOpen;
-    private bool _positionPending;
-    private bool _focusSearchPending;
 
     internal BzsListboxState(
         Func<IReadOnlyList<BzsSelectOption<TValue>>> options,
@@ -71,8 +69,6 @@ internal sealed class BzsListboxState<TValue>
         IsOpen = true;
         SearchText = string.Empty;
         ActiveIndex = FindInitialActive();
-        _positionPending = true;
-        _focusSearchPending = _searchEnabled();
     }
 
     internal void Close()
@@ -80,8 +76,6 @@ internal sealed class BzsListboxState<TValue>
         IsOpen = false;
         SearchText = string.Empty;
         ActiveIndex = -1;
-        _positionPending = false;
-        _focusSearchPending = false;
     }
 
     /// <summary>Activates an option by index, ignoring out-of-range and disabled options.</summary>
@@ -99,19 +93,6 @@ internal sealed class BzsListboxState<TValue>
     {
         SearchText = searchText ?? string.Empty;
         ActiveIndex = BzsListboxNavigation.FindFirstEnabled(VisibleOptions, static option => option.Disabled);
-    }
-
-    /// <summary>
-    /// Reports whether the owner owes the browser a position call, and clears the request. Returns
-    /// true at most once per open.
-    /// </summary>
-    internal bool TakePositionRequest(out bool focusSearch)
-    {
-        focusSearch = _focusSearchPending;
-        var pending = _positionPending;
-        _positionPending = false;
-        _focusSearchPending = false;
-        return pending;
     }
 
     /// <summary>Applies a key to the option list and reports the side effect the owner must perform.</summary>
@@ -143,8 +124,7 @@ internal sealed class BzsListboxState<TValue>
             case " " when _commitOnSpaceWhenOpen && !_searchEnabled():
                 return BzsListboxAction.CommitActive;
             case "Escape" when IsOpen:
-                Close();
-                return BzsListboxAction.Closed;
+                return BzsListboxAction.CloseRequested;
             default:
                 return BzsListboxAction.None;
         }

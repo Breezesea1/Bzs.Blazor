@@ -1000,12 +1000,16 @@ public sealed class FormsTests
         using var culture = new CultureScope("en-US");
         using var context = new BunitContext();
         context.Services.AddBzsBlazor();
+        var overlayModule = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        overlayModule.SetupVoid("initialize", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("setOpen", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("setOpenAt", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("dispose", _ => true).SetVoidResult();
         var dateModule = context.JSInterop.SetupModule(
             "./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js");
         var initialization = dateModule
             .Setup<string>("initialize", _ => true)
             .SetException(new TaskCanceledException("Date module is still loading."));
-        dateModule.SetupVoid("setOpen", _ => true);
         dateModule.SetupVoid("focusActiveDay", _ => true);
         dateModule.SetupVoid("dispose", _ => true);
         var model = new FormModel();
@@ -1033,12 +1037,16 @@ public sealed class FormsTests
         using var culture = new CultureScope("en-US");
         using var context = new BunitContext();
         context.Services.AddBzsBlazor();
+        var overlayModule = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        overlayModule.SetupVoid("initialize", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("setOpen", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("setOpenAt", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("dispose", _ => true).SetVoidResult();
         var dateModule = context.JSInterop.SetupModule(
             "./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js");
         var initialization = dateModule
             .Setup<string>("initialize", _ => true)
             .SetException(new TaskCanceledException("Date module is still loading."));
-        dateModule.SetupVoid("setOpen", _ => true);
         dateModule.SetupVoid("focusActiveDay", _ => true);
         dateModule.SetupVoid("dispose", _ => true);
         var model = new FormModel();
@@ -1066,11 +1074,15 @@ public sealed class FormsTests
         using var culture = new CultureScope("en-US");
         using var context = new BunitContext();
         context.Services.AddBzsBlazor();
+        var overlayModule = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        overlayModule.SetupVoid("initialize", _ => true).SetVoidResult();
+        var setOpen = overlayModule.SetupVoid("setOpenAt", _ => true)
+            .SetException(new TaskCanceledException("Overlay module call was interrupted."));
+        overlayModule.SetupVoid("setOpen", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("dispose", _ => true).SetVoidResult();
         var dateModule = context.JSInterop.SetupModule(
             "./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js");
         dateModule.Setup<string>("initialize", _ => true).SetResult("2031-02-03");
-        var setOpen = dateModule.SetupVoid("setOpen", _ => true)
-            .SetException(new TaskCanceledException("Date module call was interrupted."));
         dateModule.SetupVoid("focusActiveDay", _ => true);
         dateModule.SetupVoid("dispose", _ => true);
         var model = new FormModel();
@@ -1084,12 +1096,12 @@ public sealed class FormsTests
 
         cut.Find("input[role='combobox']").Click();
 
-        setOpen.VerifyInvoke("setOpen", 2);
+        setOpen.VerifyInvoke("setOpenAt", 2);
         setOpen.SetVoidResult();
         cut.Render();
-        setOpen.VerifyInvoke("setOpen", 3);
+        setOpen.VerifyInvoke("setOpenAt", 3);
         cut.Render();
-        setOpen.VerifyInvoke("setOpen", 3);
+        setOpen.VerifyInvoke("setOpenAt", 3);
     }
 
     [Fact]
@@ -1098,10 +1110,14 @@ public sealed class FormsTests
         using var culture = new CultureScope("en-US");
         using var context = new BunitContext();
         context.Services.AddBzsBlazor();
+        var overlayModule = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        overlayModule.SetupVoid("initialize", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("setOpen", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("setOpenAt", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("dispose", _ => true).SetVoidResult();
         var dateModule = context.JSInterop.SetupModule(
             "./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js");
         var initialization = dateModule.Setup<string>("initialize", _ => true);
-        dateModule.SetupVoid("setOpen", _ => true);
         dateModule.SetupVoid("focusActiveDay", _ => true);
         var dispose = dateModule.SetupVoid("dispose", _ => true).SetVoidResult();
         var model = new FormModel();
@@ -1114,7 +1130,7 @@ public sealed class FormsTests
 
         await disposal.WaitAsync(TimeSpan.FromSeconds(5));
         dispose.VerifyInvoke("dispose");
-        dateModule.VerifyNotInvoke("setOpen");
+        overlayModule.VerifyNotInvoke("setOpenAt");
 
         initialization.SetResult("2031-02-03");
     }
@@ -1601,16 +1617,19 @@ public sealed class FormsTests
     {
         var context = new BunitContext();
         context.Services.AddBzsBlazor();
+        var overlayModule = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
+        overlayModule.SetupVoid("initialize", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("setOpen", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("setOpenAt", _ => true).SetVoidResult();
+        overlayModule.SetupVoid("dispose", _ => true).SetVoidResult();
         var module = context.JSInterop.SetupModule("./_content/Bzs.Blazor/Components/Form/BzsSelect.razor.js");
         module.SetupVoid("initialize", _ => true);
-        module.SetupVoid("setOpen", _ => true);
         module.SetupVoid("dispose", _ => true);
         var passwordModule = context.JSInterop.SetupModule("./_content/Bzs.Blazor/Components/Form/BzsPasswordInput.razor.js");
         passwordModule.SetupVoid("captureSelection", _ => true).SetVoidResult();
         passwordModule.SetupVoid("restoreFocusAndSelection", _ => true).SetVoidResult();
         var dateModule = context.JSInterop.SetupModule("./_content/Bzs.Blazor/Components/Form/BzsDateInput.razor.js");
         dateModule.Setup<string>("initialize", _ => true).SetResult("2031-02-03");
-        dateModule.SetupVoid("setOpen", _ => true);
         dateModule.SetupVoid("focusActiveDay", _ => true);
         dateModule.SetupVoid("scrollActivePeriodOption", _ => true);
         dateModule.SetupVoid("dispose", _ => true);

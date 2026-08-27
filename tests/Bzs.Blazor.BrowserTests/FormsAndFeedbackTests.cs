@@ -9,6 +9,9 @@ namespace Bzs.Blazor.BrowserTests;
 [Collection(DemoCollection.Name)]
 public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGatePageTest
 {
+    // Every anchored surface shares the overlay module's gap between the anchor and the panel.
+    private const int AnchoredOverlayGap = 4;
+
     [Fact]
     public async Task DatePickerSurvivesLanguageAndEnhancedNavigationWithoutBrowserErrors()
     {
@@ -200,7 +203,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         var panelBox = await panel.BoundingBoxAsync();
         Assert.NotNull(panelBox);
         Assert.InRange(Math.Abs(panelBox.X - clickX), 0, 2);
-        Assert.InRange(Math.Abs(panelBox.Y - (clickY + 8)), 0, 2);
+        Assert.InRange(Math.Abs(panelBox.Y - (clickY + AnchoredOverlayGap)), 0, 2);
 
         await Page.EvaluateAsync("window.scrollBy(0, 40)");
         await Page.EvaluateAsync("() => new Promise(resolve => requestAnimationFrame(resolve))");
@@ -209,7 +212,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         Assert.NotNull(scrolledInputBox);
         Assert.NotNull(scrolledPanelBox);
         Assert.InRange(Math.Abs(scrolledPanelBox.X - (scrolledInputBox.X + clickPosition.X)), 0, 2);
-        Assert.InRange(Math.Abs(scrolledPanelBox.Y - (scrolledInputBox.Y + clickPosition.Y + 8)), 0, 2);
+        Assert.InRange(Math.Abs(scrolledPanelBox.Y - (scrolledInputBox.Y + clickPosition.Y + AnchoredOverlayGap)), 0, 2);
 
         await input.PressAsync("Escape");
         await Expect(panel).ToHaveCountAsync(0);
@@ -573,7 +576,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
             var panelBox = await panel.BoundingBoxAsync();
             Assert.NotNull(panelBox);
             Assert.InRange(Math.Abs(panelBox.X - (inputBox.X + clickPosition.X)), 0, 2);
-            Assert.InRange(Math.Abs(panelBox.Y - (inputBox.Y + clickPosition.Y + 8)), 0, 2);
+            Assert.InRange(Math.Abs(panelBox.Y - (inputBox.Y + clickPosition.Y + AnchoredOverlayGap)), 0, 2);
 
             var grid = panel.GetByRole(AriaRole.Grid);
             var initialMonth = await grid.GetAttributeAsync("aria-label");
@@ -635,7 +638,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
             var panelBox = await panel.BoundingBoxAsync();
             Assert.NotNull(panelBox);
             var horizontalDelta = Math.Abs(panelBox.X - (inputBox.X + clickPosition.X));
-            var verticalDelta = Math.Abs(panelBox.Y - (inputBox.Y + clickPosition.Y + 8));
+            var verticalDelta = Math.Abs(panelBox.Y - (inputBox.Y + clickPosition.Y + AnchoredOverlayGap));
             Assert.True(
                 horizontalDelta <= 2,
                 $"Expected fallback horizontal alignment for {containingBlock.Property}: {containingBlock.Value}; delta was {horizontalDelta}.");
