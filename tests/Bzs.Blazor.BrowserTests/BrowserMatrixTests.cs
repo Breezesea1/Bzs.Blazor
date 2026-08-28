@@ -12,134 +12,46 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
         Microsoft.Playwright.Assertions.SetDefaultExpectTimeout(30_000);
         var target = Environment.GetEnvironmentVariable("BZS_BROWSER_MATRIX_TARGET")?.Trim().ToLowerInvariant()
             ?? "chromium";
-        var artifactDirectory = GetArtifactDirectory(target);
-        if (Directory.Exists(artifactDirectory))
-        {
-            Directory.Delete(artifactDirectory, recursive: true);
-        }
+        var artifactDirectory = PrepareArtifactDirectory(target);
 
-        Directory.CreateDirectory(artifactDirectory);
-
+        // This test picks its own browser per target, so it cannot inherit the xunit page fixture.
+        // It observes through the same module the gate base class uses, which also gains it the
+        // page-error signal its hand-rolled observation never collected.
+        var observation = new BrowserObservation();
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await LaunchBrowserAsync(playwright, target);
         await using var context = await CreateContextAsync(browser, playwright, target);
-        await context.Tracing.StartAsync(new TracingStartOptions
-        {
-            Screenshots = true,
-            Snapshots = true,
-            Sources = true,
-        });
+        await observation.ObserveAsync(context);
 
         var page = await context.NewPageAsync();
-        IPage? productivityPage = null;
-        IPage? localizationPage = null;
-        var consoleMessages = new List<string>();
-        var consoleErrors = new List<string>();
-        var requests = new List<string>();
-        var failedRequests = new List<string>();
-        var unexpectedFailedRequests = new List<string>();
-        var responses = new List<string>();
-        var badResponses = new List<string>();
-
-        void ObservePage(IPage observedPage)
-        {
-            observedPage.Console += (_, message) =>
-            {
-                consoleMessages.Add($"{message.Type}: {message.Text}");
-                if (string.Equals(message.Type, "error", StringComparison.OrdinalIgnoreCase))
-                {
-                    consoleErrors.Add(message.Text);
-                }
-            };
-            observedPage.Request += (_, request) => requests.Add($"{request.Method} {request.Url}");
-            observedPage.RequestFailed += (_, request) =>
-            {
-                var message = $"{request.Method} {request.Url}: {request.Failure}";
-                failedRequests.Add(message);
-                if (!string.Equals(request.Failure, "net::ERR_ABORTED", StringComparison.OrdinalIgnoreCase))
-                {
-                    unexpectedFailedRequests.Add(message);
-                }
-            };
-            observedPage.Response += (_, response) =>
-            {
-                responses.Add($"{response.Status} {response.Request.Method} {response.Url}");
-                if (response.Status >= 400)
-                {
-                    badResponses.Add($"{response.Status} {response.Url}");
-                }
-            };
-        }
-
-        ObservePage(page);
+        observation.PrimaryContext = context;
+        observation.PrimaryPage = page;
 
         try
         {
+            observation.Observe(page, "workflow");
             await RunInteractiveAutoWorkflowAsync(page, server.BaseUrl, target);
-            productivityPage = await context.NewPageAsync();
-            ObservePage(productivityPage);
+
+            var productivityPage = await context.NewPageAsync();
+            observation.Observe(productivityPage, "productivity");
             await RunProductivityWorkflowAsync(productivityPage, server.BaseUrl, target);
-            localizationPage = await context.NewPageAsync();
-            ObservePage(localizationPage);
+
+            var localizationPage = await context.NewPageAsync();
+            observation.Observe(localizationPage, "rtl");
             await RunLocalizationAndRtlWorkflowAsync(localizationPage, server.BaseUrl, target);
+
+            var errorResponses = observation.GetErrorResponses();
             Assert.True(
-                badResponses.Count == 0,
-                $"{target} returned HTTP errors:{Environment.NewLine}{string.Join(Environment.NewLine, badResponses)}");
+                errorResponses.Count == 0,
+                $"{target} returned HTTP errors:{Environment.NewLine}{string.Join(Environment.NewLine, errorResponses)}");
+            var errors = observation.GetUnexpectedErrors();
             Assert.True(
-                unexpectedFailedRequests.Count == 0,
-                $"{target} had failed requests:{Environment.NewLine}{string.Join(Environment.NewLine, unexpectedFailedRequests)}");
-            Assert.True(
-                consoleErrors.Count == 0,
-                $"{target} wrote console errors:{Environment.NewLine}{string.Join(Environment.NewLine, consoleErrors)}");
+                errors.Count == 0,
+                $"{target} reported browser errors:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
         }
         finally
         {
-            await TryCaptureArtifactAsync(async () =>
-            {
-                await page.ScreenshotAsync(new PageScreenshotOptions
-                {
-                    Path = Path.Combine(artifactDirectory, "workflow.png"),
-                    FullPage = true,
-                });
-            });
-            if (localizationPage is not null)
-            {
-                await TryCaptureArtifactAsync(async () =>
-                {
-                    await localizationPage.ScreenshotAsync(new PageScreenshotOptions
-                    {
-                        Path = Path.Combine(artifactDirectory, "rtl.png"),
-                        FullPage = true,
-                    });
-                });
-            }
-            if (productivityPage is not null)
-            {
-                await TryCaptureArtifactAsync(async () =>
-                {
-                    await productivityPage.ScreenshotAsync(new PageScreenshotOptions
-                    {
-                        Path = Path.Combine(artifactDirectory, "productivity.png"),
-                        FullPage = true,
-                    });
-                });
-            }
-
-            await TryCaptureArtifactAsync(() =>
-                File.WriteAllLinesAsync(Path.Combine(artifactDirectory, "console.log"), consoleMessages));
-            await TryCaptureArtifactAsync(() =>
-                File.WriteAllLinesAsync(Path.Combine(artifactDirectory, "requests.log"), requests));
-            await TryCaptureArtifactAsync(() =>
-                File.WriteAllLinesAsync(Path.Combine(artifactDirectory, "request-failures.log"), failedRequests));
-            await TryCaptureArtifactAsync(() =>
-                File.WriteAllLinesAsync(Path.Combine(artifactDirectory, "responses.log"), responses));
-            await TryCaptureArtifactAsync(async () =>
-            {
-                await context.Tracing.StopAsync(new TracingStopOptions
-                {
-                    Path = Path.Combine(artifactDirectory, "trace.zip"),
-                });
-            });
+            await observation.CaptureAsync(artifactDirectory);
         }
     }
 
@@ -325,25 +237,20 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
             }),
         };
 
-    private static string GetArtifactDirectory(string target)
+    private static string PrepareArtifactDirectory(string target)
     {
         var configuredDirectory = Environment.GetEnvironmentVariable("BZS_BROWSER_ARTIFACTS");
         var root = string.IsNullOrWhiteSpace(configuredDirectory)
             ? Path.Combine(AppContext.BaseDirectory, "artifacts", "browser-matrix")
             : configuredDirectory;
+        var artifactDirectory = Path.Combine(root, RepositoryLayout.SanitizePathSegment(target));
+        if (Directory.Exists(artifactDirectory))
+        {
+            Directory.Delete(artifactDirectory, recursive: true);
+        }
 
-        return Path.Combine(root, target);
+        Directory.CreateDirectory(artifactDirectory);
+        return artifactDirectory;
     }
 
-    private static async Task TryCaptureArtifactAsync(Func<Task> capture)
-    {
-        try
-        {
-            await capture();
-        }
-        catch
-        {
-            // Preserve the workflow result when artifact capture is unavailable.
-        }
-    }
 }

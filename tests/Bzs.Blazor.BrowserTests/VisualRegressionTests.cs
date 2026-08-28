@@ -169,7 +169,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
             AriaRole.Radiogroup,
             new() { Name = languageSwitcherAccessibleName, Exact = true })).ToBeVisibleAsync();
         await Page.EvaluateAsync("() => document.activeElement instanceof HTMLElement && document.activeElement.blur()");
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryLayout.Root;
         var baselineDirectory = Path.Combine(
             repositoryRoot,
             "tests",
@@ -264,19 +264,4 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
 
     private const float InteractiveReadinessTimeout = 60_000;
 
-    private static string FindRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "Bzs.Blazor.slnx")))
-            {
-                return directory.FullName;
-            }
-
-            directory = directory.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Bzs.Blazor repository root.");
-    }
 }

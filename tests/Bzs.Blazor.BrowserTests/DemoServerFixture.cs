@@ -18,7 +18,7 @@ public sealed class DemoServerFixture : IAsyncLifetime
             return;
         }
 
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryLayout.Root;
         var projectPath = Path.Combine(
             repositoryRoot,
             "samples",
@@ -119,21 +119,6 @@ public sealed class DemoServerFixture : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    private static string FindRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "Bzs.Blazor.slnx")))
-            {
-                return directory.FullName;
-            }
-
-            directory = directory.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Bzs.Blazor repository root.");
-    }
 }
 
 [CollectionDefinition(Name)]
