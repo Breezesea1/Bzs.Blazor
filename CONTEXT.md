@@ -36,6 +36,10 @@ _Avoid_: Dropdown, listbox state, option collection
 Which asynchronous data request is current for a provider-backed component, and the accepted page, failure, and loading state derived from it. It owns queueing a request raised before interactive rendering, dropping a request equal to the one already started, cancelling a superseded call, and keeping the last accepted page visible across a failure. Distinct from the controlled parameters the consumer supplies, which describe the request the component would like to be current.
 _Avoid_: Refresh flag, loading state, request queue
 
+**Period Menu**:
+One of the two Option Lists in a date picker's calendar header through which a visitor jumps the calendar to another month or year. It owns which of the two is open, which option is active for keyboard interaction, and the typeahead buffer letter keys accumulate into; the owning control moves the calendar view and renders the options.
+_Avoid_: Month dropdown, year selector, header combobox
+
 **Demo Catalog**:
 The shared set of demonstration pages and chrome, hosted in `Bzs.Blazor.Demo.Catalog` and reused by the standalone WebAssembly and server demo hosts, through which visitors explore the component library. All visitor-facing copy is bilingual: zh-Hans is the default culture and en-US is available through the language switcher.
 _Avoid_: Demo app, sample site, playground

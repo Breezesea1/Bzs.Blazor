@@ -16,7 +16,6 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 {
     private const string NativeDateFormat = "yyyy-MM-dd";
     private const int ImmediateOpenSyncAttemptLimit = 2;
-    private const int PeriodTypeaheadResetMilliseconds = 2_000;
     private static readonly DateOnly[] DateFormatValidationDates =
     [
         new(2000, 2, 29),
@@ -53,6 +52,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private ElementReference _rootReference;
     private ElementReference _periodMenuReference;
     private BzsAnchoredOverlaySession? _overlaySession;
+    private BzsDatePeriodMenuState? _periodMenuState;
     private BzsDateInputInterop? _interop;
     private Task<BzsDateInputInitialization>? _interopInitializationTask;
     private bool _disposed;
@@ -63,14 +63,8 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private bool _isOpen;
     private bool _openRequested;
     private bool _focusDayPending;
-    private bool _scrollPeriodMenuPending;
     private double? _pointerX;
     private double? _pointerY;
-    private DatePeriodMenu? _openPeriodMenu;
-    private int _activeMonth;
-    private int _activeYear;
-    private string _periodTypeahead = string.Empty;
-    private long _periodTypeaheadTimestamp;
     private CultureInfo? _dateCultureSource;
     private CultureInfo? _dateCulture;
     private DateOnly _today = DateOnly.FromDateTime(DateTime.Today);
@@ -80,11 +74,11 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private string PanelId => $"{InputId}-calendar";
     private string MonthListboxId => $"{InputId}-month-options";
     private string YearListboxId => $"{InputId}-year-options";
-    private string? ActiveMonthOptionId => _openPeriodMenu == DatePeriodMenu.Month
-        ? GetMonthOptionId(_activeMonth)
+    private string? ActiveMonthOptionId => PeriodMenu.OpenMenu == BzsDatePeriodMenu.Month
+        ? GetMonthOptionId(PeriodMenu.ActiveMonth)
         : null;
-    private string? ActiveYearOptionId => _openPeriodMenu == DatePeriodMenu.Year
-        ? GetYearOptionId(_activeYear)
+    private string? ActiveYearOptionId => PeriodMenu.OpenMenu == BzsDatePeriodMenu.Year
+        ? GetYearOptionId(PeriodMenu.ActiveYear)
         : null;
     private string? ExplicitCultureName => Culture?.Name;
     private string? ExplicitCultureDirection => Culture is null
@@ -114,8 +108,13 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private string ViewMonthAccessibleLabel => _viewMonth.ToString("Y", DateCulture);
     private bool CanNavigatePreviousMonth => _viewMonth > BzsDateCalendarMath.FirstOfMonth(FirstAllowedDate);
     private bool CanNavigateNextMonth => _viewMonth < BzsDateCalendarMath.FirstOfMonth(LastAllowedDate);
-    private string IsMonthMenuOpen => _openPeriodMenu == DatePeriodMenu.Month ? "true" : "false";
-    private string IsYearMenuOpen => _openPeriodMenu == DatePeriodMenu.Year ? "true" : "false";
+    private string IsMonthMenuOpen => PeriodMenu.OpenMenu == BzsDatePeriodMenu.Month ? "true" : "false";
+    private string IsYearMenuOpen => PeriodMenu.OpenMenu == BzsDatePeriodMenu.Year ? "true" : "false";
+
+    private BzsDatePeriodMenuState PeriodMenu => _periodMenuState ??= new BzsDatePeriodMenuState(
+        menu => GetPeriodOptions(menu),
+        (menu, option) => GetPeriodOptionText(menu, option),
+        () => DateCulture.CompareInfo);
 
     private IReadOnlyDictionary<string, object> NativeInputAttributes
     {
@@ -306,9 +305,8 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             await _interop.FocusActiveDayAsync(_instanceId);
         }
 
-        if (_scrollPeriodMenuPending && _openPeriodMenu is not null && _interop is not null)
+        if (PeriodMenu.OpenMenu is not null && _interop is not null && PeriodMenu.ConsumeScrollPending())
         {
-            _scrollPeriodMenuPending = false;
             await _interop.ScrollActivePeriodOptionAsync(_periodMenuReference);
         }
     }
@@ -436,19 +434,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         _viewMonth = BzsDateCalendarMath.FirstOfMonth(_focusedDate);
     }
 
-    private void SynchronizeOpenPeriodMenu()
-    {
-        if (_openPeriodMenu is not { } menu)
-        {
-            return;
-        }
-
-        if (!GetPeriodOptions(menu).Contains(GetActivePeriodOption(menu)))
-        {
-            SetActivePeriodOption(menu, GetViewPeriodOption(menu));
-        }
-        _scrollPeriodMenuPending = true;
-    }
+    private void SynchronizeOpenPeriodMenu() => PeriodMenu.SynchronizeWithOptions(_viewMonth);
 
     private void OnNativeChanged(ChangeEventArgs args)
     {
@@ -533,8 +519,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         _pointerX = null;
         _pointerY = null;
         _focusDayPending = false;
-        _scrollPeriodMenuPending = false;
-        _openPeriodMenu = null;
+        PeriodMenu.Close();
     }
 
     private BzsAnchoredOverlaySession GetOverlaySession() =>
@@ -594,9 +579,9 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     // period menu is left open.
     private Task CloseFromEscapeAsync()
     {
-        if (_openPeriodMenu is not null)
+        if (PeriodMenu.OpenMenu is not null)
         {
-            _openPeriodMenu = null;
+            PeriodMenu.Close();
             return Task.CompletedTask;
         }
 
@@ -641,241 +626,46 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private Task HandleDialogKeyDownAsync(KeyboardEventArgs args) =>
         args.Key == "Escape" ? CloseFromEscapeAsync() : Task.CompletedTask;
 
-    private void ActivatePeriodMenu(DatePeriodMenu menu, MouseEventArgs args)
+    private void ActivatePeriodMenu(BzsDatePeriodMenu menu, MouseEventArgs args) =>
+        ApplyPeriodMenuAction(menu, PeriodMenu.Activate(menu, args.Detail, _viewMonth));
+
+    private async Task HandlePeriodKeyDownAsync(BzsDatePeriodMenu menu, KeyboardEventArgs args)
     {
-        if (_openPeriodMenu == menu && args.Detail == 0)
+        var action = PeriodMenu.HandleKey(menu, BzsDatePeriodMenuKey.From(args), _viewMonth);
+        if (action == BzsDatePeriodMenuAction.CloseSurfaceRequested)
         {
-            SelectActivePeriodOption(menu);
+            await Close(true);
             return;
         }
 
-        if (_openPeriodMenu == menu)
-        {
-            _openPeriodMenu = null;
-            return;
-        }
-
-        OpenPeriodMenu(menu);
+        ApplyPeriodMenuAction(menu, action);
     }
 
-    private async Task HandlePeriodKeyDownAsync(DatePeriodMenu menu, KeyboardEventArgs args)
+    private void ApplyPeriodMenuAction(BzsDatePeriodMenu menu, BzsDatePeriodMenuAction action)
     {
-        var isOpen = _openPeriodMenu == menu;
-        switch (args.Key)
+        if (action == BzsDatePeriodMenuAction.CommitActive)
         {
-            case "ArrowDown":
-                ResetPeriodTypeahead();
-                if (!isOpen)
-                {
-                    OpenPeriodMenu(menu);
-                }
-                else
-                {
-                    MoveActivePeriodOption(menu, 1);
-                }
-                break;
-            case "ArrowUp":
-                ResetPeriodTypeahead();
-                if (!isOpen)
-                {
-                    OpenPeriodMenu(menu);
-                }
-                else
-                {
-                    MoveActivePeriodOption(menu, -1);
-                }
-                break;
-            case "Home" when isOpen:
-                ResetPeriodTypeahead();
-                SetActivePeriodBoundary(menu, first: true);
-                break;
-            case "End" when isOpen:
-                ResetPeriodTypeahead();
-                SetActivePeriodBoundary(menu, first: false);
-                break;
-            case "PageUp" when isOpen:
-                ResetPeriodTypeahead();
-                MoveActivePeriodOption(menu, -GetPeriodPageSize(menu));
-                break;
-            case "PageDown" when isOpen:
-                ResetPeriodTypeahead();
-                MoveActivePeriodOption(menu, GetPeriodPageSize(menu));
-                break;
-            case "Enter":
-            case " ":
-                if (isOpen)
-                {
-                    SelectActivePeriodOption(menu);
-                }
-                else
-                {
-                    OpenPeriodMenu(menu);
-                }
-                break;
-            case "Escape":
-                if (isOpen)
-                {
-                    _openPeriodMenu = null;
-                }
-                else
-                {
-                    await Close(true);
-                }
-                break;
-            case "Tab":
-                if (isOpen)
-                {
-                    SelectActivePeriodOption(menu);
-                }
-                break;
-            default:
-                if (isOpen && IsPeriodTypeaheadKey(args))
-                {
-                    ActivatePeriodOptionByTypeahead(menu, args.Key);
-                }
-                break;
+            SetViewPeriod(menu, PeriodMenu.ActiveOption(menu));
         }
     }
 
-    private void OpenPeriodMenu(DatePeriodMenu menu)
+    private void SetViewPeriod(BzsDatePeriodMenu menu, int option)
     {
-        _openPeriodMenu = menu;
-        _activeMonth = _viewMonth.Month;
-        _activeYear = _viewMonth.Year;
-        ResetPeriodTypeahead();
-        _scrollPeriodMenuPending = true;
-    }
-
-    private void MoveActivePeriodOption(DatePeriodMenu menu, int offset)
-    {
-        var options = GetPeriodOptions(menu);
-        var index = GetPeriodOptionIndex(options, GetActivePeriodOption(menu));
-        var next = options[Math.Clamp(index + offset, 0, options.Count - 1)];
-        SetActivePeriodOption(menu, next);
-        _scrollPeriodMenuPending = true;
-    }
-
-    private void SetActivePeriodBoundary(DatePeriodMenu menu, bool first)
-    {
-        var options = GetPeriodOptions(menu);
-        var value = first ? options[0] : options[^1];
-        SetActivePeriodOption(menu, value);
-        _scrollPeriodMenuPending = true;
-    }
-
-    private void SelectActivePeriodOption(DatePeriodMenu menu)
-    {
-        var active = GetActivePeriodOption(menu);
-        if (menu == DatePeriodMenu.Month)
+        if (menu == BzsDatePeriodMenu.Month)
         {
-            SelectMonth(active);
+            SelectMonth(option);
         }
         else
         {
-            SelectYear(active);
+            SelectYear(option);
         }
     }
 
-    private void ActivatePeriodOptionByTypeahead(DatePeriodMenu menu, string key)
-    {
-        var now = Environment.TickCount64;
-        if (now - _periodTypeaheadTimestamp > PeriodTypeaheadResetMilliseconds)
-        {
-            _periodTypeahead = string.Empty;
-        }
+    private IReadOnlyList<int> GetPeriodOptions(BzsDatePeriodMenu menu) =>
+        menu == BzsDatePeriodMenu.Month ? AvailableMonths : AvailableYears;
 
-        var compareInfo = DateCulture.CompareInfo;
-        var compareOptions = CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace;
-        var repeatedSingleCharacter = menu == DatePeriodMenu.Month
-            && _periodTypeahead.Length == 1
-            && compareInfo.Compare(_periodTypeahead, key, compareOptions) == 0;
-        _periodTypeahead = repeatedSingleCharacter ? key : _periodTypeahead + key;
-        _periodTypeaheadTimestamp = now;
-
-        if (!TryActivatePeriodOptionByPrefix(menu, _periodTypeahead))
-        {
-            _periodTypeahead = key;
-            TryActivatePeriodOptionByPrefix(menu, key);
-        }
-    }
-
-    private bool TryActivatePeriodOptionByPrefix(DatePeriodMenu menu, string prefix)
-    {
-        var options = GetPeriodOptions(menu);
-        var activeIndex = GetPeriodOptionIndex(options, GetActivePeriodOption(menu));
-        var startIndex = prefix.Length == 1 ? activeIndex + 1 : 0;
-        var compareInfo = DateCulture.CompareInfo;
-        var compareOptions = CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace;
-
-        for (var offset = 0; offset < options.Count; offset++)
-        {
-            var index = (startIndex + offset) % options.Count;
-            var option = options[index];
-            if (!compareInfo.IsPrefix(GetPeriodOptionText(menu, option), prefix, compareOptions))
-            {
-                continue;
-            }
-
-            SetActivePeriodOption(menu, option);
-            _scrollPeriodMenuPending = true;
-            return true;
-        }
-
-        return false;
-    }
-
-    private IReadOnlyList<int> GetPeriodOptions(DatePeriodMenu menu) =>
-        menu == DatePeriodMenu.Month ? AvailableMonths : AvailableYears;
-
-    private int GetActivePeriodOption(DatePeriodMenu menu) =>
-        menu == DatePeriodMenu.Month ? _activeMonth : _activeYear;
-
-    private int GetViewPeriodOption(DatePeriodMenu menu) =>
-        menu == DatePeriodMenu.Month ? _viewMonth.Month : _viewMonth.Year;
-
-    private void SetActivePeriodOption(DatePeriodMenu menu, int value)
-    {
-        if (menu == DatePeriodMenu.Month)
-        {
-            _activeMonth = value;
-        }
-        else
-        {
-            _activeYear = value;
-        }
-    }
-
-    private string GetPeriodOptionText(DatePeriodMenu menu, int value) =>
-        menu == DatePeriodMenu.Month ? GetMonthName(value) : value.ToString(DateCulture);
-
-    private static int GetPeriodPageSize(DatePeriodMenu menu) =>
-        menu == DatePeriodMenu.Month ? 3 : 10;
-
-    private static int GetPeriodOptionIndex(IReadOnlyList<int> options, int active)
-    {
-        for (var index = 0; index < options.Count; index++)
-        {
-            if (options[index] == active)
-            {
-                return index;
-            }
-        }
-
-        return 0;
-    }
-
-    private static bool IsPeriodTypeaheadKey(KeyboardEventArgs args) =>
-        args.Key.Length == 1
-        && !char.IsControl(args.Key[0])
-        && !args.AltKey
-        && !args.CtrlKey
-        && !args.MetaKey;
-
-    private void ResetPeriodTypeahead()
-    {
-        _periodTypeahead = string.Empty;
-        _periodTypeaheadTimestamp = 0;
-    }
+    private string GetPeriodOptionText(BzsDatePeriodMenu menu, int value) =>
+        menu == BzsDatePeriodMenu.Month ? GetMonthName(value) : value.ToString(DateCulture);
 
     private void MoveFocusedDate(int days)
     {
@@ -899,7 +689,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 
     private void ShiftViewMonth(int months)
     {
-        _openPeriodMenu = null;
+        PeriodMenu.Close();
         ApplyCalendarState(BzsDateCalendarMath.ShiftViewMonth(
             _viewMonth,
             _focusedDate,
@@ -912,13 +702,13 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 
     private void SelectYear(int year) => SetViewMonth(year, _viewMonth.Month);
 
-    private void ActivateMonth(int month) => _activeMonth = month;
+    private void ActivateMonth(int month) => PeriodMenu.Activate(BzsDatePeriodMenu.Month, month);
 
-    private void ActivateYear(int year) => _activeYear = year;
+    private void ActivateYear(int year) => PeriodMenu.Activate(BzsDatePeriodMenu.Year, year);
 
     private void SetViewMonth(int year, int month)
     {
-        _openPeriodMenu = null;
+        PeriodMenu.Close();
         ApplyCalendarState(BzsDateCalendarMath.SetViewMonth(
             new DateOnly(year, month, 1),
             _focusedDate,
@@ -1096,11 +886,4 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     }
 
     private sealed record CalendarWeekday(string ShortName, string FullName);
-
-    private enum DatePeriodMenu
-    {
-        Month,
-        Year,
-    }
-
 }

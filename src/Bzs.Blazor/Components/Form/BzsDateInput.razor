@@ -72,13 +72,13 @@
                                         aria-controls="@MonthListboxId"
                                         aria-activedescendant="@ActiveMonthOptionId"
                                         data-bzs-date-picker-period="month"
-                                        @onclick="args => ActivatePeriodMenu(DatePeriodMenu.Month, args)"
-                                        @onkeydown="args => HandlePeriodKeyDownAsync(DatePeriodMenu.Month, args)"
+                                        @onclick="args => ActivatePeriodMenu(BzsDatePeriodMenu.Month, args)"
+                                        @onkeydown="args => HandlePeriodKeyDownAsync(BzsDatePeriodMenu.Month, args)"
                                         @onkeydown:stopPropagation="true">
                                     <span>@GetMonthName(_viewMonth.Month)</span>
                                     <BzsIcon Icon="BzsIcons.ChevronDown" />
                                 </button>
-                                @if (_openPeriodMenu == DatePeriodMenu.Month)
+                                @if (PeriodMenu.OpenMenu == BzsDatePeriodMenu.Month)
                                 {
                                     <div id="@MonthListboxId"
                                          class="bzs-date-picker__period-menu"
@@ -94,7 +94,7 @@
                                                     type="button"
                                                     role="option"
                                                     tabindex="-1"
-                                                    class="@GetPeriodOptionClass(selected, month == _activeMonth)"
+                                                    class="@GetPeriodOptionClass(selected, month == PeriodMenu.ActiveMonth)"
                                                     aria-selected="@(selected ? "true" : "false")"
                                                     @onmousedown:preventDefault="true"
                                                     @onmouseenter="() => ActivateMonth(month)"
@@ -119,13 +119,13 @@
                                         aria-controls="@YearListboxId"
                                         aria-activedescendant="@ActiveYearOptionId"
                                         data-bzs-date-picker-period="year"
-                                        @onclick="args => ActivatePeriodMenu(DatePeriodMenu.Year, args)"
-                                        @onkeydown="args => HandlePeriodKeyDownAsync(DatePeriodMenu.Year, args)"
+                                        @onclick="args => ActivatePeriodMenu(BzsDatePeriodMenu.Year, args)"
+                                        @onkeydown="args => HandlePeriodKeyDownAsync(BzsDatePeriodMenu.Year, args)"
                                         @onkeydown:stopPropagation="true">
                                     <span>@_viewMonth.Year</span>
                                     <BzsIcon Icon="BzsIcons.ChevronDown" />
                                 </button>
-                                @if (_openPeriodMenu == DatePeriodMenu.Year)
+                                @if (PeriodMenu.OpenMenu == BzsDatePeriodMenu.Year)
                                 {
                                     <div id="@YearListboxId"
                                          class="bzs-date-picker__period-menu bzs-date-picker__period-menu--year"
@@ -141,7 +141,7 @@
                                                     type="button"
                                                     role="option"
                                                     tabindex="-1"
-                                                    class="@GetPeriodOptionClass(selected, year == _activeYear)"
+                                                    class="@GetPeriodOptionClass(selected, year == PeriodMenu.ActiveYear)"
                                                     aria-selected="@(selected ? "true" : "false")"
                                                     @onmousedown:preventDefault="true"
                                                     @onmouseenter="() => ActivateYear(year)"
