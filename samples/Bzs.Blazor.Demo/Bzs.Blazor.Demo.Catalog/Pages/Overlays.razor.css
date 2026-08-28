@@ -5,16 +5,10 @@
     gap: 1rem;
 }
 
-.demo-overlays-workbench-grid .demo-panel {
+::deep .demo-overlays-workbench-grid .demo-panel {
     align-content: start;
 }
 
-.demo-overlays-section-header {
-    display: grid;
-    gap: 0.25rem;
-}
-
-.demo-overlays-section-header p,
 .demo-overlays-result,
 .demo-overlays-dialog-copy {
     margin: 0;

@@ -20,11 +20,9 @@
 
     <BzsBreadcrumbs Items="@BreadcrumbItems" AccessibleName="Productivity breadcrumb" />
 
-    <section class="demo-panel" aria-labelledby="navigation-specimen-title">
-        <header class="demo-form-section-header">
-            <h2 id="navigation-specimen-title">Navigation and status</h2>
-            <p>Links, disclosure groups, counts, identities, loading placeholders, and controlled chips.</p>
-        </header>
+    <DemoShowcaseSection HeadingId="navigation-specimen-title"
+                         Heading="Navigation and status"
+                         Description="Links, disclosure groups, counts, identities, loading placeholders, and controlled chips.">
         <div class="demo-control-row">
             <BzsNavMenu AccessibleName="Workbench navigation">
                 <BzsNavItem Label="Overview" Href="@Links.To(DemoCatalogDestinations.Overview)" Match="NavLinkMatch.All" Icon="@BzsIcons.Package" />
@@ -60,13 +58,11 @@
             <BzsSkeleton Class="demo-status-skeleton" Shape="BzsSkeletonShape.Text" Size="BzsSkeletonSize.Small" />
         </div>
         <BzsPagination Page="@_page" PageCount="6" PageChanged="value => _page = value" AccessibleName="Review pages" />
-    </section>
+    </DemoShowcaseSection>
 
-    <section class="demo-panel" aria-labelledby="overlay-specimen-title">
-        <header class="demo-form-section-header">
-            <h2 id="overlay-specimen-title">Anchored commands</h2>
-            <p>Popover, Tooltip, menu, and context-menu all retain passive markup before interactivity.</p>
-        </header>
+    <DemoShowcaseSection HeadingId="overlay-specimen-title"
+                         Heading="Anchored commands"
+                         Description="Popover, Tooltip, menu, and context-menu all retain passive markup before interactivity.">
         <div class="demo-control-row">
             <BzsTooltip Text="Shows the keyboard and pointer contract"
                         ShowDelay="@TimeSpan.Zero"
@@ -112,11 +108,11 @@
             </BzsContextMenu>
         </div>
         <p class="demo-runtime-status" role="status">@_commandStatus</p>
-    </section>
+    </DemoShowcaseSection>
 
     <EditForm Model="@_form" FormName="productivity-workbench" class="demo-panel">
         <DataAnnotationsValidator />
-        <header class="demo-form-section-header">
+        <header class="demo-showcase-section-header">
             <h2 id="input-specimen-title">Asynchronous input and file selection</h2>
             <p>Suggestions are provider-owned; selected browser files are validated and remain transport-owned by the consumer.</p>
         </header>
@@ -141,11 +137,9 @@
         </div>
     </EditForm>
 
-    <section class="demo-panel" aria-labelledby="grid-specimen-title">
-        <header class="demo-form-section-header">
-            <h2 id="grid-specimen-title">@DemoText.Productivity.DataGridTitle</h2>
-            <p>@DemoText.Productivity.DataGridDescription</p>
-        </header>
+    <DemoShowcaseSection HeadingId="grid-specimen-title"
+                         Heading="@DemoText.Productivity.DataGridTitle"
+                         Description="@DemoText.Productivity.DataGridDescription">
         <BzsDataGrid TItem="ReviewRow"
                      @ref="_grid"
                      Provider="@_gridProvider"
@@ -208,10 +202,11 @@
             </ChildContent>
         </BzsDataGrid>
         <div class="demo-data-grid-examples">
-            <section class="demo-data-grid-example demo-data-grid-example--wide"
-                     aria-labelledby="workbench-grid-title">
-                <h3 id="workbench-grid-title">@DemoText.Productivity.WorkbenchGridTitle</h3>
-                <p>@DemoText.Productivity.WorkbenchGridDescription</p>
+            <DemoShowcaseSection Class="demo-data-grid-example demo-data-grid-example--wide"
+                                 HeadingLevel="3"
+                                 HeadingId="workbench-grid-title"
+                                 Heading="@DemoText.Productivity.WorkbenchGridTitle"
+                                 Description="@DemoText.Productivity.WorkbenchGridDescription">
                 <BzsDataGrid TItem="WorkbenchRow"
                              Items="@WorkbenchRows"
                              ClientFiltering="true"
@@ -301,10 +296,12 @@
                                            Width="9rem" />
                     </ChildContent>
                 </BzsDataGrid>
-            </section>
-            <section class="demo-data-grid-example" aria-labelledby="page-size-only-grid-title">
-                <h3 id="page-size-only-grid-title">@DemoText.Productivity.PageSizeOnlyGridTitle</h3>
-                <p>@DemoText.Productivity.PageSizeOnlyGridDescription</p>
+            </DemoShowcaseSection>
+            <DemoShowcaseSection Class="demo-data-grid-example"
+                                 HeadingLevel="3"
+                                 HeadingId="page-size-only-grid-title"
+                                 Heading="@DemoText.Productivity.PageSizeOnlyGridTitle"
+                                 Description="@DemoText.Productivity.PageSizeOnlyGridDescription">
                 <BzsDataGrid TItem="ReviewRow"
                              Items="@CompactGridRows"
                              PageSize="@_pageSizeOnlyGridPageSize"
@@ -324,10 +321,12 @@
                                        Title="@DemoText.Productivity.CompactGridOwnerColumn"
                                        ValueSelector="row => row.Owner" />
                 </BzsDataGrid>
-            </section>
-            <section class="demo-data-grid-example" aria-labelledby="compact-grid-title">
-                <h3 id="compact-grid-title">@DemoText.Productivity.CompactGridTitle</h3>
-                <p>@DemoText.Productivity.CompactGridDescription</p>
+            </DemoShowcaseSection>
+            <DemoShowcaseSection Class="demo-data-grid-example"
+                                 HeadingLevel="3"
+                                 HeadingId="compact-grid-title"
+                                 Heading="@DemoText.Productivity.CompactGridTitle"
+                                 Description="@DemoText.Productivity.CompactGridDescription">
                 <BzsDataGrid TItem="ReviewRow"
                              Items="@CompactGridRows"
                              PageSize="5"
@@ -347,9 +346,9 @@
                                        Title="@DemoText.Productivity.CompactGridOwnerColumn"
                                        ValueSelector="row => row.Owner" />
                 </BzsDataGrid>
-            </section>
+            </DemoShowcaseSection>
         </div>
-    </section>
+    </DemoShowcaseSection>
 </section>
 
 @code {

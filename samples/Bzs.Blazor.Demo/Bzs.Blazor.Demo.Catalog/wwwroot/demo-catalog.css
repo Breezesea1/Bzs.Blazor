@@ -558,6 +558,17 @@ h1[tabindex="-1"]:focus {
     padding-top: 1.25rem;
 }
 
+.demo-showcase-section-header {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.demo-showcase-section-header p {
+    margin: 0;
+    color: var(--demo-muted);
+    font-size: 0.8125rem;
+}
+
 .demo-section-heading {
     display: flex;
     align-items: baseline;

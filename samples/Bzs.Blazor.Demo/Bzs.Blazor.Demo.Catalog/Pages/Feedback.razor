@@ -17,26 +17,23 @@
             @(_isInteractive ? "Interactive runtime ready" : "Rendering feedback markup")
         </p>
 
-        <section class="demo-panel" aria-labelledby="message-title">
-            <h2 id="message-title">Message</h2>
+        <DemoShowcaseSection HeadingId="message-title" Heading="Message">
             <div class="demo-feedback-message-stack">
                 <BzsMessage Severity="BzsMessageSeverity.Information" Title="Review in progress">Two deliverables still need an owner.</BzsMessage>
                 <BzsMessage Severity="BzsMessageSeverity.Success" Title="Publish complete">The approved package is ready for downstream teams.</BzsMessage>
                 <BzsMessage Severity="BzsMessageSeverity.Warning" Title="Due date approaching">The lighting pass is due tomorrow.</BzsMessage>
                 <BzsMessage Severity="BzsMessageSeverity.Error" Title="Save blocked">Correct the required fields before publishing.</BzsMessage>
             </div>
-        </section>
+        </DemoShowcaseSection>
 
-        <section class="demo-panel" aria-labelledby="progress-title">
-            <h2 id="progress-title">Progress</h2>
+        <DemoShowcaseSection HeadingId="progress-title" Heading="Progress">
             <div class="demo-feedback-progress-grid">
                 <BzsProgress Label="Publishing assets" Value="64" />
                 <BzsProgress Label="Checking dependencies" />
             </div>
-        </section>
+        </DemoShowcaseSection>
 
-        <section class="demo-panel" aria-labelledby="toast-title">
-            <h2 id="toast-title">Toast</h2>
+        <DemoShowcaseSection HeadingId="toast-title" Heading="Toast">
             <div class="demo-feedback-toast-controls" role="group" aria-label="Toast examples">
                 <BzsButton Disabled="@(!_isInteractive)" Click="ShowTimedToast">Show timed toast</BzsButton>
                 <BzsButton Disabled="@(!_isInteractive)" Variant="BzsButtonVariant.Outline" Click="ShowPersistentToast">Show persistent toast</BzsButton>
@@ -57,7 +54,7 @@
                               ResumeRequested="reason => ResumeToast(toast.Id, reason)" />
                 }
             </div>
-        </section>
+        </DemoShowcaseSection>
     </section>
 </div>
 

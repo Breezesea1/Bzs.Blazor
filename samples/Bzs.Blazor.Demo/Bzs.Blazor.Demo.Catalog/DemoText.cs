@@ -400,10 +400,50 @@ public static class DemoText
             "zh-Hans and en-US copy verified.");
     }
 
+    public static class Forms
+    {
+        public static string PasswordLabel => Get("访问密码", "Access password");
+
+        public static string PasswordDescription => Get(
+            "显示按钮仅在交互式运行时切换原生输入类型。",
+            "The reveal action changes only the native input type while interactive.");
+
+        public static string TextInputModesTitle => Get("文本输入类型和更新模式", "Text input types and update modes");
+
+        public static string TextInputModesDescription => Get(
+            "电子邮件和搜索输入保留原生语义。实时搜索会在每次已提交输入后更新，并在输入法组合期间等待最终文本。",
+            "Email and search inputs retain native semantics. Live search updates after each committed input and waits for final IME text during composition.");
+
+        public static string EmailLabel => Get("联系邮箱", "Contact email");
+
+        public static string LiveSearchLabel => Get("实时搜索", "Live search");
+
+        public static string LiveSearchPlaceholder => Get("输入以筛选", "Type to filter");
+
+        public static string LiveSearchEmpty => Get("尚无实时搜索文本。", "No live search text yet.");
+
+        public static string LiveSearchCommitted(string text) =>
+            Get($"已提交的实时搜索：{text}", $"Committed live search: {text}");
+    }
+
+    public static class Releases
+    {
+        public static string PageTitle => Get("版本公告 - Bzs.Blazor", "Releases - Bzs.Blazor");
+
+        public static string Eyebrow => Get("项目更新", "Project updates");
+
+        public static string Title => Get("版本公告", "Release announcements");
+
+        public static string Summary => Get(
+            "查看 Bzs.Blazor 每个版本的重要变化、兼容性说明和新增控件。",
+            "Review the important changes, compatibility notes, and new components in every Bzs.Blazor release.");
+
+        public static string HighlightsHeading => Get("主要更新", "Highlights");
+    }
+
     public static class NavigationDrawer
     {
         public static string PageTitle => Get("导航抽屉生命周期 - Bzs.Blazor", "Navigation drawer lifecycle - Bzs.Blazor");
-
         public static string Eyebrow => Get("导航与焦点", "Navigation and focus");
 
         public static string Title => Get("导航抽屉生命周期", "Navigation drawer lifecycle");

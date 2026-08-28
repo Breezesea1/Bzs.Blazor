@@ -118,13 +118,13 @@
     font-size: 0.625rem;
 }
 
-.demo-layout-panel {
+::deep .demo-layout-panel {
     position: relative;
     padding-inline-start: 1.125rem;
     border-block-start-color: color-mix(in srgb, var(--layout-tone) 24%, var(--demo-border));
 }
 
-.demo-layout-panel::before {
+::deep .demo-layout-panel::before {
     position: absolute;
     inset-block-start: 1.25rem;
     inset-inline-start: 0;
@@ -135,40 +135,40 @@
     content: "";
 }
 
-.demo-layout-panel--info {
+::deep .demo-layout-panel--info {
     --layout-tone: var(--layout-info);
     --layout-tone-text: var(--layout-info-text);
 }
 
-.demo-layout-panel--success {
+::deep .demo-layout-panel--success {
     --layout-tone: var(--layout-success);
     --layout-tone-text: var(--layout-success-text);
 }
 
-.demo-layout-panel--warning {
+::deep .demo-layout-panel--warning {
     --layout-tone: var(--layout-warning);
     --layout-tone-text: var(--layout-warning-text);
 }
 
-.demo-layout-section-header {
+::deep .demo-layout-section-header {
     display: grid;
     max-inline-size: 52rem;
     gap: 0.25rem;
 }
 
-.demo-layout-section-header h2 {
+::deep .demo-layout-section-header h2 {
     font-family: "Aptos Display", "Segoe UI Variable Display", "Segoe UI Variable", sans-serif;
     letter-spacing: 0;
 }
 
-.demo-layout-section-header p {
+::deep .demo-layout-section-header p {
     margin: 0;
     color: var(--demo-muted);
     font-size: 0.875rem;
     line-height: 1.55;
 }
 
-.demo-layout-section-header code {
+::deep .demo-layout-section-header code {
     border-radius: var(--demo-radius-compact);
     padding-inline: 0.2rem;
     background: color-mix(in srgb, var(--layout-tone) 11%, transparent);
@@ -177,7 +177,7 @@
     font-size: 0.875em;
 }
 
-.demo-layout-example {
+::deep .demo-layout-example {
     display: grid;
     min-inline-size: 0;
     grid-template-columns: minmax(0, 1.15fr) minmax(22rem, 1fr);
@@ -185,7 +185,7 @@
     gap: 1.25rem;
 }
 
-.demo-layout-example--shell {
+::deep .demo-layout-example--shell {
     grid-template-columns: minmax(0, 1fr);
 }
 
@@ -552,13 +552,13 @@
     font-size: 0.75rem;
 }
 
-.demo-layout-preview {
+::deep .demo-layout-preview {
     display: grid;
     min-inline-size: 0;
     gap: 0.75rem;
 }
 
-.demo-layout-example-label {
+::deep .demo-layout-example-label {
     display: flex;
     align-items: center;
     gap: 0.4rem;
@@ -570,7 +570,7 @@
     text-transform: uppercase;
 }
 
-.demo-layout-example-label::before {
+::deep .demo-layout-example-label::before {
     inline-size: 0.5rem;
     block-size: 0.5rem;
     flex: 0 0 auto;
@@ -579,7 +579,7 @@
     content: "";
 }
 
-.demo-layout-code {
+::deep .demo-layout-code {
     min-inline-size: 0;
     margin: 0;
     overflow: hidden;
@@ -590,7 +590,7 @@
     box-shadow: var(--layout-shadow-inset);
 }
 
-.demo-layout-code figcaption {
+::deep .demo-layout-code figcaption {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
@@ -603,14 +603,14 @@
     text-transform: uppercase;
 }
 
-.demo-layout-code figcaption span:last-child {
+::deep .demo-layout-code figcaption span:last-child {
     overflow: hidden;
     font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.demo-layout-code-file {
+::deep .demo-layout-code-file {
     margin: 0;
     border-block-start: 1px solid var(--demo-border);
     border-block-end: 1px solid var(--demo-border);
@@ -621,7 +621,7 @@
     font-weight: 700;
 }
 
-.demo-layout-code pre {
+::deep .demo-layout-code pre {
     max-inline-size: 100%;
     margin: 0;
     overflow-wrap: anywhere;
@@ -634,11 +634,11 @@
     white-space: pre-wrap;
 }
 
-.demo-layout-code code {
+::deep .demo-layout-code code {
     font-family: inherit;
 }
 
-.demo-layout-code ::selection {
+::deep .demo-layout-code ::selection {
     background: color-mix(in srgb, var(--layout-tone) 28%, transparent);
 }
 
@@ -727,7 +727,7 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .demo-layout-example {
+    ::deep .demo-layout-example {
         grid-template-columns: minmax(0, 1fr);
     }
 }
@@ -750,11 +750,11 @@
         padding: 0.5rem;
     }
 
-    .demo-layout-panel {
+    ::deep .demo-layout-panel {
         padding-inline-start: 0.875rem;
     }
 
-    .demo-layout-example {
+    ::deep .demo-layout-example {
         gap: 1rem;
     }
 
@@ -778,7 +778,7 @@
 
 @media (forced-colors: active) {
     .demo-layout-palette,
-    .demo-layout-code,
+    ::deep .demo-layout-code,
     .demo-layout-absolute-boundary,
     ::deep .demo-layout-container,
     ::deep .demo-layout-stack,
@@ -793,8 +793,8 @@
     }
 
     .demo-layout-swatch,
-    .demo-layout-panel::before,
-    .demo-layout-example-label::before,
+    ::deep .demo-layout-panel::before,
+    ::deep .demo-layout-example-label::before,
     ::deep .demo-layout-tile::after {
         background: Highlight;
         box-shadow: none;

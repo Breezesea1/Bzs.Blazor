@@ -17,7 +17,6 @@
 }
 
 .demo-render-catalog__readiness,
-.demo-render-catalog__section-header p,
 .demo-render-catalog__form-actions p,
 .demo-render-catalog__overlay-statuses p,
 .demo-render-catalog__selection,
@@ -32,17 +31,12 @@
     font-weight: 650;
 }
 
-.demo-render-catalog__section {
+::deep .demo-render-catalog__section {
     display: grid;
     min-inline-size: 0;
     gap: 1rem;
     border-block-end: 1px solid var(--demo-border);
     padding-block-end: 1.25rem;
-}
-
-.demo-render-catalog__section-header {
-    display: grid;
-    gap: 0.25rem;
 }
 
 .demo-render-catalog__control-groups {

@@ -1,0 +1,19 @@
+@*
+    A live preview beside the code that produces it. The layout page repeats this frame for every
+    primitive it demonstrates; the page supplies the preview, the caption, and the snippet, and this
+    owns the two-column frame so its structure is defined once instead of five times.
+*@
+<div class="@ExampleClasses">
+    <div class="demo-layout-preview">
+        <p class="demo-layout-example-label">@PreviewLabel</p>
+        @Preview
+    </div>
+
+    <figure class="demo-layout-code">
+        <figcaption>
+            <span>@CodeLanguage</span>
+            <span>@CodeSummary</span>
+        </figcaption>
+        @Code
+    </figure>
+</div>

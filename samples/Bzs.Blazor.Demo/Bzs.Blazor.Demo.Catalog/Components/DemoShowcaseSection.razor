@@ -1,0 +1,30 @@
+@*
+    The frame every showcase section repeats: a bilingual heading, an optional description, then a
+    live example. Pages supply the wrapper class, the copy, and the example; this owns the heading
+    block so its structure is defined once instead of once per page.
+
+    The shared heading treatment lives in demo-catalog.css. A page that styles its headings further
+    passes HeaderClass and targets it through ::deep, because a page's scoped CSS cannot reach an
+    element a child component rendered.
+*@
+<section class="@Class" aria-labelledby="@HeadingId" @attributes="AdditionalAttributes">
+    <header class="@HeaderClasses">
+        @if (HeadingLevel == 3)
+        {
+            <h3 id="@HeadingId">@Heading</h3>
+        }
+        else
+        {
+            <h2 id="@HeadingId">@Heading</h2>
+        }
+        @if (DescriptionContent is not null)
+        {
+            <p>@DescriptionContent</p>
+        }
+        else if (Description is not null)
+        {
+            <p>@Description</p>
+        }
+    </header>
+    @ChildContent
+</section>

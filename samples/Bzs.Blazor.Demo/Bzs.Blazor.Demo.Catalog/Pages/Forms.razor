@@ -36,12 +36,10 @@
         <EditForm Model="@ActiveProfile" OnValidSubmit="SubmitValid" OnInvalidSubmit="SubmitInvalid" FormName="demo-profile" class="demo-form-workbench">
             <DataAnnotationsValidator />
 
-            <section class="demo-form-section" aria-labelledby="profile-fields-title">
-                <header class="demo-form-section-header">
-                    <h2 id="profile-fields-title">Profile details</h2>
-                    <p>Required fields report errors inline after validation.</p>
-                </header>
-
+            <DemoShowcaseSection Class="demo-form-section"
+                                 HeadingId="profile-fields-title"
+                                 Heading="Profile details"
+                                 Description="Required fields report errors inline after validation.">
                 <div class="demo-form-grid">
                     <BzsTextInput Id="profile-full-name"
                                   @bind-Value="ActiveProfile.FullName"
@@ -55,8 +53,8 @@
                                   Required="true" />
                     <BzsPasswordInput Id="password-input-example"
                                       @bind-Value="ActiveProfile.Password"
-                                      Label="@(IsChinese ? "访问密码" : "Access password")"
-                                      Description="@(IsChinese ? "显示按钮仅在交互式运行时切换原生输入类型。" : "The reveal action changes only the native input type while interactive.")"
+                                      Label="@DemoText.Forms.PasswordLabel"
+                                      Description="@DemoText.Forms.PasswordDescription"
                                       Revealable="true"
                                       autocomplete="new-password"
                                       data-testid="password-input-example" />
@@ -117,39 +115,35 @@
                     <BzsButton Type="BzsButtonType.Submit">Validate profile</BzsButton>
                     <p role="status" data-testid="profile-form-status">@_formStatus</p>
                 </div>
-            </section>
+            </DemoShowcaseSection>
 
-            <section class="demo-form-section" aria-labelledby="text-input-modes-title">
-                <header class="demo-form-section-header">
-                    <h2 id="text-input-modes-title">@(IsChinese ? "文本输入类型和更新模式" : "Text input types and update modes")</h2>
-                    <p>@(IsChinese ? "电子邮件和搜索输入保留原生语义。实时搜索会在每次已提交输入后更新，并在输入法组合期间等待最终文本。" : "Email and search inputs retain native semantics. Live search updates after each committed input and waits for final IME text during composition.")</p>
-                </header>
-
+            <DemoShowcaseSection Class="demo-form-section"
+                                 HeadingId="text-input-modes-title"
+                                 Heading="@DemoText.Forms.TextInputModesTitle"
+                                 Description="@DemoText.Forms.TextInputModesDescription">
                 <div class="demo-form-grid">
                     <BzsTextInput Id="text-input-email-example"
                                   @bind-Value="_emailExample"
                                   InputType="BzsTextInputType.Email"
-                                  Label="@(IsChinese ? "联系邮箱" : "Contact email")"
+                                  Label="@DemoText.Forms.EmailLabel"
                                   autocomplete="email"
                                   inputmode="email" />
                     <BzsTextInput Id="text-input-ime-example"
                                   @bind-Value="_liveSearchText"
                                   InputType="BzsTextInputType.Search"
                                   UpdateMode="BzsInputUpdateMode.Input"
-                                  Label="@(IsChinese ? "实时搜索" : "Live search")"
-                                  Placeholder="@(IsChinese ? "输入以筛选" : "Type to filter")"
+                                  Label="@DemoText.Forms.LiveSearchLabel"
+                                  Placeholder="@DemoText.Forms.LiveSearchPlaceholder"
                                   inputmode="search"
                                   data-testid="text-input-ime-example" />
                 </div>
                 <p role="status" data-testid="text-input-ime-value">@LiveSearchStatus</p>
-            </section>
+            </DemoShowcaseSection>
 
-            <section class="demo-form-section" aria-labelledby="state-examples-title">
-                <header class="demo-form-section-header">
-                    <h2 id="state-examples-title">Control states</h2>
-                    <p>The active form supplies the valid and invalid states; these controls show disabled and read-only treatment.</p>
-                </header>
-
+            <DemoShowcaseSection Class="demo-form-section"
+                                 HeadingId="state-examples-title"
+                                 Heading="Control states"
+                                 Description="The active form supplies the valid and invalid states; these controls show disabled and read-only treatment.">
                 <div class="demo-form-grid">
                     <BzsTextInput Id="profile-disabled"
                                   @bind-Value="ActiveProfile.DisabledValue"
@@ -162,14 +156,12 @@
                                   Description="This value remains selectable but cannot be edited."
                                   ReadOnly="true" />
                 </div>
-            </section>
+            </DemoShowcaseSection>
 
-            <section class="demo-form-section" aria-labelledby="locale-examples-title">
-                <header class="demo-form-section-header">
-                    <h2 id="locale-examples-title">Locale specimens</h2>
-                    <p>Labels and field spacing remain useful for English, Chinese, and right-to-left content.</p>
-                </header>
-
+            <DemoShowcaseSection Class="demo-form-section"
+                                 HeadingId="locale-examples-title"
+                                 Heading="Locale specimens"
+                                 Description="Labels and field spacing remain useful for English, Chinese, and right-to-left content.">
                 <div class="demo-form-locale-grid">
                     <section class="demo-form-locale" lang="en" aria-labelledby="locale-english-title">
                         <h3 id="locale-english-title">English</h3>
@@ -193,7 +185,7 @@
                                       ReadOnly="true" />
                     </section>
                 </div>
-            </section>
+            </DemoShowcaseSection>
         </EditForm>
 
         <section class="demo-form-empty" aria-label="Empty state specimen">
@@ -208,8 +200,6 @@
     private string? CultureName { get; set; }
 
     private CultureInfo DatePickerCulture => DemoCulture.Resolve(CultureName);
-
-    private bool IsChinese => DemoCulture.IsChinese(CultureName);
 
     private static readonly IReadOnlyList<BzsSelectOption<string>> WorkspaceOptions =
     [
@@ -239,8 +229,8 @@
     private string? _liveSearchText;
 
     private string LiveSearchStatus => string.IsNullOrEmpty(_liveSearchText)
-        ? (IsChinese ? "尚无实时搜索文本。" : "No live search text yet.")
-        : (IsChinese ? $"已提交的实时搜索：{_liveSearchText}" : $"Committed live search: {_liveSearchText}");
+        ? DemoText.Forms.LiveSearchEmpty
+        : DemoText.Forms.LiveSearchCommitted(_liveSearchText);
 
     protected override void OnInitialized()
     {

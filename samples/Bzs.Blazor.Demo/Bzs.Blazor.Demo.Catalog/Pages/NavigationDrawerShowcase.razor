@@ -14,8 +14,8 @@
         @(_isInteractive ? DemoText.NavigationDrawer.RuntimeReady : DemoText.NavigationDrawer.RuntimeWaiting)
     </p>
 
-    <section class="demo-panel" aria-labelledby="navigation-drawer-configuration-title">
-        <h2 id="navigation-drawer-configuration-title">@DemoText.NavigationDrawer.Configuration</h2>
+    <DemoShowcaseSection HeadingId="navigation-drawer-configuration-title"
+                         Heading="@DemoText.NavigationDrawer.Configuration">
         <div class="demo-navigation-drawer-showcase__settings">
             <fieldset class="demo-navigation-drawer-showcase__group">
                 <legend>@DemoText.NavigationDrawer.Variant</legend>
@@ -70,10 +70,10 @@
                    Disabled="@(!_isInteractive)"
                    Click="OpenDrawer"
                    data-testid="navigation-drawer-open">@DemoText.NavigationDrawer.OpenDrawer</BzsButton>
-    </section>
+    </DemoShowcaseSection>
 
-    <section class="demo-panel" aria-labelledby="navigation-drawer-status-title">
-        <h2 id="navigation-drawer-status-title">@DemoText.NavigationDrawer.Status</h2>
+    <DemoShowcaseSection HeadingId="navigation-drawer-status-title"
+                         Heading="@DemoText.NavigationDrawer.Status">
         <dl class="demo-navigation-drawer-showcase__status" data-testid="navigation-drawer-status">
             <div>
                 <dt>@DemoText.NavigationDrawer.DrawerState</dt>
@@ -93,7 +93,7 @@
             </div>
         </dl>
         <p class="demo-runtime-status" role="status" data-testid="navigation-drawer-dialog-status">@_dialogStatus</p>
-    </section>
+    </DemoShowcaseSection>
 
     <BzsOverlayHost data-testid="navigation-drawer-overlay-host" />
 

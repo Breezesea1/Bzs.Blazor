@@ -33,11 +33,10 @@
             }
         </section>
 
-        <section class="demo-render-catalog__section" aria-labelledby="@FoundationTitleId">
-            <header class="demo-render-catalog__section-header">
-                <h2 id="@FoundationTitleId">Foundation</h2>
-                <p>Theme, density, semantic surface, icon, and button states are kept within the route-owned workbench.</p>
-            </header>
+        <DemoShowcaseSection Class="demo-render-catalog__section"
+                             HeadingId="@FoundationTitleId"
+                             Heading="Foundation"
+                             Description="Theme, density, semantic surface, icon, and button states are kept within the route-owned workbench.">
             <div class="demo-render-catalog__control-groups">
                 <div class="demo-control-row" role="group" aria-label="Theme mode">
                     <BzsButton Variant="BzsButtonVariant.Outline"
@@ -72,13 +71,12 @@
                     <BzsButton Loading="true">Saving</BzsButton>
                 </div>
             </BzsSurface>
-        </section>
+        </DemoShowcaseSection>
 
-        <section class="demo-render-catalog__section" aria-labelledby="@FormTitleId">
-            <header class="demo-render-catalog__section-header">
-                <h2 id="@FormTitleId">EditForm workflow</h2>
-                <p>All native input components remain visible in static SSR and become editable after the selected runtime activates.</p>
-            </header>
+        <DemoShowcaseSection Class="demo-render-catalog__section"
+                             HeadingId="@FormTitleId"
+                             Heading="EditForm workflow"
+                             Description="All native input components remain visible in static SSR and become editable after the selected runtime activates.">
             <EditForm EditContext="@_editContext" OnValidSubmit="SaveForm" FormName="@FormName" class="demo-render-catalog__form" data-testid="@FormTestId">
                 <DataAnnotationsValidator />
                 <div class="demo-render-catalog__form-grid">
@@ -174,24 +172,22 @@
                     <p role="status" data-testid="@FormStatusTestId">@_formStatus</p>
                 </div>
             </EditForm>
-        </section>
+        </DemoShowcaseSection>
 
-        <section class="demo-render-catalog__section" aria-labelledby="@FeedbackTitleId">
-            <header class="demo-render-catalog__section-header">
-                <h2 id="@FeedbackTitleId">Feedback</h2>
-                <p>Inline feedback remains meaningful even without a client-side component runtime.</p>
-            </header>
+        <DemoShowcaseSection Class="demo-render-catalog__section"
+                             HeadingId="@FeedbackTitleId"
+                             Heading="Feedback"
+                             Description="Inline feedback remains meaningful even without a client-side component runtime.">
             <div class="demo-render-catalog__feedback-grid">
                 <BzsMessage Severity="BzsMessageSeverity.Information" Title="Review ready">The next work item is staged for inspection.</BzsMessage>
                 <BzsProgress Label="Catalog coverage" Value="72" />
             </div>
-        </section>
+        </DemoShowcaseSection>
 
-        <section class="demo-render-catalog__section" aria-labelledby="@TabsTitleId">
-            <header class="demo-render-catalog__section-header">
-                <h2 id="@TabsTitleId">Tabs</h2>
-                <p>Controlled selection records the active inspection context after interactive activation.</p>
-            </header>
+        <DemoShowcaseSection Class="demo-render-catalog__section"
+                             HeadingId="@TabsTitleId"
+                             Heading="Tabs"
+                             Description="Controlled selection records the active inspection context after interactive activation.">
             <BzsTabs ActiveValue="@_activeTab"
                      ActiveValueChanged="SetActiveTabAsync"
                      AccessibleName="Catalog inspection tabs"
@@ -204,13 +200,12 @@
                 </BzsTabItem>
             </BzsTabs>
             <p class="demo-render-catalog__selection" role="status" data-testid="@TabsStatusTestId">Active tab: @_activeTab</p>
-        </section>
+        </DemoShowcaseSection>
 
-        <section class="demo-render-catalog__section" aria-labelledby="@OverlaysTitleId">
-            <header class="demo-render-catalog__section-header">
-                <h2 id="@OverlaysTitleId">Overlay host</h2>
-                <p>Controlled overlays, a typed service dialog, and toasts share one host for this route root.</p>
-            </header>
+        <DemoShowcaseSection Class="demo-render-catalog__section"
+                             HeadingId="@OverlaysTitleId"
+                             Heading="Overlay host"
+                             Description="Controlled overlays, a typed service dialog, and toasts share one host for this route root.">
             <div class="demo-control-row">
                 <BzsButton Disabled="@(!CanInteract)" Click="OpenControlledDialogAsync" data-testid="@OpenDialogTestId">Open controlled dialog</BzsButton>
                 <BzsButton Disabled="@(!CanInteract)" Variant="BzsButtonVariant.Outline" Click="OpenDrawerAsync" data-testid="@OpenDrawerTestId">Open drawer</BzsButton>
@@ -222,7 +217,7 @@
                 <p role="status" data-testid="@DrawerStatusTestId">@_drawerStatus</p>
                 <p role="status" data-testid="@ServiceDialogStatusTestId">@_serviceDialogStatus</p>
             </div>
-        </section>
+        </DemoShowcaseSection>
 
         <BzsDialog Open="@_isControlledDialogOpen"
                    OpenChanged="SetControlledDialogOpenAsync"

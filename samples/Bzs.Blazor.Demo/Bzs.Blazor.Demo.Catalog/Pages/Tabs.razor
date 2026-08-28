@@ -15,12 +15,10 @@
         </p>
 
         <section class="demo-panel demo-tabs-workbench" aria-label="Tabs examples">
-            <section class="demo-tabs-section" aria-labelledby="automatic-tabs-title">
-                <header class="demo-tabs-section-header">
-                    <h2 id="automatic-tabs-title">Automatic horizontal tabs</h2>
-                    <p>Arrow, Home, and End activate the next enabled tab.</p>
-                </header>
-
+            <DemoShowcaseSection Class="demo-tabs-section"
+                                 HeadingId="automatic-tabs-title"
+                                 Heading="Automatic horizontal tabs"
+                                 Description="Arrow, Home, and End activate the next enabled tab.">
                 <BzsTabs ActiveValue="@_automaticActiveValue"
                          ActiveValueChanged="SetAutomaticActiveValue"
                          Orientation="BzsTabsOrientation.Horizontal"
@@ -38,14 +36,12 @@
                     </BzsTabItem>
                 </BzsTabs>
                 <p class="demo-tabs-selection" aria-live="polite" data-testid="automatic-selection">Selected: @_automaticActiveValue</p>
-            </section>
+            </DemoShowcaseSection>
 
-            <section class="demo-tabs-section" aria-labelledby="manual-tabs-title">
-                <header class="demo-tabs-section-header">
-                    <h2 id="manual-tabs-title">Manual vertical tabs</h2>
-                    <p>Arrow keys move focus; Enter or Space commits the controlled selection.</p>
-                </header>
-
+            <DemoShowcaseSection Class="demo-tabs-section"
+                                 HeadingId="manual-tabs-title"
+                                 Heading="Manual vertical tabs"
+                                 Description="Arrow keys move focus; Enter or Space commits the controlled selection.">
                 <BzsTabs ActiveValue="@_manualActiveValue"
                          ActiveValueChanged="SetManualActiveValue"
                          Orientation="BzsTabsOrientation.Vertical"
@@ -63,14 +59,13 @@
                     </BzsTabItem>
                 </BzsTabs>
                 <p class="demo-tabs-selection" aria-live="polite" data-testid="manual-selection">Selected: @_manualActiveValue</p>
-            </section>
+            </DemoShowcaseSection>
 
             <div class="demo-tabs-locale-grid">
-                <section class="demo-tabs-section" lang="en" aria-labelledby="english-tabs-title">
-                    <header class="demo-tabs-section-header">
-                        <h2 id="english-tabs-title">English</h2>
-                    </header>
-
+                <DemoShowcaseSection Class="demo-tabs-section"
+                                     lang="en"
+                                     HeadingId="english-tabs-title"
+                                     Heading="English">
                     <BzsTabs InitialActiveValue="details" lang="en" aria-label="English content tabs" data-testid="english-tabs">
                         <BzsTabItem Value="details" Title="Details">
                             <p class="demo-tabs-panel-copy">Project details use English application content.</p>
@@ -79,13 +74,12 @@
                             <p class="demo-tabs-panel-copy">History records approvals and delivery notes.</p>
                         </BzsTabItem>
                     </BzsTabs>
-                </section>
+                </DemoShowcaseSection>
 
-                <section class="demo-tabs-section" lang="zh-Hans" aria-labelledby="chinese-tabs-title">
-                    <header class="demo-tabs-section-header">
-                        <h2 id="chinese-tabs-title">简体中文</h2>
-                    </header>
-
+                <DemoShowcaseSection Class="demo-tabs-section"
+                                     lang="zh-Hans"
+                                     HeadingId="chinese-tabs-title"
+                                     Heading="简体中文">
                     <BzsTabs InitialActiveValue="summary" lang="zh-Hans" aria-label="中文内容选项卡" data-testid="chinese-tabs">
                         <BzsTabItem Value="summary" Title="概览">
                             <p class="demo-tabs-panel-copy">项目概览包含当前进度、负责人和下一次评审日期。</p>
@@ -94,15 +88,15 @@
                             <p class="demo-tabs-panel-copy">交付记录会保留已批准的版本和发布说明。</p>
                         </BzsTabItem>
                     </BzsTabs>
-                </section>
+                </DemoShowcaseSection>
             </div>
 
-            <section class="demo-tabs-section" dir="rtl" lang="ar" aria-labelledby="rtl-tabs-title">
-                <header class="demo-tabs-section-header">
-                    <h2 id="rtl-tabs-title">علامات تبويب من اليمين إلى اليسار</h2>
-                    <p>ArrowRight follows the physical right direction for this horizontal tab list.</p>
-                </header>
-
+            <DemoShowcaseSection Class="demo-tabs-section"
+                                 dir="rtl"
+                                 lang="ar"
+                                 HeadingId="rtl-tabs-title"
+                                 Heading="علامات تبويب من اليمين إلى اليسار"
+                                 Description="ArrowRight follows the physical right direction for this horizontal tab list.">
                 <BzsTabs ActiveValue="@_rtlActiveValue"
                          ActiveValueChanged="SetRtlActiveValue"
                          Orientation="BzsTabsOrientation.Horizontal"
@@ -120,7 +114,7 @@
                     </BzsTabItem>
                 </BzsTabs>
                 <p class="demo-tabs-selection" aria-live="polite" data-testid="rtl-selection">المحدد: @_rtlActiveValue</p>
-            </section>
+            </DemoShowcaseSection>
         </section>
     </section>
 </div>

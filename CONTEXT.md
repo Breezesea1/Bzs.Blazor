@@ -59,3 +59,7 @@ _Avoid_: Href, route, URL helper
 **Landing Page**:
 The `/` route of the Demo Catalog, which introduces Bzs.Blazor to first-time visitors and routes them toward installation, the component groups, and releases. Its copy is bilingual (zh-Hans and en-US) with zh-Hans as the primary language.
 _Avoid_: Home page, overview page, dashboard
+
+**Showcase Section**:
+One demonstration within a Demo Catalog Destination: a bilingual heading, an optional description, and a live example of the components being shown. Its heading names the section for assistive technology, and a page contributes the wrapper appearance rather than restating the structure.
+_Avoid_: Demo panel, section header, example block
