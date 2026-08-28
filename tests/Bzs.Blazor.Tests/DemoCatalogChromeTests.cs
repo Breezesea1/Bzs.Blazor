@@ -114,6 +114,50 @@ public sealed class DemoCatalogChromeTests
                     | DemoCatalogHostCapabilities.SharedCatalog)));
     }
 
+    [Theory]
+    [InlineData(
+        "zh-Hans",
+        new[] { "目录", "项目", "渲染模式" },
+        new[]
+        {
+            "概览", "主题基础", "基础组件", "表单", "生产力", "反馈", "选项卡", "浮层", "布局", "导航抽屉",
+            "版本发布",
+            "静态 SSR", "交互式服务器", "交互式 WebAssembly", "交互式自动",
+        })]
+    [InlineData(
+        "en-US",
+        new[] { "Catalog", "Project", "Render modes" },
+        new[]
+        {
+            "Overview", "Theme foundation", "Foundation components", "Forms", "Productivity", "Feedback",
+            "Tabs", "Overlays", "Layout", "Navigation drawer",
+            "Releases",
+            "Static SSR", "Interactive Server", "Interactive WebAssembly", "Interactive Auto",
+        })]
+    public void ChromeCopyMatchesTheVisitorFacingWording(
+        string cultureName,
+        string[] expectedSections,
+        string[] expectedNames)
+    {
+        // Browser assertions read their expectations from this module, so wholesale copy drift is
+        // only observable here.
+        var originalUiCulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(cultureName);
+            var sections = DemoCatalogChrome.GetSections(includesServerRenderModes: true);
+
+            Assert.Equal(expectedSections, sections.Select(section => section.Name));
+            Assert.Equal(
+                expectedNames,
+                sections.SelectMany(section => section.Destinations).Select(entry => entry.Name));
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = originalUiCulture;
+        }
+    }
+
     [Fact]
     public void EveryDestinationHasChromeCopy()
     {

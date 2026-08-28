@@ -33,35 +33,25 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         await AssertDemoChromeAsync(
             isChinese,
             includesServerRenderModes: true,
-            isChinese ? "Aspire 演示主机" : "Aspire demo host");
+            DemoChrome.Read(isChinese).AspireDemoHost);
 
         await Page.SetViewportSizeAsync(390, 844);
         await Expect(Page.GetByRole(
             AriaRole.Button,
-            new() { Name = isChinese ? "打开导航" : "Open navigation", Exact = true }))
+            new() { Name = DemoChrome.Read(isChinese).OpenNavigation, Exact = true }))
             .ToBeVisibleAsync();
     }
 
     [Theory]
-    [InlineData("", "目录主题", "浅色", "深色", "系统", "基础组件")]
-    [InlineData("?culture=en-US", "Catalog theme", "Light", "Dark", "System", "Foundation components")]
-    public async Task GlobalThemeSwitchPersistsAndFollowsSystemPreference(
-        string query,
-        string accessibleName,
-        string lightLabel,
-        string darkLabel,
-        string systemLabel,
-        string foundationLinkLabel)
+    [InlineData("", true)]
+    [InlineData("?culture=en-US", false)]
+    public async Task GlobalThemeSwitchPersistsAndFollowsSystemPreference(string query, bool isChinese)
     {
-        BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
+        BeginBrowserGateTest(isChinese ? "zh-Hans" : "en-US");
         await AssertGlobalThemeSwitchPersistsAndFollowsSystemPreferenceAsync(
             server.BaseUrl,
             query,
-            accessibleName,
-            lightLabel,
-            darkLabel,
-            systemLabel,
-            foundationLinkLabel);
+            isChinese);
     }
 
     [Fact]

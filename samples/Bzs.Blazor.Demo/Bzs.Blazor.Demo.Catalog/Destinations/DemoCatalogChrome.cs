@@ -27,28 +27,7 @@ internal static class DemoCatalogChrome
     internal static string GetName(DemoCatalogDestination destination)
     {
         ArgumentNullException.ThrowIfNull(destination);
-        return destination.Id switch
-        {
-            "overview" => DemoText.Chrome.Overview,
-            "theme-foundation" => DemoText.Chrome.ThemeFoundation,
-            "foundation" => DemoText.Chrome.FoundationComponents,
-            "forms" => DemoText.Chrome.Forms,
-            "productivity" => DemoText.Chrome.Productivity,
-            "feedback" => DemoText.Chrome.Feedback,
-            "tabs" => DemoText.Chrome.Tabs,
-            "overlays" => DemoText.Chrome.Overlays,
-            "layout" => DemoText.Chrome.Layout,
-            "navigation-drawer" => DemoText.Chrome.NavigationDrawer,
-            "releases" => DemoText.Chrome.Releases,
-            "static-ssr" => DemoText.Chrome.StaticSsr,
-            "interactive-server" => DemoText.Chrome.InteractiveServer,
-            "interactive-webassembly" => DemoText.Chrome.InteractiveWebAssembly,
-            "interactive-auto" => DemoText.Chrome.InteractiveAuto,
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(destination),
-                destination.Id,
-                "The destination has no Demo Catalog Chrome name."),
-        };
+        return Copy(destination).Name();
     }
 
     internal static DemoCatalogEntry Describe(
@@ -56,35 +35,67 @@ internal static class DemoCatalogChrome
         bool includesServerRenderModes)
     {
         ArgumentNullException.ThrowIfNull(destination);
-        return new(destination, GetName(destination), GetDescription(destination, includesServerRenderModes));
+        var copy = Copy(destination);
+        return new(
+            destination,
+            copy.Name(),
+            includesServerRenderModes || copy.StandaloneDescription is null
+                ? copy.Description?.Invoke()
+                : copy.StandaloneDescription());
     }
 
-    private static string? GetDescription(
-        DemoCatalogDestination destination,
-        bool includesServerRenderModes) =>
-        destination.Id switch
-        {
-            "overview" or "releases" => null,
-            "theme-foundation" => DemoText.Landing.GroupThemeFoundationDescription,
-            "foundation" => DemoText.Landing.GroupFoundationDescription,
-            "forms" => DemoText.Landing.GroupFormsDescription,
-            "productivity" => DemoText.Landing.GroupProductivityDescription,
-            "feedback" => DemoText.Landing.GroupFeedbackDescription,
-            "tabs" => DemoText.Landing.GroupTabsDescription,
-            "overlays" => DemoText.Landing.GroupOverlaysDescription,
-            "layout" => DemoText.Landing.GroupLayoutDescription,
-            "navigation-drawer" => DemoText.Landing.GroupNavigationDrawerDescription,
-            "static-ssr" => DemoText.Landing.StaticSsrDescription,
-            "interactive-server" => DemoText.Landing.InteractiveServerDescription,
-            "interactive-webassembly" => includesServerRenderModes
-                ? DemoText.Landing.InteractiveWebAssemblyDescription
-                : DemoText.Landing.StandaloneRuntimeDescription,
-            "interactive-auto" => DemoText.Landing.InteractiveAutoDescription,
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(destination),
-                destination.Id,
-                "The destination has no Demo Catalog Chrome description."),
-        };
+    // One row per destination so a new destination cannot land with a name but no description, or
+    // with either one silently missing. Copy is resolved per access because the accessors follow
+    // the active culture.
+    private static DemoDestinationCopy Copy(DemoCatalogDestination destination) => destination.Id switch
+    {
+        "overview" => new(() => DemoText.Chrome.Overview),
+        "theme-foundation" => new(
+            () => DemoText.Chrome.ThemeFoundation,
+            () => DemoText.Landing.GroupThemeFoundationDescription),
+        "foundation" => new(
+            () => DemoText.Chrome.FoundationComponents,
+            () => DemoText.Landing.GroupFoundationDescription),
+        "forms" => new(
+            () => DemoText.Chrome.Forms,
+            () => DemoText.Landing.GroupFormsDescription),
+        "productivity" => new(
+            () => DemoText.Chrome.Productivity,
+            () => DemoText.Landing.GroupProductivityDescription),
+        "feedback" => new(
+            () => DemoText.Chrome.Feedback,
+            () => DemoText.Landing.GroupFeedbackDescription),
+        "tabs" => new(
+            () => DemoText.Chrome.Tabs,
+            () => DemoText.Landing.GroupTabsDescription),
+        "overlays" => new(
+            () => DemoText.Chrome.Overlays,
+            () => DemoText.Landing.GroupOverlaysDescription),
+        "layout" => new(
+            () => DemoText.Chrome.Layout,
+            () => DemoText.Landing.GroupLayoutDescription),
+        "navigation-drawer" => new(
+            () => DemoText.Chrome.NavigationDrawer,
+            () => DemoText.Landing.GroupNavigationDrawerDescription),
+        "releases" => new(() => DemoText.Chrome.Releases),
+        "static-ssr" => new(
+            () => DemoText.Chrome.StaticSsr,
+            () => DemoText.Landing.StaticSsrDescription),
+        "interactive-server" => new(
+            () => DemoText.Chrome.InteractiveServer,
+            () => DemoText.Landing.InteractiveServerDescription),
+        "interactive-webassembly" => new(
+            () => DemoText.Chrome.InteractiveWebAssembly,
+            () => DemoText.Landing.InteractiveWebAssemblyDescription,
+            () => DemoText.Landing.StandaloneRuntimeDescription),
+        "interactive-auto" => new(
+            () => DemoText.Chrome.InteractiveAuto,
+            () => DemoText.Landing.InteractiveAutoDescription),
+        _ => throw new ArgumentOutOfRangeException(
+            nameof(destination),
+            destination.Id,
+            "The destination has no Demo Catalog Chrome copy."),
+    };
 
     private static IReadOnlyList<DemoCatalogEntry> Present(
         IEnumerable<DemoCatalogDestination> destinations,
@@ -110,3 +121,13 @@ internal sealed record DemoCatalogEntry(
 internal sealed record DemoCatalogSection(
     string Name,
     IReadOnlyList<DemoCatalogEntry> Destinations);
+
+/// <summary>
+/// The bilingual copy one destination contributes to Demo Catalog Chrome. A destination without a
+/// description contributes only a name; <paramref name="StandaloneDescription"/> is supplied only
+/// where a host without the full render modes needs different wording.
+/// </summary>
+internal sealed record DemoDestinationCopy(
+    Func<string> Name,
+    Func<string>? Description = null,
+    Func<string>? StandaloneDescription = null);
