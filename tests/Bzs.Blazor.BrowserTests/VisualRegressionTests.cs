@@ -152,6 +152,48 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         await AssertMatchesBaselineAsync("landing-en-us-dark-desktop.png");
     }
 
+    [Fact]
+    public async Task OpenSelectPanelLightDesktopMatchesBaseline()
+    {
+        BeginBrowserGateTest();
+        await Page.SetViewportSizeAsync(1440, 900);
+        await Page.EmulateMediaAsync(new() { ReducedMotion = ReducedMotion.Reduce });
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.English));
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync(
+            new() { Timeout = InteractiveReadinessTimeout });
+
+        var workspace = Page.GetByRole(AriaRole.Combobox, new() { Name = "Workspace" });
+        await workspace.ClickAsync();
+        await Expect(workspace).ToHaveAttributeAsync("aria-expanded", "true");
+        await Expect(Page.GetByRole(AriaRole.Listbox, new() { Name = "Workspace" })).ToBeVisibleAsync();
+
+        await AssertMatchesBaselineAsync("forms-select-panel-light-desktop.png", blurActiveElement: false);
+    }
+
+    [Fact]
+    public async Task OpenCalendarLightDesktopMatchesBaseline()
+    {
+        BeginBrowserGateTest();
+        await Page.SetViewportSizeAsync(1440, 900);
+        await Page.EmulateMediaAsync(new() { ReducedMotion = ReducedMotion.Reduce });
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.English));
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync(
+            new() { Timeout = InteractiveReadinessTimeout });
+
+        // The demo seeds the delivery date from today, and the calendar marks today's cell, so the
+        // capture pins a date whose six-week grid can never contain the day the test runs.
+        var deliveryDate = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
+        await deliveryDate.FillAsync("6/15/2020");
+        await deliveryDate.PressAsync("Enter");
+        await Expect(deliveryDate).ToHaveValueAsync("6/15/2020");
+
+        await deliveryDate.ClickAsync();
+        await Expect(deliveryDate).ToHaveAttributeAsync("aria-expanded", "true");
+        await Expect(Page.Locator("[data-bzs-date-picker-panel='true']")).ToBeVisibleAsync();
+
+        await AssertMatchesBaselineAsync("forms-calendar-light-desktop.png", blurActiveElement: false);
+    }
+
     private async Task PrepareLandingVisualAsync()
     {
         await Page.EmulateMediaAsync(new()
@@ -164,12 +206,21 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
 
     private async Task AssertMatchesBaselineAsync(
         string fileName,
-        string languageSwitcherAccessibleName = "Catalog language")
+        string languageSwitcherAccessibleName = "Catalog language",
+        bool blurActiveElement = true)
     {
         await Expect(Page.GetByRole(
             AriaRole.Radiogroup,
             new() { Name = languageSwitcherAccessibleName, Exact = true })).ToBeVisibleAsync();
-        await Page.EvaluateAsync("() => document.activeElement instanceof HTMLElement && document.activeElement.blur()");
+
+        // An open anchored surface holds focus, and blurring it would close the surface, so a
+        // capture of an open panel keeps its focus ring rather than losing the panel.
+        if (blurActiveElement)
+        {
+            await Page.EvaluateAsync(
+                "() => document.activeElement instanceof HTMLElement && document.activeElement.blur()");
+        }
+
         var repositoryRoot = RepositoryLayout.Root;
         var baselineDirectory = Path.Combine(
             repositoryRoot,
