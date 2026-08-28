@@ -13,29 +13,41 @@ namespace Bzs.Blazor.Tests;
 public sealed class DataGridTests
 {
     [Fact]
-    public void ClientOperationsSortStablyBeforePaging()
+    public void ClientRowsSortStablyBeforePagingAcrossThePageBoundary()
     {
         var items = new[]
         {
-            new Row(1, "Third", 2),
-            new Row(2, "First", 1),
-            new Row(3, "Second", 1),
+            new Row(1, "Ada", 3),
+            new Row(2, "Bo", 1),
+            new Row(3, "Ada", 2),
         };
-        var firstPage = BzsDataGridOperations.Apply(
-            items,
-            (left, right) => left.Score.CompareTo(right.Score),
-            BzsDataGridSortDirection.Ascending,
-            page: 1,
-            pageSize: 2);
-        var secondPage = BzsDataGridOperations.Apply(
-            items,
-            (left, right) => left.Score.CompareTo(right.Score),
-            BzsDataGridSortDirection.Ascending,
-            page: 2,
-            pageSize: 2);
+        var sort = new BzsDataGridSort("name", BzsDataGridSortDirection.Ascending);
 
-        Assert.Equal([2, 3], firstPage.Select(static row => row.Id));
-        Assert.Equal([1], secondPage.Select(static row => row.Id));
+        using var context = CreateContext();
+        var cut = RenderGrid(context, items, parameters =>
+        {
+            parameters.Add(component => component.Sort, sort);
+            parameters.Add(component => component.PageSize, 2);
+            parameters.Add(component => component.PageSizeOptions, new[] { 2, 10 });
+        });
+
+        Assert.Equal(
+            ["3 points", "2 points"],
+            cut.FindAll("tbody strong").Select(static cell => cell.TextContent.Trim()));
+
+        cut.Render(parameters =>
+        {
+            parameters.Add(component => component.Items, items);
+            parameters.Add(component => component.ChildContent, BuildColumns());
+            parameters.Add(component => component.Sort, sort);
+            parameters.Add(component => component.Page, 2);
+            parameters.Add(component => component.PageSize, 2);
+            parameters.Add(component => component.PageSizeOptions, new[] { 2, 10 });
+        });
+
+        Assert.Equal(
+            ["1 points"],
+            cut.FindAll("tbody strong").Select(static cell => cell.TextContent.Trim()));
     }
 
     [Fact]

@@ -1,5 +1,10 @@
 namespace Bzs.Blazor;
 
+/// <summary>
+/// Runs one provider call at a time and reports whether its outcome still belongs to the current
+/// request, cancelling the call it supersedes. It is an internal detail of
+/// <see cref="BzsDataGridProviderSession{TItem}" />, which owns the request lifecycle around it.
+/// </summary>
 internal sealed class BzsDataGridRequestCoordinator<TItem> : IDisposable
 {
     private readonly IBzsDataGridProvider<TItem> _provider;

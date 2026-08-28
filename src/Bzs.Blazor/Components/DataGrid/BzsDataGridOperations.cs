@@ -5,19 +5,6 @@ namespace Bzs.Blazor;
 
 internal static class BzsDataGridOperations
 {
-    internal static IReadOnlyList<TItem> Apply<TItem>(
-        IReadOnlyList<TItem> items,
-        Comparison<TItem>? comparison,
-        BzsDataGridSortDirection? direction,
-        int page,
-        int pageSize)
-    {
-        var sorted = comparison is not null && direction is not null
-            ? Sort(items, [new SortStep<TItem>(comparison, direction.Value)])
-            : items;
-        return Paginate(sorted, page, pageSize);
-    }
-
     internal static IReadOnlyList<TItem> Paginate<TItem>(
         IReadOnlyList<TItem> items,
         int page,

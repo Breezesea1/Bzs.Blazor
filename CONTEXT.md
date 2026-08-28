@@ -32,6 +32,10 @@ _Avoid_: Floating panel, popover infrastructure, portal
 A set of selectable options presented in an Anchored Overlay, together with which option is currently active for keyboard interaction. Distinct from the selection itself, which the owning control holds and may be single or multiple.
 _Avoid_: Dropdown, listbox state, option collection
 
+**Provider Request Lifecycle**:
+Which asynchronous data request is current for a provider-backed component, and the accepted page, failure, and loading state derived from it. It owns queueing a request raised before interactive rendering, dropping a request equal to the one already started, cancelling a superseded call, and keeping the last accepted page visible across a failure. Distinct from the controlled parameters the consumer supplies, which describe the request the component would like to be current.
+_Avoid_: Refresh flag, loading state, request queue
+
 **Demo Catalog**:
 The shared set of demonstration pages and chrome, hosted in `Bzs.Blazor.Demo.Catalog` and reused by the standalone WebAssembly and server demo hosts, through which visitors explore the component library. All visitor-facing copy is bilingual: zh-Hans is the default culture and en-US is available through the language switcher.
 _Avoid_: Demo app, sample site, playground
