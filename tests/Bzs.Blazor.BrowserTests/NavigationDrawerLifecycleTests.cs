@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
 
@@ -10,7 +11,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
     public async Task ServiceDialogOpenedFromModalDrawerRemainsInteractive()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await Page.GotoAsync(server.Urls.NavigationDrawerLifecycle(DemoDestinationUrls.English));
         await WaitForInteractiveShellAsync();
         var drawerDialogTrigger = Page.Locator("#fixture-open-service-dialog");
 
@@ -35,7 +36,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
     public async Task ModalDrawerReconcilesNewAndReplacedBackgroundSiblings()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await Page.GotoAsync(server.Urls.NavigationDrawerLifecycle(DemoDestinationUrls.English));
         await WaitForInteractiveShellAsync();
         var open = Page.Locator("#fixture-open");
         var background = Page.Locator("#fixture-background");
@@ -74,7 +75,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1280, 900);
-        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await Page.GotoAsync(server.Urls.NavigationDrawerLifecycle(DemoDestinationUrls.English));
         await WaitForInteractiveShellAsync();
         var open = Page.Locator("#fixture-open");
         var background = Page.Locator("#fixture-background");
@@ -119,7 +120,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
     public async Task ModalDrawerContainsFocusAndRestoresOnlyConnectedOpeners()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await Page.GotoAsync(server.Urls.NavigationDrawerLifecycle(DemoDestinationUrls.English));
         await WaitForInteractiveShellAsync();
         var open = Page.Locator("#fixture-open");
         var drawer = Page.Locator("#fixture-drawer");
@@ -143,7 +144,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
     public async Task ControlledDismissalCanRejectEscapeAndBackdropRequests()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await Page.GotoAsync(server.Urls.NavigationDrawerLifecycle(DemoDestinationUrls.English));
         await WaitForInteractiveShellAsync();
         var drawer = Page.Locator("#fixture-drawer");
 
@@ -160,7 +161,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
     public async Task InitialFocusSelectorReceivesFocusWhenTheDrawerOpens()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await Page.GotoAsync(server.Urls.NavigationDrawerLifecycle(DemoDestinationUrls.English));
         await WaitForInteractiveShellAsync();
 
         await Page.Locator("#fixture-open-with-initial-focus").ClickAsync();
@@ -172,7 +173,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
     public async Task DisabledBackdropDismissalDoesNotRequestAControlledClose()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await Page.GotoAsync(server.Urls.NavigationDrawerLifecycle(DemoDestinationUrls.English));
         await WaitForInteractiveShellAsync();
         var drawer = Page.Locator("#fixture-drawer");
 
@@ -188,7 +189,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1280, 900);
-        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await Page.GotoAsync(server.Urls.NavigationDrawerLifecycle(DemoDestinationUrls.English));
         await WaitForInteractiveShellAsync();
         var drawer = Page.Locator("#fixture-drawer");
         var background = Page.Locator("#fixture-background");
@@ -214,7 +215,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
     public async Task PersistentDrawerDoesNotTrapTabFocus()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await Page.GotoAsync(server.Urls.NavigationDrawerLifecycle(DemoDestinationUrls.English));
         await WaitForInteractiveShellAsync();
         var drawer = Page.Locator("#fixture-drawer");
 
@@ -231,7 +232,7 @@ public sealed class NavigationDrawerLifecycleTests(DemoServerFixture server) : B
     public async Task EnhancedNavigationDisposesAnOpenModalDrawer()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/test/navigation-drawer?culture=en-US");
+        await Page.GotoAsync(server.Urls.NavigationDrawerLifecycle(DemoDestinationUrls.English));
         await WaitForInteractiveShellAsync();
         var drawer = Page.Locator("#fixture-drawer");
 

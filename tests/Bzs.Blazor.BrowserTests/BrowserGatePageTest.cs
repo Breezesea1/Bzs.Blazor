@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using Bzs.Blazor.Demo.Client;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
 
@@ -134,8 +135,8 @@ public abstract class BrowserGatePageTest : PageTest
     }
 
     protected async Task AssertGlobalThemeSwitchPersistsAndFollowsSystemPreferenceAsync(
-        string baseUrl,
-        string query,
+        DemoDestinationUrls urls,
+        string? culture,
         bool isChinese)
     {
         var chrome = DemoChrome.Read(isChinese);
@@ -153,7 +154,7 @@ public abstract class BrowserGatePageTest : PageTest
             """);
         await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Light });
 
-        await Page.GotoAsync($"{baseUrl}{query}");
+        await Page.GotoAsync(urls.Root(culture));
 
         var provider = Page.GetByTestId("demo-global-theme-provider");
         await Expect(provider).ToHaveAttributeAsync("data-bzs-demo-theme-mode", "light");
@@ -182,7 +183,7 @@ public abstract class BrowserGatePageTest : PageTest
         await Expect(Page.GetByTestId("demo-global-theme-provider"))
             .ToHaveAttributeAsync("data-bzs-theme", "light");
 
-        await Page.GotoAsync($"{baseUrl}/forms{query}");
+        await Page.GotoAsync(urls.To(DemoCatalogDestinations.Forms, culture));
         await Expect(Page.GetByTestId("demo-global-theme-provider"))
             .ToHaveAttributeAsync("data-bzs-theme", "light");
 
@@ -192,11 +193,11 @@ public abstract class BrowserGatePageTest : PageTest
     }
 
     protected async Task AssertLandingPageSectionsAsync(
-        string baseUrl,
-        string query,
+        DemoDestinationUrls urls,
+        string? culture,
         bool includesServerRenderModes)
     {
-        await Page.GotoAsync($"{baseUrl}{query}");
+        await Page.GotoAsync(urls.Root(culture));
 
         var expectedSections = new[]
         {
@@ -219,7 +220,7 @@ public abstract class BrowserGatePageTest : PageTest
             "root => [...root.querySelectorAll(':scope > [data-testid]')].map(element => element.getAttribute('data-testid'))");
         Assert.Equal(expectedSections, order);
 
-        var isChinese = !query.Contains("culture=en-US", StringComparison.OrdinalIgnoreCase);
+        var isChinese = culture is not DemoDestinationUrls.English;
         var expectedRuntimeLinks = includesServerRenderModes
             ? isChinese
                 ? new[] { "静态 SSR", "交互式服务器", "交互式 WebAssembly", "交互式自动" }
@@ -233,9 +234,9 @@ public abstract class BrowserGatePageTest : PageTest
         Assert.Equal(expectedRuntimeLinks, actualRuntimeLinks.Select(text => text.Trim()));
     }
 
-    protected async Task AssertLandingPageCopyFollowsCultureAsync(string baseUrl)
+    protected async Task AssertLandingPageCopyFollowsCultureAsync(DemoDestinationUrls urls)
     {
-        await Page.GotoAsync(baseUrl);
+        await Page.GotoAsync(urls.Root());
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Level = 1 }))
             .ToHaveTextAsync("为 Blazor 而生的紧凑组件库");
         await Expect(Page.GetByTestId("landing-install").GetByRole(
@@ -246,7 +247,7 @@ public abstract class BrowserGatePageTest : PageTest
             AriaRole.Heading, new() { Name = "最新版本", Exact = true })).ToBeVisibleAsync();
         await Expect(Page.GetByTestId("landing-footer")).ToContainTextAsync("基于 MIT 许可证发布。");
 
-        await Page.GotoAsync($"{baseUrl}?culture=en-US");
+        await Page.GotoAsync(urls.Root(DemoDestinationUrls.English));
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Level = 1 }))
             .ToHaveTextAsync("A compact component library for Blazor");
         await Expect(Page.GetByTestId("landing-install").GetByRole(
@@ -258,9 +259,11 @@ public abstract class BrowserGatePageTest : PageTest
         await Expect(Page.GetByTestId("landing-footer")).ToContainTextAsync("Released under the MIT license.");
     }
 
-    protected async Task AssertLandingHeroCtasReachTheirSectionsAsync(string baseUrl, string query)
+    protected async Task AssertLandingHeroCtasReachTheirSectionsAsync(
+        DemoDestinationUrls urls,
+        string? culture)
     {
-        await Page.GotoAsync($"{baseUrl}{query}");
+        await Page.GotoAsync(urls.Root(culture));
         await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync("data-interactive", "true");
 
         await Page.GetByTestId("landing-cta-install").ClickAsync();
@@ -272,9 +275,9 @@ public abstract class BrowserGatePageTest : PageTest
         await Expect(Page.GetByTestId("landing-component-groups")).ToBeInViewportAsync();
     }
 
-    protected async Task AssertLandingLiveStripAsync(string baseUrl, string query)
+    protected async Task AssertLandingLiveStripAsync(DemoDestinationUrls urls, string? culture)
     {
-        await Page.GotoAsync($"{baseUrl}{query}");
+        await Page.GotoAsync(urls.Root(culture));
         await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync("data-interactive", "true");
 
         var strip = Page.GetByTestId("landing-demo-strip");
@@ -312,9 +315,9 @@ public abstract class BrowserGatePageTest : PageTest
         await Expect(dialog).ToHaveCountAsync(0);
     }
 
-    protected async Task AssertLandingInstallSnippetAsync(string baseUrl, string query)
+    protected async Task AssertLandingInstallSnippetAsync(DemoDestinationUrls urls, string? culture)
     {
-        await Page.GotoAsync($"{baseUrl}{query}");
+        await Page.GotoAsync(urls.Root(culture));
 
         var snippet = Page.GetByTestId("landing-install-snippet");
         await Expect(snippet).ToContainTextAsync("dotnet add package Bzs.Blazor");
@@ -326,16 +329,16 @@ public abstract class BrowserGatePageTest : PageTest
         await Expect(Page.GetByTestId("landing-copy-status")).ToHaveTextAsync(new Regex(".+"));
     }
 
-    protected async Task AssertLandingReleaseSummaryAsync(string baseUrl, string query)
+    protected async Task AssertLandingReleaseSummaryAsync(DemoDestinationUrls urls, string? culture)
     {
-        await Page.GotoAsync($"{baseUrl}{query}");
+        await Page.GotoAsync(urls.Root(culture));
 
         var release = Page.GetByTestId("landing-release");
         await Expect(release.GetByTestId("landing-release-version"))
             .ToHaveTextAsync(new Regex(@"^\d+\.\d+\.\d+$"));
 
         await release.GetByTestId("landing-release-more").ClickAsync();
-        await Expect(Page).ToHaveURLAsync(new Regex($"/releases{Regex.Escape(query)}$"));
+        await Expect(Page).ToHaveURLAsync(urls.To(DemoCatalogDestinations.Releases, culture));
         await Expect(Page.GetByTestId("releases-page")).ToBeVisibleAsync();
     }
 
@@ -354,9 +357,9 @@ public abstract class BrowserGatePageTest : PageTest
             releaseHeadings.Take(3));
     }
 
-    protected async Task AssertLandingFooterAsync(string baseUrl, string query)
+    protected async Task AssertLandingFooterAsync(DemoDestinationUrls urls, string? culture)
     {
-        await Page.GotoAsync($"{baseUrl}{query}");
+        await Page.GotoAsync(urls.Root(culture));
 
         var footer = Page.GetByTestId("landing-footer");
         await Expect(footer.Locator("a[href^='https://www.nuget.org/packages/']")).ToBeVisibleAsync();

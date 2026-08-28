@@ -8,7 +8,10 @@
     <div class="bzs-drawer" data-bzs-overlay-root="drawer" data-bzs-drawer-placement="@PlacementName">
         @if (Modal)
         {
-            <div class="bzs-drawer__backdrop" aria-hidden="true" @onclick="RequestBackdropDismissAsync"></div>
+            <div class="bzs-drawer__backdrop"
+                 data-bzs-backdrop="drawer"
+                 aria-hidden="true"
+                 @onclick="RequestBackdropDismissAsync"></div>
         }
         <section @ref="_panelElement"
                  @attributes="PanelAttributes"

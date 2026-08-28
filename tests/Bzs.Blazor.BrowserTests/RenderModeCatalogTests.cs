@@ -11,7 +11,7 @@ public sealed class RenderModeCatalogTests(DemoServerFixture server) : BrowserGa
     {
         BeginBrowserGateTest();
         using var client = new HttpClient();
-        var response = await client.GetAsync($"{server.BaseUrl}/render-modes/static");
+        var response = await client.GetAsync(server.Urls.RenderMode("static"));
         var html = await response.Content.ReadAsStringAsync();
 
         response.EnsureSuccessStatusCode();
@@ -63,7 +63,7 @@ public sealed class RenderModeCatalogTests(DemoServerFixture server) : BrowserGa
         };
 
         var testId = $"render-mode-{route}";
-        var response = await Page.GotoAsync($"{server.BaseUrl}/render-modes/{route}");
+        var response = await Page.GotoAsync(server.Urls.RenderMode(route));
 
         Assert.NotNull(response);
         Assert.True(response.Ok);

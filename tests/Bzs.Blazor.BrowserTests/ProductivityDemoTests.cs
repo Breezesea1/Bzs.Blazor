@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using System.Text.RegularExpressions;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
@@ -12,7 +13,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest("static");
         using var client = new HttpClient();
-        var response = await client.GetAsync($"{server.BaseUrl}/productivity/static?culture=en-US");
+        var response = await client.GetAsync(server.Urls.ProductivityRenderMode("static", DemoDestinationUrls.English));
         var html = await response.Content.ReadAsStringAsync();
 
         response.EnsureSuccessStatusCode();
@@ -35,7 +36,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest("static-zh-Hans");
         using var client = new HttpClient();
         var response = await client.GetAsync(
-            $"{server.BaseUrl}/productivity/static?culture=zh-Hans");
+            server.Urls.ProductivityRenderMode("static", DemoDestinationUrls.Chinese));
         var html = System.Net.WebUtility.HtmlDecode(
             await response.Content.ReadAsStringAsync());
 
@@ -52,7 +53,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest("named-avatar");
         await Page.SetViewportSizeAsync(360, 800);
         var response = await Page.GotoAsync(
-            $"{server.BaseUrl}/productivity/auto?culture=en-US");
+            server.Urls.ProductivityRenderMode("auto", DemoDestinationUrls.English));
         Assert.True(response?.Ok ?? false);
         await Expect(Page.GetByTestId("productivity-workbench"))
             .ToHaveAttributeAsync("data-bzs-interactive", "true");
@@ -94,10 +95,9 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
             + " element.style.setProperty('--bzs-radius-control', '3px');"
             + " element.style.setProperty('--bzs-radius-container', '13px');"
             + " }");
-        await Expect(identity.Locator(".bzs-avatar__visual"))
-            .ToHaveCSSAsync("border-top-left-radius", "13px");
+        var visual = identity.Locator("[data-bzs-avatar-visual]");
+        await Expect(visual).ToHaveCSSAsync("border-top-left-radius", "13px");
         await Expect(identity).ToHaveCSSAsync("border-top-width", "0px");
-        var visual = identity.Locator(".bzs-avatar__visual");
         await Expect(visual).ToHaveCSSAsync("border-top-width", "0px");
         var visualShadow = await visual.EvaluateAsync<string>(
             "element => getComputedStyle(element).boxShadow");
@@ -127,7 +127,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest(renderMode);
         await Page.SetViewportSizeAsync(1280, 900);
-        var response = await Page.GotoAsync($"{server.BaseUrl}/productivity/{renderMode}?culture=en-US");
+        var response = await Page.GotoAsync(server.Urls.ProductivityRenderMode(renderMode, DemoDestinationUrls.English));
         Assert.True(response?.Ok ?? false);
 
         await Expect(Page.GetByTestId("productivity-workbench"))
@@ -275,7 +275,8 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest(renderMode);
         var response = await Page.GotoAsync(
-            $"{server.BaseUrl}/productivity/{renderMode}?culture=en-US&rejectGridSelection=true");
+            server.Urls.ProductivityRenderMode(renderMode, DemoDestinationUrls.English)
+            + "&rejectGridSelection=true");
         Assert.True(response?.Ok ?? false);
 
         await Expect(Page.GetByTestId("productivity-workbench"))
@@ -300,7 +301,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest($"filter-{renderMode}");
         var response = await Page.GotoAsync(
-            $"{server.BaseUrl}/productivity/{renderMode}?culture=en-US");
+            server.Urls.ProductivityRenderMode(renderMode, DemoDestinationUrls.English));
         Assert.True(response?.Ok ?? false);
         await Expect(Page.GetByTestId("productivity-workbench"))
             .ToHaveAttributeAsync("data-bzs-interactive", "true");
@@ -340,7 +341,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(800, 420);
-        await Page.GotoAsync($"{server.BaseUrl}/productivity/server?culture=en-US");
+        await Page.GotoAsync(server.Urls.ProductivityRenderMode("server", DemoDestinationUrls.English));
         await Expect(Page.GetByTestId("productivity-workbench"))
             .ToHaveAttributeAsync("data-bzs-interactive", "true");
 
@@ -379,7 +380,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest($"workbench-grid-{renderMode}");
         var response = await Page.GotoAsync(
-            $"{server.BaseUrl}/productivity/{renderMode}?culture=en-US");
+            server.Urls.ProductivityRenderMode(renderMode, DemoDestinationUrls.English));
         Assert.True(response?.Ok ?? false);
         await Expect(Page.GetByTestId("productivity-workbench"))
             .ToHaveAttributeAsync("data-bzs-interactive", "true");
@@ -410,19 +411,18 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
         await grid.GetByRole(AriaRole.Button, new() { Name = "Hours column menu", Exact = true })
             .ClickAsync();
         await grid.GetByRole(AriaRole.Button, new() { Name = "Add to sort", Exact = true }).ClickAsync();
-        await Expect(gridRoot.Locator(".bzs-data-grid__sort-precedence")).ToHaveCountAsync(2);
+        await Expect(gridRoot.Locator("[data-bzs-data-grid-sort-precedence]")).ToHaveCountAsync(2);
 
         // Row details expand through the controlled expansion keys.
-        var detailToggles = gridRoot.Locator(".bzs-data-grid__detail-toggle");
-        await detailToggles.First.ClickAsync();
-        await Expect(gridRoot.Locator(".bzs-data-grid__detail-panel")).ToHaveCountAsync(1);
+        await gridRoot.GetByRole(AriaRole.Button, new() { Name = "Expand row 1", Exact = true })
+            .ClickAsync();
+        await Expect(gridRoot.Locator("[data-bzs-data-grid-detail-panel]")).ToHaveCountAsync(1);
         await Expect(gridRoot.GetByText("Current status", new() { Exact = true })).ToBeVisibleAsync();
 
         // The column chooser removes a column from the rendered table.
         await gridRoot.GetByRole(AriaRole.Button, new() { Name = "Choose visible columns", Exact = true })
             .ClickAsync();
-        await gridRoot.Locator(".bzs-data-grid__chooser-option")
-            .Filter(new() { HasText = "Status" })
+        await gridRoot.Locator("[data-bzs-data-grid-chooser-option='status']")
             .GetByRole(AriaRole.Checkbox)
             .ClickAsync();
         await Expect(grid.GetByRole(AriaRole.Columnheader, new() { NameRegex = new Regex("^Status\\b") }))
@@ -438,7 +438,7 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest($"workbench-resize-{renderMode}");
         var response = await Page.GotoAsync(
-            $"{server.BaseUrl}/productivity/{renderMode}?culture=en-US");
+            server.Urls.ProductivityRenderMode(renderMode, DemoDestinationUrls.English));
         Assert.True(response?.Ok ?? false);
         await Expect(Page.GetByTestId("productivity-workbench"))
             .ToHaveAttributeAsync("data-bzs-interactive", "true");

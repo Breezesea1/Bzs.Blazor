@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using System.Security.Cryptography;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
@@ -14,7 +15,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1440, 900);
-        await Page.GotoAsync($"{server.BaseUrl}/foundation?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Foundation, DemoDestinationUrls.English));
         await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync(
             "Interactive runtime ready",
             new() { Timeout = InteractiveReadinessTimeout });
@@ -28,7 +29,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1440, 900);
         await Page.EmulateMediaAsync(new() { ReducedMotion = ReducedMotion.Reduce });
-        await Page.GotoAsync($"{server.BaseUrl}/foundation?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Foundation, DemoDestinationUrls.English));
         await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync(
             "Interactive runtime ready",
             new() { Timeout = InteractiveReadinessTimeout });
@@ -44,7 +45,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(390, 844);
-        await Page.GotoAsync($"{server.BaseUrl}/tabs?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Tabs, DemoDestinationUrls.English));
         await Expect(Page.GetByTestId("tabs-runtime-status")).ToHaveTextAsync(
             "Interactive runtime ready",
             new() { Timeout = InteractiveReadinessTimeout });
@@ -58,7 +59,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(390, 844);
         await Page.EmulateMediaAsync(new() { ReducedMotion = ReducedMotion.Reduce });
-        await Page.GotoAsync($"{server.BaseUrl}/render-modes/auto?culture=en-US");
+        await Page.GotoAsync(server.Urls.RenderMode("auto", DemoDestinationUrls.English));
         await Expect(Page.GetByTestId("render-mode-auto-runtime-readiness"))
             .ToHaveTextAsync(
                 "Interactive runtime ready",
@@ -76,7 +77,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1440, 900);
         await Page.EmulateMediaAsync(new() { ReducedMotion = ReducedMotion.Reduce });
-        await Page.GotoAsync($"{server.BaseUrl}/productivity?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Productivity, DemoDestinationUrls.English));
         await Expect(Page.GetByRole(AriaRole.Table, new() { Name = "Review queue" })
             .Locator("tbody tr")).ToHaveCountAsync(5);
 
@@ -89,7 +90,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1440, 900);
         await PrepareLandingVisualAsync();
-        await Page.GotoAsync(server.BaseUrl);
+        await Page.GotoAsync(server.Urls.Root());
         await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync(
             "data-interactive",
             "true",
@@ -104,7 +105,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1440, 900);
         await PrepareLandingVisualAsync();
-        await Page.GotoAsync(server.BaseUrl);
+        await Page.GotoAsync(server.Urls.Root());
         await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync(
             "data-interactive",
             "true",
@@ -123,7 +124,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1440, 900);
         await PrepareLandingVisualAsync();
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
         await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync(
             "data-interactive",
             "true",
@@ -138,7 +139,7 @@ public sealed class VisualRegressionTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1440, 900);
         await PrepareLandingVisualAsync();
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
         await Expect(Page.GetByTestId("landing-page")).ToHaveAttributeAsync(
             "data-interactive",
             "true",

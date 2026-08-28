@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using Microsoft.Playwright;
 using static Microsoft.Playwright.Assertions;
 
@@ -30,15 +31,15 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
         try
         {
             observation.Observe(page, "workflow");
-            await RunInteractiveAutoWorkflowAsync(page, server.BaseUrl, target);
+            await RunInteractiveAutoWorkflowAsync(page, server.Urls.Root(), target);
 
             var productivityPage = await context.NewPageAsync();
             observation.Observe(productivityPage, "productivity");
-            await RunProductivityWorkflowAsync(productivityPage, server.BaseUrl, target);
+            await RunProductivityWorkflowAsync(productivityPage, server.Urls.Root(), target);
 
             var localizationPage = await context.NewPageAsync();
             observation.Observe(localizationPage, "rtl");
-            await RunLocalizationAndRtlWorkflowAsync(localizationPage, server.BaseUrl, target);
+            await RunLocalizationAndRtlWorkflowAsync(localizationPage, server.Urls.Root(), target);
 
             var errorResponses = observation.GetErrorResponses();
             Assert.True(
@@ -58,7 +59,7 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
     private static async Task RunInteractiveAutoWorkflowAsync(IPage page, string baseUrl, string target)
     {
         const string testId = "render-mode-auto";
-        var response = await page.GotoAsync($"{baseUrl}/render-modes/auto?culture=en-US");
+        var response = await page.GotoAsync(new DemoDestinationUrls(baseUrl).RenderMode("auto", DemoDestinationUrls.English));
         Assert.True(response?.Ok ?? false, $"{target} could not load the Interactive Auto catalog.");
 
         await Expect(page.GetByTestId($"{testId}-runtime-readiness"))
@@ -119,7 +120,7 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
 
     private static async Task RunLocalizationAndRtlWorkflowAsync(IPage page, string baseUrl, string target)
     {
-        var response = await page.GotoAsync($"{baseUrl}/tabs?culture=en-US");
+        var response = await page.GotoAsync(new DemoDestinationUrls(baseUrl).To(DemoCatalogDestinations.Tabs, DemoDestinationUrls.English));
         Assert.True(response?.Ok ?? false, $"{target} could not load the Interactive Auto tabs workbench.");
         await Expect(page.GetByTestId("tabs-runtime-status")).ToHaveTextAsync("Interactive runtime ready");
 
@@ -141,7 +142,7 @@ public sealed class BrowserMatrixTests(DemoServerFixture server)
 
     private static async Task RunProductivityWorkflowAsync(IPage page, string baseUrl, string target)
     {
-        var response = await page.GotoAsync($"{baseUrl}/productivity?culture=en-US");
+        var response = await page.GotoAsync(new DemoDestinationUrls(baseUrl).To(DemoCatalogDestinations.Productivity, DemoDestinationUrls.English));
         Assert.True(response?.Ok ?? false, $"{target} could not load the Productivity catalog.");
         await Expect(page.GetByTestId("productivity-workbench"))
             .ToHaveAttributeAsync("data-bzs-interactive", "true");

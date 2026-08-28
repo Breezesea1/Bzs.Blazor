@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
 
@@ -14,7 +15,7 @@ public sealed class StandaloneReleaseAnnouncementTests(StandaloneWebAssemblyFixt
         await Page.AddInitScriptAsync(
             "localStorage.removeItem('bzs.demo.announcements.read.v1')");
         await Page.SetViewportSizeAsync(390, 844);
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
 
         var trigger = Page.GetByTestId("demo-release-trigger");
         await Expect(trigger).ToHaveAttributeAsync(
@@ -29,7 +30,7 @@ public sealed class StandaloneReleaseAnnouncementTests(StandaloneWebAssemblyFixt
         await dialog.GetByRole(AriaRole.Link, new() { Name = "View all releases", Exact = true })
             .ClickAsync();
 
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/releases?culture=en-US#v0.5.0");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Releases, DemoDestinationUrls.English, fragment: "v0.5.0"));
         await Expect(dialog).ToHaveCountAsync(0);
         await Expect(Page.GetByTestId("releases-page")).ToBeVisibleAsync();
         await AssertLatestReleaseHistoryAsync();

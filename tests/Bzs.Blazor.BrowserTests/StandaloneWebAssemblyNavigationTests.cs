@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using System.Collections.Concurrent;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
@@ -13,27 +14,27 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     {
         BeginBrowserGateTest();
 
-        await Page.GotoAsync(server.BaseUrl);
+        await Page.GotoAsync(server.Urls.Root());
         await Expect(Page.Locator("html")).ToHaveAttributeAsync("lang", "zh-Hans");
 
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
         await Expect(Page.Locator("html")).ToHaveAttributeAsync("lang", "en-US");
         var language = Page.GetByRole(
             AriaRole.Radiogroup,
             new() { Name = "Catalog language", Exact = true });
-        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.English));
         await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "English", Exact = true }))
             .ToBeCheckedAsync();
     }
 
     [Theory]
-    [InlineData("", true)]
-    [InlineData("?culture=en-US", false)]
-    public async Task CatalogChromeUsesTheRequestedCulture(string query, bool isChinese)
+    [InlineData(null, true)]
+    [InlineData(DemoDestinationUrls.English, false)]
+    public async Task CatalogChromeUsesTheRequestedCulture(string? culture, bool isChinese)
     {
         BeginBrowserGateTest(isChinese ? "zh-Hans" : "en-US");
 
-        await Page.GotoAsync($"{server.BaseUrl}{query}");
+        await Page.GotoAsync(server.Urls.Root(culture));
 
         await AssertDemoChromeAsync(
             isChinese,
@@ -48,39 +49,39 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("?culture=en-US")]
-    public async Task LandingPageRendersSectionsInOrder(string query)
+    [InlineData(null)]
+    [InlineData(DemoDestinationUrls.English)]
+    public async Task LandingPageRendersSectionsInOrder(string? culture)
     {
-        BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
-        await AssertLandingPageSectionsAsync(server.BaseUrl, query, includesServerRenderModes: false);
+        BeginBrowserGateTest(culture ?? DemoDestinationUrls.Chinese);
+        await AssertLandingPageSectionsAsync(server.Urls, culture, includesServerRenderModes: false);
     }
 
     [Fact]
     public async Task LandingPageCopyFollowsCulture()
     {
         BeginBrowserGateTest();
-        await AssertLandingPageCopyFollowsCultureAsync(server.BaseUrl);
+        await AssertLandingPageCopyFollowsCultureAsync(server.Urls);
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("?culture=en-US")]
-    public async Task LandingPageLiveStripInteractionsWork(string query)
+    [InlineData(null)]
+    [InlineData(DemoDestinationUrls.English)]
+    public async Task LandingPageLiveStripInteractionsWork(string? culture)
     {
-        BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
-        await AssertLandingLiveStripAsync(server.BaseUrl, query);
+        BeginBrowserGateTest(culture ?? DemoDestinationUrls.Chinese);
+        await AssertLandingLiveStripAsync(server.Urls, culture);
     }
 
     [Theory]
-    [InlineData("", true)]
-    [InlineData("?culture=en-US", false)]
-    public async Task GlobalThemeSwitchPersistsAndFollowsSystemPreference(string query, bool isChinese)
+    [InlineData(null, true)]
+    [InlineData(DemoDestinationUrls.English, false)]
+    public async Task GlobalThemeSwitchPersistsAndFollowsSystemPreference(string? culture, bool isChinese)
     {
         BeginBrowserGateTest(isChinese ? "zh-Hans" : "en-US");
         await AssertGlobalThemeSwitchPersistsAndFollowsSystemPreferenceAsync(
-            server.BaseUrl,
-            query,
+            server.Urls,
+            culture,
             isChinese);
     }
 
@@ -91,7 +92,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await Page.AddInitScriptAsync(
             "localStorage.removeItem('bzs-demo-sidebar-collapsed')");
         await Page.SetViewportSizeAsync(1280, 900);
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
         var shell = Page.Locator("#demo-app-shell");
         var drawer = Page.Locator("#demo-navigation-drawer");
         var appBar = Page.Locator("#demo-app-bar");
@@ -152,7 +153,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
             });
             """);
         await Page.SetViewportSizeAsync(1280, 900);
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
 
         var drawer = Page.Locator("#demo-navigation-drawer");
         var closeNavigation = Page.GetByRole(
@@ -185,7 +186,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     public async Task BrandBlockShowsLogoAndFaviconResolvesToServedAsset()
     {
         BeginBrowserGateTest();
-        var response = await Page.GotoAsync(server.BaseUrl);
+        var response = await Page.GotoAsync(server.Urls.Root());
         Assert.NotNull(response);
         Assert.True(response.Ok);
 
@@ -207,7 +208,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         };
         Page.PageError += (_, error) => pageErrors.Enqueue(error);
 
-        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.English));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         var language = Page.GetByRole(
             AriaRole.Radiogroup,
@@ -223,7 +224,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await input.PressAsync("Escape");
 
         await language.GetByText("中文", new() { Exact = true }).ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.Chinese));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         language = Page.GetByRole(
             AriaRole.Radiogroup,
@@ -242,10 +243,10 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
             new() { Name = "Bzs.Blazor 目录", Exact = true });
         await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "反馈", Exact = true })
             .ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/feedback?culture=zh-Hans");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Feedback, DemoDestinationUrls.Chinese));
         await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "表单", Exact = true })
             .ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.Chinese));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
         await input.ClickAsync();
@@ -254,10 +255,10 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
 
         await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "概览", Exact = true })
             .ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/?culture=zh-Hans");
+        await Expect(Page).ToHaveURLAsync(server.Urls.Root(DemoDestinationUrls.Chinese));
         var componentGroups = Page.GetByTestId("landing-component-groups");
         await componentGroups.GetByTestId("landing-group-forms").ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.Chinese));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
         await input.ClickAsync();
@@ -282,7 +283,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         };
         Page.PageError += (_, error) => pageErrors.Enqueue(error);
 
-        var response = await Page.GotoAsync($"{server.BaseUrl}/render-modes/webassembly?culture=en-US");
+        var response = await Page.GotoAsync(server.Urls.RenderMode("webassembly", DemoDestinationUrls.English));
 
         Assert.NotNull(response);
         Assert.True(response.Ok);
@@ -328,7 +329,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     public async Task ProductivityWorkflowRunsInStandaloneWebAssembly()
     {
         BeginBrowserGateTest();
-        var response = await Page.GotoAsync($"{server.BaseUrl}/productivity");
+        var response = await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Productivity));
 
         Assert.True(response?.Ok ?? false);
         await Expect(Page.GetByTestId("productivity-workbench"))
@@ -377,7 +378,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await workbenchNavigation.GetByRole(
             AriaRole.Link,
             new() { Name = "Productivity", Exact = true }).ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/productivity");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Productivity));
 
         workbenchNavigation = Page.GetByRole(
             AriaRole.Navigation,
@@ -385,7 +386,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await workbenchNavigation.GetByRole(
             AriaRole.Link,
             new() { Name = "Assigned", Exact = true }).ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/productivity?view=assigned");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Productivity, query: "view=assigned"));
 
         workbenchNavigation = Page.GetByRole(
             AriaRole.Navigation,
@@ -393,7 +394,7 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await workbenchNavigation.GetByRole(
             AriaRole.Link,
             new() { Name = "Waiting", Exact = true }).ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/productivity?view=waiting");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Productivity, query: "view=waiting"));
 
         workbenchNavigation = Page.GetByRole(
             AriaRole.Navigation,
@@ -401,16 +402,16 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
         await workbenchNavigation.GetByRole(
             AriaRole.Link,
             new() { Name = "Overview", Exact = true }).ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/");
+        await Expect(Page).ToHaveURLAsync(server.Urls.Root());
 
-        await Page.GotoAsync($"{server.BaseUrl}/productivity");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Productivity));
         var breadcrumbs = Page.GetByRole(
             AriaRole.Navigation,
             new() { Name = "Productivity breadcrumb", Exact = true });
         await breadcrumbs.GetByRole(
             AriaRole.Link,
             new() { Name = "Home", Exact = true }).ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/");
+        await Expect(Page).ToHaveURLAsync(server.Urls.Root());
         AssertNoUnexpectedBrowserErrors("standalone WebAssembly productivity workflow");
     }
 
@@ -418,11 +419,11 @@ public sealed class StandaloneWebAssemblyNavigationTests(StandaloneWebAssemblyFi
     public async Task NavigationDrawerRouteIsReachableAndSupportsItsLifecycle()
     {
         BeginBrowserGateTest();
-        var response = await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        var response = await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
 
         Assert.True(response?.Ok ?? false);
         await ClickUniqueNavigationLinkAsync("Navigation drawer");
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/navigation-drawer?culture=en-US");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.NavigationDrawer, DemoDestinationUrls.English));
 
         var showcase = Page.GetByTestId("navigation-drawer-showcase");
         await Expect(showcase).ToHaveAttributeAsync("data-bzs-interactive", "true");

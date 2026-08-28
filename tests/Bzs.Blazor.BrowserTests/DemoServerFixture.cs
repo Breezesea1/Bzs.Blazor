@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using System.Diagnostics;
 using System.Net;
 
@@ -7,7 +8,10 @@ public sealed class DemoServerFixture : IAsyncLifetime
 {
     private Process? _process;
 
-    public string BaseUrl { get; private set; } = string.Empty;
+    private string BaseUrl { get; set; } = string.Empty;
+
+    /// <summary>Gets the addresses of this host's destinations, resolved through the link seam.</summary>
+    public DemoDestinationUrls Urls => new(BaseUrl);
 
     public async Task InitializeAsync()
     {

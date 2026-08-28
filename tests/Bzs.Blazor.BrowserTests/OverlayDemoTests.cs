@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
 
@@ -73,7 +74,7 @@ public sealed class OverlayDemoTests(DemoServerFixture server) : BrowserGatePage
                 disabledFieldsetControl.dataset.testid = 'dynamic-fieldset-disabled-control';
                 disabledFieldset.append(disabledFieldsetControl);
 
-                panel.querySelector('.bzs-dialog__content').append(programmaticOnly, disabledFieldset);
+                panel.append(programmaticOnly, disabledFieldset);
             }
             """);
 
@@ -215,11 +216,11 @@ public sealed class OverlayDemoTests(DemoServerFixture server) : BrowserGatePage
 
     private async Task GoToOverlaysAsync()
     {
-        await Page.GotoAsync($"{server.BaseUrl}/overlays");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Overlays));
         await Expect(Page.GetByTestId("overlays-runtime-status"))
             .ToHaveTextAsync("Interactive runtime ready");
     }
 
     private static ILocator GetDialogBackdrop(ILocator dialog) =>
-        dialog.Locator("xpath=..").Locator(".bzs-dialog__backdrop");
+        dialog.Locator("xpath=..").Locator("[data-bzs-backdrop='dialog']");
 }

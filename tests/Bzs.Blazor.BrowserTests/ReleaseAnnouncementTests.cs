@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
@@ -12,7 +13,7 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
     [Fact]
     public async Task ReleasesRouteProvidesAStaticDocumentFallback()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, $"{server.BaseUrl}/releases?culture=en-US");
+        using var request = new HttpRequestMessage(HttpMethod.Get, server.Urls.To(DemoCatalogDestinations.Releases, DemoDestinationUrls.English));
         request.Headers.TryAddWithoutValidation(HeaderNames.Accept, "text/html");
         using var client = new HttpClient();
         using var response = await client.SendAsync(request);
@@ -66,7 +67,7 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1280, 900);
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
         await Page.EvaluateAsync($"localStorage.removeItem('{StorageKey}')");
         await Page.ReloadAsync();
 
@@ -115,7 +116,7 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
         await Expect(Page.Locator(".demo-release-unread")).ToHaveCountAsync(0);
 
         await Page.GetByRole(AriaRole.Link, new() { Name = "Releases", Exact = true }).ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/releases?culture=en-US");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Releases, DemoDestinationUrls.English));
         await Expect(Page.GetByRole(
             AriaRole.Heading,
             new() { Name = "Release announcements", Exact = true }))
@@ -136,7 +137,7 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
     {
         BeginBrowserGateTest();
         await Page.AddInitScriptAsync($"localStorage.removeItem('{StorageKey}')");
-        await Page.GotoAsync($"{server.BaseUrl}/?culture=zh-Hans");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.Chinese));
 
         var trigger = Page.GetByTestId("demo-release-trigger");
         await Expect(trigger).ToHaveAttributeAsync("aria-label", "更新公告，1 个未读版本");
@@ -153,7 +154,7 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
             new() { Name = "Bzs.Blazor 0.5.0 更新内容", Exact = true })
             .GetByRole(AriaRole.Link, new() { Name = "查看所有版本", Exact = true })
             .ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/releases?culture=zh-Hans#v0.5.0");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Releases, DemoDestinationUrls.Chinese, fragment: "v0.5.0"));
         await Expect(Page.GetByRole(
             AriaRole.Dialog,
             new() { Name = "Bzs.Blazor 0.5.0 更新内容", Exact = true }))

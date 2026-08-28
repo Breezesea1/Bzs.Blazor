@@ -25,7 +25,19 @@ public sealed partial class BzsField : BzsComponentBase
     private string? EffectiveLabelFor => LabelFor is null
         ? InputId
         : string.IsNullOrWhiteSpace(LabelFor) ? null : LabelFor.Trim();
-    private IReadOnlyDictionary<string, object> RootAttributes => BuildAttributes("bzs-field");
+    private IReadOnlyDictionary<string, object> RootAttributes
+    {
+        get
+        {
+            var attributes = new Dictionary<string, object>(
+                BuildAttributes("bzs-field"),
+                StringComparer.OrdinalIgnoreCase)
+            {
+                ["data-bzs-field"] = "true",
+            };
+            return attributes;
+        }
+    }
 
     /// <inheritdoc />
     protected override void OnParametersSet()

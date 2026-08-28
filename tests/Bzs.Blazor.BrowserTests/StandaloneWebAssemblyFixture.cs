@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using Microsoft.AspNetCore.Builder;
@@ -15,7 +16,10 @@ public sealed class StandaloneWebAssemblyFixture : IAsyncLifetime
     private WebApplication? _application;
     private string? _temporaryDirectory;
 
-    public string BaseUrl { get; private set; } = string.Empty;
+    private string BaseUrl { get; set; } = string.Empty;
+
+    /// <summary>Gets the addresses of this host's destinations, including its base path.</summary>
+    public DemoDestinationUrls Urls => new(BaseUrl);
 
     public async Task InitializeAsync()
     {

@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
 
@@ -10,7 +11,7 @@ public sealed class StandaloneTextInputTests(StandaloneWebAssemblyFixture server
     public async Task PasswordRevealPreservesFocusAndCaretInStandaloneWebAssembly()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.English));
         await Expect(Page.GetByText("Interactive runtime ready", new() { Exact = true })).ToBeVisibleAsync();
 
         var input = Page.GetByTestId("password-input-example");
@@ -39,7 +40,7 @@ public sealed class StandaloneTextInputTests(StandaloneWebAssemblyFixture server
     public async Task InputModeCommitsChineseImeTextOnceInStandaloneWebAssembly()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.English));
         await Expect(Page.GetByText("Interactive runtime ready", new() { Exact = true })).ToBeVisibleAsync();
 
         var input = Page.GetByTestId("text-input-ime-example");

@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Net;
@@ -27,7 +28,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         };
         Page.PageError += (_, error) => pageErrors.Enqueue(error);
 
-        await Page.GotoAsync($"{server.BaseUrl}/forms?next=culture=zh-Hans&culture=en-US");
+        await Page.GotoAsync(server.Urls.WithRawQuery(DemoCatalogDestinations.Forms, "next=culture=zh-Hans&culture=en-US"));
         var language = Page.GetByRole(
             AriaRole.Radiogroup,
             new() { Name = "Catalog language", Exact = true });
@@ -35,7 +36,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         var chinese = language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true });
         await Expect(english).ToBeCheckedAsync();
 
-        await Page.GotoAsync($"{server.BaseUrl}/forms?next=x&culture=en-US");
+        await Page.GotoAsync(server.Urls.WithRawQuery(DemoCatalogDestinations.Forms, "next=x&culture=en-US"));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         await Expect(english).ToBeCheckedAsync();
 
@@ -47,7 +48,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await input.PressAsync("Escape");
 
         await language.GetByText("中文", new() { Exact = true }).ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?next=x&culture=zh-Hans");
+        await Expect(Page).ToHaveURLAsync(server.Urls.WithRawQuery(DemoCatalogDestinations.Forms, "next=x&culture=zh-Hans"));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         language = Page.GetByRole(
             AriaRole.Radiogroup,
@@ -67,12 +68,12 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
             new() { Name = "Bzs.Blazor 目录", Exact = true });
         await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "反馈", Exact = true })
             .ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/feedback?culture=zh-Hans");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Feedback, DemoDestinationUrls.Chinese));
         await Expect(chinese).ToBeCheckedAsync();
 
         await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "表单", Exact = true })
             .ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.Chinese));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
         await input.ClickAsync();
@@ -81,10 +82,10 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
 
         await catalogNavigation.GetByRole(AriaRole.Link, new() { Name = "概览", Exact = true })
             .ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/?culture=zh-Hans");
+        await Expect(Page).ToHaveURLAsync(server.Urls.Root(DemoDestinationUrls.Chinese));
         var componentGroups = Page.GetByTestId("landing-component-groups");
         await componentGroups.GetByTestId("landing-group-forms").ClickAsync();
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.Chinese));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
         input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
         await input.ClickAsync();
@@ -104,7 +105,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
             JavaScriptEnabled = false,
         });
 
-        await page.GotoAsync($"{server.BaseUrl}/?culture=zh-Hans");
+        await page.GotoAsync(server.Urls.Root(DemoDestinationUrls.Chinese));
 
         var language = page.GetByRole(
             AriaRole.Navigation,
@@ -127,12 +128,12 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         await Page.Context.ClearCookiesAsync();
 
-        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.Chinese));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
-        await Page.GotoAsync($"{server.BaseUrl}/forms");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms));
 
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.Chinese));
         var language = Page.GetByRole(
             AriaRole.Radiogroup,
             new() { Name = "目录语言", Exact = true });
@@ -140,9 +141,9 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
             .ToBeCheckedAsync();
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
-        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=invalid");
+        await Page.GotoAsync(server.Urls.WithRawQuery(DemoCatalogDestinations.Forms, "culture=invalid"));
 
-        await Expect(Page).ToHaveURLAsync($"{server.BaseUrl}/forms?culture=zh-Hans");
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.Chinese));
         await Expect(language.GetByRole(AriaRole.Radio, new() { Name = "中文", Exact = true }))
             .ToBeCheckedAsync();
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
@@ -160,16 +161,16 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         using var client = new HttpClient(handler);
         using var seedRequest = new HttpRequestMessage(
             HttpMethod.Get,
-            $"{server.BaseUrl}/forms?culture=zh-Hans");
+            server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.Chinese));
         seedRequest.Headers.Accept.ParseAdd("text/html");
         using var seedResponse = await client.SendAsync(seedRequest);
         seedResponse.EnsureSuccessStatusCode();
-        var cookies = handler.CookieContainer.GetCookies(new Uri(server.BaseUrl));
+        var cookies = handler.CookieContainer.GetCookies(new Uri(server.Urls.Root()));
         Assert.Contains(cookies.Cast<System.Net.Cookie>(), cookie =>
             cookie.Name == ".AspNetCore.Culture"
             && cookie.Value.Contains("zh-Hans", StringComparison.Ordinal));
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, $"{server.BaseUrl}/forms");
+        using var request = new HttpRequestMessage(HttpMethod.Post, server.Urls.To(DemoCatalogDestinations.Forms));
         request.Headers.Accept.ParseAdd("text/html");
         request.Content = new StringContent(string.Empty);
         using var response = await client.SendAsync(request);
@@ -558,7 +559,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
-        var field = input.Locator("xpath=ancestor::*[contains(@class, 'bzs-field')][1]");
+        var field = input.Locator("xpath=ancestor::*[@data-bzs-field][1]");
         await field.EvaluateAsync(
             "element => { element.style.height = `${element.getBoundingClientRect().height}px`; }");
         var clickPosition = new Position { X = 40, Y = 12 };
@@ -603,7 +604,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
-        var field = input.Locator("xpath=ancestor::*[contains(@class, 'bzs-field')][1]");
+        var field = input.Locator("xpath=ancestor::*[@data-bzs-field][1]");
         await field.EvaluateAsync(
             "element => { element.style.height = '32rem'; }");
         var clickPosition = new Position { X = 40, Y = 12 };
@@ -671,7 +672,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var input = Page.GetByRole(AriaRole.Combobox, new() { Name = "Delivery date" });
-        var field = input.Locator("xpath=ancestor::*[contains(@class, 'bzs-field')][1]");
+        var field = input.Locator("xpath=ancestor::*[@data-bzs-field][1]");
         await field.EvaluateAsync(
             "element => { element.style.inlineSize = '220px'; element.style.transform = 'scale(1.25, .8)'; element.style.transformOrigin = 'top left'; }");
         await input.EvaluateAsync("element => element.scrollIntoView({ block: 'center' })");
@@ -692,7 +693,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task SearchableSelectsCloseAfterOutsidePointerInteraction()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.English));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var releaseNotes = Page.GetByLabel("Release notes");
@@ -711,7 +712,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task SearchableSelectKeyboardDoesNotSubmitTheForm()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.English));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var workspace = Page.GetByRole(AriaRole.Combobox, new() { Name = "Workspace" });
@@ -734,13 +735,13 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         BeginBrowserGateTest();
         var pageErrors = new ConcurrentQueue<string>();
         Page.PageError += (_, error) => pageErrors.Enqueue(error);
-        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.English));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         foreach (var name in new[] { "Workspace", "Review areas" })
         {
             var select = Page.GetByRole(AriaRole.Combobox, new() { Name = name });
-            var field = select.Locator("xpath=ancestor::*[contains(@class, 'bzs-field')][1]");
+            var field = select.Locator("xpath=ancestor::*[@data-bzs-field][1]");
             await field.EvaluateAsync("element => { element.style.transform = 'scale(.8)'; element.style.transformOrigin = 'top left'; }");
             await select.ClickAsync();
 
@@ -764,7 +765,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task EnhancedChoiceControlsPreserveNativeRequiredAndLabelBehavior()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.English));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var constraints = Page.Locator("[data-bzs-select-constraint='true']");
@@ -783,10 +784,8 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
             .ToHaveTextAsync("Ready to validate the profile.");
 
         var selectedWorkflow = Page.Locator("#profile-workflow-option-2");
-        var selectedWorkflowLabel =
-            Page.Locator("label.bzs-radio-group__option[for='profile-workflow-option-2']");
 
-        await selectedWorkflowLabel.ClickAsync();
+        await Page.GetByText("Trust", new() { Exact = true }).ClickAsync();
         await Expect(selectedWorkflow).ToBeCheckedAsync();
 
         var workflowLabel = Page.Locator("#profile-workflow-label");
@@ -801,7 +800,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(640, 720);
-        await Page.GotoAsync($"{server.BaseUrl}/forms?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.English));
 
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
@@ -832,7 +831,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     public async Task TimedToastPausesForHoverAndKeyboardFocus()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/feedback?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Feedback, DemoDestinationUrls.English));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var showTimedToast = Page.GetByRole(AriaRole.Button, new() { Name = "Show timed toast" });
@@ -860,7 +859,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     {
         BeginBrowserGateTest();
         await Page.EmulateMediaAsync(new() { ReducedMotion = ReducedMotion.Reduce });
-        await Page.GotoAsync($"{server.BaseUrl}/feedback?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Feedback, DemoDestinationUrls.English));
         await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
 
         var persistentToastButton = Page.GetByRole(AriaRole.Button, new() { Name = "Show persistent toast" });
@@ -879,10 +878,10 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         var errorToast = Page.GetByRole(AriaRole.Alert, new() { Name = "Save failure toast" });
         await Expect(errorToast).ToHaveAttributeAsync("aria-live", "assertive");
 
-        await Page.GotoAsync($"{server.BaseUrl}/foundation?culture=en-US");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Foundation, DemoDestinationUrls.English));
         await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync("Interactive runtime ready");
         var loadingIcon = Page.GetByRole(AriaRole.Button, new() { Name = "Saving" })
-            .Locator(".bzs-button__loading-icon");
+            .Locator("[data-bzs-button-loading-icon]");
         await Expect(loadingIcon).ToBeVisibleAsync();
         Assert.Equal(
             "none",
@@ -901,7 +900,7 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
         || message.Contains("addEventListener", StringComparison.OrdinalIgnoreCase)
         || message.Contains("querySelector", StringComparison.OrdinalIgnoreCase);
 
-    private string ChineseFormsUrl => $"{server.BaseUrl}/forms?culture=zh-Hans";
+    private string ChineseFormsUrl => server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.Chinese);
 
     private static Task<string> GetActivePeriodOptionTextAsync(ILocator trigger) =>
         trigger.EvaluateAsync<string>(

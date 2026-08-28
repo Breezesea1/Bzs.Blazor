@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
 
@@ -124,7 +125,7 @@ public sealed class TabsDemoTests(DemoServerFixture server) : BrowserGatePageTes
     {
         BeginBrowserGateTest();
         using var client = new HttpClient();
-        var html = await client.GetStringAsync($"{server.BaseUrl}/tabs");
+        var html = await client.GetStringAsync(server.Urls.To(DemoCatalogDestinations.Tabs));
 
         Assert.Contains("role=\"tablist\"", html, StringComparison.Ordinal);
         Assert.Contains("role=\"tab\"", html, StringComparison.Ordinal);
@@ -134,7 +135,7 @@ public sealed class TabsDemoTests(DemoServerFixture server) : BrowserGatePageTes
 
     private async Task GoToTabsAsync()
     {
-        await Page.GotoAsync($"{server.BaseUrl}/tabs");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Tabs));
         await Expect(Page.GetByTestId("tabs-runtime-status"))
             .ToHaveTextAsync("Interactive runtime ready");
     }

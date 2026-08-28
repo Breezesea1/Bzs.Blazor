@@ -4,7 +4,9 @@
 <button @attributes="ButtonAttributes" @onclick="HandleClickAsync">
     @if (Loading)
     {
-        <BzsIcon Icon="BzsIcons.Loader" Class="bzs-button__loading-icon" />
+        <BzsIcon Icon="BzsIcons.Loader"
+                 Class="bzs-button__loading-icon"
+                 data-bzs-button-loading-icon="true" />
     }
     else if (StartIcon is not null)
     {

@@ -71,7 +71,9 @@
                                         <span class="bzs-data-grid__chooser-options">
                                             @foreach (var column in HideableColumns)
                                             {
-                                                <label @key="column" class="bzs-data-grid__chooser-option">
+                                                <label @key="column"
+                                                       class="bzs-data-grid__chooser-option"
+                                                       data-bzs-data-grid-chooser-option="@column.EffectiveKey">
                                                     <input type="checkbox"
                                                            checked="@IsColumnVisible(column)"
                                                            @onchange="() => ToggleColumnVisibilityAsync(column)" />
@@ -194,7 +196,8 @@
                                                 }
                                                 @if (GetSortPrecedence(column) is var precedence && precedence > 0)
                                                 {
-                                                    <span class="bzs-data-grid__sort-precedence">@precedence</span>
+                                                    <span class="bzs-data-grid__sort-precedence"
+                                                          data-bzs-data-grid-sort-precedence="@precedence">@precedence</span>
                                                 }
                                             </span>
                                         </button>
@@ -507,7 +510,9 @@
                             @if (DetailTemplate is not null && expanded)
                             {
                                 <tr @key="GetDetailRenderKey(item, index)" class="bzs-data-grid__detail-row">
-                                    <td colspan="@ColumnSpan" class="bzs-data-grid__detail-panel">
+                                    <td colspan="@ColumnSpan"
+                                        class="bzs-data-grid__detail-panel"
+                                        data-bzs-data-grid-detail-panel="true">
                                         @DetailTemplate(item)
                                     </td>
                                 </tr>

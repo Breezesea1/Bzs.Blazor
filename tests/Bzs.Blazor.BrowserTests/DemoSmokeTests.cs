@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
 using System.Text.RegularExpressions;
@@ -12,23 +13,23 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     {
         BeginBrowserGateTest();
 
-        await Page.GotoAsync(server.BaseUrl);
+        await Page.GotoAsync(server.Urls.Root());
         await Expect(Page.Locator("html")).ToHaveAttributeAsync("lang", "zh-Hans");
         await Expect(Page.Locator("a[href='#main-content']")).ToHaveTextAsync("跳至目录内容");
 
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
         await Expect(Page.Locator("html")).ToHaveAttributeAsync("lang", "en-US");
         await Expect(Page.Locator("a[href='#main-content']")).ToHaveTextAsync("Skip to catalog content");
     }
 
     [Theory]
-    [InlineData("", true)]
-    [InlineData("?culture=en-US", false)]
-    public async Task CatalogChromeUsesTheRequestedCulture(string query, bool isChinese)
+    [InlineData(null, true)]
+    [InlineData(DemoDestinationUrls.English, false)]
+    public async Task CatalogChromeUsesTheRequestedCulture(string? culture, bool isChinese)
     {
         BeginBrowserGateTest(isChinese ? "zh-Hans" : "en-US");
 
-        await Page.GotoAsync($"{server.BaseUrl}{query}");
+        await Page.GotoAsync(server.Urls.Root(culture));
 
         await AssertDemoChromeAsync(
             isChinese,
@@ -43,14 +44,14 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     }
 
     [Theory]
-    [InlineData("", true)]
-    [InlineData("?culture=en-US", false)]
-    public async Task GlobalThemeSwitchPersistsAndFollowsSystemPreference(string query, bool isChinese)
+    [InlineData(null, true)]
+    [InlineData(DemoDestinationUrls.English, false)]
+    public async Task GlobalThemeSwitchPersistsAndFollowsSystemPreference(string? culture, bool isChinese)
     {
         BeginBrowserGateTest(isChinese ? "zh-Hans" : "en-US");
         await AssertGlobalThemeSwitchPersistsAndFollowsSystemPreferenceAsync(
-            server.BaseUrl,
-            query,
+            server.Urls,
+            culture,
             isChinese);
     }
 
@@ -61,7 +62,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         await Page.AddInitScriptAsync(
             "localStorage.removeItem('bzs-demo-sidebar-collapsed')");
         await Page.SetViewportSizeAsync(1280, 900);
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
         var shell = Page.Locator("#demo-app-shell");
         var drawer = Page.Locator("#demo-navigation-drawer");
         var appBar = Page.Locator("#demo-app-bar");
@@ -117,7 +118,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         await Expect(appBar).ToHaveAttributeAsync("inert", "");
         await Expect(mainContent).ToHaveAttributeAsync("inert", "");
         await Expect(closeNavigation).ToBeFocusedAsync();
-        var backdrop = drawer.Locator(".bzs-navigation-drawer__backdrop");
+        var backdrop = drawer.Locator("[data-bzs-backdrop='navigation-drawer']");
         await Expect(backdrop)
             .ToBeVisibleAsync();
 
@@ -151,7 +152,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(1280, 900);
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
         await Page.EvaluateAsync("localStorage.removeItem('bzs-demo-sidebar-collapsed')");
         await Page.ReloadAsync();
 
@@ -198,7 +199,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         await Page.SetViewportSizeAsync(767, 844);
         Assert.True(await Page.EvaluateAsync<bool>("matchMedia('(width < 48rem)').matches"));
         await openNavigation.ClickAsync();
-        var backdrop = drawer.Locator(".bzs-navigation-drawer__backdrop");
+        var backdrop = drawer.Locator("[data-bzs-backdrop='navigation-drawer']");
         await Expect(backdrop)
             .ToHaveCSSAsync("display", "block");
         await Page.Keyboard.PressAsync("Escape");
@@ -245,7 +246,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
             });
             """);
         await Page.SetViewportSizeAsync(1280, 900);
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
 
         var drawer = Page.Locator("#demo-navigation-drawer");
         var closeNavigation = Page.GetByRole(
@@ -278,7 +279,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     public async Task CatalogExposesTheRenderModeRoutes()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
 
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Bzs.Blazor" }))
             .ToBeVisibleAsync();
@@ -293,7 +294,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     public async Task BrandBlockShowsLogoAndFaviconResolvesToServedAsset()
     {
         BeginBrowserGateTest();
-        var response = await Page.GotoAsync(server.BaseUrl);
+        var response = await Page.GotoAsync(server.Urls.Root());
         Assert.NotNull(response);
         Assert.True(response.Ok);
 
@@ -301,58 +302,58 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("?culture=en-US")]
-    public async Task LandingPageRendersSectionsInOrder(string query)
+    [InlineData(null)]
+    [InlineData(DemoDestinationUrls.English)]
+    public async Task LandingPageRendersSectionsInOrder(string? culture)
     {
-        BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
-        await AssertLandingPageSectionsAsync(server.BaseUrl, query, includesServerRenderModes: true);
+        BeginBrowserGateTest(culture ?? DemoDestinationUrls.Chinese);
+        await AssertLandingPageSectionsAsync(server.Urls, culture, includesServerRenderModes: true);
     }
 
     [Fact]
     public async Task LandingPageCopyFollowsCulture()
     {
         BeginBrowserGateTest();
-        await AssertLandingPageCopyFollowsCultureAsync(server.BaseUrl);
+        await AssertLandingPageCopyFollowsCultureAsync(server.Urls);
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("?culture=en-US")]
-    public async Task LandingPageHeroCtasReachTheirSections(string query)
+    [InlineData(null)]
+    [InlineData(DemoDestinationUrls.English)]
+    public async Task LandingPageHeroCtasReachTheirSections(string? culture)
     {
-        BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
-        await AssertLandingHeroCtasReachTheirSectionsAsync(server.BaseUrl, query);
+        BeginBrowserGateTest(culture ?? DemoDestinationUrls.Chinese);
+        await AssertLandingHeroCtasReachTheirSectionsAsync(server.Urls, culture);
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("?culture=en-US")]
-    public async Task LandingPageLiveStripInteractionsWork(string query)
+    [InlineData(null)]
+    [InlineData(DemoDestinationUrls.English)]
+    public async Task LandingPageLiveStripInteractionsWork(string? culture)
     {
-        BeginBrowserGateTest(query.Length == 0 ? "zh-Hans" : "en-US");
-        await AssertLandingLiveStripAsync(server.BaseUrl, query);
+        BeginBrowserGateTest(culture ?? DemoDestinationUrls.Chinese);
+        await AssertLandingLiveStripAsync(server.Urls, culture);
     }
 
     [Fact]
     public async Task LandingPageInstallSnippetRendersAndCopies()
     {
         BeginBrowserGateTest();
-        await AssertLandingInstallSnippetAsync(server.BaseUrl, "?culture=en-US");
+        await AssertLandingInstallSnippetAsync(server.Urls, DemoDestinationUrls.English);
     }
 
     [Fact]
     public async Task LandingPageReleaseSummaryRoutesToReleaseArchive()
     {
         BeginBrowserGateTest();
-        await AssertLandingReleaseSummaryAsync(server.BaseUrl, "?culture=en-US");
+        await AssertLandingReleaseSummaryAsync(server.Urls, DemoDestinationUrls.English);
     }
 
     [Fact]
     public async Task LandingPageFooterLinksToProjectResources()
     {
         BeginBrowserGateTest();
-        await AssertLandingFooterAsync(server.BaseUrl, "?culture=en-US");
+        await AssertLandingFooterAsync(server.Urls, DemoDestinationUrls.English);
     }
 
     [Theory]
@@ -370,7 +371,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
         string pageHeading)
     {
         BeginBrowserGateTest(route);
-        await Page.GotoAsync($"{server.BaseUrl}?culture=en-US");
+        await Page.GotoAsync(server.Urls.Root(DemoDestinationUrls.English));
 
         var componentGroups = Page.GetByTestId("landing-component-groups");
         await componentGroups.GetByTestId($"landing-group-{route}").ClickAsync();
@@ -390,7 +391,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
             ReducedMotion = ReducedMotion.Reduce,
         });
 
-        var response = await Page.GotoAsync($"{server.BaseUrl}/theme-foundation");
+        var response = await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.ThemeFoundation));
         Assert.NotNull(response);
         var styleDirective = response.Headers["content-security-policy"]
             .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -426,7 +427,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     public async Task FoundationComponentsActivateAfterAutoHydration()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync($"{server.BaseUrl}/foundation");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Foundation));
         await Expect(Page.GetByRole(AriaRole.Status))
             .ToContainTextAsync("Interactive runtime ready");
 
@@ -460,7 +461,7 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(390, 844);
-        await Page.GotoAsync($"{server.BaseUrl}/layout");
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Layout));
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "App Shell, Grid, and Stack" }))
             .ToBeVisibleAsync();
         await Expect(Page.Locator("#layout-intro"))

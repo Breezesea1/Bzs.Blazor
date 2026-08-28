@@ -1,3 +1,4 @@
+using Bzs.Blazor.Demo.Client;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
 
@@ -11,7 +12,7 @@ public sealed class NavigationDrawerShowcaseTests(DemoServerFixture server) : Br
     {
         BeginBrowserGateTest("resize");
         await Page.SetViewportSizeAsync(1280, 800);
-        var response = await Page.GotoAsync($"{server.BaseUrl}/productivity/auto?culture=en-US");
+        var response = await Page.GotoAsync(server.Urls.ProductivityRenderMode("auto", DemoDestinationUrls.English));
 
         Assert.True(response?.Ok ?? false);
         var drawer = Page.Locator("#demo-navigation-drawer");
@@ -94,7 +95,7 @@ public sealed class NavigationDrawerShowcaseTests(DemoServerFixture server) : Br
     public async Task PublicDrawerSupportsOpeningInitialFocusAndEscapeDismissal()
     {
         BeginBrowserGateTest();
-        var response = await Page.GotoAsync($"{server.BaseUrl}/navigation-drawer?culture=en-US");
+        var response = await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.NavigationDrawer, DemoDestinationUrls.English));
 
         Assert.True(response?.Ok ?? false);
         var showcase = Page.GetByTestId("navigation-drawer-showcase");

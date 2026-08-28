@@ -8,7 +8,10 @@
     <div class="bzs-dialog" data-bzs-overlay-root="dialog">
         @if (Modal)
         {
-            <div class="bzs-dialog__backdrop" aria-hidden="true" @onclick="RequestBackdropDismissAsync"></div>
+            <div class="bzs-dialog__backdrop"
+                 data-bzs-backdrop="dialog"
+                 aria-hidden="true"
+                 @onclick="RequestBackdropDismissAsync"></div>
         }
         <section @ref="_panelElement"
                  @attributes="PanelAttributes"
