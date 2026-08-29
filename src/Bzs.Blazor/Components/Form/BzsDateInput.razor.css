@@ -310,7 +310,7 @@
     justify-content: space-between;
     gap: 0.5rem;
     margin-block-start: 0.625rem;
-    border-block-start: var(--bzs-border-width) solid var(--bzs-border);
+    border-block-start: var(--bzs-border-width) solid var(--bzs-border-subtle);
     padding-block-start: 0.625rem;
 }
 

@@ -62,7 +62,7 @@
 .bzs-menu-item--separator {
     block-size: var(--bzs-border-width);
     margin-block: 0.25rem;
-    background: var(--bzs-border);
+    background: var(--bzs-border-subtle);
 }
 
 @media (forced-colors: active) {

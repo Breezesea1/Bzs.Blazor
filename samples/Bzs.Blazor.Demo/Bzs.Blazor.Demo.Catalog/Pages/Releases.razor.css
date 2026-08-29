@@ -10,12 +10,12 @@
     display: grid;
     grid-template-columns: minmax(8.5rem, 0.28fr) minmax(0, 1fr);
     gap: 1.5rem;
-    border-block-start: 1px solid var(--demo-border);
+    border-block-start: var(--bzs-border-width) solid var(--demo-border-subtle);
     padding-block: 1.5rem;
 }
 
 .demo-release-entry:last-child {
-    border-block-end: 1px solid var(--demo-border);
+    border-block-end: var(--bzs-border-width) solid var(--demo-border-subtle);
 }
 
 .demo-release-entry-meta,

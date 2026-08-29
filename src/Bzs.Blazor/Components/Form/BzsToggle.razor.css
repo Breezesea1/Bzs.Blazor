@@ -97,4 +97,13 @@
     .bzs-toggle__thumb {
         box-shadow: none;
     }
+
+    .bzs-toggle__track {
+        outline: 1px solid CanvasText;
+        outline-offset: -1px;
+    }
+
+    .bzs-toggle__thumb {
+        background-color: CanvasText;
+    }
 }

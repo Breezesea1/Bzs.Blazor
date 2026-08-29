@@ -5,8 +5,8 @@
     gap: var(--bzs-control-gap);
     align-items: start;
     max-inline-size: 100%;
-    border: var(--bzs-border-width) solid var(--bzs-border);
-    border-inline-start-width: 0.25rem;
+    border: 0;
+    border-inline-start: 0.25rem solid var(--bzs-border);
     border-radius: var(--bzs-radius-container);
     padding: 0.75rem;
     background-color: var(--bzs-surface-raised);
@@ -67,5 +67,7 @@
 @media (forced-colors: active) {
     .bzs-message {
         border-inline-start-color: CanvasText;
+        outline: 1px solid CanvasText;
+        outline-offset: -1px;
     }
 }

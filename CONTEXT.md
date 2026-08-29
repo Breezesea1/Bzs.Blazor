@@ -20,6 +20,10 @@ _Avoid_: Migration blocker, required feature, parity gap
 A semantic surface treatment that uses restrained highlight and shadow to communicate raised, inset, or overlay depth while preserving contrast and information density.
 _Avoid_: Shadow on every element, soft block, global embossing
 
+**Surface Edge**:
+Why a boundary in the visual system is drawn at all: because a fill cannot convey the surface's extent, because the surface is detached from the content behind it, because it divides an already-delimited container, or because it reports state. A surface that merely occupies a depth level has no edge of its own and relies on its Neumorphic Surface shadow. Distinct from the border tokens, which say how strongly a chosen edge is painted rather than whether one exists.
+_Avoid_: Border style, card border, outline rule
+
 **Theme Mode**:
 The active light, dark, or system-following appearance selected by a consumer application and rendered by the Bzs.Blazor theme provider.
 _Avoid_: Stored theme, application preference, color scheme setting

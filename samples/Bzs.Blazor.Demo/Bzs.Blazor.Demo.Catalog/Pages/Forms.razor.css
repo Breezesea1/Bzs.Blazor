@@ -39,7 +39,7 @@
     display: grid;
     min-width: 0;
     gap: 1rem;
-    border: 1px solid var(--demo-border);
+    border: var(--bzs-border-width) solid var(--demo-border-subtle);
     border-radius: var(--demo-radius-container);
     padding: 1rem;
     background: var(--demo-panel);
@@ -63,7 +63,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem;
-    border-top: 1px solid var(--demo-border);
+    border-top: var(--bzs-border-width) solid var(--demo-border-subtle);
     padding-top: 1rem;
 }
 

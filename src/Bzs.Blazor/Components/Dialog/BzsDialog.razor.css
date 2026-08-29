@@ -50,12 +50,12 @@
 
 .bzs-dialog__header {
     justify-content: space-between;
-    border-block-end: var(--bzs-border-width) solid var(--bzs-border);
+    border-block-end: var(--bzs-border-width) solid var(--bzs-border-subtle);
 }
 
 .bzs-dialog__footer {
     justify-content: flex-end;
-    border-block-start: var(--bzs-border-width) solid var(--bzs-border);
+    border-block-start: var(--bzs-border-width) solid var(--bzs-border-subtle);
 }
 
 .bzs-dialog__title {

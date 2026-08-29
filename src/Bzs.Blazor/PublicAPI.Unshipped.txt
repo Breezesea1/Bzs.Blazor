@@ -670,8 +670,10 @@ Bzs.Blazor.BzsTextInputType
 Bzs.Blazor.BzsTextInputType.Email = 1 -> Bzs.Blazor.BzsTextInputType
 Bzs.Blazor.BzsTextInputType.Search = 2 -> Bzs.Blazor.BzsTextInputType
 Bzs.Blazor.BzsTextInputType.Text = 0 -> Bzs.Blazor.BzsTextInputType
-Bzs.Blazor.BzsThemeColors.BzsThemeColors(string! Canvas, string! Surface, string! SurfaceRaised, string! SurfaceInset, string! SurfaceOverlay, string! Text, string! TextMuted, string! Border, string! FocusRing, string! Primary, string! OnPrimary, string! Success, string! Warning, string! Error, string! Info, string! DisabledSurface, string! DisabledText, string! Scrim) -> void
-Bzs.Blazor.BzsThemeColors.Deconstruct(out string! Canvas, out string! Surface, out string! SurfaceRaised, out string! SurfaceInset, out string! SurfaceOverlay, out string! Text, out string! TextMuted, out string! Border, out string! FocusRing, out string! Primary, out string! OnPrimary, out string! Success, out string! Warning, out string! Error, out string! Info, out string! DisabledSurface, out string! DisabledText, out string! Scrim) -> void
+Bzs.Blazor.BzsThemeColors.BorderSubtle.get -> string!
+Bzs.Blazor.BzsThemeColors.BorderSubtle.init -> void
+Bzs.Blazor.BzsThemeColors.BzsThemeColors(string! Canvas, string! Surface, string! SurfaceRaised, string! SurfaceInset, string! SurfaceOverlay, string! Text, string! TextMuted, string! Border, string! BorderSubtle, string! FocusRing, string! Primary, string! OnPrimary, string! Success, string! Warning, string! Error, string! Info, string! DisabledSurface, string! DisabledText, string! Scrim) -> void
+Bzs.Blazor.BzsThemeColors.Deconstruct(out string! Canvas, out string! Surface, out string! SurfaceRaised, out string! SurfaceInset, out string! SurfaceOverlay, out string! Text, out string! TextMuted, out string! Border, out string! BorderSubtle, out string! FocusRing, out string! Primary, out string! OnPrimary, out string! Success, out string! Warning, out string! Error, out string! Info, out string! DisabledSurface, out string! DisabledText, out string! Scrim) -> void
 Bzs.Blazor.BzsThemeColors.Scrim.get -> string!
 Bzs.Blazor.BzsThemeColors.Scrim.init -> void
 Bzs.Blazor.BzsTooltip

@@ -12,7 +12,7 @@
     grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 1rem;
     align-items: center;
-    border-block: 1px solid var(--demo-border);
+    border-block: var(--bzs-border-width) solid var(--demo-border-subtle);
     padding-block: 1rem;
 }
 
@@ -35,7 +35,7 @@
     display: grid;
     min-inline-size: 0;
     gap: 1rem;
-    border-block-end: 1px solid var(--demo-border);
+    border-block-end: var(--bzs-border-width) solid var(--demo-border-subtle);
     padding-block-end: 1.25rem;
 }
 

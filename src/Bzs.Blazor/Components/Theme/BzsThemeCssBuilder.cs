@@ -38,6 +38,7 @@ internal static class BzsThemeCssBuilder
         Append(builder, "text", colors.Text);
         Append(builder, "text-muted", colors.TextMuted);
         Append(builder, "border", colors.Border);
+        Append(builder, "border-subtle", colors.BorderSubtle);
         Append(builder, "focus-ring", colors.FocusRing);
         Append(builder, "primary", colors.Primary);
         Append(builder, "on-primary", colors.OnPrimary);
@@ -156,7 +157,8 @@ internal static class BzsThemeCssBuilder
             .Append("{--bzs-motion-fast:0ms;--bzs-motion-normal:0ms;--bzs-motion-slow:0ms;}}")
             .Append("@media (forced-colors:active){")
             .Append(selector)
-            .Append("{--bzs-border:CanvasText;--bzs-focus-ring:Highlight;--bzs-shadow-raised:none;")
+            .Append("{--bzs-border:CanvasText;--bzs-border-subtle:CanvasText;--bzs-focus-ring:Highlight;")
+            .Append("--bzs-shadow-raised:none;")
             .Append("--bzs-shadow-inset:none;--bzs-shadow-overlay:none;--bzs-shadow-focus:0 0 0 2px Highlight;}}");
     }
 }

@@ -9,6 +9,7 @@
     --bzs-text: #20252d;
     --bzs-text-muted: #59616d;
     --bzs-border: #5c6570;
+    --bzs-border-subtle: #8b939c;
     --bzs-focus-ring: #4b5968;
     --bzs-primary: #303741;
     --bzs-on-primary: #ffffff;
@@ -35,6 +36,7 @@
     --bzs-text: #f3f4f6;
     --bzs-text-muted: #aeb4bd;
     --bzs-border: #7d8894;
+    --bzs-border-subtle: #636d78;
     --bzs-focus-ring: #d3dae4;
     --bzs-primary: #d9dee5;
     --bzs-on-primary: #171c22;
@@ -97,6 +99,7 @@
     :root,
     [data-bzs-theme] {
         --bzs-border: CanvasText;
+        --bzs-border-subtle: CanvasText;
         --bzs-focus-ring: Highlight;
         --bzs-shadow-raised: none;
         --bzs-shadow-inset: none;

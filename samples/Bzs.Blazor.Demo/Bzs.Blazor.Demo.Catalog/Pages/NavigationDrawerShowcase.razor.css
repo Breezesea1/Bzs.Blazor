@@ -30,7 +30,7 @@
 }
 
 .demo-navigation-drawer-showcase__status div {
-    border-block-start: 1px solid var(--bzs-border);
+    border-block-start: var(--bzs-border-width) solid var(--bzs-border-subtle);
     padding-block-start: var(--bzs-layout-spacing-medium);
 }
 

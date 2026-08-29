@@ -11,7 +11,7 @@
 }
 
 ::deep .demo-tabs-section + .demo-tabs-section {
-    border-block-start: 1px solid var(--demo-border);
+    border-block-start: var(--bzs-border-width) solid var(--demo-border-subtle);
     padding-block-start: 1.25rem;
 }
 
@@ -34,7 +34,7 @@
 }
 
 ::deep .demo-tabs-locale-grid .demo-tabs-section {
-    border-block-start: 1px solid var(--demo-border);
+    border-block-start: var(--bzs-border-width) solid var(--demo-border-subtle);
     padding-block-start: 1.25rem;
 }
 

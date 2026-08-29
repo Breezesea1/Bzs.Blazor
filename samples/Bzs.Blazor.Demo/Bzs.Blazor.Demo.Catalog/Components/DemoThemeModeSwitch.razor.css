@@ -3,7 +3,7 @@
     flex: 0 0 auto;
     align-items: center;
     gap: 0.125rem;
-    border: 1px solid var(--bzs-border);
+    border: 0;
     border-radius: var(--bzs-radius-control);
     padding: 0.125rem;
     background: var(--bzs-surface-inset);
@@ -48,6 +48,7 @@
 
 @media (forced-colors: active) {
     .demo-theme-switch {
+        border: var(--bzs-border-width) solid CanvasText;
         box-shadow: none;
     }
 

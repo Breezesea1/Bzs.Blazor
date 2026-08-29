@@ -1,7 +1,7 @@
 .bzs-divider {
     box-sizing: border-box;
     flex: 0 0 auto;
-    border: 0 solid var(--bzs-border);
+    border: 0 solid var(--bzs-border-subtle);
     opacity: 1;
 }
 
@@ -25,7 +25,7 @@
 }
 
 .bzs-divider--subtle {
-    opacity: 0.55;
+    opacity: 0.75;
 }
 
 .bzs-divider--absolute.bzs-divider--horizontal {

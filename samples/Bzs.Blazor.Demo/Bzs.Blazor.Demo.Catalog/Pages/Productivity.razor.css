@@ -7,7 +7,7 @@
 
 ::deep .demo-data-grid-example {
     min-inline-size: 0;
-    border-block-start: 1px solid var(--bzs-border);
+    border-block-start: var(--bzs-border-width) solid var(--bzs-border-subtle);
     padding-block-start: 1rem;
 }
 
@@ -48,7 +48,7 @@
     display: inline-flex;
     align-items: center;
     min-block-size: 1.625rem;
-    border: 1px solid var(--bzs-border);
+    border: var(--bzs-border-width) solid var(--bzs-border-subtle);
     border-radius: 999px;
     padding-inline: 0.625rem;
     background: var(--bzs-surface-inset);
@@ -58,13 +58,13 @@
 }
 
 .demo-grid-priority[data-priority="high"] {
-    border-color: color-mix(in srgb, var(--bzs-error) 32%, var(--bzs-border));
+    border-color: color-mix(in srgb, var(--bzs-error) 32%, var(--bzs-border-subtle));
     background: color-mix(in srgb, var(--bzs-error) 9%, var(--bzs-surface));
     color: var(--bzs-error);
 }
 
 .demo-grid-priority[data-priority="medium"] {
-    border-color: color-mix(in srgb, var(--bzs-warning) 34%, var(--bzs-border));
+    border-color: color-mix(in srgb, var(--bzs-warning) 34%, var(--bzs-border-subtle));
     background: color-mix(in srgb, var(--bzs-warning) 10%, var(--bzs-surface));
     color: color-mix(in srgb, var(--bzs-warning) 76%, var(--bzs-text));
 }

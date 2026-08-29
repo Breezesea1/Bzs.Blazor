@@ -26,16 +26,52 @@ public sealed class ThemeTests
     }
 
     [Fact]
-    public void BuiltInInputBoundariesMeetNonTextContrast()
+    public void BuiltInLoadBearingBoundariesMeetNonTextContrastOnEverySurface()
     {
         foreach (var colors in new[] { BzsThemes.Light, BzsThemes.Dark })
         {
-            Assert.True(
-                GetContrastRatio(colors.Border, colors.Canvas) >= 3,
-                $"{colors.Border} must contrast with canvas {colors.Canvas} by at least 3:1.");
-            Assert.True(
-                GetContrastRatio(colors.Border, colors.SurfaceInset) >= 3,
-                $"{colors.Border} must contrast with input fill {colors.SurfaceInset} by at least 3:1.");
+            var surfaces = new (string Name, string Value)[]
+            {
+                (nameof(colors.Canvas), colors.Canvas),
+                (nameof(colors.Surface), colors.Surface),
+                (nameof(colors.SurfaceRaised), colors.SurfaceRaised),
+                (nameof(colors.SurfaceInset), colors.SurfaceInset),
+                (nameof(colors.SurfaceOverlay), colors.SurfaceOverlay),
+            };
+
+            foreach (var (name, value) in surfaces)
+            {
+                Assert.True(
+                    GetContrastRatio(colors.Border, value) >= 3,
+                    $"{colors.Border} must contrast with {name} {value} by at least 3:1.");
+            }
+        }
+    }
+
+    [Fact]
+    public void BuiltInInteriorRulesStayWeakerThanLoadBearingBoundaries()
+    {
+        foreach (var colors in new[] { BzsThemes.Light, BzsThemes.Dark })
+        {
+            var surfaces = new (string Name, string Value)[]
+            {
+                (nameof(colors.Canvas), colors.Canvas),
+                (nameof(colors.Surface), colors.Surface),
+                (nameof(colors.SurfaceRaised), colors.SurfaceRaised),
+                (nameof(colors.SurfaceInset), colors.SurfaceInset),
+                (nameof(colors.SurfaceOverlay), colors.SurfaceOverlay),
+            };
+
+            foreach (var (name, value) in surfaces)
+            {
+                var subtle = GetContrastRatio(colors.BorderSubtle, value);
+                Assert.True(
+                    subtle < GetContrastRatio(colors.Border, value),
+                    $"{colors.BorderSubtle} must read more softly than {colors.Border} on {name} {value}.");
+                Assert.True(
+                    subtle >= 1.5,
+                    $"{colors.BorderSubtle} must stay perceptible against {name} {value}.");
+            }
         }
     }
 
@@ -260,6 +296,7 @@ public sealed class ThemeTests
             ("text", colors.Text),
             ("text-muted", colors.TextMuted),
             ("border", colors.Border),
+            ("border-subtle", colors.BorderSubtle),
             ("focus-ring", colors.FocusRing),
             ("primary", colors.Primary),
             ("on-primary", colors.OnPrimary),

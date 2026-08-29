@@ -6,7 +6,7 @@
     --layout-sidebar: var(--bzs-surface-raised);
     --layout-text: var(--bzs-text);
     --layout-muted: var(--bzs-text-muted);
-    --layout-border: var(--bzs-border);
+    --layout-border-subtle: var(--bzs-border-subtle);
     --layout-primary: var(--demo-accent);
     --layout-primary-strong: var(--demo-accent-strong);
     --layout-on-primary: var(--bzs-on-primary);
@@ -121,7 +121,7 @@
 ::deep .demo-layout-panel {
     position: relative;
     padding-inline-start: 1.125rem;
-    border-block-start-color: color-mix(in srgb, var(--layout-tone) 24%, var(--demo-border));
+    border-block-start-color: color-mix(in srgb, var(--layout-tone) 24%, var(--demo-border-subtle));
 }
 
 ::deep .demo-layout-panel::before {
@@ -327,7 +327,7 @@
 }
 
 .demo-app-shell-separator {
-    color: var(--layout-border);
+    color: var(--layout-border-subtle);
 }
 
 .demo-app-shell-status {
@@ -583,7 +583,7 @@
     min-inline-size: 0;
     margin: 0;
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--layout-tone) 28%, var(--demo-border));
+    border: var(--bzs-border-width) solid color-mix(in srgb, var(--layout-tone) 28%, var(--demo-border-subtle));
     border-inline-start: 0.25rem solid var(--layout-tone);
     border-radius: var(--bzs-radius-container);
     background: color-mix(in srgb, var(--demo-panel-inset) 92%, var(--layout-tone) 8%);
@@ -594,7 +594,7 @@
     display: flex;
     justify-content: space-between;
     gap: 1rem;
-    border-block-end: 1px solid var(--demo-border);
+    border-block-end: var(--bzs-border-width) solid var(--demo-border-subtle);
     padding: 0.625rem 0.75rem;
     background: color-mix(in srgb, var(--layout-tone) 9%, var(--demo-panel));
     color: var(--layout-tone-text);
@@ -612,8 +612,8 @@
 
 ::deep .demo-layout-code-file {
     margin: 0;
-    border-block-start: 1px solid var(--demo-border);
-    border-block-end: 1px solid var(--demo-border);
+    border-block-start: var(--bzs-border-width) solid var(--demo-border-subtle);
+    border-block-end: var(--bzs-border-width) solid var(--demo-border-subtle);
     padding: 0.5rem 0.75rem;
     background: color-mix(in srgb, var(--layout-tone) 7%, var(--demo-panel));
     color: var(--layout-tone-text);
@@ -645,7 +645,7 @@
 ::deep .demo-layout-container,
 ::deep .demo-layout-stack,
 ::deep .demo-layout-tile {
-    border: 1px solid color-mix(in srgb, var(--layout-tone) 24%, var(--demo-border));
+    border: var(--bzs-border-width) solid color-mix(in srgb, var(--layout-tone) 24%, var(--demo-border-subtle));
     border-radius: var(--bzs-radius-container);
     background: color-mix(in srgb, var(--demo-panel) 94%, var(--layout-tone) 6%);
     box-shadow: var(--layout-shadow-raised-small);
@@ -688,7 +688,7 @@
 }
 
 ::deep .demo-layout-count {
-    border: 1px solid color-mix(in srgb, var(--layout-success) 20%, var(--demo-border));
+    border: var(--bzs-border-width) solid color-mix(in srgb, var(--layout-success) 20%, var(--demo-border-subtle));
     border-radius: var(--demo-radius-compact);
     padding: 0.2rem 0.5rem;
     background: color-mix(in srgb, var(--demo-panel) 92%, var(--layout-success) 8%);
@@ -699,7 +699,7 @@
 }
 
 ::deep .demo-layout-divider {
-    --bzs-border: var(--layout-warning);
+    --bzs-border-subtle: var(--layout-warning);
 }
 
 ::deep .demo-layout-stack--tall {
@@ -711,7 +711,7 @@
     min-block-size: 5rem;
     margin-block-start: 1rem;
     padding: 1rem;
-    border: 1px solid color-mix(in srgb, var(--layout-warning) 25%, var(--demo-border));
+    border: var(--bzs-border-width) solid color-mix(in srgb, var(--layout-warning) 25%, var(--demo-border-subtle));
     border-radius: var(--bzs-radius-container);
     background: color-mix(in srgb, var(--demo-panel-inset) 92%, var(--layout-warning) 8%);
     box-shadow: var(--layout-shadow-inset);
@@ -788,7 +788,7 @@
     .demo-app-shell-user,
     .demo-app-shell-language,
     .demo-app-shell-metrics article {
-        border: 1px solid CanvasText;
+        border: var(--bzs-border-width) solid CanvasText;
         box-shadow: none;
     }
 

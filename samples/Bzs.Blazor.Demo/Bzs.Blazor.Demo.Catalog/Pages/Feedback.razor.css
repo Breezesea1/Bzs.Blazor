@@ -21,7 +21,7 @@
 
 .demo-feedback-toast-list {
     justify-items: start;
-    border-top: 1px solid var(--demo-border);
+    border-top: var(--bzs-border-width) solid var(--demo-border-subtle);
     padding-top: 1rem;
 }
 
