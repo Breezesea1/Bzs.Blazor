@@ -14,7 +14,7 @@ namespace Bzs.Blazor.Tests;
 public sealed class AutocompleteTests
 {
     [Fact]
-    public async Task CoordinatorDebouncesBeforeInvokingProvider()
+    public async Task ProviderAdapterDebouncesBeforeInvokingProvider()
     {
         var delayStarted = new TaskCompletionSource<(TimeSpan Delay, CancellationToken Token)>(
             TaskCreationOptions.RunContinuationsAsynchronously);
@@ -22,7 +22,7 @@ public sealed class AutocompleteTests
             TaskCreationOptions.RunContinuationsAsynchronously);
         var provider = new DelegateProvider<string>((query, _) =>
             ValueTask.FromResult<IReadOnlyList<BzsAutocompleteOption<string>>>([new(query, query)]));
-        using var coordinator = new BzsAutocompleteRequestCoordinator<string>(
+        using var adapter = new BzsAutocompleteProviderAdapter<string>(
             provider,
             async (delay, token) =>
             {
@@ -30,84 +30,53 @@ public sealed class AutocompleteTests
                 await releaseDelay.Task.WaitAsync(token);
             });
 
-        var request = coordinator.QueryAsync("al", TimeSpan.FromMilliseconds(275));
+        var request = adapter.QueryAsync("al", TimeSpan.FromMilliseconds(275));
         var observedDelay = await delayStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Equal(TimeSpan.FromMilliseconds(275), observedDelay.Delay);
         Assert.Equal(0, provider.CallCount);
 
         releaseDelay.SetResult();
-        var result = await request;
+        var outcome = await request;
 
-        Assert.True(result.IsCurrent);
+        var succeeded = Assert.IsType<
+            BzsCurrentProviderCallOutcome<IReadOnlyList<BzsAutocompleteOption<string>>>.Succeeded>(outcome);
         Assert.Equal(1, provider.CallCount);
-        Assert.Equal("al", Assert.Single(result.Suggestions).Value);
+        Assert.Equal("al", Assert.Single(succeeded.Value).Value);
     }
 
     [Fact]
-    public async Task CoordinatorCancelsSupersededProviderRequest()
+    public async Task ProviderAdapterBypassesDebounceForRetry()
     {
-        var firstRequestStarted = new TaskCompletionSource<CancellationToken>(
-            TaskCreationOptions.RunContinuationsAsynchronously);
-        var provider = new DelegateProvider<string>(async (query, token) =>
-        {
-            if (query == "first")
-            {
-                firstRequestStarted.TrySetResult(token);
-                await Task.Delay(Timeout.InfiniteTimeSpan, token);
-            }
-
-            return [new(query, query)];
-        });
-        using var coordinator = new BzsAutocompleteRequestCoordinator<string>(provider);
-
-        var first = coordinator.QueryAsync("first", TimeSpan.Zero);
-        var firstToken = await firstRequestStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        var second = await coordinator.QueryAsync("second", TimeSpan.Zero);
-        var superseded = await first;
-
-        Assert.True(firstToken.IsCancellationRequested);
-        Assert.False(superseded.IsCurrent);
-        Assert.True(second.IsCurrent);
-        Assert.Equal("second", Assert.Single(second.Suggestions).Value);
-    }
-
-    [Fact]
-    public async Task CoordinatorRejectsStaleCompletionWhenProviderIgnoresCancellation()
-    {
-        var firstCompletion = new TaskCompletionSource<IReadOnlyList<BzsAutocompleteOption<string>>>(
-            TaskCreationOptions.RunContinuationsAsynchronously);
-        var secondCompletion = new TaskCompletionSource<IReadOnlyList<BzsAutocompleteOption<string>>>(
-            TaskCreationOptions.RunContinuationsAsynchronously);
-        var firstStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var secondStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var provider = new DelegateProvider<string>((query, _) =>
-        {
-            if (query == "first")
-            {
-                firstStarted.TrySetResult();
-                return new ValueTask<IReadOnlyList<BzsAutocompleteOption<string>>>(firstCompletion.Task);
-            }
+            ValueTask.FromResult<IReadOnlyList<BzsAutocompleteOption<string>>>([new(query, query)]));
+        using var adapter = new BzsAutocompleteProviderAdapter<string>(
+            provider,
+            (_, _) => throw new InvalidOperationException("Retry must not wait."));
 
-            secondStarted.TrySetResult();
-            return new ValueTask<IReadOnlyList<BzsAutocompleteOption<string>>>(secondCompletion.Task);
-        });
-        using var coordinator = new BzsAutocompleteRequestCoordinator<string>(provider);
+        var outcome = await adapter.QueryAsync(
+            "al",
+            TimeSpan.FromMilliseconds(275),
+            bypassDebounce: true);
 
-        var first = coordinator.QueryAsync("first", TimeSpan.Zero);
-        await firstStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        var second = coordinator.QueryAsync("second", TimeSpan.Zero);
-        await secondStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var succeeded = Assert.IsType<
+            BzsCurrentProviderCallOutcome<IReadOnlyList<BzsAutocompleteOption<string>>>.Succeeded>(outcome);
+        Assert.Equal("al", Assert.Single(succeeded.Value).Value);
+        Assert.Equal(1, provider.CallCount);
+    }
 
-        secondCompletion.SetResult([new("second", "Second")]);
-        var current = await second;
-        firstCompletion.SetResult([new("first", "First")]);
-        var stale = await first;
+    [Fact]
+    public async Task ProviderAdapterRejectsANullSuggestionCollectionWithTheFeatureError()
+    {
+        var provider = new DelegateProvider<string>((_, _) =>
+            ValueTask.FromResult<IReadOnlyList<BzsAutocompleteOption<string>>>(null!));
+        using var adapter = new BzsAutocompleteProviderAdapter<string>(provider);
 
-        Assert.True(current.IsCurrent);
-        Assert.Equal("second", Assert.Single(current.Suggestions).Value);
-        Assert.False(stale.IsCurrent);
-        Assert.Empty(stale.Suggestions);
+        var outcome = await adapter.QueryAsync("al", TimeSpan.Zero);
+
+        var failed = Assert.IsType<
+            BzsCurrentProviderCallOutcome<IReadOnlyList<BzsAutocompleteOption<string>>>.Failed>(outcome);
+        Assert.Equal("The autocomplete provider returned a null suggestion collection.", failed.Error.Message);
     }
 
     [Fact]

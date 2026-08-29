@@ -13,8 +13,8 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
     private ElementReference _rootElement;
     private BzsAnchoredOverlaySession? _overlaySession;
     private BzsAutocompleteInterop? _keyboardInterop;
-    private BzsAutocompleteRequestCoordinator<TValue>? _requestCoordinator;
-    private IBzsAutocompleteProvider<TValue>? _coordinatorProvider;
+    private BzsAutocompleteProviderAdapter<TValue>? _providerAdapter;
+    private IBzsAutocompleteProvider<TValue>? _adapterProvider;
     private IReadOnlyList<BzsAutocompleteOption<TValue>> _suggestions = [];
     private BzsAutocompleteOption<TValue>? _selectedOption;
     private Exception? _providerError;
@@ -188,11 +188,11 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
                 "MinimumQueryLength cannot be negative.");
         }
 
-        if (!ReferenceEquals(_coordinatorProvider, Provider))
+        if (!ReferenceEquals(_adapterProvider, Provider))
         {
-            _requestCoordinator?.Dispose();
-            _requestCoordinator = new BzsAutocompleteRequestCoordinator<TValue>(Provider);
-            _coordinatorProvider = Provider;
+            _providerAdapter?.Dispose();
+            _providerAdapter = new BzsAutocompleteProviderAdapter<TValue>(Provider);
+            _adapterProvider = Provider;
             ResetProviderState();
             SetOpen(false);
         }
@@ -210,7 +210,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
 
         if (Disabled || ReadOnly || _query.Length < MinimumQueryLength)
         {
-            _requestCoordinator?.Cancel();
+            _providerAdapter?.Cancel();
             ResetProviderState();
             SetOpen(false);
         }
@@ -269,7 +269,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
 
         if (_query.Length < MinimumQueryLength)
         {
-            _requestCoordinator?.Cancel();
+            _providerAdapter?.Cancel();
             ResetProviderState();
             SetOpen(false);
             return;
@@ -280,7 +280,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
 
     private async Task LoadSuggestionsAsync(bool bypassDebounce)
     {
-        if (_requestCoordinator is null || _disposed)
+        if (_providerAdapter is null || _disposed)
         {
             return;
         }
@@ -290,23 +290,32 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
         _suggestions = [];
         _activeIndex = -1;
         SetOpen(true);
-        var request = _requestCoordinator.QueryAsync(_query, DebounceDelay, bypassDebounce);
+        var request = _providerAdapter.QueryAsync(_query, DebounceDelay, bypassDebounce);
         await InvokeAsync(StateHasChanged);
-        var result = await request;
-        if (_disposed || !result.IsCurrent)
+        var outcome = await request;
+        if (_disposed || outcome is BzsCurrentProviderCallOutcome<IReadOnlyList<BzsAutocompleteOption<TValue>>>.Superseded)
         {
             return;
         }
 
         _loading = false;
-        _providerError = result.Error;
-        _suggestions = result.Suggestions;
-        _activeIndex = FindFirstEnabledIndex();
+        switch (outcome)
+        {
+            case BzsCurrentProviderCallOutcome<IReadOnlyList<BzsAutocompleteOption<TValue>>>.Succeeded succeeded:
+                _providerError = null;
+                _suggestions = succeeded.Value;
+                _activeIndex = FindFirstEnabledIndex();
+                break;
+            case BzsCurrentProviderCallOutcome<IReadOnlyList<BzsAutocompleteOption<TValue>>>.Failed failed:
+                _providerError = failed.Error;
+                break;
+        }
+
         await InvokeAsync(StateHasChanged);
 
-        if (result.Error is not null)
+        if (_providerError is not null)
         {
-            await ProviderFailed.InvokeAsync(result.Error);
+            await ProviderFailed.InvokeAsync(_providerError);
         }
     }
 
@@ -321,7 +330,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
             return Task.CompletedTask;
         }
 
-        _requestCoordinator?.Cancel();
+        _providerAdapter?.Cancel();
         _query = string.Empty;
         _committedQuery = string.Empty;
         _selectedOption = null;
@@ -339,7 +348,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
             return Task.CompletedTask;
         }
 
-        _requestCoordinator?.Cancel();
+        _providerAdapter?.Cancel();
         _selectedOption = option;
         _query = option.Label;
         _committedQuery = option.Label;
@@ -481,7 +490,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
     {
         if (cancelRequest)
         {
-            _requestCoordinator?.Cancel();
+            _providerAdapter?.Cancel();
             _loading = false;
         }
 
@@ -543,7 +552,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
         {
             if (!_disposed && _isOpen)
             {
-                _requestCoordinator?.Cancel();
+                _providerAdapter?.Cancel();
                 _loading = false;
                 SetOpen(false);
                 StateHasChanged();
@@ -560,8 +569,8 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
         }
 
         _disposed = true;
-        _requestCoordinator?.Dispose();
-        _requestCoordinator = null;
+        _providerAdapter?.Dispose();
+        _providerAdapter = null;
 
         Exception? disposalException = null;
         try

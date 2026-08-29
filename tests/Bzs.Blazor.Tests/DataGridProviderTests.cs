@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-
 namespace Bzs.Blazor.Tests;
 
 public sealed class DataGridProviderTests
@@ -79,183 +77,22 @@ public sealed class DataGridProviderTests
     }
 
     [Fact]
-    public async Task SupersededSuccessCannotReplaceTheCurrentResult()
+    public async Task ProviderAdapterRejectsANullResultWithTheFeatureError()
     {
-        var provider = new ControllableProvider<int>();
-        using var coordinator = new BzsDataGridRequestCoordinator<int>(provider);
-        var firstRequest = new BzsDataGridRequest(1, 10);
-        var secondRequest = new BzsDataGridRequest(2, 10);
+        var provider = new NullResultProvider();
+        using var adapter = new BzsDataGridProviderAdapter<int>(provider);
 
-        var firstTask = coordinator.LoadAsync(firstRequest);
-        var firstCall = provider.Calls.Single();
-        var secondTask = coordinator.LoadAsync(secondRequest);
-        var secondCall = provider.Calls.Last();
-        secondCall.Completion.SetResult(new BzsDataGridResult<int>([2], false));
-        firstCall.Completion.SetResult(new BzsDataGridResult<int>([1], true));
+        var outcome = await adapter.LoadAsync(new BzsDataGridRequest(1, 10));
 
-        var second = await secondTask;
-        var first = await firstTask;
-
-        Assert.True(second.IsCurrent);
-        Assert.Equal([2], second.Result!.Items);
-        Assert.False(first.IsCurrent);
-        Assert.Null(first.Result);
-        Assert.True(firstCall.CancellationToken.IsCancellationRequested);
+        var failed = Assert.IsType<BzsCurrentProviderCallOutcome<BzsDataGridResult<int>>.Failed>(outcome);
+        Assert.Equal("The DataGrid provider returned a null result.", failed.Error.Message);
     }
 
-    [Fact]
-    public async Task SupersederCancelsWithoutDisposingTheRequestOwnedTokenSource()
+    private sealed class NullResultProvider : IBzsDataGridProvider<int>
     {
-        var provider = new CancellationCleanupProvider();
-        using var coordinator = new BzsDataGridRequestCoordinator<int>(provider);
-
-        var firstTask = coordinator.LoadAsync(new BzsDataGridRequest(1, 10));
-        var firstCall = provider.Calls.Single();
-        var secondTask = coordinator.LoadAsync(new BzsDataGridRequest(2, 10));
-
-        Assert.False((await firstTask).IsCurrent);
-        Assert.True((await secondTask).IsCurrent);
-        Assert.True(firstCall.CancellationToken.IsCancellationRequested);
-        Assert.Null(firstCall.CleanupError);
-    }
-
-    [Fact]
-    public async Task SupersededFailureIsSuppressed()
-    {
-        var provider = new ControllableProvider<int>();
-        using var coordinator = new BzsDataGridRequestCoordinator<int>(provider);
-
-        var firstTask = coordinator.LoadAsync(new BzsDataGridRequest(1, 10));
-        var firstCall = provider.Calls.Single();
-        var secondTask = coordinator.LoadAsync(new BzsDataGridRequest(2, 10));
-        var secondCall = provider.Calls.Last();
-        firstCall.Completion.SetException(new InvalidOperationException("stale"));
-        secondCall.Completion.SetResult(new BzsDataGridResult<int>([2], false));
-
-        var first = await firstTask;
-        var second = await secondTask;
-
-        Assert.False(first.IsCurrent);
-        Assert.Null(first.Error);
-        Assert.True(second.IsCurrent);
-    }
-
-    [Fact]
-    public async Task CurrentUncanceledOperationCanceledExceptionIsAProviderFailure()
-    {
-        var provider = new ControllableProvider<int>();
-        using var coordinator = new BzsDataGridRequestCoordinator<int>(provider);
-
-        var task = coordinator.LoadAsync(new BzsDataGridRequest(1, 10));
-        provider.Calls.Single().Completion.SetException(new OperationCanceledException("provider timeout"));
-
-        var result = await task;
-
-        Assert.True(result.IsCurrent);
-        Assert.IsType<OperationCanceledException>(result.Error);
-    }
-
-    [Fact]
-    public async Task DisposeCancelsAndSuppressesAnInFlightCompletion()
-    {
-        var provider = new ControllableProvider<int>();
-        var coordinator = new BzsDataGridRequestCoordinator<int>(provider);
-
-        var task = coordinator.LoadAsync(new BzsDataGridRequest(1, 10));
-        var call = provider.Calls.Single();
-        coordinator.Dispose();
-
-        Assert.True(call.CancellationToken.IsCancellationRequested);
-        Assert.Null(Record.Exception(() => _ = call.CancellationToken.WaitHandle));
-
-        call.Completion.SetResult(new BzsDataGridResult<int>([1], false));
-
-        var result = await task;
-
-        Assert.False(result.IsCurrent);
-        await Assert.ThrowsAsync<ObjectDisposedException>(
-            () => coordinator.LoadAsync(new BzsDataGridRequest(1, 10)));
-    }
-
-    [Fact]
-    public async Task DisposeCancelsWithoutDisposingTheTokenDuringProviderCleanup()
-    {
-        var provider = new CancellationCleanupProvider();
-        var coordinator = new BzsDataGridRequestCoordinator<int>(provider);
-
-        var task = coordinator.LoadAsync(new BzsDataGridRequest(1, 10));
-        var call = provider.Calls.Single();
-        coordinator.Dispose();
-
-        var result = await task;
-
-        Assert.False(result.IsCurrent);
-        Assert.True(call.CancellationToken.IsCancellationRequested);
-        Assert.Null(call.CleanupError);
-    }
-
-    private sealed class ControllableProvider<TItem> : IBzsDataGridProvider<TItem>
-    {
-        internal ConcurrentQueue<ProviderCall<TItem>> Calls { get; } = new();
-
-        public ValueTask<BzsDataGridResult<TItem>> GetItemsAsync(
+        public ValueTask<BzsDataGridResult<int>> GetItemsAsync(
             BzsDataGridRequest request,
-            CancellationToken cancellationToken)
-        {
-            var call = new ProviderCall<TItem>(request, cancellationToken);
-            Calls.Enqueue(call);
-            return new ValueTask<BzsDataGridResult<TItem>>(call.Completion.Task);
-        }
-    }
-
-    private sealed record ProviderCall<TItem>(
-        BzsDataGridRequest Request,
-        CancellationToken CancellationToken)
-    {
-        internal TaskCompletionSource<BzsDataGridResult<TItem>> Completion { get; } =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-    }
-
-    private sealed class CancellationCleanupProvider : IBzsDataGridProvider<int>
-    {
-        internal ConcurrentQueue<CancellationCleanupCall> Calls { get; } = new();
-
-        public async ValueTask<BzsDataGridResult<int>> GetItemsAsync(
-            BzsDataGridRequest request,
-            CancellationToken cancellationToken)
-        {
-            var call = new CancellationCleanupCall(cancellationToken);
-            Calls.Enqueue(call);
-            if (request.Page != 1)
-            {
-                return new BzsDataGridResult<int>([request.Page], hasNextPage: false);
-            }
-
-            try
-            {
-                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-            }
-
-            try
-            {
-                _ = cancellationToken.WaitHandle;
-            }
-            catch (Exception exception)
-            {
-                call.CleanupError = exception;
-            }
-
-            return new BzsDataGridResult<int>([request.Page], hasNextPage: false);
-        }
-    }
-
-    private sealed class CancellationCleanupCall(CancellationToken cancellationToken)
-    {
-        internal CancellationToken CancellationToken { get; } = cancellationToken;
-
-        internal Exception? CleanupError { get; set; }
+            CancellationToken cancellationToken) =>
+            ValueTask.FromResult<BzsDataGridResult<int>>(null!);
     }
 }

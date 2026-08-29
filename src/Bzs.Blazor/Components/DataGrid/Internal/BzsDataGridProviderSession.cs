@@ -23,7 +23,7 @@ internal sealed record BzsDataGridProviderSessionCallbacks<TItem>(
 /// </summary>
 internal sealed class BzsDataGridProviderSession<TItem> : IDisposable
 {
-    private readonly BzsDataGridRequestCoordinator<TItem> _coordinator;
+    private readonly BzsDataGridProviderAdapter<TItem> _providerAdapter;
     private readonly BzsDataGridProviderSessionCallbacks<TItem> _callbacks;
     private PendingRefresh? _queuedRefresh;
     private PendingRefresh? _activeRefresh;
@@ -40,7 +40,7 @@ internal sealed class BzsDataGridProviderSession<TItem> : IDisposable
     {
         ArgumentNullException.ThrowIfNull(provider);
         ArgumentNullException.ThrowIfNull(callbacks);
-        _coordinator = new BzsDataGridRequestCoordinator<TItem>(provider);
+        _providerAdapter = new BzsDataGridProviderAdapter<TItem>(provider);
         _callbacks = callbacks;
     }
 
@@ -144,7 +144,7 @@ internal sealed class BzsDataGridProviderSession<TItem> : IDisposable
         Supersede(_activeRefresh);
         _queuedRefresh = null;
         _activeRefresh = null;
-        _coordinator.Dispose();
+        _providerAdapter.Dispose();
     }
 
     private async void StartDetached(PendingRefresh refresh)
@@ -183,20 +183,20 @@ internal sealed class BzsDataGridProviderSession<TItem> : IDisposable
         _loading = true;
         _error = null;
         _callbacks.StateChanged();
-        var outcome = await _coordinator.LoadAsync(request);
-        if (_disposed || !outcome.IsCurrent)
+        var outcome = await _providerAdapter.LoadAsync(request);
+        if (_disposed || outcome is BzsCurrentProviderCallOutcome<BzsDataGridResult<TItem>>.Superseded)
         {
             return;
         }
 
         _loading = false;
-        if (outcome.Error is not null)
+        if (outcome is BzsCurrentProviderCallOutcome<BzsDataGridResult<TItem>>.Failed failed)
         {
-            await FailAsync(outcome.Error);
+            await FailAsync(failed.Error);
             return;
         }
 
-        var result = outcome.Result!;
+        var result = ((BzsCurrentProviderCallOutcome<BzsDataGridResult<TItem>>.Succeeded)outcome).Value;
         try
         {
             ValidateResult(request, result);
