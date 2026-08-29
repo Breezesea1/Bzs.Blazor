@@ -28,7 +28,7 @@
             }
         </div>
 
-        @if (_isOpen)
+        @if (_optionList.IsOpen)
         {
             <div id="@ListboxId"
                  class="bzs-autocomplete__panel"
@@ -51,15 +51,15 @@
                         </button>
                     </div>
                 }
-                else if (_suggestions.Count == 0)
+                else if (_optionList.Options.Count == 0)
                 {
                     <div class="bzs-autocomplete__status" role="status">@EffectiveEmptyText</div>
                 }
                 else
                 {
-                    @for (var index = 0; index < _suggestions.Count; index++)
+                    @for (var index = 0; index < _optionList.Options.Count; index++)
                     {
-                        var option = _suggestions[index];
+                        var option = _optionList.Options[index];
                         <button id="@GetOptionId(index)"
                                 @key="GetOptionId(index)"
                                 type="button"

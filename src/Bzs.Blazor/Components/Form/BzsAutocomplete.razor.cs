@@ -15,13 +15,13 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
     private BzsAutocompleteInterop? _keyboardInterop;
     private BzsAutocompleteProviderAdapter<TValue>? _providerAdapter;
     private IBzsAutocompleteProvider<TValue>? _adapterProvider;
-    private IReadOnlyList<BzsAutocompleteOption<TValue>> _suggestions = [];
+    private readonly BzsOptionListState<BzsAutocompleteOption<TValue>> _optionList = new(
+        static option => option.Disabled,
+        static (left, right) => ReferenceEquals(left, right));
     private BzsAutocompleteOption<TValue>? _selectedOption;
     private Exception? _providerError;
     private string _query = string.Empty;
     private string _committedQuery = string.Empty;
-    private int _activeIndex = -1;
-    private bool _isOpen;
     private bool _loading;
     private bool _parametersInitialized;
     private TValue? _lastParameterValue;
@@ -74,8 +74,9 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
     public EventCallback<Exception> ProviderFailed { get; set; }
 
     private string ListboxId => $"{InputId}-listbox";
-    private string? ActiveOptionId => _isOpen && _activeIndex >= 0 && _activeIndex < _suggestions.Count
-        ? GetOptionId(_activeIndex)
+    private string? ActiveOptionId => _optionList.IsOpen && _optionList.ActiveIndex >= 0
+        && _optionList.ActiveIndex < _optionList.Options.Count
+        ? GetOptionId(_optionList.ActiveIndex)
         : null;
     private string EffectiveLoadingText => Normalize(LoadingText) ?? Localize("AutocompleteLoadingText");
     private string EffectiveEmptyText => Normalize(EmptyText) ?? Localize("AutocompleteEmptyText");
@@ -96,7 +97,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
                 ["aria-autocomplete"] = "list",
                 ["aria-haspopup"] = "listbox",
                 ["aria-controls"] = ListboxId,
-                ["aria-expanded"] = _isOpen ? "true" : "false",
+                ["aria-expanded"] = _optionList.IsOpen ? "true" : "false",
                 ["autocomplete"] = "off",
                 ["spellcheck"] = "false",
                 ["data-bzs-anchor"] = "true",
@@ -148,7 +149,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
             return true;
         }
 
-        var option = _suggestions.FirstOrDefault(candidate => !candidate.Disabled
+        var option = _optionList.Options.FirstOrDefault(candidate => !candidate.Disabled
             && (string.Equals(candidate.Label, value, StringComparison.Ordinal)
                 || string.Equals(candidate.ValueText, value, StringComparison.Ordinal)));
         if (option is not null)
@@ -200,7 +201,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
         if (!_parametersInitialized
             || !EqualityComparer<TValue>.Default.Equals(_lastParameterValue, Value))
         {
-            _selectedOption = _suggestions.FirstOrDefault(option =>
+            _selectedOption = _optionList.Options.FirstOrDefault(option =>
                 EqualityComparer<TValue>.Default.Equals(option.Value, Value));
             _query = FormatValueAsString(Value) ?? string.Empty;
             _committedQuery = _query;
@@ -287,8 +288,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
 
         _loading = true;
         _providerError = null;
-        _suggestions = [];
-        _activeIndex = -1;
+        _optionList.SetOptions([]);
         SetOpen(true);
         var request = _providerAdapter.QueryAsync(_query, DebounceDelay, bypassDebounce);
         await InvokeAsync(StateHasChanged);
@@ -303,8 +303,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
         {
             case BzsCurrentProviderCallOutcome<IReadOnlyList<BzsAutocompleteOption<TValue>>>.Succeeded succeeded:
                 _providerError = null;
-                _suggestions = succeeded.Value;
-                _activeIndex = FindFirstEnabledIndex();
+                _optionList.SetOptions(succeeded.Value);
                 break;
             case BzsCurrentProviderCallOutcome<IReadOnlyList<BzsAutocompleteOption<TValue>>>.Failed failed:
                 _providerError = failed.Error;
@@ -375,42 +374,39 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
             return;
         }
 
-        switch (args.Key)
+        if (args.Key == "ArrowDown" && !_optionList.IsOpen)
         {
-            case "ArrowDown":
-                if (!_isOpen && _query.Length >= MinimumQueryLength)
-                {
-                    await LoadSuggestionsAsync(bypassDebounce: true);
-                }
-                else
-                {
-                    MoveActive(1);
-                }
+            if (_query.Length >= MinimumQueryLength)
+            {
+                await LoadSuggestionsAsync(bypassDebounce: true);
+            }
+
+            return;
+        }
+
+        if (args.Key == "Enter" && !_optionList.IsOpen)
+        {
+            CommitQuery();
+            return;
+        }
+
+        if (args.Key == "Tab")
+        {
+            CommitQuery();
+            await CloseAsync(restoreFocus: false, cancelRequest: true);
+            return;
+        }
+
+        var action = _optionList.HandleKey(args.Key);
+        switch (action)
+        {
+            case BzsOptionListAction.CommitActive when _optionList.ActiveOption is { } active:
+                await SelectAsync(active);
                 break;
-            case "ArrowUp":
-                MoveActive(-1);
-                break;
-            case "Home" when _isOpen:
-                _activeIndex = FindFirstEnabledIndex();
-                break;
-            case "End" when _isOpen:
-                _activeIndex = FindLastEnabledIndex();
-                break;
-            case "Enter":
-                if (_isOpen && _activeIndex >= 0 && _activeIndex < _suggestions.Count)
-                {
-                    await SelectAsync(_suggestions[_activeIndex]);
-                }
-                else
-                {
-                    CommitQuery();
-                }
-                break;
-            case "Tab":
+            case BzsOptionListAction.CommitActive:
                 CommitQuery();
-                await CloseAsync(restoreFocus: false, cancelRequest: true);
                 break;
-            case "Escape" when _isOpen:
+            case BzsOptionListAction.CloseRequested:
                 await CloseAsync(restoreFocus: true, cancelRequest: true);
                 break;
         }
@@ -434,55 +430,36 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
     private string GetOptionClass(int index, BzsAutocompleteOption<TValue> option) => string.Join(" ", new[]
     {
         "bzs-autocomplete__option",
-        index == _activeIndex ? "bzs-autocomplete__option--active" : null,
+        index == _optionList.ActiveIndex ? "bzs-autocomplete__option--active" : null,
         IsSelected(option) ? "bzs-autocomplete__option--selected" : null,
         option.Disabled ? "bzs-autocomplete__option--disabled" : null,
     }.Where(static value => value is not null));
 
-    private void Activate(int index)
-    {
-        if (index >= 0 && index < _suggestions.Count && !_suggestions[index].Disabled)
-        {
-            _activeIndex = index;
-        }
-    }
-
-    private int FindFirstEnabledIndex() =>
-        BzsListboxNavigation.FindFirstEnabled(_suggestions, static suggestion => suggestion.Disabled);
-
-    private int FindLastEnabledIndex() =>
-        BzsListboxNavigation.FindLastEnabled(_suggestions, static suggestion => suggestion.Disabled);
-
-    private void MoveActive(int delta)
-    {
-        if (!_isOpen || _suggestions.Count == 0)
-        {
-            return;
-        }
-
-        _activeIndex = BzsListboxNavigation.Move(
-            _suggestions,
-            static suggestion => suggestion.Disabled,
-            _activeIndex,
-            delta);
-    }
+    private void Activate(int index) => _optionList.Activate(index);
 
     private void ResetProviderState()
     {
         _loading = false;
         _providerError = null;
-        _suggestions = [];
-        _activeIndex = -1;
+        _optionList.SetOptions([]);
     }
 
     private void SetOpen(bool open)
     {
-        if (_isOpen == open)
+        if (_optionList.IsOpen == open)
         {
             return;
         }
 
-        _isOpen = open;
+        if (open)
+        {
+            _optionList.Open();
+        }
+        else
+        {
+            _optionList.Close();
+        }
+
         UpdateOverlayState();
     }
 
@@ -506,7 +483,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
 
     private void UpdateOverlayState() =>
         GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
-            _isOpen,
+            _optionList.IsOpen,
             BzsPopoverPlacement.BottomStart,
             CloseOnOutsideInteraction: true,
             CloseOnEscape: true));
@@ -533,7 +510,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
     /// <summary>Closes the suggestion panel after a browser-owned outside or Escape interaction.</summary>
     public Task CloseFromBrowserAsync(bool restoreFocus = false)
     {
-        if (_disposed || !_isOpen)
+        if (_disposed || !_optionList.IsOpen)
         {
             return Task.CompletedTask;
         }
@@ -543,14 +520,14 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
 
     private Task HandleOverlayCloseRequestedAsync()
     {
-        if (_disposed || !_isOpen)
+        if (_disposed || !_optionList.IsOpen)
         {
             return Task.CompletedTask;
         }
 
         return InvokeAsync(() =>
         {
-            if (!_disposed && _isOpen)
+            if (!_disposed && _optionList.IsOpen)
             {
                 _providerAdapter?.Cancel();
                 _loading = false;

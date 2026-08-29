@@ -130,6 +130,160 @@ public sealed class SelectInteractionTests
     }
 
     [Fact]
+    public void OpenSelectPreservesTheActiveOptionWhenVisibleOptionsAreReordered()
+    {
+        using var context = CreateContext();
+        var model = new SelectionModel { Choice = "production" };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsSelect<string>, string>(
+            builder,
+            0,
+            model.Choice,
+            () => model.Choice,
+            EventCallback.Factory.Create<string>(model, value => model.Choice = value),
+            (attributes, sequence) => attributes.AddAttribute(sequence, nameof(BzsSelect<string>.Options), Options)));
+
+        cut.Find("[role='combobox']").Click();
+        cut.Find("[role='combobox']").KeyDown("ArrowDown");
+
+        IReadOnlyList<BzsSelectOption<string>> reorderedOptions =
+        [
+            new("review", "Review") { Description = "Final approvals" },
+            new("production", "Production") { Description = "Default workspace" },
+            new("lighting", "Lighting", disabled: true),
+        ];
+        cut.FindComponent<BzsSelect<string>>().Render(
+            parameters => parameters.Add(component => component.Options, reorderedOptions));
+        cut.Find("[role='combobox']").KeyDown("Enter");
+
+        Assert.Equal("review", model.Choice);
+    }
+
+    [Fact]
+    public void OpenSelectPreservesTheActiveOptionWhenSearchKeepsItsIdentityVisible()
+    {
+        using var context = CreateContext();
+        var model = new SelectionModel { Choice = "production" };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsSelect<string>, string>(
+            builder,
+            0,
+            model.Choice,
+            () => model.Choice,
+            EventCallback.Factory.Create<string>(model, value => model.Choice = value),
+            (attributes, sequence) => attributes.AddAttribute(sequence, nameof(BzsSelect<string>.Options), Options)));
+
+        cut.Find("[role='combobox']").Click();
+        cut.Find("[role='combobox']").KeyDown("ArrowDown");
+        cut.Find("input[type='search']").Input("r");
+        cut.Find("input[type='search']").KeyDown("Enter");
+
+        Assert.Equal("review", model.Choice);
+    }
+
+    [Fact]
+    public void MultiSelectKeyboardCommitTogglesTheActiveOption()
+    {
+        using var context = CreateContext();
+        var model = new SelectionModel { Choices = ["production"] };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsMultiSelect<string>, IReadOnlyList<string>>(
+            builder,
+            0,
+            model.Choices,
+            () => model.Choices,
+            EventCallback.Factory.Create<IReadOnlyList<string>>(model, value => model.Choices = value),
+            (attributes, sequence) => attributes.AddAttribute(sequence, nameof(BzsMultiSelect<string>.Options), Options)));
+
+        cut.Find("[role='combobox']").Click();
+        cut.Find("[role='combobox']").KeyDown("ArrowDown");
+        cut.Find("[role='combobox']").KeyDown("Enter");
+
+        Assert.Equal(["production", "review"], model.Choices);
+    }
+
+    [Fact]
+    public void OpenMultiSelectPreservesTheActiveOptionWhenSearchKeepsItsIdentityVisible()
+    {
+        using var context = CreateContext();
+        var model = new SelectionModel { Choices = ["production"] };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsMultiSelect<string>, IReadOnlyList<string>>(
+            builder,
+            0,
+            model.Choices,
+            () => model.Choices,
+            EventCallback.Factory.Create<IReadOnlyList<string>>(model, value => model.Choices = value),
+            (attributes, sequence) => attributes.AddAttribute(sequence, nameof(BzsMultiSelect<string>.Options), Options)));
+
+        cut.Find("[role='combobox']").Click();
+        cut.Find("[role='combobox']").KeyDown("ArrowDown");
+        cut.Find("input[type='search']").Input("r");
+        cut.Find("input[type='search']").KeyDown("Enter");
+
+        Assert.Equal(["production", "review"], model.Choices);
+    }
+
+    [Fact]
+    public void OpenMultiSelectPreservesTheActiveOptionWhenVisibleOptionsAreReordered()
+    {
+        using var context = CreateContext();
+        var model = new SelectionModel { Choices = ["production"] };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsMultiSelect<string>, IReadOnlyList<string>>(
+            builder,
+            0,
+            model.Choices,
+            () => model.Choices,
+            EventCallback.Factory.Create<IReadOnlyList<string>>(model, value => model.Choices = value),
+            (attributes, sequence) => attributes.AddAttribute(sequence, nameof(BzsMultiSelect<string>.Options), Options)));
+
+        cut.Find("[role='combobox']").Click();
+        cut.Find("[role='combobox']").KeyDown("ArrowDown");
+
+        IReadOnlyList<BzsSelectOption<string>> reorderedOptions =
+        [
+            new("review", "Review") { Description = "Final approvals" },
+            new("production", "Production") { Description = "Default workspace" },
+            new("lighting", "Lighting", disabled: true),
+        ];
+        cut.FindComponent<BzsMultiSelect<string>>().Render(
+            parameters => parameters.Add(component => component.Options, reorderedOptions));
+        cut.Find("[role='combobox']").KeyDown("Enter");
+
+        Assert.Equal(["review", "production"], model.Choices);
+    }
+
+    [Fact]
+    public void OpenMultiSelectFallsBackWhenTheActiveOptionBecomesDisabled()
+    {
+        using var context = CreateContext();
+        var model = new SelectionModel { Choices = ["production"] };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsMultiSelect<string>, IReadOnlyList<string>>(
+            builder,
+            0,
+            model.Choices,
+            () => model.Choices,
+            EventCallback.Factory.Create<IReadOnlyList<string>>(model, value => model.Choices = value),
+            (attributes, sequence) => attributes.AddAttribute(sequence, nameof(BzsMultiSelect<string>.Options), Options)));
+
+        cut.Find("[role='combobox']").Click();
+        cut.Find("[role='combobox']").KeyDown("ArrowDown");
+
+        IReadOnlyList<BzsSelectOption<string>> replacementOptions =
+        [
+            new("production", "Production") { Description = "Default workspace" },
+            new("review", "Review", disabled: true) { Description = "Final approvals" },
+        ];
+        cut.FindComponent<BzsMultiSelect<string>>().Render(
+            parameters => parameters.Add(component => component.Options, replacementOptions));
+        cut.Find("[role='combobox']").KeyDown("Enter");
+
+        Assert.Empty(model.Choices);
+    }
+
+    [Fact]
     public void RequiredEnhancedSelectsKeepNativeConstraintControls()
     {
         using var context = CreateContext();

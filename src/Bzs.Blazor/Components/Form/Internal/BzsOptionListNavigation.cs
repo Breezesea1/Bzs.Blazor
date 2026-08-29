@@ -1,7 +1,7 @@
 namespace Bzs.Blazor;
 
-/// <summary>Locates active option indices within an option list, skipping disabled options.</summary>
-internal static class BzsListboxNavigation
+/// <summary>Locates active option indices within an option-list snapshot, skipping disabled options.</summary>
+internal static class BzsOptionListNavigation
 {
     internal static int FindFirstEnabled<TOption>(
         IReadOnlyList<TOption> options,

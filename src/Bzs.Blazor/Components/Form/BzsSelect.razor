@@ -54,7 +54,7 @@
             </select>
         }
 
-        @if (_listbox.IsOpen)
+        @if (_optionList.IsOpen)
         {
             <div class="bzs-select__panel"
                  data-bzs-select-panel="true"
@@ -67,7 +67,7 @@
                         <input id="@SearchId"
                                type="search"
                                data-bzs-anchored-initial-focus="true"
-                               value="@_listbox.SearchText"
+                               value="@_searchText"
                                placeholder="@EffectiveSearchPlaceholder"
                                aria-label="@EffectiveSearchPlaceholder"
                                aria-controls="@ListboxId"

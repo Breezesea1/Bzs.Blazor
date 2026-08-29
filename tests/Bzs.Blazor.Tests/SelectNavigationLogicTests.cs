@@ -40,8 +40,8 @@ public sealed class SelectNavigationLogicTests
     [Fact]
     public void FindsFirstAndLastEnabledOptions()
     {
-        Assert.Equal(0, BzsListboxNavigation.FindFirstEnabled(Options, static option => option.Disabled));
-        Assert.Equal(2, BzsListboxNavigation.FindLastEnabled(Options, static option => option.Disabled));
+        Assert.Equal(0, BzsOptionListNavigation.FindFirstEnabled(Options, static option => option.Disabled));
+        Assert.Equal(2, BzsOptionListNavigation.FindLastEnabled(Options, static option => option.Disabled));
     }
 
     [Theory]
@@ -51,7 +51,7 @@ public sealed class SelectNavigationLogicTests
     [InlineData(0, -1, 2)]
     public void MovementSkipsDisabledOptionsAndWraps(int activeIndex, int delta, int expectedIndex)
     {
-        var result = BzsListboxNavigation.Move(Options, static option => option.Disabled, activeIndex, delta);
+        var result = BzsOptionListNavigation.Move(Options, static option => option.Disabled, activeIndex, delta);
 
         Assert.Equal(expectedIndex, result);
     }
@@ -61,9 +61,9 @@ public sealed class SelectNavigationLogicTests
     {
         BzsSelectOption<string>[] options = [];
 
-        Assert.Equal(-1, BzsListboxNavigation.FindFirstEnabled(options, static option => option.Disabled));
-        Assert.Equal(-1, BzsListboxNavigation.FindLastEnabled(options, static option => option.Disabled));
-        Assert.Equal(-1, BzsListboxNavigation.Move(options, static option => option.Disabled, 0, 1));
+        Assert.Equal(-1, BzsOptionListNavigation.FindFirstEnabled(options, static option => option.Disabled));
+        Assert.Equal(-1, BzsOptionListNavigation.FindLastEnabled(options, static option => option.Disabled));
+        Assert.Equal(-1, BzsOptionListNavigation.Move(options, static option => option.Disabled, 0, 1));
     }
 
     [Fact]
@@ -75,9 +75,9 @@ public sealed class SelectNavigationLogicTests
             new("beta", "Beta", disabled: true),
         ];
 
-        Assert.Equal(-1, BzsListboxNavigation.FindFirstEnabled(options, static option => option.Disabled));
-        Assert.Equal(-1, BzsListboxNavigation.FindLastEnabled(options, static option => option.Disabled));
-        Assert.Equal(-1, BzsListboxNavigation.Move(options, static option => option.Disabled, -1, 1));
-        Assert.Equal(-1, BzsListboxNavigation.Move(options, static option => option.Disabled, -1, -1));
+        Assert.Equal(-1, BzsOptionListNavigation.FindFirstEnabled(options, static option => option.Disabled));
+        Assert.Equal(-1, BzsOptionListNavigation.FindLastEnabled(options, static option => option.Disabled));
+        Assert.Equal(-1, BzsOptionListNavigation.Move(options, static option => option.Disabled, -1, 1));
+        Assert.Equal(-1, BzsOptionListNavigation.Move(options, static option => option.Disabled, -1, -1));
     }
 }

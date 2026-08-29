@@ -23,7 +23,8 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
 
     private const int ImmediateInteropAttemptLimit = 2;
     private readonly string _instanceId = $"bzs-select-{Guid.NewGuid():N}";
-    private readonly BzsListboxState<TValue> _listbox;
+    private readonly BzsOptionListState<BzsSelectOption<TValue>> _optionList;
+    private string _searchText = string.Empty;
     private ElementReference _rootReference;
     private BzsAnchoredOverlaySession? _overlaySession;
     private BzsSelectInterop? _interop;
@@ -33,10 +34,9 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
     private bool _disposed;
 
     /// <summary>Initializes a new instance of the <see cref="BzsSelect{TValue}"/> class.</summary>
-    public BzsSelect() => _listbox = new BzsListboxState<TValue>(
-        () => Options,
-        () => SearchEnabled,
-        () => CurrentValue);
+    public BzsSelect() => _optionList = new BzsOptionListState<BzsSelectOption<TValue>>(
+        static option => option.Disabled,
+        static (left, right) => EqualityComparer<TValue>.Default.Equals(left.Value, right.Value));
 
     private string ListboxId => $"{InputId}-listbox";
     private string SearchId => $"{InputId}-search";
@@ -47,12 +47,12 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
     private string EffectiveEmptyText => string.IsNullOrWhiteSpace(EmptyText)
         ? Localize("SelectNoMatches")
         : EmptyText.Trim();
-    private string? ActiveOptionId => _listbox.ActiveOption is { } active ? GetOptionId(active) : null;
+    private string? ActiveOptionId => _optionList.ActiveOption is { } active ? GetOptionId(active) : null;
     private BzsSelectOption<TValue>? SelectedOption => Options.FirstOrDefault(option => IsSelected(option.Value));
     private string SelectedText => SelectedOption?.Label
         ?? (string.IsNullOrWhiteSpace(PlaceholderOption) ? Localize("SelectPlaceholder") : PlaceholderOption.Trim());
     private string EffectiveAccessibleName => !string.IsNullOrWhiteSpace(Label) ? Label.Trim() : SelectedText;
-    private IReadOnlyList<BzsSelectOption<TValue>> FilteredOptions => _listbox.VisibleOptions;
+    private IReadOnlyList<BzsSelectOption<TValue>> FilteredOptions => _optionList.Options;
 
     private IReadOnlyDictionary<string, object> TriggerAttributes
     {
@@ -66,7 +66,7 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
                 ["role"] = "combobox",
                 ["data-bzs-anchor"] = "true",
                 ["aria-haspopup"] = "listbox",
-                ["aria-expanded"] = _listbox.IsOpen ? "true" : "false",
+                ["aria-expanded"] = _optionList.IsOpen ? "true" : "false",
                 ["aria-controls"] = ListboxId,
                 ["aria-autocomplete"] = SearchEnabled ? "list" : "none",
             };
@@ -138,6 +138,7 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
     {
         base.OnParametersSet();
         ValidateOptions();
+        PublishOptionSnapshot();
         UpdateOverlayState();
     }
 
@@ -192,14 +193,14 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
     {
         "bzs-select__option",
         selected ? "bzs-select__option--selected" : null,
-        index == _listbox.ActiveIndex ? "bzs-select__option--active" : null,
+        index == _optionList.ActiveIndex ? "bzs-select__option--active" : null,
         disabled ? "bzs-select__option--disabled" : null,
     }.Where(static value => value is not null));
 
     private static bool HasAdditionalAccessibleName(IReadOnlyDictionary<string, object> attributes) =>
         attributes.ContainsKey("aria-label") || attributes.ContainsKey("aria-labelledby");
 
-    private void Activate(int index) => _listbox.Activate(index);
+    private void Activate(int index) => _optionList.Activate(index);
 
     private void ToggleAsync()
     {
@@ -208,14 +209,13 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
             return;
         }
 
-        if (_listbox.IsOpen)
+        if (_optionList.IsOpen)
         {
             _ = GetOverlaySession().RequestCloseAsync(false);
             return;
         }
 
-        _listbox.Open();
-        UpdateOverlayState();
+        OpenOptionList();
     }
 
     private Task SelectAsync(BzsSelectOption<TValue> option)
@@ -231,7 +231,11 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
         return GetOverlaySession().RequestCloseAsync(true);
     }
 
-    private void OnSearchInput(ChangeEventArgs args) => _listbox.Search(args.Value?.ToString());
+    private void OnSearchInput(ChangeEventArgs args)
+    {
+        _searchText = args.Value?.ToString() ?? string.Empty;
+        PublishOptionSnapshot();
+    }
 
     private void OnNativeChanged(ChangeEventArgs args)
     {
@@ -248,17 +252,20 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
             return;
         }
 
-        var action = _listbox.HandleKey(args.Key);
+        if (!_optionList.IsOpen && args.Key is "ArrowDown" or "ArrowUp" or " ")
+        {
+            OpenOptionList();
+            return;
+        }
+
+        var action = _optionList.HandleKey(args.Key);
         switch (action)
         {
-            case BzsListboxAction.CommitActive when _listbox.ActiveOption is { } active:
+            case BzsOptionListAction.CommitActive when _optionList.ActiveOption is { } active:
                 _ = SelectAsync(active);
                 break;
-            case BzsListboxAction.CloseRequested:
+            case BzsOptionListAction.CloseRequested:
                 _ = GetOverlaySession().RequestCloseAsync(true);
-                break;
-            case BzsListboxAction.Opened:
-                UpdateOverlayState();
                 break;
         }
     }
@@ -272,22 +279,43 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
 
     private void UpdateOverlayState() =>
         GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
-            _listbox.IsOpen,
+            _optionList.IsOpen,
             BzsPopoverPlacement.BottomStart,
             CloseOnOutsideInteraction: true,
             CloseOnEscape: true));
 
     private Task HandleOverlayCloseRequestedAsync() => InvokeAsync(() =>
     {
-        if (!_listbox.IsOpen)
+        if (!_optionList.IsOpen)
         {
             return;
         }
 
-        _listbox.Close();
+        _optionList.Close();
+        _searchText = string.Empty;
+        PublishOptionSnapshot();
         UpdateOverlayState();
         StateHasChanged();
     });
+
+    private void OpenOptionList()
+    {
+        _searchText = string.Empty;
+        PublishOptionSnapshot();
+        if (SelectedOption is { } selected)
+        {
+            _optionList.Open(selected);
+        }
+        else
+        {
+            _optionList.Open();
+        }
+
+        UpdateOverlayState();
+    }
+
+    private void PublishOptionSnapshot() => _optionList.SetOptions(
+        BzsSelectNavigation.Filter(Options, _searchText));
 
     private void ValidateOptions()
     {
@@ -313,7 +341,7 @@ public sealed partial class BzsSelect<TValue> : BzsInputBase<TValue>
     /// <summary>Closes the option panel after a browser-owned outside or Escape interaction.</summary>
     public Task CloseFromBrowserAsync(bool restoreFocus = false)
     {
-        if (_disposed || !_listbox.IsOpen)
+        if (_disposed || !_optionList.IsOpen)
         {
             return Task.CompletedTask;
         }
