@@ -25,6 +25,59 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.6.0",
+            "0.6.0",
+            new DateTimeOffset(2026, 8, 29, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Feature release", "功能版本"),
+            new DemoLocalizedText(
+                "One anchored overlay for every floating surface",
+                "所有浮动表面共用一套锚定浮层"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.6.0 finishes the anchored-overlay consolidation: Select, MultiSelect, and the date picker calendar now share the positioning, outside-interaction, and Escape handling that dialogs, drawers, menus, and tooltips already used, which retires their parallel state machines and most of their component JavaScript.",
+                "Bzs.Blazor 0.6.0 完成锚定浮层的收敛：Select、MultiSelect 与日期选择日历现在共用对话框、抽屉、菜单和工具提示已在使用的定位、外部交互与 Escape 处理，从而移除了它们各自的平行状态机和大部分组件 JavaScript。"),
+            [
+                new DemoLocalizedText(
+                    "Every anchored surface routes through one internal module, expressing its positioning facts as DOM contract attributes rather than carrying its own retry flags and version counters.",
+                    "每个锚定表面都经由同一个内部模块，将定位事实表达为 DOM 契约属性，而不再各自持有重试标志与版本计数器。"),
+                new DemoLocalizedText(
+                    "The select-family controls share one option list state module, so open state, search text, and active-option keyboard handling are defined once instead of duplicated.",
+                    "选择器家族的控件共享同一个选项列表状态模块，打开状态、搜索文本与活动选项的键盘处理只定义一次，不再重复。"),
+                new DemoLocalizedText(
+                    "The DataGrid's provider request lifecycle — queueing, supersession, failure retention, page correction, and cancellation — moves behind one internal session.",
+                    "DataGrid 的提供器请求生命周期——排队、取代、失败保留、页码校正与取消——收进单一的内部会话。"),
+                new DemoLocalizedText(
+                    "Every Demo Catalog page now reads its visitor-facing copy from the bilingual text catalog, so a Chinese visitor is no longer greeted in English past the landing page.",
+                    "Demo 目录的每个页面现在都从双语文案目录读取访客可见文案，中文访客离开首页后不会再看到英文界面。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Public API", "公共 API"),
+                    [
+                        new DemoLocalizedText(
+                            "CloseFromBrowserAsync on BzsSelect, BzsMultiSelect, and BzsDateInput gains an optional restoreFocus argument, matching the surfaces already on the overlay seam.",
+                            "BzsSelect、BzsMultiSelect 与 BzsDateInput 的 CloseFromBrowserAsync 新增可选的 restoreFocus 参数，与已接入浮层缝的表面保持一致。"),
+                        new DemoLocalizedText(
+                            "Rendered markup gains additive data-bzs-* contract attributes; no class, ARIA attribute, or element structure changed, so existing CSS keeps working.",
+                            "渲染标记新增可叠加的 data-bzs-* 契约属性；类名、ARIA 属性与元素结构均未变化，既有 CSS 继续有效。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Tests and demo", "测试与 Demo"),
+                    [
+                        new DemoLocalizedText(
+                            "Browser tests name a destination and a culture and let the catalog's link seam supply the address, instead of hand-building about eighty URLs from route strings.",
+                            "浏览器测试改为指明目的地与语言，由目录的链接缝提供地址，不再用路由字符串手工拼接约八十个 URL。"),
+                        new DemoLocalizedText(
+                            "Two visual baselines capture an open anchored surface for the first time, so a panel that merely looks wrong is now caught by a gate.",
+                            "两个视觉基线首次捕获处于展开状态的锚定表面，面板仅仅是看起来不对也会被门禁拦下。"),
+                        new DemoLocalizedText(
+                            "The showcase frame every demonstration repeats becomes one component instead of being written out about thirty times across ten pages.",
+                            "每个演示重复的展示框架收敛为一个组件，不再在十个页面里书写约三十次。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "Source-compatible for every consumer. The three CloseFromBrowserAsync overloads gain an optional parameter, which is binary-breaking only for a caller compiled against 0.5.0 that is not recompiled; theme tokens, override hooks, parameters, events, and supported render modes are unchanged.",
+                "对所有使用方源码兼容。三个 CloseFromBrowserAsync 重载新增可选参数，仅对以 0.5.0 编译且未重新编译的调用方构成二进制破坏；主题令牌、覆盖钩子、参数、事件与支持的渲染模式均未变化。")),
+        new(
             "v0.5.0",
             "0.5.0",
             new DateTimeOffset(2026, 8, 24, 0, 0, 0, TimeSpan.Zero),

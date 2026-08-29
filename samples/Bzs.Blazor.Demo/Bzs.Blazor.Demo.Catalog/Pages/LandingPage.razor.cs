@@ -6,8 +6,10 @@ namespace Bzs.Blazor.Demo.Client.Pages;
 
 public partial class LandingPage : ComponentBase, IAsyncDisposable
 {
-    private const string InstallSnippet =
-        "dotnet add package Bzs.Blazor --version 0.5.0\nbuilder.Services.AddBzsBlazor();";
+    // The install command pins the version a visitor should actually take, which is the newest one
+    // the release catalog knows about, so a release does not have to remember to edit it here too.
+    private static readonly string InstallSnippet =
+        $"dotnet add package Bzs.Blazor --version {DemoReleaseCatalog.Latest.Version}\nbuilder.Services.AddBzsBlazor();";
 
     private readonly LandingDemoForm _demoForm = new();
     private LandingPageInterop? _interop;

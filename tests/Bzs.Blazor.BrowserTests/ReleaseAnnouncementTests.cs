@@ -22,11 +22,11 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
         response.EnsureSuccessStatusCode();
         Assert.Contains("data-testid=\"releases-page\"", html, StringComparison.Ordinal);
         Assert.Contains("Release announcements", html, StringComparison.Ordinal);
-        Assert.Contains("0.5.0", html, StringComparison.Ordinal);
-        Assert.Contains("0.4.1", html, StringComparison.Ordinal);
-        Assert.Contains("0.3.0", html, StringComparison.Ordinal);
-        Assert.Contains("0.2.3", html, StringComparison.Ordinal);
-        Assert.Contains("0.2.2", html, StringComparison.Ordinal);
+        foreach (var version in DemoReleases.AllVersions)
+        {
+            Assert.Contains(version, html, StringComparison.Ordinal);
+        }
+
         Assert.Contains("Forms and data workflows", html, StringComparison.Ordinal);
         Assert.Contains("Demo experience", html, StringComparison.Ordinal);
         Assert.Contains("Fixes and accessibility", html, StringComparison.Ordinal);
@@ -35,31 +35,13 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
         Assert.Contains("data-testid=\"demo-release-fallback\"", html, StringComparison.Ordinal);
         Assert.Contains("href=\"/releases?culture=en-US\"", html, StringComparison.Ordinal);
         Assert.Contains("title=\"What&#x27;s new\"", html, StringComparison.Ordinal);
-        var release050Index = html.IndexOf(
-            "One semantic surface system",
-            StringComparison.Ordinal);
-        var release041Index = html.IndexOf(
-            "A mature DataGrid: querying, columns, and presentation",
-            StringComparison.Ordinal);
-        var release040Index = html.IndexOf(
-            "Productivity workflows, resizable navigation, and identity",
-            StringComparison.Ordinal);
-        var release030Index = html.IndexOf(
-            "Forms, data workflows, and navigation drawers",
-            StringComparison.Ordinal);
-        var release023Index = html.IndexOf(
-            "Bilingual Demo and shared landing page",
-            StringComparison.Ordinal);
-        Assert.True(
-            release050Index >= 0
-                && release041Index >= 0
-                && release040Index >= 0
-                && release030Index >= 0
-                && release023Index >= 0
-                && release050Index < release041Index
-                && release041Index < release040Index
-                && release040Index < release030Index
-                && release030Index < release023Index);
+
+        // The history reads newest first, so each title must appear before the one below it.
+        var titleIndexes = DemoReleases.TitlesInOrder(isChinese: false, DemoReleases.AllVersions.Count)
+            .Select(title => html.IndexOf(title, StringComparison.Ordinal))
+            .ToArray();
+        Assert.DoesNotContain(-1, titleIndexes);
+        Assert.Equal(titleIndexes.OrderBy(index => index), titleIndexes);
     }
 
     [Fact]
@@ -89,9 +71,9 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
         await trigger.ClickAsync();
         var dialog = Page.GetByRole(
             AriaRole.Dialog,
-            new() { Name = "What's new in Bzs.Blazor 0.5.0", Exact = true });
+            new() { Name = DemoReleases.LatestDialogTitle(isChinese: false), Exact = true });
         await Expect(dialog).ToBeVisibleAsync();
-        await Expect(dialog.GetByText("One semantic surface system", new() { Exact = true }))
+        await Expect(dialog.GetByText(DemoReleases.LatestTitle(isChinese: false), new() { Exact = true }))
             .ToBeVisibleAsync();
 
         await Page.Keyboard.PressAsync("Escape");
@@ -108,7 +90,7 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
 
         var storedIds = await Page.EvaluateAsync<string[]>(
             $"JSON.parse(localStorage.getItem('{StorageKey}') ?? '[]')");
-        Assert.Equal(["v0.5.0"], storedIds);
+        Assert.Equal([DemoReleases.LatestId], storedIds);
 
         await Page.ReloadAsync();
         trigger = Page.GetByTestId("demo-release-trigger");
@@ -142,22 +124,23 @@ public sealed class ReleaseAnnouncementTests(DemoServerFixture server) : Browser
         var trigger = Page.GetByTestId("demo-release-trigger");
         await Expect(trigger).ToHaveAttributeAsync("aria-label", "更新公告，1 个未读版本");
         await trigger.ClickAsync();
+        var chineseDialogTitle = DemoReleases.LatestDialogTitle(isChinese: true);
         await Expect(Page.GetByRole(
             AriaRole.Dialog,
-            new() { Name = "Bzs.Blazor 0.5.0 更新内容", Exact = true }))
+            new() { Name = chineseDialogTitle, Exact = true }))
             .ToBeVisibleAsync();
         await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "标为已读", Exact = true }))
             .ToBeVisibleAsync();
 
         await Page.GetByRole(
             AriaRole.Dialog,
-            new() { Name = "Bzs.Blazor 0.5.0 更新内容", Exact = true })
+            new() { Name = chineseDialogTitle, Exact = true })
             .GetByRole(AriaRole.Link, new() { Name = "查看所有版本", Exact = true })
             .ClickAsync();
-        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Releases, DemoDestinationUrls.Chinese, fragment: "v0.5.0"));
+        await Expect(Page).ToHaveURLAsync(server.Urls.To(DemoCatalogDestinations.Releases, DemoDestinationUrls.Chinese, fragment: DemoReleases.LatestId));
         await Expect(Page.GetByRole(
             AriaRole.Dialog,
-            new() { Name = "Bzs.Blazor 0.5.0 更新内容", Exact = true }))
+            new() { Name = chineseDialogTitle, Exact = true }))
             .ToHaveCountAsync(0);
         await Expect(Page.GetByRole(
             AriaRole.Heading,

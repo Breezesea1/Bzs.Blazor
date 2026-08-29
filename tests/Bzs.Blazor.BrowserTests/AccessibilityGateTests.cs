@@ -143,7 +143,7 @@ public sealed class AccessibilityGateTests(DemoServerFixture server) : BrowserGa
         await Page.GetByTestId("demo-release-trigger").ClickAsync();
         var dialog = Page.GetByRole(
             AriaRole.Dialog,
-            new() { Name = "What's new in Bzs.Blazor 0.5.0", Exact = true });
+            new() { Name = DemoReleases.LatestDialogTitle(isChinese: false), Exact = true });
         await Expect(dialog).ToBeVisibleAsync();
         await AssertNoCriticalOrSeriousAxeViolationsAsync("open release announcement dialog");
 
