@@ -1,79 +1,79 @@
 @inject IBzsDialogService Dialogs
 @inject IBzsToastService Toasts
 
-<PageTitle>Overlays - Bzs.Blazor</PageTitle>
+<PageTitle>@DemoText.Overlays.PageTitle</PageTitle>
 
 <div class="demo-overlays-stage">
     <section class="demo-page" aria-labelledby="overlays-title" data-testid="overlays-workbench">
         <header class="demo-page-header">
-            <p class="demo-eyebrow">Overlay workflow</p>
-            <h1 id="overlays-title">Dialog, Drawer, and Host</h1>
+            <p class="demo-eyebrow">@DemoText.Overlays.Eyebrow</p>
+            <h1 id="overlays-title">@DemoText.Overlays.Title</h1>
             <p class="demo-page-summary">
-                Controlled overlays and command-driven dialogs share one scoped host while preserving explicit focus and dismissal behavior.
+                @DemoText.Overlays.Summary
             </p>
         </header>
 
         <p class="demo-runtime-status" role="status" data-testid="overlays-runtime-status">
-            @(_isInteractive ? "Interactive runtime ready" : "Rendering overlay markup")
+            @(_isInteractive ? DemoText.Overlays.RuntimeReady : DemoText.Overlays.RuntimeWaiting)
         </p>
 
         <div class="demo-overlays-workbench-grid">
             <DemoShowcaseSection HeadingId="controlled-dialog-title"
-                                 Heading="Controlled dialog"
-                                 Description="Escape closes this modal dialog. Its backdrop policy remains explicit.">
+                                 Heading="@DemoText.Overlays.ControlledDialogHeading"
+                                 Description="@DemoText.Overlays.ControlledDialogDescription">
                 <div class="demo-control-row">
                     <BzsButton Disabled="@(!_isInteractive)"
                                data-testid="open-controlled-dialog"
-                               Click="OpenControlledDialog">Open controlled dialog</BzsButton>
+                               Click="OpenControlledDialog">@DemoText.Overlays.OpenControlledDialog</BzsButton>
                     <BzsCheckbox Id="controlled-dialog-backdrop-policy"
                                  @bind-Value="_allowControlledDialogBackdropDismissal"
                                  Disabled="@(!_isInteractive)"
-                                 Label="Allow dialog backdrop dismissal" />
+                                 Label="@DemoText.Overlays.AllowBackdropDismissal" />
                 </div>
                 <p class="demo-overlays-result" role="status" data-testid="controlled-dialog-status">@_controlledDialogStatus</p>
             </DemoShowcaseSection>
 
             <DemoShowcaseSection HeadingId="drawer-title"
-                                 Heading="Controlled drawers"
-                                 Description="Compare an end-placed modal drawer with a start-placed nonmodal drawer.">
+                                 Heading="@DemoText.Overlays.DrawersHeading"
+                                 Description="@DemoText.Overlays.DrawersDescription">
                 <div class="demo-control-row">
                     <BzsButton Disabled="@(!_isInteractive)"
                                data-testid="open-modal-drawer"
-                               Click="OpenModalDrawer">Open modal drawer</BzsButton>
+                               Click="OpenModalDrawer">@DemoText.Overlays.OpenModalDrawer</BzsButton>
                     <BzsButton Disabled="@(!_isInteractive)"
                                Variant="BzsButtonVariant.Outline"
                                data-testid="open-nonmodal-drawer"
-                               Click="OpenNonmodalDrawer">Open nonmodal drawer</BzsButton>
+                               Click="OpenNonmodalDrawer">@DemoText.Overlays.OpenNonmodalDrawer</BzsButton>
                 </div>
                 <p class="demo-overlays-result" role="status" data-testid="drawer-status">@_drawerStatus</p>
             </DemoShowcaseSection>
 
             <DemoShowcaseSection HeadingId="service-dialog-title"
-                                 Heading="Typed dialog service"
-                                 Description="A component parameter is supplied through a property expression and returns an explicit Boolean result.">
+                                 Heading="@DemoText.Overlays.ServiceDialogHeading"
+                                 Description="@DemoText.Overlays.ServiceDialogDescription">
                 <div class="demo-control-row">
                     <BzsButton Disabled="@(!_isInteractive)"
                                data-testid="open-service-dialog"
-                               Click="OpenServiceDialogAsync">Open service dialog</BzsButton>
+                               Click="OpenServiceDialogAsync">@DemoText.Overlays.OpenServiceDialog</BzsButton>
                 </div>
                 <p class="demo-overlays-result" role="status" data-testid="service-dialog-result">@_serviceDialogResult</p>
             </DemoShowcaseSection>
 
             <DemoShowcaseSection HeadingId="host-toast-title"
-                                 Heading="Host toast"
-                                 Description="The scoped overlay host renders this persistent toast rather than page-local markup.">
+                                 Heading="@DemoText.Overlays.HostToastHeading"
+                                 Description="@DemoText.Overlays.HostToastDescription">
                 <div class="demo-control-row">
                     <BzsButton Disabled="@(!_isInteractive)"
                                data-testid="show-host-toast"
-                               Click="ShowHostToast">Show host toast</BzsButton>
+                               Click="ShowHostToast">@DemoText.Overlays.ShowHostToast</BzsButton>
                 </div>
             </DemoShowcaseSection>
         </div>
 
         <BzsDialog Open="@_isControlledDialogOpen"
                    OpenChanged="SetControlledDialogOpen"
-                   Title="Controlled dialog"
-                   AccessibleName="Controlled dialog"
+                   Title="@DemoText.Overlays.ControlledDialogHeading"
+                   AccessibleName="@DemoText.Overlays.ControlledDialogHeading"
                    Modal="true"
                    CloseOnEscape="true"
                    CloseOnBackdropClick="@_allowControlledDialogBackdropDismissal"
@@ -81,26 +81,26 @@
                    InitialFocusSelector="#controlled-dialog-primary"
                    Dismissed="HandleControlledDialogDismissed"
                    data-testid="controlled-dialog">
-            <p class="demo-overlays-dialog-copy">Use this dialog to inspect focus trapping, backdrop policy, and nested stack ordering.</p>
+            <p class="demo-overlays-dialog-copy">@DemoText.Overlays.ControlledDialogBody</p>
             <div class="demo-overlays-dialog-actions">
                 <BzsButton Id="controlled-dialog-primary"
                            data-testid="controlled-dialog-primary"
-                           Click="CompleteControlledDialog">Complete controlled dialog</BzsButton>
+                           Click="CompleteControlledDialog">@DemoText.Overlays.CompleteControlledDialog</BzsButton>
                 <BzsButton Id="controlled-dialog-cancel"
                            data-testid="controlled-dialog-cancel"
                            Variant="BzsButtonVariant.Outline"
-                           Click="CancelControlledDialog">Cancel controlled dialog</BzsButton>
+                           Click="CancelControlledDialog">@DemoText.Overlays.CancelControlledDialog</BzsButton>
                 <BzsButton Id="controlled-dialog-nested-service"
                            data-testid="open-nested-service-dialog"
                            Variant="BzsButtonVariant.Secondary"
-                           Click="OpenServiceDialogAsync">Open nested service dialog</BzsButton>
+                           Click="OpenServiceDialogAsync">@DemoText.Overlays.OpenNestedServiceDialog</BzsButton>
             </div>
         </BzsDialog>
 
         <BzsDrawer Open="@_isModalDrawerOpen"
                    OpenChanged="SetModalDrawerOpen"
-                   Title="Modal drawer"
-                   AccessibleName="Modal drawer"
+                   Title="@DemoText.Overlays.ModalDrawerTitle"
+                   AccessibleName="@DemoText.Overlays.ModalDrawerTitle"
                    Modal="true"
                    Placement="BzsDrawerPlacement.End"
                    CloseOnEscape="true"
@@ -109,18 +109,18 @@
                    InitialFocusSelector="#modal-drawer-close"
                    Dismissed="HandleModalDrawerDismissed"
                    data-testid="modal-drawer">
-            <p class="demo-overlays-dialog-copy">This end-placed drawer locks background scrolling while it is open.</p>
+            <p class="demo-overlays-dialog-copy">@DemoText.Overlays.ModalDrawerBody</p>
             <div class="demo-overlays-dialog-actions">
                 <BzsButton Id="modal-drawer-close"
                            data-testid="close-modal-drawer"
-                           Click="CloseModalDrawer">Close modal drawer</BzsButton>
+                           Click="CloseModalDrawer">@DemoText.Overlays.CloseModalDrawer</BzsButton>
             </div>
         </BzsDrawer>
 
         <BzsDrawer Open="@_isNonmodalDrawerOpen"
                    OpenChanged="SetNonmodalDrawerOpen"
-                   Title="Nonmodal drawer"
-                   AccessibleName="Nonmodal drawer"
+                   Title="@DemoText.Overlays.NonmodalDrawerTitle"
+                   AccessibleName="@DemoText.Overlays.NonmodalDrawerTitle"
                    Modal="false"
                    Placement="BzsDrawerPlacement.Start"
                    CloseOnEscape="true"
@@ -128,11 +128,11 @@
                    InitialFocusSelector="#nonmodal-drawer-close"
                    Dismissed="HandleNonmodalDrawerDismissed"
                    data-testid="nonmodal-drawer">
-            <p class="demo-overlays-dialog-copy">This start-placed drawer keeps the page scrollable and does not set aria-modal.</p>
+            <p class="demo-overlays-dialog-copy">@DemoText.Overlays.NonmodalDrawerBody</p>
             <div class="demo-overlays-dialog-actions">
                 <BzsButton Id="nonmodal-drawer-close"
                            data-testid="close-nonmodal-drawer"
-                           Click="CloseNonmodalDrawer">Close nonmodal drawer</BzsButton>
+                           Click="CloseNonmodalDrawer">@DemoText.Overlays.CloseNonmodalDrawer</BzsButton>
             </div>
         </BzsDrawer>
 
@@ -146,9 +146,9 @@
     private bool _isModalDrawerOpen;
     private bool _isNonmodalDrawerOpen;
     private bool _isInteractive;
-    private string _controlledDialogStatus = "Controlled dialog is closed.";
-    private string _drawerStatus = "No drawer is open.";
-    private string _serviceDialogResult = "No service dialog result yet.";
+    private string _controlledDialogStatus = DemoText.Overlays.ControlledDialogClosed;
+    private string _drawerStatus = DemoText.Overlays.NoDrawerOpen;
+    private string _serviceDialogResult = DemoText.Overlays.NoServiceDialogResult;
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -163,8 +163,8 @@
     {
         _isControlledDialogOpen = true;
         _controlledDialogStatus = _allowControlledDialogBackdropDismissal
-            ? "Controlled dialog is open and its backdrop may dismiss it."
-            : "Controlled dialog is open and its backdrop is disabled.";
+            ? DemoText.Overlays.ControlledDialogOpenBackdropAllowed
+            : DemoText.Overlays.ControlledDialogOpenBackdropDisabled;
         return Task.CompletedTask;
     }
 
@@ -177,27 +177,27 @@
     private Task CompleteControlledDialog()
     {
         _isControlledDialogOpen = false;
-        _controlledDialogStatus = "Controlled dialog completed.";
+        _controlledDialogStatus = DemoText.Overlays.ControlledDialogCompleted;
         return Task.CompletedTask;
     }
 
     private Task CancelControlledDialog()
     {
         _isControlledDialogOpen = false;
-        _controlledDialogStatus = "Controlled dialog cancelled.";
+        _controlledDialogStatus = DemoText.Overlays.ControlledDialogCancelled;
         return Task.CompletedTask;
     }
 
     private Task HandleControlledDialogDismissed(BzsDialogDismissReason reason)
     {
-        _controlledDialogStatus = $"Controlled dialog dismissed by {reason}.";
+        _controlledDialogStatus = DemoText.Overlays.ControlledDialogDismissedBy(reason);
         return Task.CompletedTask;
     }
 
     private Task OpenModalDrawer()
     {
         _isModalDrawerOpen = true;
-        _drawerStatus = "Modal drawer is open.";
+        _drawerStatus = DemoText.Overlays.ModalDrawerOpen;
         return Task.CompletedTask;
     }
 
@@ -210,20 +210,20 @@
     private Task CloseModalDrawer()
     {
         _isModalDrawerOpen = false;
-        _drawerStatus = "Modal drawer closed.";
+        _drawerStatus = DemoText.Overlays.ModalDrawerClosed;
         return Task.CompletedTask;
     }
 
     private Task HandleModalDrawerDismissed(BzsDialogDismissReason reason)
     {
-        _drawerStatus = $"Modal drawer dismissed by {reason}.";
+        _drawerStatus = DemoText.Overlays.ModalDrawerDismissedBy(reason);
         return Task.CompletedTask;
     }
 
     private Task OpenNonmodalDrawer()
     {
         _isNonmodalDrawerOpen = true;
-        _drawerStatus = "Nonmodal drawer is open.";
+        _drawerStatus = DemoText.Overlays.NonmodalDrawerOpen;
         return Task.CompletedTask;
     }
 
@@ -236,13 +236,13 @@
     private Task CloseNonmodalDrawer()
     {
         _isNonmodalDrawerOpen = false;
-        _drawerStatus = "Nonmodal drawer closed.";
+        _drawerStatus = DemoText.Overlays.NonmodalDrawerClosed;
         return Task.CompletedTask;
     }
 
     private Task HandleNonmodalDrawerDismissed(BzsDialogDismissReason reason)
     {
-        _drawerStatus = $"Nonmodal drawer dismissed by {reason}.";
+        _drawerStatus = DemoText.Overlays.NonmodalDrawerDismissedBy(reason);
         return Task.CompletedTask;
     }
 
@@ -251,11 +251,11 @@
         var result = await Dialogs.ShowAsync<OverlayResultDialog, bool>(
             parameters => parameters.Add(
                 component => component.Prompt,
-                "Approve the staged overlay workflow?"),
+                DemoText.Overlays.ServiceDialogPrompt),
             new BzsDialogOptions
             {
-                Title = "Service dialog",
-                AccessibleName = "Service dialog",
+                Title = DemoText.Overlays.ServiceDialogTitle,
+                AccessibleName = DemoText.Overlays.ServiceDialogTitle,
                 Modal = true,
                 CloseOnEscape = true,
                 CloseOnBackdropClick = true,
@@ -264,19 +264,19 @@
             });
 
         _serviceDialogResult = result.IsCompleted
-            ? result.Value == true ? "Completed: true" : "Completed: false"
-            : $"Result: {result.Kind}";
+            ? DemoText.Overlays.ServiceDialogCompleted(result.Value == true)
+            : DemoText.Overlays.ServiceDialogResultKind(result.Kind);
     }
 
     private void ShowHostToast()
     {
         Toasts.Show(new BzsToastOptions
         {
-            Title = "Host toast",
-            Message = "The scoped overlay host rendered this persistent notification.",
+            Title = DemoText.Overlays.HostToastTitle,
+            Message = DemoText.Overlays.HostToastMessage,
             Severity = BzsToastSeverity.Success,
             Duration = Timeout.InfiniteTimeSpan,
-            AccessibleName = "Overlay host toast",
+            AccessibleName = DemoText.Overlays.HostToastAccessibleName,
         });
     }
 }

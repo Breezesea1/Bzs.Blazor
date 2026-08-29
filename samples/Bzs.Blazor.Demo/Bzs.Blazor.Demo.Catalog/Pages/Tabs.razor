@@ -1,66 +1,69 @@
-<PageTitle>Tabs - Bzs.Blazor</PageTitle>
+<PageTitle>@DemoText.Tabs.PageTitle</PageTitle>
 
 <div class="demo-tabs-stage">
     <section class="demo-page" aria-labelledby="tabs-title" data-testid="tabs-workbench">
         <header class="demo-page-header">
-            <p class="demo-eyebrow">Navigation</p>
-            <h1 id="tabs-title">Tabs, language, and direction</h1>
+            <p class="demo-eyebrow">@DemoText.Tabs.Eyebrow</p>
+            <h1 id="tabs-title">@DemoText.Tabs.Title</h1>
             <p class="demo-page-summary">
-                Controlled selection keeps application state explicit while keyboard behavior follows orientation and direction.
+                @DemoText.Tabs.Summary
             </p>
         </header>
 
         <p class="demo-runtime-status" role="status" data-testid="tabs-runtime-status">
-            @(_isInteractive ? "Interactive runtime ready" : "Rendering tabs markup")
+            @(_isInteractive ? DemoText.Tabs.RuntimeReady : DemoText.Tabs.RuntimeWaiting)
         </p>
 
-        <section class="demo-panel demo-tabs-workbench" aria-label="Tabs examples">
+        <section class="demo-panel demo-tabs-workbench" aria-label="@DemoText.Tabs.ExamplesAccessibleName">
             <DemoShowcaseSection Class="demo-tabs-section"
                                  HeadingId="automatic-tabs-title"
-                                 Heading="Automatic horizontal tabs"
-                                 Description="Arrow, Home, and End activate the next enabled tab.">
+                                 Heading="@DemoText.Tabs.AutomaticHeading"
+                                 Description="@DemoText.Tabs.AutomaticDescription">
                 <BzsTabs ActiveValue="@_automaticActiveValue"
                          ActiveValueChanged="SetAutomaticActiveValue"
                          Orientation="BzsTabsOrientation.Horizontal"
                          ActivationMode="BzsTabActivationMode.Automatic"
-                         aria-label="Automatic project tabs"
+                         aria-label="@DemoText.Tabs.AutomaticTabsAccessibleName"
                          data-testid="automatic-tabs">
-                    <BzsTabItem Value="overview" Title="Overview" data-testid="automatic-overview">
-                        <p class="demo-tabs-panel-copy">Overview is active: plan, owners, and milestones are ready to review.</p>
+                    <BzsTabItem Value="overview" Title="@DemoText.Tabs.OverviewTab" data-testid="automatic-overview">
+                        <p class="demo-tabs-panel-copy">@DemoText.Tabs.OverviewPanel</p>
                     </BzsTabItem>
-                    <BzsTabItem Value="schedule" Title="Schedule unavailable" Disabled="true" data-testid="automatic-schedule">
-                        <p class="demo-tabs-panel-copy">Schedule is unavailable until the delivery plan is approved.</p>
+                    <BzsTabItem Value="schedule" Title="@DemoText.Tabs.ScheduleTab" Disabled="true" data-testid="automatic-schedule">
+                        <p class="demo-tabs-panel-copy">@DemoText.Tabs.SchedulePanel</p>
                     </BzsTabItem>
-                    <BzsTabItem Value="activity" Title="Activity" data-testid="automatic-activity">
-                        <p class="demo-tabs-panel-copy">Activity is active: three recent workflow updates are available.</p>
+                    <BzsTabItem Value="activity" Title="@DemoText.Tabs.ActivityTab" data-testid="automatic-activity">
+                        <p class="demo-tabs-panel-copy">@DemoText.Tabs.ActivityPanel</p>
                     </BzsTabItem>
                 </BzsTabs>
-                <p class="demo-tabs-selection" aria-live="polite" data-testid="automatic-selection">Selected: @_automaticActiveValue</p>
+                <p class="demo-tabs-selection" aria-live="polite" data-testid="automatic-selection">@DemoText.Tabs.SelectedValue(_automaticActiveValue)</p>
             </DemoShowcaseSection>
 
             <DemoShowcaseSection Class="demo-tabs-section"
                                  HeadingId="manual-tabs-title"
-                                 Heading="Manual vertical tabs"
-                                 Description="Arrow keys move focus; Enter or Space commits the controlled selection.">
+                                 Heading="@DemoText.Tabs.ManualHeading"
+                                 Description="@DemoText.Tabs.ManualDescription">
                 <BzsTabs ActiveValue="@_manualActiveValue"
                          ActiveValueChanged="SetManualActiveValue"
                          Orientation="BzsTabsOrientation.Vertical"
                          ActivationMode="BzsTabActivationMode.Manual"
-                         aria-label="Manual account tabs"
+                         aria-label="@DemoText.Tabs.ManualTabsAccessibleName"
                          data-testid="manual-tabs">
-                    <BzsTabItem Value="profile" Title="Profile" data-testid="manual-profile">
-                        <p class="demo-tabs-panel-copy">Profile details stay selected until another focused tab is explicitly activated.</p>
+                    <BzsTabItem Value="profile" Title="@DemoText.Tabs.ProfileTab" data-testid="manual-profile">
+                        <p class="demo-tabs-panel-copy">@DemoText.Tabs.ProfilePanel</p>
                     </BzsTabItem>
-                    <BzsTabItem Value="preferences" Title="Preferences" data-testid="manual-preferences">
-                        <p class="demo-tabs-panel-copy">Preferences contain notification and density choices for this workspace.</p>
+                    <BzsTabItem Value="preferences" Title="@DemoText.Tabs.PreferencesTab" data-testid="manual-preferences">
+                        <p class="demo-tabs-panel-copy">@DemoText.Tabs.PreferencesPanel</p>
                     </BzsTabItem>
-                    <BzsTabItem Value="security" Title="Security" data-testid="manual-security">
-                        <p class="demo-tabs-panel-copy">Security records active sessions and required sign-in checks.</p>
+                    <BzsTabItem Value="security" Title="@DemoText.Tabs.SecurityTab" data-testid="manual-security">
+                        <p class="demo-tabs-panel-copy">@DemoText.Tabs.SecurityPanel</p>
                     </BzsTabItem>
                 </BzsTabs>
-                <p class="demo-tabs-selection" aria-live="polite" data-testid="manual-selection">Selected: @_manualActiveValue</p>
+                <p class="demo-tabs-selection" aria-live="polite" data-testid="manual-selection">@DemoText.Tabs.SelectedValue(_manualActiveValue)</p>
             </DemoShowcaseSection>
 
+            @* The three specimens below are the demonstration itself: each shows the component under a
+               specific language and writing direction, so their titles and panel copy stay in that
+               language instead of following the visitor's culture. *@
             <div class="demo-tabs-locale-grid">
                 <DemoShowcaseSection Class="demo-tabs-section"
                                      lang="en"
@@ -96,7 +99,7 @@
                                  lang="ar"
                                  HeadingId="rtl-tabs-title"
                                  Heading="علامات تبويب من اليمين إلى اليسار"
-                                 Description="ArrowRight follows the physical right direction for this horizontal tab list.">
+                                 Description="@DemoText.Tabs.RtlDescription">
                 <BzsTabs ActiveValue="@_rtlActiveValue"
                          ActiveValueChanged="SetRtlActiveValue"
                          Orientation="BzsTabsOrientation.Horizontal"

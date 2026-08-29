@@ -461,7 +461,8 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     {
         BeginBrowserGateTest();
         await Page.SetViewportSizeAsync(390, 844);
-        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Layout));
+        await Page.GotoAsync(
+            server.Urls.To(DemoCatalogDestinations.Layout, DemoDestinationUrls.English));
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "App Shell, Grid, and Stack" }))
             .ToBeVisibleAsync();
         await Expect(Page.Locator("#layout-intro"))

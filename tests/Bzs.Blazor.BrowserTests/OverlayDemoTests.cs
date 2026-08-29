@@ -216,7 +216,10 @@ public sealed class OverlayDemoTests(DemoServerFixture server) : BrowserGatePage
 
     private async Task GoToOverlaysAsync()
     {
-        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Overlays));
+        // The page renders through DemoText, which defaults to zh-Hans, so every English assertion
+        // below depends on this navigation naming the culture.
+        await Page.GotoAsync(
+            server.Urls.To(DemoCatalogDestinations.Overlays, DemoDestinationUrls.English));
         await Expect(Page.GetByTestId("overlays-runtime-status"))
             .ToHaveTextAsync("Interactive runtime ready");
     }

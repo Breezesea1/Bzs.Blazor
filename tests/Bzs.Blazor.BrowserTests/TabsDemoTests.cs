@@ -125,7 +125,8 @@ public sealed class TabsDemoTests(DemoServerFixture server) : BrowserGatePageTes
     {
         BeginBrowserGateTest();
         using var client = new HttpClient();
-        var html = await client.GetStringAsync(server.Urls.To(DemoCatalogDestinations.Tabs));
+        var html = await client.GetStringAsync(
+            server.Urls.To(DemoCatalogDestinations.Tabs, DemoDestinationUrls.English));
 
         Assert.Contains("role=\"tablist\"", html, StringComparison.Ordinal);
         Assert.Contains("role=\"tab\"", html, StringComparison.Ordinal);
@@ -135,7 +136,10 @@ public sealed class TabsDemoTests(DemoServerFixture server) : BrowserGatePageTes
 
     private async Task GoToTabsAsync()
     {
-        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Tabs));
+        // The page renders through DemoText, which defaults to zh-Hans, so every English assertion
+        // below depends on this navigation naming the culture.
+        await Page.GotoAsync(
+            server.Urls.To(DemoCatalogDestinations.Tabs, DemoDestinationUrls.English));
         await Expect(Page.GetByTestId("tabs-runtime-status"))
             .ToHaveTextAsync("Interactive runtime ready");
     }

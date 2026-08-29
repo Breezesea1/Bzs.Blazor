@@ -1,4 +1,5 @@
 using System.Globalization;
+using Bzs.Blazor;
 
 namespace Bzs.Blazor.Demo.Client;
 
@@ -439,6 +440,353 @@ public static class DemoText
             "Review the important changes, compatibility notes, and new components in every Bzs.Blazor release.");
 
         public static string HighlightsHeading => Get("主要更新", "Highlights");
+    }
+
+    public static class Layout
+    {
+        public static string PageTitle => Get("布局 - Bzs.Blazor", "Layout - Bzs.Blazor");
+
+        public static string Eyebrow => Get("布局", "Layout");
+
+        public static string Title => Get("应用壳、栅格与堆叠", "App Shell, Grid, and Stack");
+
+        public static string Summary => Get(
+            "无需 JavaScript 即可组合应用框架、响应式导航、页面宽度、弹性行和分隔线。每个实时预览都配有产生它的 Razor 代码。",
+            "Compose an application frame, responsive navigation, page width, flexible rows, and separators without JavaScript. Each live preview is paired with the Razor that produces it.");
+
+        public static string PaletteAccessibleName => Get("布局主题色", "Layout theme colors");
+
+        public static string TonePrimary => Get("主色", "Primary");
+
+        public static string ToneInfo => Get("信息", "Info");
+
+        public static string ToneSuccess => Get("成功", "Success");
+
+        public static string ToneWarning => Get("警告", "Warning");
+
+        public static string ToneError => Get("错误", "Error");
+
+        public static string AppShellHeading => Get("应用栏与导航抽屉", "App bar and navigation drawer");
+
+        // The layout descriptions name API identifiers and CSS values, which stay untranslated inside
+        // <code>. Each description is split around those tokens so both languages arrange their own
+        // prose around them rather than forcing English word order onto Chinese.
+        public static string AppShellDescriptionLead => Get(
+            "按文档顺序组合外壳：导航抽屉、应用栏，然后是主内容。响应式抽屉在较宽的屏幕上预留空间，并在宽度低于 ",
+            "Compose the shell in document order: navigation drawer, app bar, then main content. The responsive drawer reserves space on wider screens and becomes an overlay below ");
+
+        public static string AppShellDescriptionTail => Get(" 时变为浮层。", ".");
+
+        public static string InteractivePreview => Get("交互式预览", "Interactive preview");
+
+        public static string ControlledNavigation => Get("受控导航", "Controlled navigation");
+
+        public static string ContainerHeading => Get("容器", "Container");
+
+        public static string ContainerDescriptionLead => Get("使用 ", "Use ");
+
+        public static string ContainerDescriptionMiddle => Get(
+            " 获得分级的视口宽度，或设置 ",
+            " for stepped viewport widths, or set ");
+
+        public static string ContainerDescriptionTail => Get(
+            " 指定单一的响应式最大宽度。默认包含内边距。",
+            " for one responsive maximum. Gutters are included by default.");
+
+        public static string FixedBreakpoints => Get("固定断点", "Fixed breakpoints");
+
+        public static string FixedContentRegion => Get("固定宽度内容区", "Fixed content region");
+
+        public static string GridHeading => Get("响应式栅格", "Responsive grid");
+
+        public static string GridDescriptionLead => Get(
+            "栅格项可跨 1-12 列。下面这些项在小屏上占满宽度，在 ",
+            "Grid items span 1-12 columns. These items are full width on small screens, split at ");
+
+        public static string GridDescriptionMiddle => Get(" 处分为两列，在 ", ", and form three equal columns at ");
+
+        public static string GridDescriptionTail => Get(" 处形成三个等宽列。", ".");
+
+        public static string TwelveColumnGrid => Get("12 列栅格", "12-column grid");
+
+        public static string TileProduction => Get("生产", "Production");
+
+        public static string TileReview => Get("评审", "Review");
+
+        public static string TileArchive => Get("归档", "Archive");
+
+        public static string StackHeading => Get("堆叠与间隔", "Stack and spacer");
+
+        public static string StackDescriptionLead => Get("为水平工具栏设置 ", "Set ");
+
+        public static string StackDescriptionMiddle => Get("。一个 ", " for horizontal toolbars. A ");
+
+        public static string StackDescriptionTail => Get(
+            " 会占满主轴上的剩余空间，把后续内容推到最远端。",
+            " consumes the remaining main-axis space and pushes the following content to the far edge.");
+
+        public static string ToolbarAlignment => Get("工具栏对齐", "Toolbar alignment");
+
+        public static string Queue => Get("队列", "Queue");
+
+        public static string QueueCount => Get("12 项", "12 items");
+
+        public static string DividerHeading => Get("分隔线", "Dividers");
+
+        public static string DividerDescriptionLead => Get(
+            "分隔线可以是水平或垂直的，可由弹性行拉伸，也可固定在定位过的父元素内部。使用 ",
+            "Dividers can be horizontal, vertical, stretched by a flex row, or pinned inside a positioned parent. Use ");
+
+        public static string DividerDescriptionTail => Get(
+            " 让线条与周围边缘保持距离。",
+            " to keep the line away from surrounding edges.");
+
+        public static string SeparatorVariants => Get("分隔线变体", "Separator variants");
+
+        public static string StatusReady => Get("就绪", "Ready");
+
+        public static string StatusInProgress => Get("进行中", "In progress");
+
+        public static string StatusComplete => Get("已完成", "Complete");
+
+        public static string AbsoluteBoundary => Get("绝对定位边界", "Absolute boundary");
+
+        // The app-shell preview imitates the catalog's own chrome, so its labels intentionally reuse
+        // the chrome catalog rather than repeating those translations here.
+        public static string WorkspaceNavigation => Get("工作区导航", "Workspace navigation");
+
+        public static string PreviewKicker => Get("今日", "Today");
+
+        public static string PreviewHeading => Get("评审运营", "Review operations");
+
+        public static string PreviewMetricReady => Get("就绪", "Ready");
+
+        public static string PreviewMetricInReview => Get("评审中", "In review");
+
+        public static string PreviewMetricBlocked => Get("已阻塞", "Blocked");
+
+        public static string ReturnToOverview => Get("返回概览", "Return to overview");
+
+        public static string LanguageAccessibleName => Get("语言", "Language");
+    }
+
+    public static class Tabs
+    {
+        public static string PageTitle => Get("选项卡 - Bzs.Blazor", "Tabs - Bzs.Blazor");
+
+        public static string Eyebrow => Get("导航", "Navigation");
+
+        public static string Title => Get("选项卡、语言与方向", "Tabs, language, and direction");
+
+        public static string Summary => Get(
+            "受控选中让应用状态保持显式，键盘行为则遵循排列方向与书写方向。",
+            "Controlled selection keeps application state explicit while keyboard behavior follows orientation and direction.");
+
+        public static string RuntimeReady => Get("交互运行时已就绪", "Interactive runtime ready");
+
+        public static string RuntimeWaiting => Get("正在渲染选项卡标记", "Rendering tabs markup");
+
+        public static string ExamplesAccessibleName => Get("选项卡示例", "Tabs examples");
+
+        public static string AutomaticHeading => Get("自动激活的水平选项卡", "Automatic horizontal tabs");
+
+        public static string AutomaticDescription => Get(
+            "方向键、Home 和 End 会直接激活下一个可用选项卡。",
+            "Arrow, Home, and End activate the next enabled tab.");
+
+        public static string AutomaticTabsAccessibleName => Get("自动项目选项卡", "Automatic project tabs");
+
+        public static string ManualHeading => Get("手动激活的垂直选项卡", "Manual vertical tabs");
+
+        public static string ManualDescription => Get(
+            "方向键只移动焦点；Enter 或空格才提交受控选中。",
+            "Arrow keys move focus; Enter or Space commits the controlled selection.");
+
+        public static string ManualTabsAccessibleName => Get("手动账户选项卡", "Manual account tabs");
+
+        public static string OverviewTab => Get("概览", "Overview");
+
+        public static string OverviewPanel => Get(
+            "概览已激活：计划、负责人和里程碑均可查看。",
+            "Overview is active: plan, owners, and milestones are ready to review.");
+
+        public static string ScheduleTab => Get("日程不可用", "Schedule unavailable");
+
+        public static string SchedulePanel => Get(
+            "日程在交付计划获批前不可用。",
+            "Schedule is unavailable until the delivery plan is approved.");
+
+        public static string ActivityTab => Get("动态", "Activity");
+
+        public static string ActivityPanel => Get(
+            "动态已激活：有三条最近的工作流更新。",
+            "Activity is active: three recent workflow updates are available.");
+
+        public static string ProfileTab => Get("个人资料", "Profile");
+
+        public static string ProfilePanel => Get(
+            "个人资料保持选中，直到另一个获得焦点的选项卡被显式激活。",
+            "Profile details stay selected until another focused tab is explicitly activated.");
+
+        public static string PreferencesTab => Get("偏好设置", "Preferences");
+
+        public static string PreferencesPanel => Get(
+            "偏好设置包含此工作区的通知与密度选项。",
+            "Preferences contain notification and density choices for this workspace.");
+
+        public static string SecurityTab => Get("安全", "Security");
+
+        public static string SecurityPanel => Get(
+            "安全记录活动会话和必需的登录检查。",
+            "Security records active sessions and required sign-in checks.");
+
+        public static string SelectedValue(string value) => Get($"已选中：{value}", $"Selected: {value}");
+
+        // The locale specimens below are the demonstration itself: each one shows how the component
+        // behaves for a given language and writing direction, so their tab titles and panel copy stay
+        // in their own language rather than following the visitor's culture.
+        public static string RtlDescription => Get(
+            "在这个水平选项卡列表中，ArrowRight 跟随物理右方向。",
+            "ArrowRight follows the physical right direction for this horizontal tab list.");
+    }
+
+    public static class Overlays
+    {
+        public static string PageTitle => Get("浮层 - Bzs.Blazor", "Overlays - Bzs.Blazor");
+
+        public static string Eyebrow => Get("浮层工作流", "Overlay workflow");
+
+        public static string Title => Get("对话框、抽屉与浮层宿主", "Dialog, Drawer, and Host");
+
+        public static string Summary => Get(
+            "受控浮层和命令式对话框共用一个作用域宿主，同时保留明确的焦点与关闭行为。",
+            "Controlled overlays and command-driven dialogs share one scoped host while preserving explicit focus and dismissal behavior.");
+
+        public static string RuntimeReady => Get("交互运行时已就绪", "Interactive runtime ready");
+
+        public static string RuntimeWaiting => Get("正在渲染浮层标记", "Rendering overlay markup");
+
+        public static string ControlledDialogHeading => Get("受控对话框", "Controlled dialog");
+
+        public static string ControlledDialogDescription => Get(
+            "Escape 会关闭这个模态对话框，其背景关闭策略保持显式。",
+            "Escape closes this modal dialog. Its backdrop policy remains explicit.");
+
+        public static string OpenControlledDialog => Get("打开受控对话框", "Open controlled dialog");
+
+        public static string AllowBackdropDismissal => Get("允许点击背景关闭对话框", "Allow dialog backdrop dismissal");
+
+        public static string DrawersHeading => Get("受控抽屉", "Controlled drawers");
+
+        public static string DrawersDescription => Get(
+            "对比末尾侧的模态抽屉与起始侧的非模态抽屉。",
+            "Compare an end-placed modal drawer with a start-placed nonmodal drawer.");
+
+        public static string OpenModalDrawer => Get("打开模态抽屉", "Open modal drawer");
+
+        public static string OpenNonmodalDrawer => Get("打开非模态抽屉", "Open nonmodal drawer");
+
+        public static string ServiceDialogHeading => Get("类型化对话框服务", "Typed dialog service");
+
+        public static string ServiceDialogDescription => Get(
+            "组件参数通过属性表达式传入，并返回一个明确的布尔结果。",
+            "A component parameter is supplied through a property expression and returns an explicit Boolean result.");
+
+        public static string OpenServiceDialog => Get("打开服务对话框", "Open service dialog");
+
+        public static string HostToastHeading => Get("宿主通知", "Host toast");
+
+        public static string HostToastDescription => Get(
+            "这条常驻通知由作用域浮层宿主呈现，而非页面本地标记。",
+            "The scoped overlay host renders this persistent toast rather than page-local markup.");
+
+        public static string ShowHostToast => Get("显示宿主通知", "Show host toast");
+
+        public static string ControlledDialogBody => Get(
+            "用这个对话框检查焦点锁定、背景策略和嵌套堆叠顺序。",
+            "Use this dialog to inspect focus trapping, backdrop policy, and nested stack ordering.");
+
+        public static string CompleteControlledDialog => Get("完成受控对话框", "Complete controlled dialog");
+
+        public static string CancelControlledDialog => Get("取消受控对话框", "Cancel controlled dialog");
+
+        public static string OpenNestedServiceDialog => Get("打开嵌套服务对话框", "Open nested service dialog");
+
+        public static string ModalDrawerTitle => Get("模态抽屉", "Modal drawer");
+
+        public static string ModalDrawerBody => Get(
+            "这个末尾侧抽屉打开时会锁定背景滚动。",
+            "This end-placed drawer locks background scrolling while it is open.");
+
+        public static string CloseModalDrawer => Get("关闭模态抽屉", "Close modal drawer");
+
+        public static string NonmodalDrawerTitle => Get("非模态抽屉", "Nonmodal drawer");
+
+        public static string NonmodalDrawerBody => Get(
+            "这个起始侧抽屉保持页面可滚动，且不设置 aria-modal。",
+            "This start-placed drawer keeps the page scrollable and does not set aria-modal.");
+
+        public static string CloseNonmodalDrawer => Get("关闭非模态抽屉", "Close nonmodal drawer");
+
+        public static string ControlledDialogClosed => Get("受控对话框已关闭。", "Controlled dialog is closed.");
+
+        public static string ControlledDialogOpenBackdropAllowed => Get(
+            "受控对话框已打开，点击背景可以关闭它。",
+            "Controlled dialog is open and its backdrop may dismiss it.");
+
+        public static string ControlledDialogOpenBackdropDisabled => Get(
+            "受控对话框已打开，点击背景不会关闭它。",
+            "Controlled dialog is open and its backdrop is disabled.");
+
+        public static string ControlledDialogCompleted => Get("受控对话框已完成。", "Controlled dialog completed.");
+
+        public static string ControlledDialogCancelled => Get("受控对话框已取消。", "Controlled dialog cancelled.");
+
+        public static string ControlledDialogDismissedBy(BzsDialogDismissReason reason) => Get(
+            $"受控对话框已由 {reason} 关闭。",
+            $"Controlled dialog dismissed by {reason}.");
+
+        public static string NoDrawerOpen => Get("没有抽屉处于打开状态。", "No drawer is open.");
+
+        public static string ModalDrawerOpen => Get("模态抽屉已打开。", "Modal drawer is open.");
+
+        public static string ModalDrawerClosed => Get("模态抽屉已关闭。", "Modal drawer closed.");
+
+        public static string ModalDrawerDismissedBy(BzsDialogDismissReason reason) => Get(
+            $"模态抽屉已由 {reason} 关闭。",
+            $"Modal drawer dismissed by {reason}.");
+
+        public static string NonmodalDrawerOpen => Get("非模态抽屉已打开。", "Nonmodal drawer is open.");
+
+        public static string NonmodalDrawerClosed => Get("非模态抽屉已关闭。", "Nonmodal drawer closed.");
+
+        public static string NonmodalDrawerDismissedBy(BzsDialogDismissReason reason) => Get(
+            $"非模态抽屉已由 {reason} 关闭。",
+            $"Nonmodal drawer dismissed by {reason}.");
+
+        public static string NoServiceDialogResult => Get("尚无服务对话框结果。", "No service dialog result yet.");
+
+        public static string ServiceDialogPrompt => Get(
+            "是否批准这个已暂存的浮层工作流？",
+            "Approve the staged overlay workflow?");
+
+        public static string ServiceDialogTitle => Get("服务对话框", "Service dialog");
+
+        public static string ServiceDialogCompleted(bool value) => Get(
+            $"已完成：{(value ? "true" : "false")}",
+            $"Completed: {(value ? "true" : "false")}");
+
+        public static string ServiceDialogResultKind(BzsDialogResultKind kind) => Get(
+            $"结果：{kind}",
+            $"Result: {kind}");
+
+        public static string HostToastTitle => Get("宿主通知", "Host toast");
+
+        public static string HostToastMessage => Get(
+            "作用域浮层宿主呈现了这条常驻通知。",
+            "The scoped overlay host rendered this persistent notification.");
+
+        public static string HostToastAccessibleName => Get("浮层宿主通知", "Overlay host toast");
     }
 
     public static class NavigationDrawer
