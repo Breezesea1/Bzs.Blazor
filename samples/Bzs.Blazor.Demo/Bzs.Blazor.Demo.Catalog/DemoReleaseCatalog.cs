@@ -25,6 +25,56 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.7.0",
+            "0.7.0",
+            new DateTimeOffset(2026, 8, 29, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Feature release", "功能版本"),
+            new DemoLocalizedText(
+                "A border only where depth cannot carry the edge",
+                "只有深度无法承担的边缘才画边框"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.7.0 settles whether a container should draw a border at all: depth-only surfaces stop painting an edge and trust their shadow, interior divisions move to a new --bzs-border-subtle token, and every surface that relies on depth alone regains an edge in forced-colors mode.",
+                "Bzs.Blazor 0.7.0 解决了容器到底该不该画边框的问题：只占据深度层级的表面不再描边、转而信任阴影，内部分隔线改用新的 --bzs-border-subtle 令牌，而所有仅靠深度表达边界的表面在强制颜色模式下重新获得边缘。"),
+            [
+                new DemoLocalizedText(
+                    "One rule governs every border: convey extent the fill cannot, delimit a detached surface, divide an already-delimited container, or report state — anything else relies on depth.",
+                    "一条规则统辖所有边框：传达填充色无法表达的范围、界定脱离的表面、分割已被界定的容器、或报告状态——其余一律依赖深度。"),
+                new DemoLocalizedText(
+                    "Message cards keep only the severity stripe, so a message no longer looks bordered while the buttons beside it do not; toasts keep a full border because they float.",
+                    "消息卡片只保留严重度色条，消息不再显得带框而旁边的按钮不带；通知保留完整边框，因为它是浮层。"),
+                new DemoLocalizedText(
+                    "The DataGrid's five ad-hoc color-mix border strengths collapse into --bzs-border-subtle, which also takes over grid rules, header and footer splits, dividers, and menu separators.",
+                    "DataGrid 的五档临时 color-mix 边框强度收敛为 --bzs-border-subtle，它同时接管表格行列线、页眉页脚分隔线、分割线与菜单分隔符。"),
+                new DemoLocalizedText(
+                    "Every literal 1px border in the Demo Catalog becomes var(--bzs-border-width), so a consumer who thickens borders through the theme shape finally moves the demo too.",
+                    "Demo 目录中所有写死的 1px 边框宽度都改为 var(--bzs-border-width)，通过主题形状加粗边框的使用方现在也能带动 Demo。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Public API", "公共 API"),
+                    [
+                        new DemoLocalizedText(
+                            "BzsThemeColors gains a positional BorderSubtle member between Border and FocusRing — a breaking constructor and Deconstruct change accepted before 1.0, matching the Scrim precedent from 0.5.0.",
+                            "BzsThemeColors 在 Border 与 FocusRing 之间新增按位置的 BorderSubtle 成员——这是在 1.0 之前被接受的构造函数与 Deconstruct 破坏性变更，与 0.5.0 的 Scrim 先例一致。"),
+                        new DemoLocalizedText(
+                            "No component parameter, event, markup, or ARIA change; the theme contrast gate now covers all five surface levels.",
+                            "组件参数、事件、标记与 ARIA 均未变化；主题对比度门禁现已覆盖全部五个表面层级。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Accessibility and demo", "无障碍与 Demo"),
+                    [
+                        new DemoLocalizedText(
+                            "Every surface that now relies on depth alone restores a forced-colors edge, closing a pre-existing gap where the toggle track could vanish in high-contrast mode.",
+                            "所有现在仅靠深度表达边界的表面在强制颜色模式下恢复边缘，修复了开关轨道在高对比度模式下可能消失的既有缺口。"),
+                        new DemoLocalizedText(
+                            "The demo header's theme switch drops its hand-rolled border to match the language switcher, and the catalog's --demo-border and --layout-border aliases fall out entirely.",
+                            "Demo 页头的主题切换器去掉手写边框以对齐语言切换器，目录的 --demo-border 与 --layout-border 别名随之移除。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "BzsThemeColors construction is the only breaking change: custom themes compiled against 0.6.0 must add BorderSubtle; BzsThemes.Default with { ... } callers are unaffected. Visually, seven of eleven committed baselines change — raised cards lose a hairline they no longer need.",
+                "BzsThemeColors 的构造是唯一的破坏性变更：以 0.6.0 编译的自定义主题必须补充 BorderSubtle；使用 BzsThemes.Default with { ... } 的调用方不受影响。视觉上，11 张已提交基线中有 7 张变化——浮起卡片失去了不再需要的发丝线。")),
+        new(
             "v0.6.0",
             "0.6.0",
             new DateTimeOffset(2026, 8, 29, 0, 0, 0, TimeSpan.Zero),

@@ -7,14 +7,14 @@
     <RootNamespace>Bzs.Blazor</RootNamespace>
     <AssemblyName>Bzs.Blazor</AssemblyName>
     <PackageId>Bzs.Blazor</PackageId>
-    <Version>0.6.0</Version>
+    <Version>0.7.0</Version>
     <Authors>tongyu</Authors>
     <Description>A compact, accessible Blazor component library with restrained neumorphic light and dark themes.</Description>
     <PackageTags>blazor;components;ui;neumorphism;wasm</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageCopyright>Copyright (c) 2026 tongyu</PackageCopyright>
-    <PackageReleaseNotes>Route every anchored surface through one internal overlay module, share one option list state module across the select family, and own the DataGrid provider request lifecycle and date picker period menus in dedicated modules. CloseFromBrowserAsync gains an optional restoreFocus argument on Select, MultiSelect, and DateInput. See docs/releases/0.6.0.md in the repository.</PackageReleaseNotes>
+    <PackageReleaseNotes>Adopt a single border rule: depth-only surfaces stop drawing an edge, interior divisions move to a new --bzs-border-subtle token exposed as BzsThemeColors.BorderSubtle, and every surface relying on depth alone regains a forced-colors edge. BzsThemeColors construction is breaking (new positional BorderSubtle member). See docs/releases/0.7.0.md in the repository.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
