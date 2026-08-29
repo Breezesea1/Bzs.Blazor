@@ -762,6 +762,54 @@ public sealed class FormsAndFeedbackTests(DemoServerFixture server) : BrowserGat
     }
 
     [Fact]
+    public async Task OpenOptionListReceivesPointerOverTheControlsItCovers()
+    {
+        BeginBrowserGateTest();
+        // A single-column layout stacks the fields, so the open panel lands on top of the next
+        // control instead of beside it, which is where the covering is observable.
+        await Page.SetViewportSizeAsync(700, 900);
+        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Forms, DemoDestinationUrls.English));
+        await Expect(Page.GetByText("Interactive runtime ready")).ToBeVisibleAsync();
+
+        var workspace = Page.GetByRole(AriaRole.Combobox, new() { Name = "Workspace" });
+        var reviewAreas = Page.GetByRole(AriaRole.Combobox, new() { Name = "Review areas" });
+        await workspace.ClickAsync();
+        await Expect(workspace).ToHaveAttributeAsync("aria-expanded", "true");
+
+        var panel = Page.Locator("[data-bzs-select-panel='true']");
+        await Expect(panel).ToBeVisibleAsync();
+
+        // The panel is positioned over its neighbours, so a point inside it must reach the panel
+        // rather than the control underneath; otherwise a click selects nothing and opens that control.
+        var options = panel.GetByRole(AriaRole.Option);
+        var optionCount = await options.CountAsync();
+        Assert.Equal(3, optionCount);
+        for (var index = 0; index < optionCount; index++)
+        {
+            Assert.True(
+                await IsTopmostAtCenterAsync(options.Nth(index)),
+                $"Option {index} of the open Workspace list is covered by another control.");
+        }
+
+        await options.Filter(new() { HasTextString = "Lighting" }).ClickAsync();
+        await Expect(workspace).ToContainTextAsync("Lighting");
+        await Expect(workspace).ToHaveAttributeAsync("aria-expanded", "false");
+        await Expect(reviewAreas).ToHaveAttributeAsync("aria-expanded", "false");
+    }
+
+    private static Task<bool> IsTopmostAtCenterAsync(ILocator locator) =>
+        locator.EvaluateAsync<bool>(
+            """
+            element => {
+                const box = element.getBoundingClientRect();
+                const hit = document.elementFromPoint(
+                    Math.round(box.left + box.width / 2),
+                    Math.round(box.top + box.height / 2));
+                return hit !== null && (element === hit || element.contains(hit));
+            }
+            """);
+
+    [Fact]
     public async Task EnhancedChoiceControlsPreserveNativeRequiredAndLabelBehavior()
     {
         BeginBrowserGateTest();

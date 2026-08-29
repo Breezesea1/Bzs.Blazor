@@ -49,6 +49,7 @@
 
 .bzs-multi-select__panel {
     visibility: hidden;
+    z-index: 1150;
     box-sizing: border-box;
     overflow: hidden;
     border: var(--bzs-border-width) solid var(--bzs-border);

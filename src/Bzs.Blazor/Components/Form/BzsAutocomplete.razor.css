@@ -47,6 +47,7 @@
 
 .bzs-autocomplete__panel {
     visibility: hidden;
+    z-index: 1150;
     box-sizing: border-box;
     display: grid;
     gap: 0.125rem;
