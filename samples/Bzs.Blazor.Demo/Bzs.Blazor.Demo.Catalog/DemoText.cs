@@ -684,6 +684,8 @@ public static class DemoText
 
         public static string InteractivePreview => Get("交互式预览", "Interactive preview");
 
+        public static string LivePreview => Get("实时预览", "Live preview");
+
         public static string ControlledNavigation => Get("受控导航", "Controlled navigation");
 
         public static string ContainerHeading => Get("容器", "Container");

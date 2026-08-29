@@ -1,4 +1,6 @@
+using System.Globalization;
 using Bunit;
+using Bzs.Blazor.Demo.Client;
 using Bzs.Blazor.Demo.Client.Components;
 using Microsoft.AspNetCore.Components;
 
@@ -139,6 +141,9 @@ public sealed class DemoLayoutExampleTests
     public void AnExampleCaptionsALivePreviewAndItsSnippet()
     {
         using var context = new BunitContext();
+        // The fallback label comes from the bilingual catalog, so the culture is named rather than
+        // inherited from whichever machine runs the test.
+        using var culture = new DemoCultureScope("en-US");
 
         var cut = context.Render<DemoLayoutExample>(parameters => parameters
             .Add(example => example.CodeSummary, "Fixed breakpoints")
@@ -154,6 +159,22 @@ public sealed class DemoLayoutExampleTests
             ["Razor", "Fixed breakpoints"],
             cut.FindAll("figcaption span").Select(caption => caption.TextContent));
         Assert.Equal("snippet", cut.Find("figure pre#layout-container-code code").TextContent);
+    }
+
+    [Fact]
+    public void AnExampleFallsBackToTheChineseLivePreviewLabel()
+    {
+        using var context = new BunitContext();
+        using var culture = new DemoCultureScope("zh-Hans");
+
+        var cut = context.Render<DemoLayoutExample>(parameters => parameters
+            .Add(example => example.CodeSummary, "固定断点")
+            .Add(example => example.Preview, (RenderFragment)(builder =>
+                builder.AddMarkupContent(0, "<span>固定宽度内容区</span>")))
+            .Add(example => example.Code, (RenderFragment)(builder =>
+                builder.AddMarkupContent(0, "<pre><code>snippet</code></pre>"))));
+
+        Assert.Equal("实时预览", cut.Find(".demo-layout-example-label").TextContent);
     }
 
     [Fact]
@@ -178,5 +199,27 @@ public sealed class DemoLayoutExampleTests
         Assert.Equal(
             ["Razor + CSS", "Controlled navigation"],
             cut.FindAll("figcaption span").Select(caption => caption.TextContent));
+    }
+
+    /// <summary>Pins the ambient culture so a catalog-backed default does not depend on the host.</summary>
+    private sealed class DemoCultureScope : IDisposable
+    {
+        private readonly CultureInfo _culture;
+        private readonly CultureInfo _uiCulture;
+
+        internal DemoCultureScope(string cultureName)
+        {
+            _culture = CultureInfo.CurrentCulture;
+            _uiCulture = CultureInfo.CurrentUICulture;
+            var culture = DemoCulture.Resolve(cultureName);
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
+        }
+
+        public void Dispose()
+        {
+            CultureInfo.CurrentCulture = _culture;
+            CultureInfo.CurrentUICulture = _uiCulture;
+        }
     }
 }

@@ -16,9 +16,12 @@ public sealed partial class DemoLayoutExample
     [Parameter]
     public string? Class { get; set; }
 
-    /// <summary>Gets or sets the label above the preview, which says whether it is interactive.</summary>
+    /// <summary>
+    /// Gets or sets the label above the preview, for an example that says something more specific
+    /// than that the preview is live. Unset falls back to the catalog's bilingual wording.
+    /// </summary>
     [Parameter]
-    public string PreviewLabel { get; set; } = "Live preview";
+    public string? PreviewLabel { get; set; }
 
     /// <summary>Gets or sets the language shown in the figure caption.</summary>
     [Parameter]
@@ -35,6 +38,10 @@ public sealed partial class DemoLayoutExample
     /// <summary>Gets or sets the snippet markup, which the page writes as pre and code elements.</summary>
     [Parameter, EditorRequired]
     public RenderFragment? Code { get; set; }
+
+    private string PreviewLabelText => string.IsNullOrWhiteSpace(PreviewLabel)
+        ? DemoText.Layout.LivePreview
+        : PreviewLabel;
 
     private string ExampleClasses => string.IsNullOrWhiteSpace(Class)
         ? "demo-layout-example"
