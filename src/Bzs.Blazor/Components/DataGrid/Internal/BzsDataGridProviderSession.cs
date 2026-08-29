@@ -77,6 +77,7 @@ internal sealed class BzsDataGridProviderSession<TItem> : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         Supersede(_queuedRefresh);
         Supersede(_activeRefresh);
+        _providerAdapter.Cancel();
         _queuedRefresh = null;
         var refresh = new PendingRefresh(request);
         if (isInteractive)

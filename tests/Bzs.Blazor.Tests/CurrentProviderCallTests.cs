@@ -53,6 +53,58 @@ public sealed class CurrentProviderCallTests
     }
 
     [Fact]
+    public async Task ConcurrentCompletionsStillAcceptOnlyTheCurrentInvocation()
+    {
+        var firstCompletion = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondCompletion = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var call = new BzsCurrentProviderCall<int>();
+
+        var first = call.RunAsync(_ => new ValueTask<int>(firstCompletion.Task));
+        var second = call.RunAsync(_ => new ValueTask<int>(secondCompletion.Task));
+        using var barrier = new Barrier(3);
+        var completeFirst = Task.Run(() =>
+        {
+            barrier.SignalAndWait();
+            firstCompletion.SetResult(1);
+        });
+        var completeSecond = Task.Run(() =>
+        {
+            barrier.SignalAndWait();
+            secondCompletion.SetResult(2);
+        });
+
+        barrier.SignalAndWait();
+        await Task.WhenAll(completeFirst, completeSecond);
+
+        Assert.IsType<BzsCurrentProviderCallOutcome<int>.Superseded>(await first);
+        var current = Assert.IsType<BzsCurrentProviderCallOutcome<int>.Succeeded>(await second);
+        Assert.Equal(2, current.Value);
+    }
+
+    [Fact]
+    public async Task AThrowingCancellationCallbackDoesNotPreventTheReplacementFromRunning()
+    {
+        var firstCompletion = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var firstStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var call = new BzsCurrentProviderCall<int>();
+
+        var first = call.RunAsync(token =>
+        {
+            token.Register(static () => throw new InvalidOperationException("callback failed"));
+            firstStarted.TrySetResult();
+            return new ValueTask<int>(firstCompletion.Task);
+        });
+        await firstStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        var second = call.RunAsync(_ => ValueTask.FromResult(2));
+        firstCompletion.SetResult(1);
+
+        var current = Assert.IsType<BzsCurrentProviderCallOutcome<int>.Succeeded>(await second);
+        Assert.Equal(2, current.Value);
+        Assert.IsType<BzsCurrentProviderCallOutcome<int>.Superseded>(await first);
+    }
+
+    [Fact]
     public async Task ExplicitCancellationSupersedesTheCurrentOperation()
     {
         var started = new TaskCompletionSource<CancellationToken>(TaskCreationOptions.RunContinuationsAsynchronously);

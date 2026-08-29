@@ -68,6 +68,26 @@ public sealed class DataGridProviderSessionTests
     }
 
     [Fact]
+    public async Task AQueuedNonInteractiveRefreshImmediatelySupersedesTheCallInFlight()
+    {
+        var provider = new ControllableProvider<int>();
+        var recorder = new CallbackRecorder<int>();
+        using var session = CreateSession(provider, recorder);
+
+        var staleLoad = session.Submit(new BzsDataGridRequest(1, 10))!;
+        var staleCall = provider.Calls.Single();
+        var queuedRefresh = session.QueueRefresh(new BzsDataGridRequest(2, 10), isInteractive: false);
+
+        Assert.True(staleCall.CancellationToken.IsCancellationRequested);
+        staleCall.Completion.SetResult(new BzsDataGridResult<int>([1], totalCount: 20));
+        await staleLoad;
+
+        Assert.False(session.HasAcceptedResult);
+        Assert.DoesNotContain("accepted", recorder.Notifications);
+        Assert.False(queuedRefresh.IsCompleted);
+    }
+
+    [Fact]
     public async Task AQueuedRefreshIsSupersededWhenTheParametersNoLongerDescribeIt()
     {
         var provider = new ControllableProvider<int>();

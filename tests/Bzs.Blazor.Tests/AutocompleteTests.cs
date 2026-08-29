@@ -249,6 +249,46 @@ public sealed class AutocompleteTests
     }
 
     [Fact]
+    public async Task AStaleProviderResultCannotReplaceTheLatestSuggestions()
+    {
+        using var context = CreateContext();
+        var firstCompletion = new TaskCompletionSource<IReadOnlyList<BzsAutocompleteOption<string?>>>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondCompletion = new TaskCompletionSource<IReadOnlyList<BzsAutocompleteOption<string?>>>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var firstStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var provider = new DelegateProvider<string?>((query, _) =>
+        {
+            if (query == "a")
+            {
+                firstStarted.TrySetResult();
+                return new ValueTask<IReadOnlyList<BzsAutocompleteOption<string?>>>(firstCompletion.Task);
+            }
+
+            secondStarted.TrySetResult();
+            return new ValueTask<IReadOnlyList<BzsAutocompleteOption<string?>>>(secondCompletion.Task);
+        });
+        var model = new AutocompleteModel();
+        var editContext = new EditContext(model);
+        var cut = RenderAutocomplete(context, editContext, model, provider);
+
+        var firstInput = cut.Find("[role='combobox']")
+            .TriggerEventAsync("oninput", new ChangeEventArgs { Value = "a" });
+        await firstStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var secondInput = cut.Find("[role='combobox']")
+            .TriggerEventAsync("oninput", new ChangeEventArgs { Value = "al" });
+        await secondStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        secondCompletion.SetResult([new("latest", "Latest")]);
+        await secondInput;
+        firstCompletion.SetResult([new("stale", "Stale")]);
+        await firstInput;
+
+        Assert.Equal("Latest", Assert.Single(cut.FindAll("[role='option']")).TextContent.Trim());
+    }
+
+    [Fact]
     public async Task PendingProviderRequestRendersLoadingState()
     {
         using var context = CreateContext();

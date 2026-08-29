@@ -124,6 +124,10 @@ internal sealed class BzsCurrentProviderCall<TResult> : IDisposable
         {
             cancellation.Cancel();
         }
+        catch (AggregateException)
+        {
+            // Callback failures do not change which invocation is eligible to produce an outcome.
+        }
         catch (ObjectDisposedException)
         {
             // The operation completed and disposed its source after it was captured.
