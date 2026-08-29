@@ -442,6 +442,211 @@ public static class DemoText
         public static string HighlightsHeading => Get("主要更新", "Highlights");
     }
 
+    public static class Foundation
+    {
+        public static string PageTitle => Get("基础组件 - Bzs.Blazor", "Foundation components - Bzs.Blazor");
+
+        public static string Eyebrow => Get("基础组件", "Foundation components");
+
+        public static string Title => Get("图标、表面与按钮", "Icon, Surface, and Button");
+
+        public static string Summary => Get(
+            "第一批可见的组件只使用 Bzs.Blazor 的语义令牌。",
+            "The first visible component slice uses only semantic Bzs.Blazor tokens.");
+
+        public static string RuntimeReady => Get("交互运行时已就绪", "Interactive runtime ready");
+
+        public static string RuntimeWaiting => Get("等待交互运行时", "Waiting for interactive runtime");
+
+        public static string SurfacesHeading => Get("表面", "Surfaces");
+
+        public static string SurfaceBase => Get("基础层", "Base");
+
+        public static string SurfaceRaised => Get("凸起层", "Raised");
+
+        public static string SurfaceInset => Get("凹陷层", "Inset");
+
+        public static string SurfaceOverlay => Get("浮层", "Overlay");
+
+        public static string ButtonsHeading => Get("按钮", "Buttons");
+
+        public static string PrimaryAction(int count) => Get(
+            $"主要操作 {count.ToString(CultureInfo.CurrentCulture)}",
+            $"Primary action {count.ToString(CultureInfo.CurrentCulture)}");
+
+        public static string Secondary => Get("次要", "Secondary");
+
+        public static string Outline => Get("描边", "Outline");
+
+        public static string Ghost => Get("幽灵", "Ghost");
+
+        public static string Danger => Get("危险", "Danger");
+
+        public static string Saving => Get("保存中", "Saving");
+
+        public static string Disabled => Get("已禁用", "Disabled");
+
+        public static string CloseExample => Get("关闭示例", "Close example");
+
+        public static string SizeSmall => Get("小", "Small");
+
+        public static string SizeMedium => Get("中", "Medium");
+
+        public static string SizeLarge => Get("大", "Large");
+
+        public static string ModeLight => Get("浅色", "Light");
+
+        public static string ModeDark => Get("深色", "Dark");
+
+        public static string DensityCompact => Get("紧凑密度", "Compact density");
+
+        public static string DensityComfortable => Get("宽松密度", "Comfortable density");
+
+        public static string IconsHeading => Get("图标", "Icons");
+
+        public static string IconExamplesAccessibleName => Get("精选图标示例", "Curated icon examples");
+
+        public static string IconSuccess => Get("成功", "Success");
+
+        public static string IconInformation => Get("信息", "Information");
+
+        public static string IconWarning => Get("警告", "Warning");
+
+        public static string IconError => Get("错误", "Error");
+
+        public static string IconCalendar => Get("日历", "Calendar");
+
+        public static string IconShowPassword => Get("显示密码图标", "Show password icon");
+
+        public static string IconHidePassword => Get("隐藏密码图标", "Hide password icon");
+    }
+
+    public static class ThemeFoundation
+    {
+        public static string PageTitle => Get("主题基础 - Bzs.Blazor", "Theme foundation - Bzs.Blazor");
+
+        public static string Eyebrow => Get("主题基础", "Theme foundation");
+
+        public static string Title => Get("浅色、深色与跟随系统", "Light, Dark, and System");
+
+        public static string Summary => Get(
+            "应用拥有模式和密度，Bzs.Blazor 只提供语义令牌。",
+            "The application owns mode and density while Bzs.Blazor supplies semantic tokens.");
+
+        public static string RuntimeReady => Get("交互运行时已就绪", "Interactive runtime ready");
+
+        public static string RuntimeWaiting => Get("等待交互运行时", "Waiting for interactive runtime");
+
+        public static string ControlsAccessibleName => Get("主题控件", "Theme controls");
+
+        public static string ModeGroupAccessibleName => Get("主题模式", "Theme mode");
+
+        public static string DensityGroupAccessibleName => Get("主题密度", "Theme density");
+
+        public static string ModeLight => Get("浅色", "Light");
+
+        public static string ModeDark => Get("深色", "Dark");
+
+        public static string ModeSystem => Get("跟随系统", "System");
+
+        public static string DensityCompact => Get("紧凑", "Compact");
+
+        public static string DensityComfortable => Get("宽松", "Comfortable");
+
+        public static string RequestedState(BzsThemeMode mode, BzsDensity density) => Get(
+            $"请求的模式：{mode}；密度：{density}",
+            $"Requested mode: {mode}; density: {density}");
+
+        public static string ExternalOverrideNote => Get(
+            "外部自定义 CSS 覆盖了语义主色令牌。",
+            "External custom CSS overrides the semantic primary token.");
+    }
+
+    public static class Feedback
+    {
+        public static string PageTitle => Get("反馈 - Bzs.Blazor", "Feedback - Bzs.Blazor");
+
+        public static string Eyebrow => Get("反馈", "Feedback");
+
+        public static string Title => Get("状态与通知", "Status and notifications");
+
+        public static string Summary => Get(
+            "内联状态留在工作流内部，而作用域通知保持可独立操作。",
+            "Inline status stays in the workflow while scoped notifications remain independently actionable.");
+
+        public static string RuntimeReady => Get("交互运行时已就绪", "Interactive runtime ready");
+
+        public static string RuntimeWaiting => Get("正在渲染反馈标记", "Rendering feedback markup");
+
+        public static string MessageHeading => Get("消息", "Message");
+
+        public static string MessageInformationTitle => Get("评审进行中", "Review in progress");
+
+        public static string MessageInformationBody => Get(
+            "还有两项交付物没有负责人。",
+            "Two deliverables still need an owner.");
+
+        public static string MessageSuccessTitle => Get("发布完成", "Publish complete");
+
+        public static string MessageSuccessBody => Get(
+            "已批准的包可以交给下游团队了。",
+            "The approved package is ready for downstream teams.");
+
+        public static string MessageWarningTitle => Get("截止日期临近", "Due date approaching");
+
+        public static string MessageWarningBody => Get("照明评审明天到期。", "The lighting pass is due tomorrow.");
+
+        public static string MessageErrorTitle => Get("保存被阻止", "Save blocked");
+
+        public static string MessageErrorBody => Get(
+            "发布前请先修正必填字段。",
+            "Correct the required fields before publishing.");
+
+        public static string ProgressHeading => Get("进度", "Progress");
+
+        public static string ProgressPublishing => Get("正在发布资源", "Publishing assets");
+
+        public static string ProgressChecking => Get("正在检查依赖", "Checking dependencies");
+
+        public static string ToastHeading => Get("通知", "Toast");
+
+        public static string ToastExamplesAccessibleName => Get("通知示例", "Toast examples");
+
+        public static string ActiveToastExamplesAccessibleName => Get("活动通知示例", "Active toast examples");
+
+        public static string ShowTimedToast => Get("显示定时通知", "Show timed toast");
+
+        public static string ShowPersistentToast => Get("显示常驻通知", "Show persistent toast");
+
+        public static string ShowErrorToast => Get("显示错误通知", "Show error toast");
+
+        public static string NoActiveNotifications => Get("当前没有通知。", "No active notifications.");
+
+        public static string TimedToastTitle => Get("交付已排队", "Delivery queued");
+
+        public static string TimedToastMessage => Get(
+            "指针悬停或获得焦点时，这条通知会暂停计时。",
+            "This notification pauses while it is hovered or focused.");
+
+        public static string TimedToastAccessibleName => Get("定时通知", "Timed toast");
+
+        public static string PersistentToastTitle => Get("评审已保存", "Review saved");
+
+        public static string PersistentToastMessage => Get(
+            "这条通知会一直保留，直到你关闭它。",
+            "This notification remains until you close it.");
+
+        public static string PersistentToastAccessibleName => Get("常驻通知", "Persistent toast");
+
+        public static string ErrorToastTitle => Get("保存失败", "Save failed");
+
+        public static string ErrorToastMessage => Get(
+            "评审未能保存。请修正字段值后重试。",
+            "The review could not be saved. Try again after correcting the field values.");
+
+        public static string ErrorToastAccessibleName => Get("保存失败通知", "Save failure toast");
+    }
+
     public static class Layout
     {
         public static string PageTitle => Get("布局 - Bzs.Blazor", "Layout - Bzs.Blazor");

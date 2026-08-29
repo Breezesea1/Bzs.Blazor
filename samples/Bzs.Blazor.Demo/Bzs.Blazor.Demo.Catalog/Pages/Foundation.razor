@@ -1,57 +1,57 @@
-<PageTitle>Foundation components - Bzs.Blazor</PageTitle>
+<PageTitle>@DemoText.Foundation.PageTitle</PageTitle>
 
 <BzsThemeProvider Mode="@_mode" ModeChanged="SetMode" Density="@_density" DensityChanged="SetDensity" data-testid="foundation-theme">
     <section class="demo-page" aria-labelledby="foundation-title">
         <header class="demo-page-header">
-            <p class="demo-eyebrow">Foundation components</p>
-            <h1 id="foundation-title">Icon, Surface, and Button</h1>
-            <p class="demo-page-summary">The first visible component slice uses only semantic Bzs.Blazor tokens.</p>
+            <p class="demo-eyebrow">@DemoText.Foundation.Eyebrow</p>
+            <h1 id="foundation-title">@DemoText.Foundation.Title</h1>
+            <p class="demo-page-summary">@DemoText.Foundation.Summary</p>
         </header>
 
         <p class="demo-runtime-status" role="status">
-            @(_isInteractive ? "Interactive runtime ready" : "Waiting for interactive runtime")
+            @(_isInteractive ? DemoText.Foundation.RuntimeReady : DemoText.Foundation.RuntimeWaiting)
         </p>
 
-        <DemoShowcaseSection HeadingId="surface-title" Heading="Surfaces">
+        <DemoShowcaseSection HeadingId="surface-title" Heading="@DemoText.Foundation.SurfacesHeading">
             <div class="demo-component-grid">
-                <BzsSurface Level="BzsSurfaceLevel.Base" Class="demo-component-surface">Base</BzsSurface>
-                <BzsSurface Level="BzsSurfaceLevel.Raised" Class="demo-component-surface">Raised</BzsSurface>
-                <BzsSurface Level="BzsSurfaceLevel.Inset" Class="demo-component-surface">Inset</BzsSurface>
-                <BzsSurface Level="BzsSurfaceLevel.Overlay" Class="demo-component-surface">Overlay</BzsSurface>
+                <BzsSurface Level="BzsSurfaceLevel.Base" Class="demo-component-surface">@DemoText.Foundation.SurfaceBase</BzsSurface>
+                <BzsSurface Level="BzsSurfaceLevel.Raised" Class="demo-component-surface">@DemoText.Foundation.SurfaceRaised</BzsSurface>
+                <BzsSurface Level="BzsSurfaceLevel.Inset" Class="demo-component-surface">@DemoText.Foundation.SurfaceInset</BzsSurface>
+                <BzsSurface Level="BzsSurfaceLevel.Overlay" Class="demo-component-surface">@DemoText.Foundation.SurfaceOverlay</BzsSurface>
             </div>
         </DemoShowcaseSection>
 
-        <DemoShowcaseSection HeadingId="button-title" Heading="Buttons">
+        <DemoShowcaseSection HeadingId="button-title" Heading="@DemoText.Foundation.ButtonsHeading">
             <div class="demo-control-row">
-                <BzsButton Click="OnAction" StartIcon="BzsIcons.Check">Primary action @_actionCount</BzsButton>
-                <BzsButton Variant="BzsButtonVariant.Secondary">Secondary</BzsButton>
-                <BzsButton Variant="BzsButtonVariant.Outline" EndIcon="BzsIcons.ChevronRight">Outline</BzsButton>
-                <BzsButton Variant="BzsButtonVariant.Ghost">Ghost</BzsButton>
-                <BzsButton Variant="BzsButtonVariant.Danger">Danger</BzsButton>
-                <BzsButton Loading="true">Saving</BzsButton>
-                <BzsButton Disabled="true">Disabled</BzsButton>
-                <BzsButton StartIcon="BzsIcons.Close" AccessibleName="Close example" Variant="BzsButtonVariant.Ghost" />
+                <BzsButton Click="OnAction" StartIcon="BzsIcons.Check">@DemoText.Foundation.PrimaryAction(_actionCount)</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Secondary">@DemoText.Foundation.Secondary</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" EndIcon="BzsIcons.ChevronRight">@DemoText.Foundation.Outline</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Ghost">@DemoText.Foundation.Ghost</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Danger">@DemoText.Foundation.Danger</BzsButton>
+                <BzsButton Loading="true">@DemoText.Foundation.Saving</BzsButton>
+                <BzsButton Disabled="true">@DemoText.Foundation.Disabled</BzsButton>
+                <BzsButton StartIcon="BzsIcons.Close" AccessibleName="@DemoText.Foundation.CloseExample" Variant="BzsButtonVariant.Ghost" />
             </div>
             <div class="demo-control-row">
-                <BzsButton Size="BzsButtonSize.Small">Small</BzsButton>
-                <BzsButton Size="BzsButtonSize.Medium">Medium</BzsButton>
-                <BzsButton Size="BzsButtonSize.Large">Large</BzsButton>
-                <BzsButton Variant="BzsButtonVariant.Outline" Click="() => SetMode(BzsThemeMode.Light)">Light</BzsButton>
-                <BzsButton Variant="BzsButtonVariant.Outline" Click="() => SetMode(BzsThemeMode.Dark)">Dark</BzsButton>
-                <BzsButton Variant="BzsButtonVariant.Outline" Click="() => SetDensity(BzsDensity.Compact)">Compact density</BzsButton>
-                <BzsButton Variant="BzsButtonVariant.Outline" Click="() => SetDensity(BzsDensity.Comfortable)">Comfortable density</BzsButton>
+                <BzsButton Size="BzsButtonSize.Small">@DemoText.Foundation.SizeSmall</BzsButton>
+                <BzsButton Size="BzsButtonSize.Medium">@DemoText.Foundation.SizeMedium</BzsButton>
+                <BzsButton Size="BzsButtonSize.Large">@DemoText.Foundation.SizeLarge</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" Click="() => SetMode(BzsThemeMode.Light)">@DemoText.Foundation.ModeLight</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" Click="() => SetMode(BzsThemeMode.Dark)">@DemoText.Foundation.ModeDark</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" Click="() => SetDensity(BzsDensity.Compact)">@DemoText.Foundation.DensityCompact</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" Click="() => SetDensity(BzsDensity.Comfortable)">@DemoText.Foundation.DensityComfortable</BzsButton>
             </div>
         </DemoShowcaseSection>
 
-        <DemoShowcaseSection HeadingId="icon-title" Heading="Icons">
-            <div class="demo-icon-row" aria-label="Curated icon examples">
-                <BzsIcon Icon="BzsIcons.Success" AccessibleName="Success" />
-                <BzsIcon Icon="BzsIcons.Info" AccessibleName="Information" />
-                <BzsIcon Icon="BzsIcons.Warning" AccessibleName="Warning" />
-                <BzsIcon Icon="BzsIcons.Error" AccessibleName="Error" />
-                <BzsIcon Icon="BzsIcons.Calendar" AccessibleName="Calendar" />
-                <BzsIcon Icon="BzsIcons.Eye" AccessibleName="Show password icon" />
-                <BzsIcon Icon="BzsIcons.EyeOff" AccessibleName="Hide password icon" />
+        <DemoShowcaseSection HeadingId="icon-title" Heading="@DemoText.Foundation.IconsHeading">
+            <div class="demo-icon-row" aria-label="@DemoText.Foundation.IconExamplesAccessibleName">
+                <BzsIcon Icon="BzsIcons.Success" AccessibleName="@DemoText.Foundation.IconSuccess" />
+                <BzsIcon Icon="BzsIcons.Info" AccessibleName="@DemoText.Foundation.IconInformation" />
+                <BzsIcon Icon="BzsIcons.Warning" AccessibleName="@DemoText.Foundation.IconWarning" />
+                <BzsIcon Icon="BzsIcons.Error" AccessibleName="@DemoText.Foundation.IconError" />
+                <BzsIcon Icon="BzsIcons.Calendar" AccessibleName="@DemoText.Foundation.IconCalendar" />
+                <BzsIcon Icon="BzsIcons.Eye" AccessibleName="@DemoText.Foundation.IconShowPassword" />
+                <BzsIcon Icon="BzsIcons.EyeOff" AccessibleName="@DemoText.Foundation.IconHidePassword" />
             </div>
         </DemoShowcaseSection>
     </section>

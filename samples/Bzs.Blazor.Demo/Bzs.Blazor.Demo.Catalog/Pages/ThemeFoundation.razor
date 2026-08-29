@@ -1,4 +1,4 @@
-<PageTitle>Theme foundation - Bzs.Blazor</PageTitle>
+<PageTitle>@DemoText.ThemeFoundation.PageTitle</PageTitle>
 
 <BzsThemeProvider Mode="@_mode"
                   ModeChanged="SetMode"
@@ -8,28 +8,28 @@
                   data-testid="theme-foundation-theme">
     <section class="demo-page" aria-labelledby="theme-title">
         <header class="demo-page-header">
-            <p class="demo-eyebrow">Theme foundation</p>
-            <h1 id="theme-title">Light, Dark, and System</h1>
+            <p class="demo-eyebrow">@DemoText.ThemeFoundation.Eyebrow</p>
+            <h1 id="theme-title">@DemoText.ThemeFoundation.Title</h1>
             <p class="demo-page-summary">
-                The application owns mode and density while Bzs.Blazor supplies semantic tokens.
+                @DemoText.ThemeFoundation.Summary
             </p>
         </header>
 
-        <section class="demo-panel" aria-label="Theme controls">
+        <section class="demo-panel" aria-label="@DemoText.ThemeFoundation.ControlsAccessibleName">
             <p class="demo-runtime-status" role="status">
-                @(_isInteractive ? "Interactive runtime ready" : "Waiting for interactive runtime")
+                @(_isInteractive ? DemoText.ThemeFoundation.RuntimeReady : DemoText.ThemeFoundation.RuntimeWaiting)
             </p>
-            <div class="demo-control-row" role="group" aria-label="Theme mode">
-                <BzsButton Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Disabled="@(!_isInteractive)" aria-pressed="@(_mode == BzsThemeMode.Light)" Click="() => SetMode(BzsThemeMode.Light)">Light</BzsButton>
-                <BzsButton Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Disabled="@(!_isInteractive)" aria-pressed="@(_mode == BzsThemeMode.Dark)" Click="() => SetMode(BzsThemeMode.Dark)">Dark</BzsButton>
-                <BzsButton Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Disabled="@(!_isInteractive)" aria-pressed="@(_mode == BzsThemeMode.System)" Click="() => SetMode(BzsThemeMode.System)">System</BzsButton>
+            <div class="demo-control-row" role="group" aria-label="@DemoText.ThemeFoundation.ModeGroupAccessibleName">
+                <BzsButton Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Disabled="@(!_isInteractive)" aria-pressed="@(_mode == BzsThemeMode.Light)" Click="() => SetMode(BzsThemeMode.Light)">@DemoText.ThemeFoundation.ModeLight</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Disabled="@(!_isInteractive)" aria-pressed="@(_mode == BzsThemeMode.Dark)" Click="() => SetMode(BzsThemeMode.Dark)">@DemoText.ThemeFoundation.ModeDark</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Disabled="@(!_isInteractive)" aria-pressed="@(_mode == BzsThemeMode.System)" Click="() => SetMode(BzsThemeMode.System)">@DemoText.ThemeFoundation.ModeSystem</BzsButton>
             </div>
-            <div class="demo-control-row" role="group" aria-label="Theme density">
-                <BzsButton Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Disabled="@(!_isInteractive)" aria-pressed="@(_density == BzsDensity.Compact)" Click="() => SetDensity(BzsDensity.Compact)">Compact</BzsButton>
-                <BzsButton Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Disabled="@(!_isInteractive)" aria-pressed="@(_density == BzsDensity.Comfortable)" Click="() => SetDensity(BzsDensity.Comfortable)">Comfortable</BzsButton>
+            <div class="demo-control-row" role="group" aria-label="@DemoText.ThemeFoundation.DensityGroupAccessibleName">
+                <BzsButton Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Disabled="@(!_isInteractive)" aria-pressed="@(_density == BzsDensity.Compact)" Click="() => SetDensity(BzsDensity.Compact)">@DemoText.ThemeFoundation.DensityCompact</BzsButton>
+                <BzsButton Variant="BzsButtonVariant.Outline" Size="BzsButtonSize.Small" Disabled="@(!_isInteractive)" aria-pressed="@(_density == BzsDensity.Comfortable)" Click="() => SetDensity(BzsDensity.Comfortable)">@DemoText.ThemeFoundation.DensityComfortable</BzsButton>
             </div>
-            <p class="demo-runtime-status" aria-live="polite">Requested mode: @_mode; density: @_density</p>
-            <div class="demo-theme-swatch">External custom CSS overrides the semantic primary token.</div>
+            <p class="demo-runtime-status" aria-live="polite">@DemoText.ThemeFoundation.RequestedState(_mode, _density)</p>
+            <div class="demo-theme-swatch">@DemoText.ThemeFoundation.ExternalOverrideNote</div>
         </section>
     </section>
 </BzsThemeProvider>

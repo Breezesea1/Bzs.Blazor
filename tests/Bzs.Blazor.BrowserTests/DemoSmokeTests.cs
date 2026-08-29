@@ -391,7 +391,8 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
             ReducedMotion = ReducedMotion.Reduce,
         });
 
-        var response = await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.ThemeFoundation));
+        var response = await Page.GotoAsync(
+            server.Urls.To(DemoCatalogDestinations.ThemeFoundation, DemoDestinationUrls.English));
         Assert.NotNull(response);
         var styleDirective = response.Headers["content-security-policy"]
             .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -427,7 +428,8 @@ public sealed class DemoSmokeTests(DemoServerFixture server) : BrowserGatePageTe
     public async Task FoundationComponentsActivateAfterAutoHydration()
     {
         BeginBrowserGateTest();
-        await Page.GotoAsync(server.Urls.To(DemoCatalogDestinations.Foundation));
+        await Page.GotoAsync(
+            server.Urls.To(DemoCatalogDestinations.Foundation, DemoDestinationUrls.English));
         await Expect(Page.GetByRole(AriaRole.Status))
             .ToContainTextAsync("Interactive runtime ready");
 

@@ -1,49 +1,49 @@
 @implements IAsyncDisposable
 @inject IBzsToastService ToastService
 
-<PageTitle>Feedback - Bzs.Blazor</PageTitle>
+<PageTitle>@DemoText.Feedback.PageTitle</PageTitle>
 
 <div class="demo-feedback-stage">
     <section class="demo-page" aria-labelledby="feedback-title">
         <header class="demo-page-header">
-            <p class="demo-eyebrow">Feedback</p>
-            <h1 id="feedback-title">Status and notifications</h1>
+            <p class="demo-eyebrow">@DemoText.Feedback.Eyebrow</p>
+            <h1 id="feedback-title">@DemoText.Feedback.Title</h1>
             <p class="demo-page-summary">
-                Inline status stays in the workflow while scoped notifications remain independently actionable.
+                @DemoText.Feedback.Summary
             </p>
         </header>
 
         <p class="demo-runtime-status" role="status">
-            @(_isInteractive ? "Interactive runtime ready" : "Rendering feedback markup")
+            @(_isInteractive ? DemoText.Feedback.RuntimeReady : DemoText.Feedback.RuntimeWaiting)
         </p>
 
-        <DemoShowcaseSection HeadingId="message-title" Heading="Message">
+        <DemoShowcaseSection HeadingId="message-title" Heading="@DemoText.Feedback.MessageHeading">
             <div class="demo-feedback-message-stack">
-                <BzsMessage Severity="BzsMessageSeverity.Information" Title="Review in progress">Two deliverables still need an owner.</BzsMessage>
-                <BzsMessage Severity="BzsMessageSeverity.Success" Title="Publish complete">The approved package is ready for downstream teams.</BzsMessage>
-                <BzsMessage Severity="BzsMessageSeverity.Warning" Title="Due date approaching">The lighting pass is due tomorrow.</BzsMessage>
-                <BzsMessage Severity="BzsMessageSeverity.Error" Title="Save blocked">Correct the required fields before publishing.</BzsMessage>
+                <BzsMessage Severity="BzsMessageSeverity.Information" Title="@DemoText.Feedback.MessageInformationTitle">@DemoText.Feedback.MessageInformationBody</BzsMessage>
+                <BzsMessage Severity="BzsMessageSeverity.Success" Title="@DemoText.Feedback.MessageSuccessTitle">@DemoText.Feedback.MessageSuccessBody</BzsMessage>
+                <BzsMessage Severity="BzsMessageSeverity.Warning" Title="@DemoText.Feedback.MessageWarningTitle">@DemoText.Feedback.MessageWarningBody</BzsMessage>
+                <BzsMessage Severity="BzsMessageSeverity.Error" Title="@DemoText.Feedback.MessageErrorTitle">@DemoText.Feedback.MessageErrorBody</BzsMessage>
             </div>
         </DemoShowcaseSection>
 
-        <DemoShowcaseSection HeadingId="progress-title" Heading="Progress">
+        <DemoShowcaseSection HeadingId="progress-title" Heading="@DemoText.Feedback.ProgressHeading">
             <div class="demo-feedback-progress-grid">
-                <BzsProgress Label="Publishing assets" Value="64" />
-                <BzsProgress Label="Checking dependencies" />
+                <BzsProgress Label="@DemoText.Feedback.ProgressPublishing" Value="64" />
+                <BzsProgress Label="@DemoText.Feedback.ProgressChecking" />
             </div>
         </DemoShowcaseSection>
 
-        <DemoShowcaseSection HeadingId="toast-title" Heading="Toast">
-            <div class="demo-feedback-toast-controls" role="group" aria-label="Toast examples">
-                <BzsButton Disabled="@(!_isInteractive)" Click="ShowTimedToast">Show timed toast</BzsButton>
-                <BzsButton Disabled="@(!_isInteractive)" Variant="BzsButtonVariant.Outline" Click="ShowPersistentToast">Show persistent toast</BzsButton>
-                <BzsButton Disabled="@(!_isInteractive)" Variant="BzsButtonVariant.Danger" Click="ShowErrorToast">Show error toast</BzsButton>
+        <DemoShowcaseSection HeadingId="toast-title" Heading="@DemoText.Feedback.ToastHeading">
+            <div class="demo-feedback-toast-controls" role="group" aria-label="@DemoText.Feedback.ToastExamplesAccessibleName">
+                <BzsButton Disabled="@(!_isInteractive)" Click="ShowTimedToast">@DemoText.Feedback.ShowTimedToast</BzsButton>
+                <BzsButton Disabled="@(!_isInteractive)" Variant="BzsButtonVariant.Outline" Click="ShowPersistentToast">@DemoText.Feedback.ShowPersistentToast</BzsButton>
+                <BzsButton Disabled="@(!_isInteractive)" Variant="BzsButtonVariant.Danger" Click="ShowErrorToast">@DemoText.Feedback.ShowErrorToast</BzsButton>
             </div>
 
-            <div class="demo-feedback-toast-list" aria-label="Active toast examples">
+            <div class="demo-feedback-toast-list" aria-label="@DemoText.Feedback.ActiveToastExamplesAccessibleName">
                 @if (_toasts.Count == 0)
                 {
-                    <p class="demo-feedback-empty">No active notifications.</p>
+                    <p class="demo-feedback-empty">@DemoText.Feedback.NoActiveNotifications</p>
                 }
                 @foreach (var toast in _toasts)
                 {
@@ -81,11 +81,11 @@
     {
         ToastService.Show(new BzsToastOptions
         {
-            Title = "Delivery queued",
-            Message = "This notification pauses while it is hovered or focused.",
+            Title = DemoText.Feedback.TimedToastTitle,
+            Message = DemoText.Feedback.TimedToastMessage,
             Severity = BzsToastSeverity.Information,
             Duration = TimeSpan.FromMilliseconds(1500),
-            AccessibleName = "Timed toast",
+            AccessibleName = DemoText.Feedback.TimedToastAccessibleName,
         });
     }
 
@@ -93,11 +93,11 @@
     {
         ToastService.Show(new BzsToastOptions
         {
-            Title = "Review saved",
-            Message = "This notification remains until you close it.",
+            Title = DemoText.Feedback.PersistentToastTitle,
+            Message = DemoText.Feedback.PersistentToastMessage,
             Severity = BzsToastSeverity.Success,
             Duration = Timeout.InfiniteTimeSpan,
-            AccessibleName = "Persistent toast",
+            AccessibleName = DemoText.Feedback.PersistentToastAccessibleName,
         });
     }
 
@@ -105,11 +105,11 @@
     {
         ToastService.Show(new BzsToastOptions
         {
-            Title = "Save failed",
-            Message = "The review could not be saved. Try again after correcting the field values.",
+            Title = DemoText.Feedback.ErrorToastTitle,
+            Message = DemoText.Feedback.ErrorToastMessage,
             Severity = BzsToastSeverity.Error,
             Duration = Timeout.InfiniteTimeSpan,
-            AccessibleName = "Save failure toast",
+            AccessibleName = DemoText.Feedback.ErrorToastAccessibleName,
         });
     }
 
