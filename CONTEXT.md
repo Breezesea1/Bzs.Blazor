@@ -40,6 +40,10 @@ _Avoid_: Dropdown, listbox state, option collection
 Which asynchronous data request is current for a provider-backed component, and the accepted page, failure, and loading state derived from it. It owns queueing a request raised before interactive rendering, dropping a request equal to the one already started, cancelling a superseded call, and keeping the last accepted page visible across a failure. Distinct from the controlled parameters the consumer supplies, which describe the request the component would like to be current.
 _Avoid_: Refresh flag, loading state, request queue
 
+**Current Provider Call**:
+The one asynchronous provider operation that is still eligible to produce an accepted outcome at a point in time. Its outcome is succeeded, failed, or superseded, and starting a replacement makes the earlier operation ineligible. Distinct from the Provider Request Lifecycle, which owns request identity, queueing, retry, retained state, and what a provider-backed component presents.
+_Avoid_: Provider Request Lifecycle, loading state, retry policy
+
 **Period Menu**:
 One of the two Option Lists in a date picker's calendar header through which a visitor jumps the calendar to another month or year. It owns which of the two is open, which option is active for keyboard interaction, and the typeahead buffer letter keys accumulate into; the owning control moves the calendar view and renders the options.
 _Avoid_: Month dropdown, year selector, header combobox
