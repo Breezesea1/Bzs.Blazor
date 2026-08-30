@@ -25,6 +25,66 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.7.1",
+            "0.7.1",
+            new DateTimeOffset(2026, 8, 30, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Patch release", "补丁版本"),
+            new DemoLocalizedText(
+                "Shared provider and option-list state",
+                "共享提供器与选项列表状态"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.7.1 consolidates provider-call and option-list state behind shared internal modules, preserving public component contracts while improving cancellation, supersession, active-option reconciliation, and owner-policy coverage.",
+                "Bzs.Blazor 0.7.1 将提供器调用与选项列表状态收进共享内部模块，在保留公共组件契约的同时，改进取消、取代、活动选项协调与所有者策略覆盖。"),
+            [
+                new DemoLocalizedText(
+                    "Autocomplete and DataGrid share one Current Provider Call module for cancellation, supersession, stale-result suppression, explicit outcomes, and cleanup.",
+                    "Autocomplete 与 DataGrid 共享 Current Provider Call 模块，统一处理取消、取代、过期结果抑制、显式结果与清理。"),
+                new DemoLocalizedText(
+                    "Select, MultiSelect, and Autocomplete share one generic Option List state module while keeping query, filtering, selection, and provider policy local to each owner.",
+                    "Select、MultiSelect 与 Autocomplete 共享泛型 Option List 状态模块，同时将查询、筛选、选择与提供器策略保留在各自所有者中。"),
+                new DemoLocalizedText(
+                    "Open Select-family lists retain an enabled active option by identity across reordering and fall back predictably when it disappears or becomes disabled.",
+                    "展开的 Select 家族列表在重排时按身份保留启用的活动选项，在选项消失或被禁用时可预测地回退。"),
+                new DemoLocalizedText(
+                    "Autocomplete clears stale suggestions before each new query or retry, starts at the first enabled result, and continues allowing duplicate values.",
+                    "Autocomplete 在每次新查询或重试前清除过期建议，从第一个启用结果开始，并继续允许重复值。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Internal reliability", "内部可靠性"),
+                    [
+                        new DemoLocalizedText(
+                            "Provider cancellation and supersession now have one implementation and one shared outcome model, including late-completion and disposal races.",
+                            "提供器取消与取代现在由单一实现和共享结果模型负责，包括延迟完成与释放竞态。"),
+                        new DemoLocalizedText(
+                            "Owners submit explicit visible snapshots; the shared module does not read mutable owner fields or perform filtering.",
+                            "所有者提交显式可见快照；共享模块不读取可变所有者字段，也不执行筛选。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Option-list behavior", "选项列表行为"),
+                    [
+                        new DemoLocalizedText(
+                            "Select and MultiSelect retain the enabled active identity across open snapshot replacement, while their local search and selection policies remain unchanged.",
+                            "Select 与 MultiSelect 在展开快照替换时保留启用的活动身份，同时保持本地搜索与选择策略不变。"),
+                        new DemoLocalizedText(
+                            "Autocomplete keeps duplicate suggestion values valid and deliberately starts each new provider result at its first enabled suggestion.",
+                            "Autocomplete 继续允许重复建议值，并明确从每次新提供器结果的第一个启用建议开始。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Tests and compatibility", "测试与兼容性"),
+                    [
+                        new DemoLocalizedText(
+                            "Regression tests cover provider races, shared keyboard transitions, owner search reset, MultiSelect Space policy, and duplicate suggestions.",
+                            "回归测试覆盖提供器竞态、共享键盘转换、所有者搜索重置、MultiSelect 空格策略与重复建议。"),
+                        new DemoLocalizedText(
+                            "No public API, markup, ARIA, form, or render-mode behavior changes in this patch release.",
+                            "本补丁版本不改变公共 API、标记、ARIA、表单或渲染模式行为。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "Non-breaking for consumers upgrading from 0.7.0. The shared provider-call and option-list modules are internal, and all public component contracts remain stable.",
+                "从 0.7.0 升级对使用方不构成破坏性变更。共享提供器调用与选项列表模块均为内部实现，所有公共组件契约保持稳定。")),
+        new(
             "v0.7.0",
             "0.7.0",
             new DateTimeOffset(2026, 8, 29, 0, 0, 0, TimeSpan.Zero),
