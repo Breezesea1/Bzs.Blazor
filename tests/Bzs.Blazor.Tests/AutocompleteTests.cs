@@ -289,6 +289,56 @@ public sealed class AutocompleteTests
     }
 
     [Fact]
+    public async Task NewQueryClearsOldSuggestionsAndStartsAtTheFirstEnabledDuplicateSuggestion()
+    {
+        using var context = CreateContext();
+        var nextStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var nextCompletion = new TaskCompletionSource<IReadOnlyList<BzsAutocompleteOption<string?>>>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var retainedSuggestion = new BzsAutocompleteOption<string?>("shared", "Previously active");
+        var provider = new SequenceProvider<string?>(
+            (_, _) => ValueTask.FromResult<IReadOnlyList<BzsAutocompleteOption<string?>>>(
+            [
+                new("alpha", "Alpha"),
+                new("beta", "Beta"),
+                retainedSuggestion,
+            ]),
+            (_, _) =>
+            {
+                nextStarted.TrySetResult();
+                return new ValueTask<IReadOnlyList<BzsAutocompleteOption<string?>>>(nextCompletion.Task);
+            });
+        var model = new AutocompleteModel();
+        var editContext = new EditContext(model);
+        var cut = RenderAutocomplete(context, editContext, model, provider);
+
+        cut.Find("[role='combobox']").Input("a");
+        cut.Find("[role='combobox']").KeyDown("ArrowDown");
+        cut.Find("[role='combobox']").KeyDown("ArrowDown");
+
+        var nextInput = cut.Find("[role='combobox']")
+            .TriggerEventAsync("oninput", new ChangeEventArgs { Value = "al" });
+        await nextStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Empty(cut.FindAll("[role='option']"));
+            Assert.Equal("Loading suggestions", cut.Find("[role='status']").TextContent.Trim());
+        });
+
+        nextCompletion.SetResult(
+        [
+            new("unavailable", "Unavailable", disabled: true),
+            new("shared", "First enabled"),
+            retainedSuggestion,
+        ]);
+        await nextInput;
+        cut.Find("[role='combobox']").KeyDown("Enter");
+
+        Assert.Equal("shared", model.Choice);
+        Assert.Equal("First enabled", cut.Find("[role='combobox']").GetAttribute("value"));
+    }
+
+    [Fact]
     public async Task PendingProviderRequestRendersLoadingState()
     {
         using var context = CreateContext();

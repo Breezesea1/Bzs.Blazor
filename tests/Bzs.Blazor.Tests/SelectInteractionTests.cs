@@ -182,6 +182,31 @@ public sealed class SelectInteractionTests
     }
 
     [Fact]
+    public async Task SelectSearchResetsAfterCloseAndReopen()
+    {
+        using var context = CreateContext();
+        var model = new SelectionModel { Choice = "production" };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsSelect<string>, string>(
+            builder,
+            0,
+            model.Choice,
+            () => model.Choice,
+            EventCallback.Factory.Create<string>(model, value => model.Choice = value),
+            (attributes, sequence) => attributes.AddAttribute(sequence, nameof(BzsSelect<string>.Options), Options)));
+
+        cut.Find("[role='combobox']").Click();
+        cut.Find("input[type='search']").Input("review");
+        Assert.Single(cut.FindAll("[role='option']"));
+
+        await cut.FindComponent<BzsSelect<string>>().Instance.CloseFromBrowserAsync();
+        cut.Find("[role='combobox']").Click();
+
+        Assert.Equal(string.Empty, cut.Find("input[type='search']").GetAttribute("value"));
+        Assert.Equal(Options.Count, cut.FindAll("[role='option']").Count);
+    }
+
+    [Fact]
     public void MultiSelectKeyboardCommitTogglesTheActiveOption()
     {
         using var context = CreateContext();
@@ -200,6 +225,35 @@ public sealed class SelectInteractionTests
         cut.Find("[role='combobox']").KeyDown("Enter");
 
         Assert.Equal(["production", "review"], model.Choices);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    public void MultiSelectSpaceCommitsOnlyWhenSearchIsDisabled(
+        bool searchEnabled,
+        bool expectProductionSelected)
+    {
+        using var context = CreateContext();
+        var model = new SelectionModel { Choices = ["production"] };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsMultiSelect<string>, IReadOnlyList<string>>(
+            builder,
+            0,
+            model.Choices,
+            () => model.Choices,
+            EventCallback.Factory.Create<IReadOnlyList<string>>(model, value => model.Choices = value),
+            (attributes, sequence) =>
+            {
+                attributes.AddAttribute(sequence, nameof(BzsMultiSelect<string>.SearchEnabled), searchEnabled);
+                attributes.AddAttribute(sequence + 1, nameof(BzsMultiSelect<string>.Options), Options);
+            }));
+
+        cut.Find("[role='combobox']").Click();
+        cut.Find("[role='combobox']").KeyDown(" ");
+
+        Assert.Equal(expectProductionSelected, model.Choices.Contains("production"));
+        Assert.DoesNotContain("review", model.Choices);
     }
 
     [Fact]
@@ -222,6 +276,31 @@ public sealed class SelectInteractionTests
         cut.Find("input[type='search']").KeyDown("Enter");
 
         Assert.Equal(["production", "review"], model.Choices);
+    }
+
+    [Fact]
+    public async Task MultiSelectSearchResetsAfterCloseAndReopen()
+    {
+        using var context = CreateContext();
+        var model = new SelectionModel { Choices = ["production"] };
+        var editContext = new EditContext(model);
+        var cut = RenderForm(context, editContext, builder => AddInput<BzsMultiSelect<string>, IReadOnlyList<string>>(
+            builder,
+            0,
+            model.Choices,
+            () => model.Choices,
+            EventCallback.Factory.Create<IReadOnlyList<string>>(model, value => model.Choices = value),
+            (attributes, sequence) => attributes.AddAttribute(sequence, nameof(BzsMultiSelect<string>.Options), Options)));
+
+        cut.Find("[role='combobox']").Click();
+        cut.Find("input[type='search']").Input("review");
+        Assert.Single(cut.FindAll("[role='option']"));
+
+        await cut.FindComponent<BzsMultiSelect<string>>().Instance.CloseFromBrowserAsync();
+        cut.Find("[role='combobox']").Click();
+
+        Assert.Equal(string.Empty, cut.Find("input[type='search']").GetAttribute("value"));
+        Assert.Equal(Options.Count, cut.FindAll("[role='option']").Count);
     }
 
     [Fact]
