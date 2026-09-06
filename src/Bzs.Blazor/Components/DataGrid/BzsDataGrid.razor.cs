@@ -704,9 +704,6 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     private string EffectiveColumnChooserText => Normalize(ColumnChooserText) ?? Localize("DataGridColumnChooserText");
     private string EffectiveDetailColumnText => Localize("DataGridDetailColumnText");
     private string EffectiveAddSortText => Localize("DataGridAddSortText");
-    private string EffectiveResizeText => Localize("DataGridResizeColumnText");
-    private string EffectiveExpandText => Localize("DataGridExpandRowText");
-    private string EffectiveCollapseText => Localize("DataGridCollapseRowText");
 
     private IReadOnlyDictionary<string, object> RootAttributes
     {
