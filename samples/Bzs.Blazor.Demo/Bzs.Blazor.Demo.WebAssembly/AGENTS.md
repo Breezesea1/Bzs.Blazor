@@ -11,8 +11,9 @@
 
 - This project is a standalone WebAssembly host. It has no ASP.NET Core server,
   server prerendering, API endpoints, or authentication backend.
-- Route wrappers live under `Routes/` and render shared examples from
-  `Bzs.Blazor.Demo.Catalog`.
+- Shared routes are declared once in `Bzs.Blazor.Demo.Catalog/Routes`, which this
+  host's router scans through `AdditionalAssemblies` (ADR-0040). This host
+  declares only the home route, which passes `IncludesServerRenderModes="false"`.
 - Do not add `@rendermode` directives here. The entire application already runs
   in WebAssembly.
 
