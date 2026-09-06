@@ -121,6 +121,20 @@ public sealed class DemoRouteOwnershipTests
         }
     }
 
+    [Fact]
+    public void ServerEndpointRoutingRegistersEveryAssemblyThatDeclaresRoutes()
+    {
+        var program = File.ReadAllText(FindRepositoryFile(
+            "samples", "Bzs.Blazor.Demo", "Bzs.Blazor.Demo", "Program.cs"));
+        Assert.True(
+            program.Contains("AddAdditionalAssemblies(", StringComparison.Ordinal)
+            && program.Contains("Bzs.Blazor.Demo.Client._Imports", StringComparison.Ordinal)
+            && program.Contains("Bzs.Blazor.Demo.Catalog._Imports", StringComparison.Ordinal),
+            "MapRazorComponents in Program.cs must register both the client and Catalog assemblies " +
+            "through AddAdditionalAssemblies; a missing assembly makes its @page components 404 on " +
+            "the server even though the Router component scans them for client-side navigation.");
+    }
+
     private static void AssertExactTemplates(string folder, string[] expected, string rationale)
     {
         var actual = ParseTemplates(folder).Order().ToArray();
@@ -168,4 +182,7 @@ public sealed class DemoRouteOwnershipTests
 
         throw new DirectoryNotFoundException("Could not locate the Bzs.Blazor repository root.");
     }
+
+    private static string FindRepositoryFile(params string[] segments) =>
+        FindRepositoryFolder(Path.Combine([.. segments]));
 }

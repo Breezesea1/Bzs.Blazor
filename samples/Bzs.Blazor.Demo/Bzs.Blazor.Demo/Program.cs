@@ -108,7 +108,9 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(Bzs.Blazor.Demo.Client._Imports).Assembly);
+    .AddAdditionalAssemblies(
+        typeof(Bzs.Blazor.Demo.Client._Imports).Assembly,
+        typeof(Bzs.Blazor.Demo.Catalog._Imports).Assembly);
 
 app.Run();
 
