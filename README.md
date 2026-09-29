@@ -111,4 +111,15 @@ release gate with:
 pwsh scripts/verify-release.ps1
 ```
 
+Visual regression baselines are owned by the pinned Linux CI environment
+(ADR-0029): they are captured and compared there after installing the pinned
+fonts and the repository-owned fontconfig, and updated only through the manual
+`Refresh visual baselines` workflow. The Windows branded-browser jobs are
+functional-only. Because another operating system rasterizes full-page pixels
+differently, the local pixel comparison is not a correctness gate off Linux, so
+`verify-release.ps1` skips visual regression by default on non-Linux hosts and
+prints a warning. Run `pwsh scripts/verify-release.ps1 -IncludeVisualRegression`
+to force the advisory comparison anywhere, and `-SkipVisualRegression` to skip
+it explicitly; the Linux CI visual jobs stay strict and unchanged.
+
 Release notes are recorded in `docs/releases/0.7.1.md`.

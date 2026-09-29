@@ -5,6 +5,7 @@ param(
     [ValidatePattern('^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$')]
     [string]$Version,
     [switch]$SkipVisualRegression,
+    [switch]$IncludeVisualRegression,
     [switch]$SkipBrowserMatrix,
     [switch]$SkipAot
 )
@@ -14,6 +15,19 @@ $ErrorActionPreference = "Stop"
 
 if ($env:BZS_UPDATE_VISUAL_BASELINES -eq "1") {
     throw "Release verification refuses to run when BZS_UPDATE_VISUAL_BASELINES is exactly '1'. Unset it before running this script because release verification must not update visual baselines."
+}
+
+# Visual baselines are owned and captured by the pinned Linux CI environment
+# (ADR-0029), so a non-Linux host cannot reproduce them. Comparing pixels there
+# is advisory, not a correctness gate, so default the visual filter off outside
+# Linux to keep a local run green instead of reporting font-metric drift. Linux
+# hosts (and CI) keep the strict default, and -IncludeVisualRegression runs the
+# advisory comparison on any host on request. -SkipVisualRegression always wins.
+if (-not $IsLinux -and -not $SkipVisualRegression -and -not $IncludeVisualRegression) {
+    Write-Warning ("Visual regression baselines are owned by the pinned Linux CI environment (ADR-0029) " +
+        "and this host is not Linux, so the local pixel comparison is advisory. Skipping visual regression; " +
+        "pass -IncludeVisualRegression to run it anyway.")
+    $SkipVisualRegression = $true
 }
 
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
