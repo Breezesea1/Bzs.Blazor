@@ -15,6 +15,13 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
     private const string ModulePath = "./_content/Bzs.Blazor/Components/DataGrid/BzsDataGrid.razor.js";
     private const string TrueFilterDraft = "true";
     private const string FalseFilterDraft = "false";
+
+    /// <summary>
+    /// The smallest pixel width a resizable column accepts. The browser module clamps
+    /// pointer and keyboard resizes to this value and reports it as the resize handle's
+    /// <c>aria-valuemin</c>; a unit test keeps the JS constant in sync with this one.
+    /// </summary>
+    internal const int MinimumColumnWidth = 48;
     private static readonly IReadOnlyList<int> DefaultPageSizeOptions =
         Array.AsReadOnly(new[] { 10, 25, 50 });
     private readonly string _instanceId = $"bzs-data-grid-{Guid.NewGuid():N}";
@@ -1044,23 +1051,6 @@ public sealed partial class BzsDataGrid<TItem> : BzsComponentBase
 
     private string GetResizeColumnLabel(BzsDataGridColumn<TItem> column) =>
         Localize("DataGridResizeColumnText", column.EffectiveAccessibleName!);
-
-    /// <summary>
-    /// Gets the resize separator position as a percentage of the visible columns, which keeps the
-    /// separator role valid before the browser reports a measured width.
-    /// </summary>
-    private int GetColumnWidthValue(BzsDataGridColumn<TItem> column)
-    {
-        var columns = VisibleColumns;
-        for (var index = 0; index < columns.Count; index++)
-        {
-            if (ReferenceEquals(columns[index], column))
-            {
-                return columns.Count == 0 ? 0 : (index + 1) * 100 / columns.Count;
-            }
-        }
-        return 0;
-    }
 
     private object GetDetailRenderKey(TItem item, int rowIndex) => ItemKey is null
         ? $"detail-{rowIndex}"

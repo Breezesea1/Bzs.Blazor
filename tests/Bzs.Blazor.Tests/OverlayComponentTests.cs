@@ -122,6 +122,17 @@ public sealed class OverlayComponentTests
     }
 
     [Fact]
+    public void OverlayHostKeepsTheToastRegionMountedBeforeAnyToastExists()
+    {
+        using var context = CreateContext();
+        var host = context.Render<BzsOverlayHost>();
+
+        var region = host.Find(".bzs-overlay-host__toasts");
+        Assert.NotNull(region.GetAttribute("aria-label"));
+        Assert.Empty(region.Children);
+    }
+
+    [Fact]
     public void OverlayHostRejectsDuplicatesInOneScope()
     {
         using var context = CreateContext();

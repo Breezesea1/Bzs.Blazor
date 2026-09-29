@@ -1,6 +1,8 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using System.Text.RegularExpressions;
 
@@ -95,9 +97,75 @@ public sealed class ThemeTests
             "wwwroot",
             "bzs.blazor.css"));
 
-        AssertThemeBlockMatches(stylesheet, "light", BzsThemes.Light, BzsThemes.Default.LightDepth);
-        AssertThemeBlockMatches(stylesheet, "dark", BzsThemes.Dark, BzsThemes.Default.DarkDepth);
-        AssertSharedThemeBlockMatches(stylesheet, BzsThemes.Default);
+        var light = AssertThemeBlockMatches(stylesheet, "light", BzsThemes.Light, BzsThemes.Default.LightDepth);
+        var dark = AssertThemeBlockMatches(stylesheet, "dark", BzsThemes.Dark, BzsThemes.Default.DarkDepth);
+        var shared = AssertSharedThemeBlockMatches(stylesheet, BzsThemes.Default);
+
+        AssertTokenNamesExactly(light, SchemeTokenNames(), "light theme block");
+        AssertTokenNamesExactly(dark, SchemeTokenNames(), "dark theme block");
+        AssertTokenNamesExactly(
+            shared,
+            SharedRecordTokenNames().Concat(CssOnlyStructuralTokenNames()),
+            "shared theme block");
+    }
+
+    [Fact]
+    public void ThemeCssBuilderEmissionsMatchStaticCss()
+    {
+        var stylesheet = File.ReadAllText(FindRepositoryFile(
+            "src",
+            "Bzs.Blazor",
+            "wwwroot",
+            "bzs.blazor.css"));
+        var light = ParseThemeBlock(
+            stylesheet,
+            @":root,\s*\[data-bzs-theme=""light""\]",
+            "light theme block");
+        var dark = ParseThemeBlock(
+            stylesheet,
+            @"\[data-bzs-theme=""dark""\]",
+            "dark theme block");
+        var shared = ParseThemeBlock(
+            stylesheet,
+            @":root,\s*\[data-bzs-theme\]",
+            "shared theme block");
+
+        var built = BzsThemeCssBuilder.Build("drift-probe", BzsThemes.Default);
+        var builtLight = ParseThemeBlock(
+            built,
+            @"\[data-bzs-theme-scope=""drift-probe""\]\[data-bzs-theme=""light""\]",
+            "builder light block");
+        var builtDark = ParseThemeBlock(
+            built,
+            @"\[data-bzs-theme-scope=""drift-probe""\]\[data-bzs-theme=""dark""\]",
+            "builder dark block");
+
+        AssertTokenNamesExactly(
+            builtLight,
+            SchemeTokenNames().Concat(SharedRecordTokenNames()),
+            "builder light block");
+        AssertTokenNamesExactly(
+            builtDark,
+            SchemeTokenNames().Concat(SharedRecordTokenNames()),
+            "builder dark block");
+
+        foreach (var (name, _) in SchemeTokens(BzsThemes.Light, BzsThemes.Default.LightDepth))
+        {
+            Assert.Equal(light[name], builtLight[name]);
+        }
+
+        foreach (var (name, _) in SchemeTokens(BzsThemes.Dark, BzsThemes.Default.DarkDepth))
+        {
+            Assert.Equal(dark[name], builtDark[name]);
+        }
+
+        foreach (var name in SharedRecordTokenNames())
+        {
+            Assert.Equal(shared[name], builtLight[name]);
+            Assert.Equal(shared[name], builtDark[name]);
+        }
+
+        AssertAccessibilityOverridesMatch(stylesheet, built);
     }
 
     [Fact]
@@ -230,6 +298,44 @@ public sealed class ThemeTests
     }
 
     [Fact]
+    public void NestedProvidersLogAFreezeWarningOncePerInstance()
+    {
+        using var context = new BunitContext();
+        var warnings = new List<string>();
+        context.Services.AddSingleton<ILoggerFactory>(new CapturingLoggerFactory(warnings));
+
+        var cut = context.Render<BzsThemeProvider>(parameters => parameters
+            .Add(component => component.ChildContent, builder =>
+            {
+                builder.OpenComponent<BzsThemeProvider>(0);
+                builder.AddAttribute(
+                    1,
+                    nameof(BzsThemeProvider.ChildContent),
+                    (RenderFragment)(content => content.AddContent(0, "Nested scope")));
+                builder.CloseComponent();
+            }));
+        Assert.Single(warnings);
+        Assert.Contains("nested BzsThemeProvider", warnings[0], StringComparison.OrdinalIgnoreCase);
+
+        cut.Render();
+
+        Assert.Single(warnings);
+    }
+
+    [Fact]
+    public void TopLevelProvidersDoNotLogANestingWarning()
+    {
+        using var context = new BunitContext();
+        var warnings = new List<string>();
+        context.Services.AddSingleton<ILoggerFactory>(new CapturingLoggerFactory(warnings));
+
+        _ = context.Render<BzsThemeProvider>(parameters => parameters
+            .Add(component => component.ChildContent, "Top level"));
+
+        Assert.Empty(warnings);
+    }
+
+    [Fact]
     public void CommonAttributesMergeWithoutMutatingInputs()
     {
         using var context = new BunitContext();
@@ -262,6 +368,35 @@ public sealed class ThemeTests
         public BzsThemeContext Context { get; set; } = BzsThemeContext.Default;
     }
 
+    private sealed class CapturingLoggerFactory(List<string> warnings) : ILoggerFactory
+    {
+        public void AddProvider(ILoggerProvider provider) { }
+
+        public ILogger CreateLogger(string categoryName) => new CapturingLogger(warnings);
+
+        public void Dispose() { }
+    }
+
+    private sealed class CapturingLogger(List<string> warnings) : ILogger
+    {
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Warning;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            if (logLevel >= LogLevel.Warning)
+            {
+                warnings.Add(formatter(state, exception));
+            }
+        }
+    }
+
     private static double GetContrastRatio(string first, string second)
     {
         var firstLuminance = GetRelativeLuminance(first);
@@ -270,7 +405,7 @@ public sealed class ThemeTests
             / (Math.Min(firstLuminance, secondLuminance) + 0.05);
     }
 
-    private static void AssertThemeBlockMatches(
+    private static IReadOnlyDictionary<string, string> AssertThemeBlockMatches(
         string stylesheet,
         string mode,
         BzsThemeColors colors,
@@ -279,85 +414,157 @@ public sealed class ThemeTests
         var selector = mode == "light"
             ? @":root,\s*\[data-bzs-theme=""light""\]"
             : @"\[data-bzs-theme=""dark""\]";
-        var match = Regex.Match(
-            stylesheet,
-            $@"{selector}\s*\{{(?<body>.*?)\}}",
-            RegexOptions.Singleline | RegexOptions.CultureInvariant);
-        Assert.True(match.Success, $"The static stylesheet is missing the {mode} theme block.");
+        var properties = ParseThemeBlock(stylesheet, selector, $"{mode} theme block");
 
-        var properties = ParseCustomProperties(match.Groups["body"].Value, $"{mode} theme block");
-        var tokens = new (string Name, string Value)[]
-        {
-            ("canvas", colors.Canvas),
-            ("surface", colors.Surface),
-            ("surface-raised", colors.SurfaceRaised),
-            ("surface-inset", colors.SurfaceInset),
-            ("surface-overlay", colors.SurfaceOverlay),
-            ("text", colors.Text),
-            ("text-muted", colors.TextMuted),
-            ("border", colors.Border),
-            ("border-subtle", colors.BorderSubtle),
-            ("focus-ring", colors.FocusRing),
-            ("primary", colors.Primary),
-            ("on-primary", colors.OnPrimary),
-            ("success", colors.Success),
-            ("warning", colors.Warning),
-            ("error", colors.Error),
-            ("info", colors.Info),
-            ("disabled-surface", colors.DisabledSurface),
-            ("disabled-text", colors.DisabledText),
-            ("scrim", colors.Scrim),
-            ("shadow-raised", depth.RaisedShadow),
-            ("shadow-inset", depth.InsetShadow),
-            ("shadow-overlay", depth.OverlayShadow),
-            ("shadow-focus", depth.FocusShadow),
-        };
-
-        foreach (var (name, value) in tokens)
+        foreach (var (name, value) in SchemeTokens(colors, depth))
         {
             Assert.True(properties.TryGetValue(name, out var actual), $"The {mode} theme block is missing --bzs-{name}.");
             Assert.Equal(value, actual);
         }
+
+        return properties;
     }
 
-    private static void AssertSharedThemeBlockMatches(string stylesheet, BzsTheme theme)
+    private static IReadOnlyDictionary<string, string> AssertSharedThemeBlockMatches(string stylesheet, BzsTheme theme)
     {
-        var match = Regex.Match(
-            stylesheet,
-            @":root,\s*\[data-bzs-theme\]\s*\{(?<body>.*?)\}",
-            RegexOptions.Singleline | RegexOptions.CultureInvariant);
-        Assert.True(match.Success, "The static stylesheet is missing the shared theme block.");
+        var properties = ParseThemeBlock(stylesheet, @":root,\s*\[data-bzs-theme\]", "shared theme block");
 
-        var properties = ParseCustomProperties(match.Groups["body"].Value, "shared theme block");
-        var tokens = new (string Name, string Value)[]
-        {
-            ("radius-control", theme.Shape.ControlRadius),
-            ("radius-container", theme.Shape.ContainerRadius),
-            ("radius-overlay", theme.Shape.OverlayRadius),
-            ("border-width", theme.Shape.BorderWidth),
-            ("font-family", theme.Typography.FontFamily),
-            ("font-size", theme.Typography.FontSize),
-            ("font-size-small", theme.Typography.SmallFontSize),
-            ("line-height", theme.Typography.LineHeight),
-            ("font-weight-regular", theme.Typography.FontWeightRegular),
-            ("font-weight-medium", theme.Typography.FontWeightMedium),
-            ("font-weight-bold", theme.Typography.FontWeightBold),
-            ("motion-fast", theme.Motion.FastDuration),
-            ("motion-normal", theme.Motion.NormalDuration),
-            ("motion-slow", theme.Motion.SlowDuration),
-            ("motion-easing", theme.Motion.Easing),
-            ("layout-spacing-extra-small", "0.25rem"),
-            ("layout-spacing-small", "0.5rem"),
-            ("layout-spacing-medium", "0.75rem"),
-            ("layout-spacing-large", "1rem"),
-            ("layout-spacing-extra-large", "1.5rem"),
-        };
-
-        foreach (var (name, value) in tokens)
+        foreach (var (name, value) in SharedRecordTokens(theme).Concat(CssOnlyStructuralTokens()))
         {
             Assert.True(properties.TryGetValue(name, out var actual), $"The shared theme block is missing --bzs-{name}.");
             Assert.Equal(value, actual);
         }
+
+        return properties;
+    }
+
+    private static (string Name, string Value)[] SchemeTokens(BzsThemeColors colors, BzsThemeDepth depth) =>
+    [
+        ("canvas", colors.Canvas),
+        ("surface", colors.Surface),
+        ("surface-raised", colors.SurfaceRaised),
+        ("surface-inset", colors.SurfaceInset),
+        ("surface-overlay", colors.SurfaceOverlay),
+        ("text", colors.Text),
+        ("text-muted", colors.TextMuted),
+        ("border", colors.Border),
+        ("border-subtle", colors.BorderSubtle),
+        ("focus-ring", colors.FocusRing),
+        ("primary", colors.Primary),
+        ("on-primary", colors.OnPrimary),
+        ("success", colors.Success),
+        ("warning", colors.Warning),
+        ("error", colors.Error),
+        ("info", colors.Info),
+        ("disabled-surface", colors.DisabledSurface),
+        ("disabled-text", colors.DisabledText),
+        ("scrim", colors.Scrim),
+        ("shadow-raised", depth.RaisedShadow),
+        ("shadow-inset", depth.InsetShadow),
+        ("shadow-overlay", depth.OverlayShadow),
+        ("shadow-focus", depth.FocusShadow),
+    ];
+
+    private static (string Name, string Value)[] SharedRecordTokens(BzsTheme theme) =>
+    [
+        ("radius-control", theme.Shape.ControlRadius),
+        ("radius-container", theme.Shape.ContainerRadius),
+        ("radius-overlay", theme.Shape.OverlayRadius),
+        ("border-width", theme.Shape.BorderWidth),
+        ("font-family", theme.Typography.FontFamily),
+        ("font-size", theme.Typography.FontSize),
+        ("font-size-small", theme.Typography.SmallFontSize),
+        ("line-height", theme.Typography.LineHeight),
+        ("font-weight-regular", theme.Typography.FontWeightRegular),
+        ("font-weight-medium", theme.Typography.FontWeightMedium),
+        ("font-weight-bold", theme.Typography.FontWeightBold),
+        ("motion-fast", theme.Motion.FastDuration),
+        ("motion-normal", theme.Motion.NormalDuration),
+        ("motion-slow", theme.Motion.SlowDuration),
+        ("motion-easing", theme.Motion.Easing),
+    ];
+
+    private static (string Name, string Value)[] CssOnlyStructuralTokens() =>
+    [
+        ("control-height", "2.25rem"),
+        ("control-padding-inline", "0.75rem"),
+        ("control-gap", "0.5rem"),
+        ("layout-spacing-extra-small", "0.25rem"),
+        ("layout-spacing-small", "0.5rem"),
+        ("layout-spacing-medium", "0.75rem"),
+        ("layout-spacing-large", "1rem"),
+        ("layout-spacing-extra-large", "1.5rem"),
+    ];
+
+    private static IEnumerable<string> SchemeTokenNames() =>
+        SchemeTokens(BzsThemes.Light, BzsThemes.Default.LightDepth).Select(token => token.Name);
+
+    private static IEnumerable<string> SharedRecordTokenNames() =>
+        SharedRecordTokens(BzsThemes.Default).Select(token => token.Name);
+
+    private static IEnumerable<string> CssOnlyStructuralTokenNames() =>
+        CssOnlyStructuralTokens().Select(token => token.Name);
+
+    private static void AssertTokenNamesExactly(
+        IReadOnlyDictionary<string, string> properties,
+        IEnumerable<string> expected,
+        string description)
+    {
+        var expectedNames = expected.OrderBy(name => name, StringComparer.Ordinal).ToArray();
+        var actualNames = properties.Keys.OrderBy(name => name, StringComparer.Ordinal).ToArray();
+        Assert.True(
+            actualNames.SequenceEqual(expectedNames),
+            $"The {description} declares [{string.Join(", ", actualNames)}] "
+            + $"instead of [{string.Join(", ", expectedNames)}].");
+    }
+
+    private static void AssertAccessibilityOverridesMatch(string staticCss, string builtCss)
+    {
+        var staticReducedMotion = staticCss[staticCss.IndexOf("prefers-reduced-motion", StringComparison.Ordinal)..];
+        var builtReducedMotion = builtCss[builtCss.IndexOf("prefers-reduced-motion", StringComparison.Ordinal)..];
+        var staticForcedColors = staticCss[staticCss.IndexOf("forced-colors: active", StringComparison.Ordinal)..];
+        var builtForcedColors = builtCss[builtCss.IndexOf("forced-colors:active", StringComparison.Ordinal)..];
+
+        foreach (var name in (string[])["motion-fast", "motion-normal", "motion-slow"])
+        {
+            Assert.Equal(
+                MatchTokenValue(staticReducedMotion, name),
+                MatchTokenValue(builtReducedMotion, name));
+        }
+
+        foreach (var name in (string[])
+                 [
+                     "border", "border-subtle", "focus-ring",
+                     "shadow-raised", "shadow-inset", "shadow-overlay", "shadow-focus",
+                 ])
+        {
+            Assert.Equal(
+                MatchTokenValue(staticForcedColors, name),
+                MatchTokenValue(builtForcedColors, name));
+        }
+    }
+
+    private static string MatchTokenValue(string css, string name)
+    {
+        var match = Regex.Match(
+            css,
+            $@"--bzs-{name}\s*:\s*(?<value>[^;{{}}]+);",
+            RegexOptions.CultureInvariant);
+        Assert.True(match.Success, $"The CSS snippet does not declare --bzs-{name}.");
+        return match.Groups["value"].Value.Trim();
+    }
+
+    private static IReadOnlyDictionary<string, string> ParseThemeBlock(
+        string css,
+        string selectorPattern,
+        string description)
+    {
+        var match = Regex.Match(
+            css,
+            $@"{selectorPattern}\s*\{{(?<body>.*?)\}}",
+            RegexOptions.Singleline | RegexOptions.CultureInvariant);
+        Assert.True(match.Success, $"The CSS snippet is missing the {description}.");
+        return ParseCustomProperties(match.Groups["body"].Value, description);
     }
 
     private static IReadOnlyDictionary<string, string> ParseCustomProperties(string block, string description)

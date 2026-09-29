@@ -723,3 +723,5 @@ static Bzs.Blazor.BzsIcons.Eye.get -> Bzs.Blazor.BzsIconData!
 static Bzs.Blazor.BzsIcons.EyeOff.get -> Bzs.Blazor.BzsIconData!
 static Bzs.Blazor.BzsIcons.Filter.get -> Bzs.Blazor.BzsIconData!
 static Bzs.Blazor.BzsIcons.Refresh.get -> Bzs.Blazor.BzsIconData!
+Bzs.Blazor.BzsThemeProvider.CascadedContext.get -> Bzs.Blazor.BzsThemeContext?
+Bzs.Blazor.BzsThemeProvider.CascadedContext.set -> void
