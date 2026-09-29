@@ -25,6 +25,66 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.8.0",
+            "0.8.0",
+            new DateTimeOffset(2026, 9, 29, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Maintenance release", "维护版本"),
+            new DemoLocalizedText(
+                "One route catalog and a pinned baseline environment",
+                "统一的路由目录与钉定的基线环境"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.8.0 hardens the wiring around the components rather than the components themselves: shared Demo Catalog routes are declared once and registered with server endpoint routing, the Linux visual-baseline font environment becomes repository-owned, and non-Linux hosts stop comparing pixel baselines by default.",
+                "Bzs.Blazor 0.8.0 加固的是组件周围的接线而非组件本身：共享的 Demo 目录路由只声明一次并同时注册到服务器端点路由，Linux 视觉基线的字体环境改为仓库自有，非 Linux 主机默认不再比较像素基线。"),
+            [
+                new DemoLocalizedText(
+                    "A server host using endpoint routing resolves every shared catalog destination again: the catalog assembly is registered with MapRazorComponents alongside the Router scan.",
+                    "使用端点路由的宿主重新解析每一个共享目录目的地：目录程序集在 Router 扫描之外同时注册到 MapRazorComponents。"),
+                new DemoLocalizedText(
+                    "Shared routes are declared once in the catalog, so the full and standalone hosts can no longer drift apart on a shared URL.",
+                    "共享路由只在目录中声明一次，完整宿主与独立宿主不再可能在某个共享 URL 上分叉。"),
+                new DemoLocalizedText(
+                    "The Linux visual-baseline environment becomes repository-owned: a fontconfig pins the generic monospace family, and every workflow that captures or compares baselines installs it.",
+                    "Linux 视觉基线环境改为仓库自有：一份 fontconfig 钉住 generic monospace 字族，所有捕获或比较基线的工作流都会安装它。"),
+                new DemoLocalizedText(
+                    "verify-release.ps1 skips the advisory pixel comparison on non-Linux hosts by default; the Linux CI visual jobs stay strict.",
+                    "verify-release.ps1 在非 Linux 主机上默认跳过建议性的像素比较；Linux CI 的视觉作业保持严格。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Demo routing", "Demo 路由"),
+                    [
+                        new DemoLocalizedText(
+                            "The shared route wrappers moved into Bzs.Blazor.Demo.Catalog and both hosts take the catalog as an additional assembly; host-owned routes stay with their hosts.",
+                            "共享路由包装器移入 Bzs.Blazor.Demo.Catalog，两个宿主都把目录作为附加程序集接入；宿主自有路由留在各自宿主中。"),
+                        new DemoLocalizedText(
+                            "Route parity is locked by tests that name a destination and a culture and let the catalog's link seam supply the address.",
+                            "路由对等由测试锁定：测试只指明目的地与语言，地址由目录的链接缝提供。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Visual baseline environment", "视觉基线环境"),
+                    [
+                        new DemoLocalizedText(
+                            "Generic monospace is the one fontconfig family whose distribution default can silently change, so the repository-owned fontconfig pins it to the installed Noto and Liberation mono families and deliberately leaves sans-serif, system-ui, and the CJK fallback alone.",
+                            "generic monospace 是 fontconfig 中唯一会被发行版默认静默改变的字族，仓库自有的 fontconfig 将其钉定为已安装的 Noto 与 Liberation 等宽字族，并有意不动 sans-serif、system-ui 与 CJK 回退。"),
+                        new DemoLocalizedText(
+                            "Three environment tests keep the fontconfig file and the install steps of all three workflows in lockstep, and an A/B run confirmed the pin changes no committed capture.",
+                            "三个环境测试让 fontconfig 文件与三个工作流的安装步骤保持同步，一次 A/B 验证确认钉定不会改变任何已提交的捕获。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Internal cleanup", "内部清理"),
+                    [
+                        new DemoLocalizedText(
+                            "Component-internal helpers live under Internal folders, dead DataGrid accessors are removed, and folder names still do not leak into the public namespace.",
+                            "组件内部辅助类型归入 Internal 文件夹，无用的 DataGrid 访问器已移除，文件夹名称依旧不会泄漏进公共命名空间。"),
+                        new DemoLocalizedText(
+                            "No public parameter, event, provider contract, template, rendered interface, ARIA semantic, or form contract changes in this release.",
+                            "本版本不改变任何公共参数、事件、提供器契约、模板、呈现接口、ARIA 语义或表单契约。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "Non-breaking for consumers upgrading from 0.7.1. The routing work is Demo-owned and the baseline work is pipeline-owned; the reorganized helpers are internal and all public component contracts remain stable.",
+                "从 0.7.1 升级对使用方不构成破坏性变更。路由工作属于 Demo，基线工作属于流水线；重组的辅助类型均为内部实现，所有公共组件契约保持稳定。")),
+        new(
             "v0.7.1",
             "0.7.1",
             new DateTimeOffset(2026, 8, 30, 0, 0, 0, TimeSpan.Zero),

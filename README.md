@@ -11,7 +11,7 @@ After a release is published to nuget.org, install the package into both the
 server host and WebAssembly client projects that render Bzs.Blazor components:
 
 ```text
-dotnet add package Bzs.Blazor --version 0.7.1
+dotnet add package Bzs.Blazor --version 0.8.0
 ```
 
 Register the library once during application startup. The call is idempotent,
@@ -83,7 +83,7 @@ in `0.x` development, where documented breaking changes remain possible.
 
 ## Publishing
 
-A strict SemVer tag such as `v0.7.1` starts the GitHub Actions release workflow.
+A strict SemVer tag such as `v0.8.0` starts the GitHub Actions release workflow.
 The workflow runs the release gates, packs the package and symbols, and publishes
 to nuget.org through the protected `nuget-production` environment. Creating a
 tag does not bypass the environment's configured approvals or protections.
@@ -122,4 +122,4 @@ prints a warning. Run `pwsh scripts/verify-release.ps1 -IncludeVisualRegression`
 to force the advisory comparison anywhere, and `-SkipVisualRegression` to skip
 it explicitly; the Linux CI visual jobs stay strict and unchanged.
 
-Release notes are recorded in `docs/releases/0.7.1.md`.
+Release notes are recorded in `docs/releases/0.8.0.md`.
