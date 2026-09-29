@@ -1,8 +1,16 @@
+using Microsoft.Extensions.Logging;
+
 namespace Bzs.Blazor;
 
 /// <summary>
 /// Cascades semantic theme state and applies built-in or nonce-protected custom tokens.
 /// </summary>
+/// <remarks>
+/// Nesting a provider inside another provider is supported but intentionally isolating: the
+/// inner provider re-pins the subtree's <c>data-bzs-theme</c> scope, so outer theme mode and
+/// density changes no longer reach that subtree. A development warning is logged when nesting
+/// is detected because the freeze is usually accidental.
+/// </remarks>
 public sealed partial class BzsThemeProvider : BzsComponentBase, IAsyncDisposable
 {
     private readonly string _scopeId = Guid.NewGuid().ToString("N");
@@ -12,6 +20,7 @@ public sealed partial class BzsThemeProvider : BzsComponentBase, IAsyncDisposabl
     private ElementReference _rootElement;
     private bool _systemObserverEnabled;
     private bool _systemPrefersDark;
+    private bool _nestingWarningLogged;
     private bool _disposed;
     private string? _customThemeCss;
 
@@ -44,6 +53,10 @@ public sealed partial class BzsThemeProvider : BzsComponentBase, IAsyncDisposabl
     [EditorRequired]
     public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Gets the theme context cascaded by an ancestor provider when this provider is nested.</summary>
+    [CascadingParameter]
+    public BzsThemeContext? CascadedContext { get; set; }
+
     private BzsThemeMode EffectiveMode => Mode == BzsThemeMode.System
         ? (_systemPrefersDark ? BzsThemeMode.Dark : BzsThemeMode.Light)
         : Mode;
@@ -60,6 +73,15 @@ public sealed partial class BzsThemeProvider : BzsComponentBase, IAsyncDisposabl
         BzsThemeContext.ValidateMode(Mode);
         BzsThemeContext.ValidateDensity(Density);
         ArgumentNullException.ThrowIfNull(Theme);
+
+        if (CascadedContext is not null && !_nestingWarningLogged)
+        {
+            _nestingWarningLogged = true;
+            LoggerFactory.CreateLogger<BzsThemeProvider>().LogWarning(
+                "A nested BzsThemeProvider was detected. This scope freezes its subtree to its own "
+                + "theme mode and density, so changes on the outer provider no longer apply inside it. "
+                + "Remove the nested provider unless an isolated theme stage is intended.");
+        }
 
         var isCustomTheme = Theme != BzsThemes.Default;
         if (isCustomTheme && string.IsNullOrWhiteSpace(CspNonce))
