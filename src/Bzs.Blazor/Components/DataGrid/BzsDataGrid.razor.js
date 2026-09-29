@@ -70,6 +70,7 @@ class ColumnLayoutController {
         }
 
         this.#applyDeclaredWidths();
+        this.#syncHandleValues();
     }
 
     dispose() {
@@ -100,6 +101,33 @@ class ColumnLayoutController {
                 column.style.setProperty("min-width", minWidth);
             } else {
                 column.style.removeProperty("min-width");
+            }
+        }
+    }
+
+    #findHandle(key) {
+        return this.#table.querySelector(`[data-bzs-data-grid-resize="${CSS.escape(key)}"]`);
+    }
+
+    /**
+     * Keeps the resize handles' value semantics in pixels, matching what the pointer
+     * and keyboard paths actually resize. The server only knows the static minimum;
+     * measured widths belong to the browser.
+     */
+    #syncHandleValues() {
+        const handles = this.#table.querySelectorAll("[data-bzs-data-grid-resize]");
+        if (handles.length === 0) {
+            return;
+        }
+
+        const tableWidth = Math.round(this.#table.getBoundingClientRect().width);
+        const maximum = Math.max(tableWidth, minimumColumnWidth);
+        for (const handle of handles) {
+            handle.setAttribute("aria-valuemin", String(minimumColumnWidth));
+            handle.setAttribute("aria-valuemax", String(maximum));
+            const width = this.#measure(handle.dataset.bzsDataGridResize);
+            if (width > 0) {
+                handle.setAttribute("aria-valuenow", String(Math.round(width)));
             }
         }
     }
@@ -205,6 +233,10 @@ class ColumnLayoutController {
         const clamped = Math.max(minimumColumnWidth, Math.round(width));
         column.dataset.bzsResized = "true";
         column.style.setProperty("width", `${clamped}px`);
+        const handle = this.#findHandle(key);
+        if (handle) {
+            handle.setAttribute("aria-valuenow", String(clamped));
+        }
     }
 
     #report(key) {
