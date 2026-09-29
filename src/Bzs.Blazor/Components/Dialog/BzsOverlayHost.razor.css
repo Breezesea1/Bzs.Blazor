@@ -11,6 +11,7 @@
     display: grid;
     gap: 0.75rem;
     max-inline-size: calc(100vw - 2rem);
+    pointer-events: none;
 }
 
 .bzs-overlay-host__toasts ::deep .bzs-toast {
@@ -18,7 +19,7 @@
 }
 
 @media (forced-colors: active) {
-    .bzs-overlay-host__toasts {
+    .bzs-overlay-host__toasts:not(:empty) {
         outline: 1px solid CanvasText;
         outline-offset: 0.25rem;
     }
