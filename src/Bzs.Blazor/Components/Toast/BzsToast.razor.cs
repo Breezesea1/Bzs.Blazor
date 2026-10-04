@@ -35,23 +35,11 @@ public sealed partial class BzsToast : BzsComponentBase
         ? Localizer["DismissNotification"].Value
         : DismissLabel.Trim();
 
-    private string SeverityName => Toast!.Severity switch
-    {
-        BzsToastSeverity.Information => "information",
-        BzsToastSeverity.Success => "success",
-        BzsToastSeverity.Warning => "warning",
-        BzsToastSeverity.Error => "error",
-        _ => throw new ArgumentOutOfRangeException(nameof(Toast), Toast.Severity, "The toast severity is not supported."),
-    };
+    private string SeverityName => BzsSeverityNames.Name(Toast!.Severity);
 
-    private BzsIconData SeverityIcon => Toast!.Severity switch
-    {
-        BzsToastSeverity.Information => BzsIcons.Info,
-        BzsToastSeverity.Success => BzsIcons.Success,
-        BzsToastSeverity.Warning => BzsIcons.Warning,
-        BzsToastSeverity.Error => BzsIcons.Error,
-        _ => throw new ArgumentOutOfRangeException(nameof(Toast), Toast.Severity, "The toast severity is not supported."),
-    };
+    private BzsIconData SeverityIcon => BzsSeverityNames.Icon(Toast!.Severity);
+
+    private bool IsAssertive => BzsSeverityNames.IsAssertive(Toast!.Severity);
 
     private IReadOnlyDictionary<string, object> RootAttributes
     {
@@ -61,13 +49,13 @@ public sealed partial class BzsToast : BzsComponentBase
                 BuildAttributes($"bzs-toast bzs-toast--{SeverityName}"),
                 StringComparer.OrdinalIgnoreCase)
             {
-                ["role"] = Toast!.Severity == BzsToastSeverity.Error ? "alert" : "status",
-                ["aria-live"] = Toast.Severity == BzsToastSeverity.Error ? "assertive" : "polite",
+                ["role"] = IsAssertive ? "alert" : "status",
+                ["aria-live"] = IsAssertive ? "assertive" : "polite",
                 ["aria-atomic"] = "true",
                 ["data-bzs-toast-severity"] = SeverityName,
             };
 
-            if (!string.IsNullOrWhiteSpace(Toast.AccessibleName))
+            if (!string.IsNullOrWhiteSpace(Toast!.AccessibleName))
             {
                 attributes["aria-label"] = Toast.AccessibleName.Trim();
             }

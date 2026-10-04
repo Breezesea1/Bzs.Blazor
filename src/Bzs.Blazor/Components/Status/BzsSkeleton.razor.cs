@@ -36,13 +36,7 @@ public sealed partial class BzsSkeleton : BzsComponentBase
         _ => throw new ArgumentOutOfRangeException(nameof(Shape), Shape, "The skeleton shape is not supported."),
     };
 
-    private string SizeName => Size switch
-    {
-        BzsSkeletonSize.Small => "small",
-        BzsSkeletonSize.Medium => "medium",
-        BzsSkeletonSize.Large => "large",
-        _ => throw new ArgumentOutOfRangeException(nameof(Size), Size, "The skeleton size is not supported."),
-    };
+    private string SizeName => BzsSizeNames.Skeleton(Size);
 
     private IReadOnlyDictionary<string, object> RootAttributes
     {

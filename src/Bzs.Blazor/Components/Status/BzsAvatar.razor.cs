@@ -68,13 +68,7 @@ public sealed partial class BzsAvatar : BzsComponentBase
 
     private string NormalizedName => Name?.Trim() ?? string.Empty;
 
-    private string SizeName => Size switch
-    {
-        BzsAvatarSize.Small => "small",
-        BzsAvatarSize.Medium => "medium",
-        BzsAvatarSize.Large => "large",
-        _ => throw new ArgumentOutOfRangeException(nameof(Size), Size, "The avatar size is not supported."),
-    };
+    private string SizeName => BzsSizeNames.Avatar(Size);
 
     private string ShapeName => Shape switch
     {
