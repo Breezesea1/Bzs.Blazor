@@ -8,9 +8,14 @@ internal sealed class BzsAnchoredOverlaySession : IAsyncDisposable
     internal const string SetOpenAtMethod = "setOpenAt";
     internal const string DisposeMethod = "dispose";
 
+    /// <summary>
+    /// The number of immediate initialization and synchronization attempts a
+    /// session makes before yielding to a later render.
+    /// </summary>
+    internal const int ImmediateAttemptLimit = 2;
+
     private readonly BzsJsModule _module;
     private readonly Func<Task> _closeRequested;
-    private readonly int _immediateAttemptLimit;
     private readonly string _instanceId = $"bzs-anchored-overlay-{Guid.NewGuid():N}";
     private readonly CancellationTokenSource _lifetimeCancellation = new();
     private readonly object _gate = new();
@@ -30,21 +35,37 @@ internal sealed class BzsAnchoredOverlaySession : IAsyncDisposable
     internal BzsAnchoredOverlaySession(
         IJSRuntime jsRuntime,
         Func<Task> closeRequested,
-        int immediateAttemptLimit,
         Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null)
     {
         ArgumentNullException.ThrowIfNull(jsRuntime);
         ArgumentNullException.ThrowIfNull(closeRequested);
-        ArgumentOutOfRangeException.ThrowIfLessThan(immediateAttemptLimit, 1);
 
         _closeRequested = closeRequested;
-        _immediateAttemptLimit = immediateAttemptLimit;
         _module = new BzsJsModule(
             jsRuntime,
             ModulePath,
             loggerFactory,
             new BzsJsModuleOptions(TreatObjectDisposedAsTransient: true));
     }
+
+    /// <summary>
+    /// Builds the desired state from an owner's varying inputs. The session owns the
+    /// state record and its validation so no owner constructs it directly.
+    /// </summary>
+    internal void SetDesiredState(
+        bool open,
+        BzsPopoverPlacement placement,
+        bool closeOnOutsideInteraction,
+        bool closeOnEscape,
+        BzsAnchoredOverlayInvocationPoint? invocationPoint = null,
+        bool restoreFocusOnBrowserClose = true) =>
+        SetDesiredState(new BzsAnchoredOverlayState(
+            open,
+            placement,
+            closeOnOutsideInteraction,
+            closeOnEscape,
+            invocationPoint,
+            restoreFocusOnBrowserClose));
 
     internal void SetDesiredState(BzsAnchoredOverlayState state)
     {
@@ -81,7 +102,11 @@ internal sealed class BzsAnchoredOverlaySession : IAsyncDisposable
         CancellationToken cancellationToken;
         lock (_gate)
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (_disposed)
+            {
+                return;
+            }
+
             cancellationToken = _lifetimeCancellation.Token;
         }
 
@@ -244,7 +269,7 @@ internal sealed class BzsAnchoredOverlaySession : IAsyncDisposable
                     return true;
                 }
 
-                if (_initializationAttemptCount >= _immediateAttemptLimit)
+                if (_initializationAttemptCount >= ImmediateAttemptLimit)
                 {
                     return false;
                 }
@@ -325,7 +350,7 @@ internal sealed class BzsAnchoredOverlaySession : IAsyncDisposable
                     return;
                 }
 
-                if (_synchronizationAttemptCount >= _immediateAttemptLimit)
+                if (_synchronizationAttemptCount >= ImmediateAttemptLimit)
                 {
                     return;
                 }

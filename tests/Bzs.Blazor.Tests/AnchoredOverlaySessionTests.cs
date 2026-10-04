@@ -8,6 +8,78 @@ namespace Bzs.Blazor.Tests;
 public sealed class AnchoredOverlaySessionTests
 {
     [Fact]
+    public async Task OwnerFacingStateOverloadBuildsPlacementPointAndBrowserFocusPolicy()
+    {
+        using var context = new BunitContext();
+        var module = SetupModule(context);
+        BzsAnchoredOverlaySession? session = null;
+        session = CreateSession(context, () =>
+        {
+            session!.SetDesiredState(
+                open: false,
+                placement: BzsPopoverPlacement.TopEnd,
+                closeOnOutsideInteraction: true,
+                closeOnEscape: true,
+                restoreFocusOnBrowserClose: false);
+            return Task.CompletedTask;
+        });
+        await using (session)
+        {
+            session.SetDesiredState(
+                open: true,
+                placement: BzsPopoverPlacement.TopEnd,
+                closeOnOutsideInteraction: true,
+                closeOnEscape: true,
+                invocationPoint: new BzsAnchoredOverlayInvocationPoint(42, 24),
+                restoreFocusOnBrowserClose: false);
+            await session.AfterRenderAsync(default);
+
+            var synchronization = Assert.Single(
+                module.Invocations[BzsAnchoredOverlaySession.SetOpenAtMethod]);
+            Assert.Contains("top-end", synchronization.Arguments);
+            Assert.Contains(42d, synchronization.Arguments);
+            Assert.Contains(24d, synchronization.Arguments);
+
+            await session.CloseFromBrowserAsync(restoreFocus: true);
+            await session.AfterRenderAsync(default);
+
+            var closeSynchronization = module.Invocations[BzsAnchoredOverlaySession.SetOpenMethod].Last();
+            Assert.Contains(false, closeSynchronization.Arguments);
+            Assert.DoesNotContain(true, closeSynchronization.Arguments.Skip(5));
+        }
+    }
+
+    [Fact]
+    public void OwnerFacingStateOverloadRejectsAnUndefinedPlacement()
+    {
+        using var context = new BunitContext();
+        var session = CreateSession(context, static () => Task.CompletedTask);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            session.SetDesiredState(
+                open: true,
+                placement: (BzsPopoverPlacement)999,
+                closeOnOutsideInteraction: true,
+                closeOnEscape: true));
+    }
+
+    [Fact]
+    public async Task RenderSynchronizationAfterDisposalIsIgnored()
+    {
+        using var context = new BunitContext();
+        var module = SetupModule(context);
+        var session = CreateSession(context, static () => Task.CompletedTask);
+        session.SetDesiredState(OpenState);
+        await session.AfterRenderAsync(default);
+
+        await session.DisposeAsync();
+        await session.AfterRenderAsync(default);
+
+        Assert.Single(module.Invocations[BzsAnchoredOverlaySession.InitializeMethod]);
+        Assert.Single(module.Invocations[BzsAnchoredOverlaySession.DisposeMethod]);
+    }
+
+    [Fact]
     public async Task SessionInitializesOnceAndSynchronizesElementAndPointAnchors()
     {
         using var context = new BunitContext();
@@ -155,11 +227,8 @@ public sealed class AnchoredOverlaySessionTests
         }
     }
 
-    [Theory]
-    [InlineData(2)]
-    [InlineData(3)]
-    public async Task InitializationRetryLimitIsAppliedAndPendingWorkRecoversLater(
-        int immediateAttemptLimit)
+    [Fact]
+    public async Task InitializationRetryLimitIsAppliedAndPendingWorkRecoversLater()
     {
         using var context = new BunitContext();
         var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
@@ -167,27 +236,25 @@ public sealed class AnchoredOverlaySessionTests
             .SetException(new TaskCanceledException("Initialization was interrupted."));
         module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true).SetVoidResult();
         module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
-        await using var session = CreateSession(
-            context,
-            static () => Task.CompletedTask,
-            immediateAttemptLimit);
+        await using var session = CreateSession(context, static () => Task.CompletedTask);
         session.SetDesiredState(OpenState);
 
         await session.AfterRenderAsync(default);
-        initialize.VerifyInvoke(BzsAnchoredOverlaySession.InitializeMethod, immediateAttemptLimit);
+        initialize.VerifyInvoke(
+            BzsAnchoredOverlaySession.InitializeMethod,
+            BzsAnchoredOverlaySession.ImmediateAttemptLimit);
 
         initialize.SetVoidResult();
         await session.AfterRenderAsync(default);
 
-        initialize.VerifyInvoke(BzsAnchoredOverlaySession.InitializeMethod, immediateAttemptLimit + 1);
+        initialize.VerifyInvoke(
+            BzsAnchoredOverlaySession.InitializeMethod,
+            BzsAnchoredOverlaySession.ImmediateAttemptLimit + 1);
         Assert.Single(module.Invocations[BzsAnchoredOverlaySession.SetOpenMethod]);
     }
 
-    [Theory]
-    [InlineData(2)]
-    [InlineData(3)]
-    public async Task SynchronizationRetryLimitIsAppliedAndPendingWorkRecoversLater(
-        int immediateAttemptLimit)
+    [Fact]
+    public async Task SynchronizationRetryLimitIsAppliedAndPendingWorkRecoversLater()
     {
         using var context = new BunitContext();
         var module = context.JSInterop.SetupModule(BzsAnchoredOverlaySession.ModulePath);
@@ -195,19 +262,20 @@ public sealed class AnchoredOverlaySessionTests
         var setOpen = module.SetupVoid(BzsAnchoredOverlaySession.SetOpenMethod, _ => true)
             .SetException(new TaskCanceledException("Synchronization was interrupted."));
         module.SetupVoid(BzsAnchoredOverlaySession.DisposeMethod, _ => true).SetVoidResult();
-        await using var session = CreateSession(
-            context,
-            static () => Task.CompletedTask,
-            immediateAttemptLimit);
+        await using var session = CreateSession(context, static () => Task.CompletedTask);
         session.SetDesiredState(OpenState);
 
         await session.AfterRenderAsync(default);
-        setOpen.VerifyInvoke(BzsAnchoredOverlaySession.SetOpenMethod, immediateAttemptLimit);
+        setOpen.VerifyInvoke(
+            BzsAnchoredOverlaySession.SetOpenMethod,
+            BzsAnchoredOverlaySession.ImmediateAttemptLimit);
 
         setOpen.SetVoidResult();
         await session.AfterRenderAsync(default);
 
-        setOpen.VerifyInvoke(BzsAnchoredOverlaySession.SetOpenMethod, immediateAttemptLimit + 1);
+        setOpen.VerifyInvoke(
+            BzsAnchoredOverlaySession.SetOpenMethod,
+            BzsAnchoredOverlaySession.ImmediateAttemptLimit + 1);
     }
 
     [Fact]
@@ -404,12 +472,10 @@ public sealed class AnchoredOverlaySessionTests
 
     private static BzsAnchoredOverlaySession CreateSession(
         BunitContext context,
-        Func<Task> closeRequested,
-        int immediateAttemptLimit = 2) =>
+        Func<Task> closeRequested) =>
         new(
             context.Services.GetRequiredService<IJSRuntime>(),
             closeRequested,
-            immediateAttemptLimit,
             context.Services.GetService<Microsoft.Extensions.Logging.ILoggerFactory>());
 
     private static BunitJSModuleInterop SetupModule(BunitContext context)
