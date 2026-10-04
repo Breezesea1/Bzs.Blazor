@@ -25,6 +25,59 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.9.0",
+            "0.9.0",
+            new DateTimeOffset(2026, 10, 4, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Maintenance release", "维护版本"),
+            new DemoLocalizedText(
+                "Hardened wiring and lighter shadows",
+                "加固的接线与更轻的阴影"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.9.0 keeps the toast live region mounted before the first toast, warns when a theme provider nests inside another, closes the theme token drift-gate blind spots, gives DataGrid resize handles real pixel semantics, and softens the built-in shadow depth tokens.",
+                "Bzs.Blazor 0.9.0 让 toast 播报区域在第一条 toast 之前就保持挂载，在主题提供器嵌套时给出警告，补上主题 token 漂移门禁的盲区，让 DataGrid 拖柄报告真实的像素语义，并软化了内建的阴影 token。"),
+            [
+                new DemoLocalizedText(
+                    "The overlay host always renders its toast region, so screen readers announce the first toast reliably; each toast keeps its own status and alert semantics.",
+                    "覆盖层宿主始终渲染 toast 播报区域，屏幕阅读器可以可靠地播报第一条 toast；每条 toast 依旧保有自身的 status 与 alert 语义。"),
+                new DemoLocalizedText(
+                    "A nested BzsThemeProvider logs a once-per-instance development warning because an inner provider freezes the subtree theme against outer mode changes; nesting stays supported for intentional theme stages.",
+                    "嵌套的 BzsThemeProvider 会在开发期给出每个实例一次的警告，因为内层提供器会把子树主题钉死、使其不再跟随外层模式变化；有意的主题舞台场景仍然受支持。"),
+                new DemoLocalizedText(
+                    "The token drift gate asserts exact token-name parity in both directions and compares BzsThemeCssBuilder output against the static stylesheet, so custom-theme scopes can never diverge from the built-in themes.",
+                    "token 漂移门禁断言双向的精确 token 名称对等，并把 BzsThemeCssBuilder 的输出与静态样式表逐一比对，自定义主题作用域从此不可能与内建主题分叉。"),
+                new DemoLocalizedText(
+                    "DataGrid resize handles announce a pixel range anchored at the 48-pixel minimum, and the browser module maintains aria-valuenow and aria-valuemax from measured widths on every render, drag, and keyboard step.",
+                    "DataGrid 拖柄播报以 48 像素最小值为起点的像素区间，浏览器模块在每次渲染、拖拽与键盘步进时用实测宽度维护 aria-valuenow 与 aria-valuemax。"),
+                new DemoLocalizedText(
+                    "The built-in shadow depth tokens soften: blur radii grow, opacities drop, raised and inset offsets stay put, and overlay offsets grow slightly, so surfaces communicate depth with less visual weight.",
+                    "内建阴影深度 token 变软：模糊半径加大、透明度降低，raised 与 inset 的偏移不变，overlay 的偏移略增，表面用更轻的视觉重量传达深度。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Accessibility wiring", "可访问性接线"),
+                    [
+                        new DemoLocalizedText(
+                            "Each toast already carried role=status or role=alert with aria-live; the fix is that the host section itself no longer mounts together with its first toast, which screen readers announced unreliably.",
+                            "每条 toast 本就带有 role=status 或 role=alert 与 aria-live；修复点在于宿主区块不再与第一条 toast 一起挂载，此前屏幕阅读器对它的播报并不可靠。"),
+                        new DemoLocalizedText(
+                            "Resize handles advertised a 0-100 range with a column-position value while the browser module resized in pixels, so the announced value never moved; the shared pixel minimum now comes from the server and the module derives the announced bounds from measured widths.",
+                            "拖柄此前播报 0–100 区间里的列位置值，而浏览器模块按像素调整宽度，播报值因此从不变化；共享的像素最小值现在由服务端声明，播报边界由模块从实测宽度推导。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Theme system", "主题系统"),
+                    [
+                        new DemoLocalizedText(
+                            "The nesting warning is built on a public CascadedContext cascading parameter through which a provider observes the cascade it renders into.",
+                            "嵌套警告构建在公开的 CascadedContext 级联参数之上，提供器经由它观察自己所渲染进的级联。"),
+                        new DemoLocalizedText(
+                            "The softened shadow tokens change in lockstep in bzs.blazor.css and BzsTheme.cs, and the visual baselines are refreshed from the pinned CI Linux environment.",
+                            "软化后的阴影 token 在 bzs.blazor.css 与 BzsTheme.cs 中同步修改，视觉基线由钉定的 CI Linux 环境重新捕获。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "Non-breaking for consumers upgrading from 0.8.0. The toast, warning, and drift-gate work is component-internal or diagnostic, the resize-handle change corrects an announced value without changing resize behavior, and BzsThemeProvider gains only the CascadedContext cascading parameter.",
+                "从 0.8.0 升级对使用方不构成破坏性变更。toast、警告与漂移门禁的工作属于组件内部或诊断性质，拖柄变更只修正播报值而不改变调整行为，BzsThemeProvider 仅新增 CascadedContext 级联参数。")),
+        new(
             "v0.8.0",
             "0.8.0",
             new DateTimeOffset(2026, 9, 29, 0, 0, 0, TimeSpan.Zero),
