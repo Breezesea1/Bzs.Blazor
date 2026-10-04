@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 
 namespace Bzs.Blazor.Tests;
 
@@ -79,6 +80,94 @@ public sealed class OverlayComponentTests
         Assert.Equal(expected, drawer.GetAttribute("data-bzs-drawer"));
         Assert.Null(drawer.GetAttribute("aria-modal"));
         Assert.Empty(cut.FindAll(".bzs-drawer__backdrop"));
+    }
+
+    [Fact]
+    public async Task ModalPanelLifecycleActivatesWithNormalizedFocusWhenOpened()
+    {
+        var runtime = new PanelLifecycleJsRuntime();
+        await using var lifecycle = new BzsModalPanelLifecycle(runtime, null, "panel-1");
+
+        lifecycle.NotifyParameters(open: true, modal: true, initialFocusSelector: "  #first  ");
+        await lifecycle.SynchronizeAsync(open: true, firstRender: false, panelElement: default);
+
+        var activation = Assert.Single(runtime.Module.Activations);
+        Assert.Equal("panel-1", activation.OverlayId);
+        Assert.True(activation.Modal);
+        Assert.Equal("#first", activation.Selector);
+        Assert.Equal(["activate"], runtime.Module.Invocations);
+    }
+
+    [Fact]
+    public async Task ModalPanelLifecycleDeactivatesWhenClosed()
+    {
+        var runtime = new PanelLifecycleJsRuntime();
+        await using var lifecycle = new BzsModalPanelLifecycle(runtime, null, "panel-1");
+
+        lifecycle.NotifyParameters(open: true, modal: true, initialFocusSelector: null);
+        await lifecycle.SynchronizeAsync(open: true, firstRender: false, panelElement: default);
+
+        lifecycle.NotifyParameters(open: false, modal: true, initialFocusSelector: null);
+        await lifecycle.SynchronizeAsync(open: false, firstRender: false, panelElement: default);
+
+        Assert.Equal(["activate", "deactivate"], runtime.Module.Invocations);
+    }
+
+    [Fact]
+    public async Task ModalPanelLifecycleResynchronizesWhenModalityChanges()
+    {
+        var runtime = new PanelLifecycleJsRuntime();
+        await using var lifecycle = new BzsModalPanelLifecycle(runtime, null, "panel-1");
+
+        lifecycle.NotifyParameters(open: true, modal: true, initialFocusSelector: null);
+        await lifecycle.SynchronizeAsync(open: true, firstRender: false, panelElement: default);
+
+        lifecycle.NotifyParameters(open: true, modal: false, initialFocusSelector: null);
+        await lifecycle.SynchronizeAsync(open: true, firstRender: false, panelElement: default);
+
+        Assert.Equal(["activate", "activate"], runtime.Module.Invocations);
+        Assert.Equal([true, false], runtime.Module.Activations.Select(activation => activation.Modal));
+    }
+
+    [Fact]
+    public async Task ModalPanelLifecycleSkipsSynchronizationWhenNothingChanged()
+    {
+        var runtime = new PanelLifecycleJsRuntime();
+        await using var lifecycle = new BzsModalPanelLifecycle(runtime, null, "panel-1");
+
+        lifecycle.NotifyParameters(open: true, modal: true, initialFocusSelector: "#first");
+        await lifecycle.SynchronizeAsync(open: true, firstRender: false, panelElement: default);
+        await lifecycle.SynchronizeAsync(open: true, firstRender: false, panelElement: default);
+
+        Assert.Equal(["activate"], runtime.Module.Invocations);
+    }
+
+    [Fact]
+    public async Task DisposedModalPanelLifecycleDoesNotSynchronizeOrDeactivate()
+    {
+        var runtime = new PanelLifecycleJsRuntime();
+        var lifecycle = new BzsModalPanelLifecycle(runtime, null, "panel-1");
+
+        await lifecycle.DisposeAsync();
+
+        lifecycle.NotifyParameters(open: true, modal: true, initialFocusSelector: null);
+        await lifecycle.SynchronizeAsync(open: true, firstRender: true, panelElement: default);
+
+        Assert.Empty(runtime.Module.Invocations);
+    }
+
+    [Fact]
+    public async Task ModalPanelLifecycleDisposeDeactivatesItsLoadedModule()
+    {
+        var runtime = new PanelLifecycleJsRuntime();
+        var lifecycle = new BzsModalPanelLifecycle(runtime, null, "panel-1");
+
+        lifecycle.NotifyParameters(open: true, modal: true, initialFocusSelector: null);
+        await lifecycle.SynchronizeAsync(open: true, firstRender: false, panelElement: default);
+
+        await lifecycle.DisposeAsync();
+
+        Assert.Equal(["activate", "deactivate"], runtime.Module.Invocations);
     }
 
     [Fact]
@@ -185,6 +274,54 @@ public sealed class OverlayComponentTests
         Assert.Equal(BzsDialogResultKind.Completed, secondResult.Kind);
         Assert.Equal("accepted", secondResult.Value);
     }
+
+    private sealed class PanelLifecycleJsRuntime : IJSRuntime
+    {
+        internal PanelLifecycleJsModule Module { get; } = new();
+
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
+            InvokeAsync<TValue>(identifier, CancellationToken.None, args);
+
+        public ValueTask<TValue> InvokeAsync<TValue>(
+            string identifier,
+            CancellationToken cancellationToken,
+            object?[]? args)
+        {
+            Assert.Equal("import", identifier);
+            return ValueTask.FromResult((TValue)(object)Module);
+        }
+    }
+
+    private sealed class PanelLifecycleJsModule : IJSObjectReference
+    {
+        internal List<PanelActivation> Activations { get; } = [];
+
+        internal List<string> Invocations { get; } = [];
+
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args)
+        {
+            Invocations.Add(identifier);
+            if (identifier == BzsOverlayInterop.ActivateMethod)
+            {
+                Activations.Add(new PanelActivation(
+                    (string)args![0]!,
+                    (bool)args[2]!,
+                    (string?)args[3]));
+            }
+
+            return ValueTask.FromResult(default(TValue)!);
+        }
+
+        public ValueTask<TValue> InvokeAsync<TValue>(
+            string identifier,
+            CancellationToken cancellationToken,
+            object?[]? args) =>
+            InvokeAsync<TValue>(identifier, args);
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
+
+    private sealed record PanelActivation(string OverlayId, bool Modal, string? Selector);
 
     private static BunitContext CreateContext()
     {
