@@ -52,14 +52,7 @@ public sealed partial class BzsAppBar : BzsComponentBase
         _ => throw new ArgumentOutOfRangeException(nameof(Color), Color, "The app bar color is not supported."),
     };
 
-    private string LevelName => Level switch
-    {
-        BzsSurfaceLevel.Base => "base",
-        BzsSurfaceLevel.Raised => "raised",
-        BzsSurfaceLevel.Inset => "inset",
-        BzsSurfaceLevel.Overlay => "overlay",
-        _ => throw new ArgumentOutOfRangeException(nameof(Level), Level, "The app bar surface level is not supported."),
-    };
+    private string LevelName => BzsSurfaceLevelNames.Name(Level);
 
     private IReadOnlyDictionary<string, object> RootAttributes
     {

@@ -79,13 +79,7 @@ public sealed partial class BzsButton : BzsComponentBase
         _ => throw new ArgumentOutOfRangeException(nameof(Variant), Variant, "The button variant is not supported."),
     };
 
-    private string SizeName => Size switch
-    {
-        BzsButtonSize.Small => "small",
-        BzsButtonSize.Medium => "medium",
-        BzsButtonSize.Large => "large",
-        _ => throw new ArgumentOutOfRangeException(nameof(Size), Size, "The button size is not supported."),
-    };
+    private string SizeName => BzsSizeNames.Button(Size);
 
     private string TypeName => Type switch
     {

@@ -23,25 +23,11 @@ public sealed partial class BzsMessage : BzsComponentBase
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    private string SeverityName => Severity switch
-    {
-        BzsMessageSeverity.Information => "information",
-        BzsMessageSeverity.Success => "success",
-        BzsMessageSeverity.Warning => "warning",
-        BzsMessageSeverity.Error => "error",
-        _ => throw new ArgumentOutOfRangeException(nameof(Severity), Severity, "The message severity is not supported."),
-    };
+    private string SeverityName => BzsSeverityNames.Name(Severity);
 
-    private bool IsAssertive => Severity == BzsMessageSeverity.Error;
+    private bool IsAssertive => BzsSeverityNames.IsAssertive(Severity);
 
-    private BzsIconData SeverityIcon => Severity switch
-    {
-        BzsMessageSeverity.Information => BzsIcons.Info,
-        BzsMessageSeverity.Success => BzsIcons.Success,
-        BzsMessageSeverity.Warning => BzsIcons.Warning,
-        BzsMessageSeverity.Error => BzsIcons.Error,
-        _ => throw new ArgumentOutOfRangeException(nameof(Severity), Severity, "The message severity is not supported."),
-    };
+    private BzsIconData SeverityIcon => BzsSeverityNames.Icon(Severity);
 
     private IReadOnlyDictionary<string, object> RootAttributes
     {

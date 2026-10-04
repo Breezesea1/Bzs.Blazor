@@ -17,14 +17,7 @@ public sealed partial class BzsSurface : BzsComponentBase
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    private string LevelName => Level switch
-    {
-        BzsSurfaceLevel.Base => "base",
-        BzsSurfaceLevel.Raised => "raised",
-        BzsSurfaceLevel.Inset => "inset",
-        BzsSurfaceLevel.Overlay => "overlay",
-        _ => throw new ArgumentOutOfRangeException(nameof(Level), Level, "The surface level is not supported."),
-    };
+    private string LevelName => BzsSurfaceLevelNames.Name(Level);
 
     private IReadOnlyDictionary<string, object> RootAttributes
     {
