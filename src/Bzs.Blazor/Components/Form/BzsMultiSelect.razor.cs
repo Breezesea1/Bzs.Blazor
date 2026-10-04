@@ -33,12 +33,11 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
     /// <summary>Gets or sets the clear-selection action text.</summary>
     [Parameter] public string? ClearSelectionText { get; set; }
 
-    private const int ImmediateInteropAttemptLimit = 2;
     private readonly string _instanceId = $"bzs-multi-select-{Guid.NewGuid():N}";
     private readonly BzsOptionListState<BzsSelectOption<TValue>> _optionList;
     private string _searchText = string.Empty;
     private ElementReference _rootReference;
-    private BzsAnchoredOverlaySession? _overlaySession;
+    private BzsAnchoredOverlaySession _overlaySession = default!;
     private BzsSelectInterop? _interop;
     private bool _isInteractive;
     private bool _interopInitialized;
@@ -153,6 +152,10 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
     }
 
     /// <inheritdoc />
+    protected override void OnInitialized() =>
+        _overlaySession = new BzsAnchoredOverlaySession(JsRuntime, HandleOverlayCloseRequestedAsync, LoggerFactory);
+
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
@@ -176,7 +179,7 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
             return;
         }
 
-        await GetOverlaySession().AfterRenderAsync(_rootReference);
+        await _overlaySession.AfterRenderAsync(_rootReference);
         if (_disposed || _interopInitialized)
         {
             return;
@@ -187,7 +190,7 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
         _interopInitialized = await _interop.InitializeAsync(_instanceId, _rootReference);
         if (!_disposed
             && !_interopInitialized
-            && _interopInitializationAttemptCount < ImmediateInteropAttemptLimit)
+            && _interopInitializationAttemptCount < BzsAnchoredOverlaySession.ImmediateAttemptLimit)
         {
             await InvokeAsync(StateHasChanged);
         }
@@ -222,7 +225,7 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
         if (Disabled || ReadOnly) return;
         if (_optionList.IsOpen)
         {
-            _ = GetOverlaySession().RequestCloseAsync(false);
+            _ = _overlaySession.RequestCloseAsync(false);
             return;
         }
 
@@ -295,24 +298,16 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
                 ToggleOptionAsync(active);
                 break;
             case BzsOptionListAction.CloseRequested:
-                _ = GetOverlaySession().RequestCloseAsync(true);
+                _ = _overlaySession.RequestCloseAsync(true);
                 break;
         }
     }
 
-    private BzsAnchoredOverlaySession GetOverlaySession() =>
-        _overlaySession ??= new BzsAnchoredOverlaySession(
-            JsRuntime,
-            HandleOverlayCloseRequestedAsync,
-            ImmediateInteropAttemptLimit,
-            LoggerFactory);
-
-    private void UpdateOverlayState() =>
-        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
-            _optionList.IsOpen,
-            BzsPopoverPlacement.BottomStart,
-            CloseOnOutsideInteraction: true,
-            CloseOnEscape: true));
+    private void UpdateOverlayState() => _overlaySession.SetDesiredState(
+        _optionList.IsOpen,
+        BzsPopoverPlacement.BottomStart,
+        closeOnOutsideInteraction: true,
+        closeOnEscape: true);
 
     private Task HandleOverlayCloseRequestedAsync() => InvokeAsync(() =>
     {
@@ -350,15 +345,8 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
     }
 
     /// <summary>Closes the option panel after a browser-owned outside or Escape interaction.</summary>
-    public Task CloseFromBrowserAsync(bool restoreFocus = false)
-    {
-        if (_disposed || !_optionList.IsOpen)
-        {
-            return Task.CompletedTask;
-        }
-
-        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
-    }
+    public Task CloseFromBrowserAsync(bool restoreFocus = false) =>
+        _overlaySession.CloseFromBrowserAsync(restoreFocus);
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
@@ -372,18 +360,13 @@ public sealed partial class BzsMultiSelect<TValue> : BzsInputBase<IReadOnlyList<
         try
         {
             Exception? disposalException = null;
-            if (_overlaySession is not null)
+            try
             {
-                try
-                {
-                    await _overlaySession.DisposeAsync();
-                }
-                catch (Exception exception)
-                {
-                    disposalException = exception;
-                }
-
-                _overlaySession = null;
+                await _overlaySession.DisposeAsync();
+            }
+            catch (Exception exception)
+            {
+                disposalException = exception;
             }
 
             if (_interop is not null)

@@ -5,11 +5,10 @@ namespace Bzs.Blazor;
 /// <summary>Decorates supplied content with a transient, non-interactive tooltip.</summary>
 public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
 {
-    private const int ImmediateInteropAttemptLimit = 3;
     private readonly string _tooltipId = $"bzs-tooltip-content-{Guid.NewGuid():N}";
     private readonly CancellationTokenSource _lifetimeCancellation = new();
     private ElementReference _rootElement;
-    private BzsAnchoredOverlaySession? _overlaySession;
+    private BzsAnchoredOverlaySession _overlaySession = default!;
     private CancellationTokenSource? _delayCancellation;
     private bool _pointerInside;
     private bool _focusInside;
@@ -81,6 +80,10 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
     }
 
     /// <inheritdoc />
+    protected override void OnInitialized() =>
+        _overlaySession = new BzsAnchoredOverlaySession(JS, HandleCloseRequestedAsync, LoggerFactory);
+
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         if (TriggerContent is null)
@@ -126,12 +129,7 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_disposed)
-        {
-            return;
-        }
-
-        await GetOverlaySession().AfterRenderAsync(_rootElement);
+        await _overlaySession.AfterRenderAsync(_rootElement);
     }
 
     private Task HandlePointerEnterAsync(PointerEventArgs args)
@@ -253,15 +251,8 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
     }
 
     /// <summary>Dismisses the tooltip after a browser-owned outside or Escape interaction.</summary>
-    public Task CloseFromBrowserAsync(bool restoreFocus = false)
-    {
-        if (_disposed || !_open)
-        {
-            return Task.CompletedTask;
-        }
-
-        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
-    }
+    public Task CloseFromBrowserAsync(bool restoreFocus = false) =>
+        _overlaySession.CloseFromBrowserAsync(restoreFocus);
 
     private Task HandleCloseRequestedAsync()
     {
@@ -297,18 +288,13 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
         _lifetimeCancellation.Cancel();
         CancelDelay();
         Exception? disposalException = null;
-        if (_overlaySession is not null)
+        try
         {
-            try
-            {
-                await _overlaySession.DisposeAsync();
-            }
-            catch (Exception exception)
-            {
-                disposalException = exception;
-            }
-
-            _overlaySession = null;
+            await _overlaySession.DisposeAsync();
+        }
+        catch (Exception exception)
+        {
+            disposalException = exception;
         }
 
         _lifetimeCancellation.Dispose();
@@ -319,20 +305,12 @@ public sealed partial class BzsTooltip : BzsComponentBase, IAsyncDisposable
         }
     }
 
-    private BzsAnchoredOverlaySession GetOverlaySession() =>
-        _overlaySession ??= new BzsAnchoredOverlaySession(
-            JS,
-            HandleCloseRequestedAsync,
-            ImmediateInteropAttemptLimit,
-            LoggerFactory);
-
-    private void UpdateOverlayState() =>
-        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
-            _open,
-            Placement,
-            CloseOnOutsideInteraction: true,
-            CloseOnEscape: true,
-            RestoreFocusOnBrowserClose: false));
+    private void UpdateOverlayState() => _overlaySession.SetDesiredState(
+        _open,
+        Placement,
+        closeOnOutsideInteraction: true,
+        closeOnEscape: true,
+        restoreFocusOnBrowserClose: false);
 
     private void CancelDelay()
     {

@@ -15,7 +15,6 @@ namespace Bzs.Blazor;
 public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
 {
     private const string NativeDateFormat = "yyyy-MM-dd";
-    private const int ImmediateOpenSyncAttemptLimit = 2;
     private static readonly DateOnly[] DateFormatValidationDates =
     [
         new(2000, 2, 29),
@@ -51,7 +50,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     private readonly CancellationTokenSource _interopLifetimeCancellation = new();
     private ElementReference _rootReference;
     private ElementReference _periodMenuReference;
-    private BzsAnchoredOverlaySession? _overlaySession;
+    private BzsAnchoredOverlaySession _overlaySession = default!;
     private BzsDatePeriodMenuState? _periodMenuState;
     private BzsDateInputInterop? _interop;
     private Task<BzsDateInputInitialization>? _interopInitializationTask;
@@ -189,6 +188,10 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
     }
 
     /// <inheritdoc />
+    protected override void OnInitialized() =>
+        _overlaySession = new BzsAnchoredOverlaySession(JsRuntime, HandleOverlayCloseRequestedAsync, LoggerFactory);
+
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
@@ -233,7 +236,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             return;
         }
 
-        await GetOverlaySession().AfterRenderAsync(_rootReference);
+        await _overlaySession.AfterRenderAsync(_rootReference);
         if (_disposed)
         {
             return;
@@ -509,7 +512,7 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         }
 
         // The session owns focus restoration, so it must observe the open state before it flips.
-        return GetOverlaySession().RequestCloseAsync(restoreFocus);
+        return _overlaySession.RequestCloseAsync(restoreFocus);
     }
 
     private void SetClosedState()
@@ -522,22 +525,14 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         PeriodMenu.Close();
     }
 
-    private BzsAnchoredOverlaySession GetOverlaySession() =>
-        _overlaySession ??= new BzsAnchoredOverlaySession(
-            JsRuntime,
-            HandleOverlayCloseRequestedAsync,
-            ImmediateOpenSyncAttemptLimit,
-            LoggerFactory);
-
-    private void UpdateOverlayState() =>
-        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
-            _isOpen,
-            BzsPopoverPlacement.BottomStart,
-            CloseOnOutsideInteraction: true,
-            CloseOnEscape: true,
-            _isOpen && _pointerX is { } x && _pointerY is { } y
-                ? new BzsAnchoredOverlayInvocationPoint(x, y)
-                : null));
+    private void UpdateOverlayState() => _overlaySession.SetDesiredState(
+        _isOpen,
+        BzsPopoverPlacement.BottomStart,
+        closeOnOutsideInteraction: true,
+        closeOnEscape: true,
+        _isOpen && _pointerX is { } x && _pointerY is { } y
+            ? new BzsAnchoredOverlayInvocationPoint(x, y)
+            : null);
 
     private Task HandleOverlayCloseRequestedAsync() => InvokeAsync(() =>
     {
@@ -802,15 +797,8 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
         LastAllowedDate);
 
     /// <summary>Closes the calendar after a browser-owned outside or Escape interaction.</summary>
-    public Task CloseFromBrowserAsync(bool restoreFocus = false)
-    {
-        if (_disposed || !_isOpen)
-        {
-            return Task.CompletedTask;
-        }
-
-        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
-    }
+    public Task CloseFromBrowserAsync(bool restoreFocus = false) =>
+        _overlaySession.CloseFromBrowserAsync(restoreFocus);
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
@@ -838,18 +826,13 @@ public sealed partial class BzsDateInput<TValue> : BzsInputBase<TValue>
             }
 
             Exception? disposalException = null;
-            if (_overlaySession is not null)
+            try
             {
-                try
-                {
-                    await _overlaySession.DisposeAsync();
-                }
-                catch (Exception exception)
-                {
-                    disposalException = exception;
-                }
-
-                _overlaySession = null;
+                await _overlaySession.DisposeAsync();
+            }
+            catch (Exception exception)
+            {
+                disposalException = exception;
             }
 
             if (_interop is not null)

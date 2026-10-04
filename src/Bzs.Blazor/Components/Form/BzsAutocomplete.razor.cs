@@ -8,10 +8,9 @@ namespace Bzs.Blazor;
 /// <typeparam name="TValue">The selected value type.</typeparam>
 public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
 {
-    private const int ImmediateInteropAttemptLimit = 2;
     private readonly string _instanceId = $"bzs-autocomplete-{Guid.NewGuid():N}";
     private ElementReference _rootElement;
-    private BzsAnchoredOverlaySession? _overlaySession;
+    private BzsAnchoredOverlaySession _overlaySession = default!;
     private BzsAutocompleteInterop? _keyboardInterop;
     private BzsAutocompleteProviderAdapter<TValue>? _providerAdapter;
     private IBzsAutocompleteProvider<TValue>? _adapterProvider;
@@ -168,6 +167,10 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
     }
 
     /// <inheritdoc />
+    protected override void OnInitialized() =>
+        _overlaySession = new BzsAnchoredOverlaySession(JS, HandleOverlayCloseRequestedAsync, LoggerFactory);
+
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
@@ -227,7 +230,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
             return;
         }
 
-        await GetOverlaySession().AfterRenderAsync(_rootElement);
+        await _overlaySession.AfterRenderAsync(_rootElement);
         if (_disposed)
         {
             return;
@@ -240,7 +243,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
             _keyboardInteropInitialized = await _keyboardInterop.InitializeAsync(_instanceId, _rootElement);
             if (_disposed || !_keyboardInteropInitialized)
             {
-                if (!_disposed && _keyboardInitializationAttemptCount < ImmediateInteropAttemptLimit)
+                if (!_disposed && _keyboardInitializationAttemptCount < BzsAnchoredOverlaySession.ImmediateAttemptLimit)
                 {
                     await InvokeAsync(StateHasChanged);
                 }
@@ -471,22 +474,14 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
             _loading = false;
         }
 
-        return GetOverlaySession().RequestCloseAsync(restoreFocus);
+        return _overlaySession.RequestCloseAsync(restoreFocus);
     }
 
-    private BzsAnchoredOverlaySession GetOverlaySession() =>
-        _overlaySession ??= new BzsAnchoredOverlaySession(
-            JS,
-            HandleOverlayCloseRequestedAsync,
-            ImmediateInteropAttemptLimit,
-            LoggerFactory);
-
-    private void UpdateOverlayState() =>
-        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
-            _optionList.IsOpen,
-            BzsPopoverPlacement.BottomStart,
-            CloseOnOutsideInteraction: true,
-            CloseOnEscape: true));
+    private void UpdateOverlayState() => _overlaySession.SetDesiredState(
+        _optionList.IsOpen,
+        BzsPopoverPlacement.BottomStart,
+        closeOnOutsideInteraction: true,
+        closeOnEscape: true);
 
     private string FormatSelectionValidationMessage()
     {
@@ -508,15 +503,8 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
     };
 
     /// <summary>Closes the suggestion panel after a browser-owned outside or Escape interaction.</summary>
-    public Task CloseFromBrowserAsync(bool restoreFocus = false)
-    {
-        if (_disposed || !_optionList.IsOpen)
-        {
-            return Task.CompletedTask;
-        }
-
-        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
-    }
+    public Task CloseFromBrowserAsync(bool restoreFocus = false) =>
+        _overlaySession.CloseFromBrowserAsync(restoreFocus);
 
     private Task HandleOverlayCloseRequestedAsync()
     {
@@ -552,18 +540,13 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
         Exception? disposalException = null;
         try
         {
-            if (_overlaySession is not null)
+            try
             {
-                try
-                {
-                    await _overlaySession.DisposeAsync();
-                }
-                catch (Exception exception)
-                {
-                    disposalException = exception;
-                }
-
-                _overlaySession = null;
+                await _overlaySession.DisposeAsync();
+            }
+            catch (Exception exception)
+            {
+                disposalException = exception;
             }
 
             if (_keyboardInterop is not null)

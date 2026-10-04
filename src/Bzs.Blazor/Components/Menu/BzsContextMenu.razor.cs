@@ -5,13 +5,12 @@ namespace Bzs.Blazor;
 /// <summary>Decorates a target region with a controlled pointer- or keyboard-invoked command menu.</summary>
 public sealed partial class BzsContextMenu : BzsComponentBase, IBzsMenuOwner, IAsyncDisposable
 {
-    private const int ImmediateInteropAttemptLimit = 2;
     private const int TypeaheadResetMilliseconds = 700;
     private readonly string _targetId = $"bzs-context-menu-target-{Guid.NewGuid():N}";
     private readonly string _menuId = $"bzs-context-menu-list-{Guid.NewGuid():N}";
     private readonly BzsMenuState _menuState = new();
     private ElementReference _rootElement;
-    private BzsAnchoredOverlaySession? _overlaySession;
+    private BzsAnchoredOverlaySession _overlaySession = default!;
     private bool _lastOpen;
     private bool _focusPending;
     private double? _clientX;
@@ -75,6 +74,10 @@ public sealed partial class BzsContextMenu : BzsComponentBase, IBzsMenuOwner, IA
     }
 
     /// <inheritdoc />
+    protected override void OnInitialized() =>
+        _overlaySession = new BzsAnchoredOverlaySession(JS, HandleCloseRequestedAsync, LoggerFactory);
+
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         if (TargetContent is null || ChildContent is null)
@@ -114,12 +117,7 @@ public sealed partial class BzsContextMenu : BzsComponentBase, IBzsMenuOwner, IA
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_disposed)
-        {
-            return;
-        }
-
-        await GetOverlaySession().AfterRenderAsync(_rootElement);
+        await _overlaySession.AfterRenderAsync(_rootElement);
         if (_disposed)
         {
             return;
@@ -235,28 +233,14 @@ public sealed partial class BzsContextMenu : BzsComponentBase, IBzsMenuOwner, IA
     }
 
     /// <summary>Requests closure after a browser-owned outside or Escape interaction.</summary>
-    public Task CloseFromBrowserAsync(bool restoreFocus = false)
-    {
-        if (_disposed || !Open)
-        {
-            return Task.CompletedTask;
-        }
-        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
-    }
+    public Task CloseFromBrowserAsync(bool restoreFocus = false) =>
+        _overlaySession.CloseFromBrowserAsync(restoreFocus);
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
-        {
-            return;
-        }
         _disposed = true;
-        if (_overlaySession is not null)
-        {
-            await _overlaySession.DisposeAsync();
-            _overlaySession = null;
-        }
+        await _overlaySession.DisposeAsync();
     }
 
     private static string? Normalize(string? value) =>
@@ -280,7 +264,7 @@ public sealed partial class BzsContextMenu : BzsComponentBase, IBzsMenuOwner, IA
             return Task.CompletedTask;
         }
 
-        return GetOverlaySession().RequestCloseAsync(restoreFocus);
+        return _overlaySession.RequestCloseAsync(restoreFocus);
     }
 
     private Task HandleCloseRequestedAsync()
@@ -299,20 +283,12 @@ public sealed partial class BzsContextMenu : BzsComponentBase, IBzsMenuOwner, IA
         });
     }
 
-    private BzsAnchoredOverlaySession GetOverlaySession() =>
-        _overlaySession ??= new BzsAnchoredOverlaySession(
-            JS,
-            HandleCloseRequestedAsync,
-            ImmediateInteropAttemptLimit,
-            LoggerFactory);
-
-    private void UpdateOverlayState() =>
-        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
-            Open,
-            BzsPopoverPlacement.BottomStart,
-            CloseOnOutsideInteraction: true,
-            CloseOnEscape: true,
-            _clientX is { } clientX && _clientY is { } clientY
-                ? new BzsAnchoredOverlayInvocationPoint(clientX, clientY)
-                : null));
+    private void UpdateOverlayState() => _overlaySession.SetDesiredState(
+        Open,
+        BzsPopoverPlacement.BottomStart,
+        closeOnOutsideInteraction: true,
+        closeOnEscape: true,
+        _clientX is { } clientX && _clientY is { } clientY
+            ? new BzsAnchoredOverlayInvocationPoint(clientX, clientY)
+            : null);
 }

@@ -3,10 +3,9 @@ namespace Bzs.Blazor;
 /// <summary>Renders controlled content anchored to an owned native trigger.</summary>
 public sealed partial class BzsPopover : BzsComponentBase, IAsyncDisposable
 {
-    private const int ImmediateInteropAttemptLimit = 2;
     private readonly string _panelId = $"bzs-popover-panel-{Guid.NewGuid():N}";
     private ElementReference _rootElement;
-    private BzsAnchoredOverlaySession? _overlaySession;
+    private BzsAnchoredOverlaySession _overlaySession = default!;
     private bool _disposed;
 
     /// <summary>Gets or sets whether the popover content is visible.</summary>
@@ -79,6 +78,10 @@ public sealed partial class BzsPopover : BzsComponentBase, IAsyncDisposable
     }
 
     /// <inheritdoc />
+    protected override void OnInitialized() =>
+        _overlaySession = new BzsAnchoredOverlaySession(JS, HandleCloseRequestedAsync, LoggerFactory);
+
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         if (!Enum.IsDefined(Placement))
@@ -96,23 +99,13 @@ public sealed partial class BzsPopover : BzsComponentBase, IAsyncDisposable
             throw new InvalidOperationException("BzsPopover requires ChildContent.");
         }
 
-        GetOverlaySession().SetDesiredState(new BzsAnchoredOverlayState(
-            Open,
-            Placement,
-            CloseOnOutsideInteraction,
-            CloseOnEscape,
-            RestoreFocusOnBrowserClose: RestoreFocusOnEscape));
+        UpdateOverlayState();
     }
 
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_disposed)
-        {
-            return;
-        }
-
-        await GetOverlaySession().AfterRenderAsync(_rootElement);
+        await _overlaySession.AfterRenderAsync(_rootElement);
     }
 
     private Task ToggleAsync()
@@ -126,41 +119,25 @@ public sealed partial class BzsPopover : BzsComponentBase, IAsyncDisposable
     }
 
     /// <summary>Requests closure after a browser-owned outside or Escape interaction.</summary>
-    public Task CloseFromBrowserAsync(bool restoreFocus = false)
-    {
-        if (_disposed || !Open)
-        {
-            return Task.CompletedTask;
-        }
-
-        return GetOverlaySession().CloseFromBrowserAsync(restoreFocus);
-    }
+    public Task CloseFromBrowserAsync(bool restoreFocus = false) =>
+        _overlaySession.CloseFromBrowserAsync(restoreFocus);
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
-        {
-            return;
-        }
-
         _disposed = true;
-        if (_overlaySession is not null)
-        {
-            await _overlaySession.DisposeAsync();
-            _overlaySession = null;
-        }
+        await _overlaySession.DisposeAsync();
     }
 
     private static string? Normalize(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
-    private BzsAnchoredOverlaySession GetOverlaySession() =>
-        _overlaySession ??= new BzsAnchoredOverlaySession(
-            JS,
-            HandleCloseRequestedAsync,
-            ImmediateInteropAttemptLimit,
-            LoggerFactory);
+    private void UpdateOverlayState() => _overlaySession.SetDesiredState(
+        Open,
+        Placement,
+        CloseOnOutsideInteraction,
+        CloseOnEscape,
+        restoreFocusOnBrowserClose: RestoreFocusOnEscape);
 
     private Task HandleCloseRequestedAsync()
     {
