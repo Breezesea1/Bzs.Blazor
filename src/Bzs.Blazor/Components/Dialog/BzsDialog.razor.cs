@@ -11,13 +11,12 @@ public sealed partial class BzsDialog : BzsComponentBase, IAsyncDisposable
 {
     private readonly string _overlayId = $"bzs-dialog-{Guid.NewGuid():N}";
     private readonly string _titleId = $"bzs-dialog-title-{Guid.NewGuid():N}";
-    private BzsOverlayInterop? _interop;
+    private BzsModalPanelLifecycle? _panelLifecycle;
     private ElementReference _panelElement;
     private bool _isOpen;
-    private bool _interopSynchronizationPending = true;
-    private bool _lastModal;
-    private string? _lastInitialFocusSelector;
-    private bool _disposed;
+
+    private BzsModalPanelLifecycle PanelLifecycle =>
+        _panelLifecycle ??= new BzsModalPanelLifecycle(JS, LoggerFactory, _overlayId);
 
     [Inject]
     private IStringLocalizer<BzsBlazorResources> Localizer { get; set; } = default!;
@@ -117,36 +116,13 @@ public sealed partial class BzsDialog : BzsComponentBase, IAsyncDisposable
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        var selector = Normalize(InitialFocusSelector);
-        if (_isOpen != Open || _lastModal != Modal || _lastInitialFocusSelector != selector)
-        {
-            _interopSynchronizationPending = true;
-        }
-
         _isOpen = Open;
-        _lastModal = Modal;
-        _lastInitialFocusSelector = selector;
+        PanelLifecycle.NotifyParameters(Open, Modal, InitialFocusSelector);
     }
 
     /// <inheritdoc />
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (_disposed || (!_interopSynchronizationPending && !firstRender))
-        {
-            return;
-        }
-
-        _interopSynchronizationPending = false;
-        if (_isOpen)
-        {
-            _interop ??= new BzsOverlayInterop(JS, LoggerFactory);
-            await _interop.ActivateAsync(_overlayId, _panelElement, Modal, _lastInitialFocusSelector);
-        }
-        else if (_interop is not null)
-        {
-            await _interop.DeactivateAsync(_overlayId);
-        }
-    }
+    protected override Task OnAfterRenderAsync(bool firstRender) =>
+        PanelLifecycle.SynchronizeAsync(_isOpen, firstRender, _panelElement);
 
     private Task RequestCloseAsync(MouseEventArgs _) =>
         RequestDismissAsync(BzsDialogDismissReason.CloseButton);
@@ -171,21 +147,12 @@ public sealed partial class BzsDialog : BzsComponentBase, IAsyncDisposable
         await Dismissed.InvokeAsync(reason);
     }
 
-    private static string? Normalize(string? value) =>
-        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (_panelLifecycle is not null)
         {
-            return;
-        }
-
-        _disposed = true;
-        if (_interop is not null)
-        {
-            await _interop.DisposeAsync(_overlayId);
+            await _panelLifecycle.DisposeAsync();
         }
     }
 }
