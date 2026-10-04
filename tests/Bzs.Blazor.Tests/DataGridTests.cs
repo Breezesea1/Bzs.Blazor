@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using AngleSharp.Html.Parser;
 using Bunit;
 using Bunit.JSInterop;
@@ -714,6 +715,41 @@ public sealed class DataGridTests
         Assert.Empty(document.QuerySelectorAll("[aria-label='Rows per page'], [aria-label='Data pages']"));
     }
 
+    [Fact]
+    public void ResizeHandlesDeclareThePixelMinimumAndLeaveValuesToTheBrowser()
+    {
+        using var context = CreateContext();
+        var cut = context.Render<BzsDataGrid<Row>>(parameters =>
+        {
+            parameters.Add(component => component.Items, (IReadOnlyList<Row>)[new Row(1, "Ada", 3)]);
+            parameters.Add(component => component.ChildContent, BuildResizableColumn());
+            parameters.Add(component => component.ResizableColumns, true);
+        });
+
+        var handle = cut.Find("[data-bzs-data-grid-resize='score']");
+        Assert.Equal("separator", handle.GetAttribute("role"));
+        Assert.Equal(BzsDataGrid<Row>.MinimumColumnWidth.ToString(CultureInfo.InvariantCulture), handle.GetAttribute("aria-valuemin"));
+        Assert.Null(handle.GetAttribute("aria-valuemax"));
+        Assert.Null(handle.GetAttribute("aria-valuenow"));
+    }
+
+    [Fact]
+    public void JsColumnWidthMinimumStaysInSyncWithTheServerConstant()
+    {
+        var source = File.ReadAllText(FindRepositoryFile(
+            "src",
+            "Bzs.Blazor",
+            "Components",
+            "DataGrid",
+            "BzsDataGrid.razor.js"));
+
+        var match = Regex.Match(source, @"const minimumColumnWidth = (?<value>\d+);");
+        Assert.True(match.Success, "The resize module does not declare minimumColumnWidth.");
+        Assert.Equal(
+            BzsDataGrid<Row>.MinimumColumnWidth,
+            int.Parse(match.Groups["value"].Value, CultureInfo.InvariantCulture));
+    }
+
     private static BunitContext CreateContext()
     {
         var context = new BunitContext();
@@ -721,6 +757,32 @@ public sealed class DataGridTests
         context.Renderer.SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         context.JSInterop.Mode = JSRuntimeMode.Loose;
         return context;
+    }
+
+    private static RenderFragment BuildResizableColumn() => builder =>
+    {
+        builder.OpenComponent<BzsDataGridColumn<Row>>(0);
+        builder.AddAttribute(1, nameof(BzsDataGridColumn<Row>.Key), "score");
+        builder.AddAttribute(2, nameof(BzsDataGridColumn<Row>.Title), "Score");
+        builder.AddAttribute(3, nameof(BzsDataGridColumn<Row>.ValueSelector), (Func<Row, object?>)(row => row.Score));
+        builder.AddAttribute(4, nameof(BzsDataGridColumn<Row>.Resizable), true);
+        builder.CloseComponent();
+    };
+
+    private static string FindRepositoryFile(params string[] segments)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "Bzs.Blazor.slnx")))
+            {
+                return Path.Combine([directory.FullName, .. segments]);
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate the Bzs.Blazor repository root.");
     }
 
     private static IRenderedComponent<BzsDataGrid<Row>> RenderGrid(
