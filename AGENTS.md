@@ -51,3 +51,7 @@ The repo uses the default five-role label vocabulary. See `docs/agents/triage-la
 ### Domain docs
 
 This is a single-context repo with root `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
+
+### Architecture history
+
+Decided Architecture Candidates, their evidence, and the open follow-up issues are tracked in the repository. Read `docs/agents/architecture-history.md` before an architecture scan, an architecture refactor, or overlay design.

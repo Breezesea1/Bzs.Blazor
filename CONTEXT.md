@@ -16,6 +16,10 @@ _Avoid_: Host application, source project, required dependency
 A general-purpose Bzs.Blazor capability proposed from reference demand or framework analysis and awaiting an Adopt, Hold, Reject, or Merge decision.
 _Avoid_: Migration blocker, required feature, parity gap
 
+**Architecture Candidate**:
+A structural improvement proposal for Bzs.Blazor code that already exists: the ownership, depth, or seam of its modules and how work is shared between them, rather than the capabilities the library offers. When it reaches an Adopt, Hold, Reject, or Merge decision it is recorded in `docs/agents/architecture-history.md`. Distinct from a Capability Candidate, which proposes new general-purpose capability from reference demand.
+_Avoid_: Capability Candidate, refactor task, code-quality issue
+
 **Neumorphic Surface**:
 A semantic surface treatment that uses restrained highlight and shadow to communicate raised, inset, or overlay depth while preserving contrast and information density.
 _Avoid_: Shadow on every element, soft block, global embossing
