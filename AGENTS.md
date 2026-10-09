@@ -55,3 +55,7 @@ This is a single-context repo with root `CONTEXT.md` and `docs/adr/`. See `docs/
 ### Architecture history
 
 Decided Architecture Candidates, their evidence, and the open follow-up issues are tracked in the repository. Read `docs/agents/architecture-history.md` before an architecture scan, an architecture refactor, or overlay design.
+
+### Verification tiers
+
+Verification is cumulative — Fast, then Browser, then Release. Read `docs/agents/verification-tiers.md` when selecting tests for a change or planning release verification.

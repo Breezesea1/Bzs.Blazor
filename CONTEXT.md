@@ -20,6 +20,14 @@ _Avoid_: Migration blocker, required feature, parity gap
 A structural improvement proposal for Bzs.Blazor code that already exists: the ownership, depth, or seam of its modules and how work is shared between them, rather than the capabilities the library offers. When it reaches an Adopt, Hold, Reject, or Merge decision it is recorded in `docs/agents/architecture-history.md`. Distinct from a Capability Candidate, which proposes new general-purpose capability from reference demand.
 _Avoid_: Capability Candidate, refactor task, code-quality issue
 
+**Verification Tier**:
+A cumulative level of verification selected for the risk a change carries. Each tier includes the checks of the tier below it, and the repository names one entry point per tier in `docs/agents/verification-tiers.md`. The point is choosing the cheapest tier that covers the change; a higher tier never replaces a lower one.
+_Avoid_: Test level, pipeline stage, coverage target
+
+**Release Gate**:
+The complete pre-release verification set a package must pass before publication: every Verification Tier plus the environment-owned checks and provenance requirements that cannot be reproduced on an arbitrary developer machine.
+_Avoid_: Build step, CI job, release checklist
+
 **Neumorphic Surface**:
 A semantic surface treatment that uses restrained highlight and shadow to communicate raised, inset, or overlay depth while preserving contrast and information density.
 _Avoid_: Shadow on every element, soft block, global embossing
