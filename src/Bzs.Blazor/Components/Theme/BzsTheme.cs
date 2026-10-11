@@ -201,9 +201,9 @@ public static class BzsThemes
         LightColors: Light,
         DarkColors: Dark,
         LightDepth: new BzsThemeDepth(
-            RaisedShadow: "5px 5px 14px rgb(140 148 161 / 0.4), -4px -4px 11px rgb(255 255 255 / 0.6)",
-            InsetShadow: "inset 2px 2px 8px rgb(140 148 161 / 0.44), inset -2px -2px 6px rgb(255 255 255 / 0.7)",
-            OverlayShadow: "0 14px 32px rgb(38 45 56 / 0.2)",
+            RaisedShadow: "5px 7px 19px rgb(112 116 122 / 0.29), -5px -5px 14px rgb(255 255 255 / 0.72)",
+            InsetShadow: "inset 2px 2px 9px rgb(112 116 122 / 0.3), inset -2px -2px 8px rgb(255 255 255 / 0.68)",
+            OverlayShadow: "0 17px 34px rgb(45 48 54 / 0.2)",
             FocusShadow: "0 0 0 3px rgb(75 89 104 / 0.26)"),
         DarkDepth: new BzsThemeDepth(
             RaisedShadow: "5px 5px 14px rgb(2 4 7 / 0.56), -4px -4px 11px rgb(56 66 79 / 0.4)",

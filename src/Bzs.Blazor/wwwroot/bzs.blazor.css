@@ -20,9 +20,9 @@
     --bzs-disabled-surface: #c9ced6;
     --bzs-disabled-text: #89919c;
     --bzs-scrim: rgb(23 32 51 / 0.42);
-    --bzs-shadow-raised: 5px 5px 14px rgb(140 148 161 / 0.4), -4px -4px 11px rgb(255 255 255 / 0.6);
-    --bzs-shadow-inset: inset 2px 2px 8px rgb(140 148 161 / 0.44), inset -2px -2px 6px rgb(255 255 255 / 0.7);
-    --bzs-shadow-overlay: 0 14px 32px rgb(38 45 56 / 0.2);
+    --bzs-shadow-raised: 5px 7px 19px rgb(112 116 122 / 0.29), -5px -5px 14px rgb(255 255 255 / 0.72);
+    --bzs-shadow-inset: inset 2px 2px 9px rgb(112 116 122 / 0.3), inset -2px -2px 8px rgb(255 255 255 / 0.68);
+    --bzs-shadow-overlay: 0 17px 34px rgb(45 48 54 / 0.2);
     --bzs-shadow-focus: 0 0 0 3px rgb(75 89 104 / 0.26);
 }
 
