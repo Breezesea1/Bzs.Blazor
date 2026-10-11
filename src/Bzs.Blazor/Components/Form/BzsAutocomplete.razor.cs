@@ -389,7 +389,11 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
 
         if (args.Key == "Enter" && !_optionList.IsOpen)
         {
-            CommitQuery();
+            if (!_loading)
+            {
+                CommitQuery();
+            }
+
             return;
         }
 
@@ -406,7 +410,7 @@ public sealed partial class BzsAutocomplete<TValue> : BzsInputBase<TValue>
             case BzsOptionListAction.CommitActive when _optionList.ActiveOption is { } active:
                 await SelectAsync(active);
                 break;
-            case BzsOptionListAction.CommitActive:
+            case BzsOptionListAction.CommitActive when !_loading:
                 CommitQuery();
                 break;
             case BzsOptionListAction.CloseRequested:

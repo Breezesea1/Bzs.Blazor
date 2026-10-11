@@ -380,6 +380,40 @@ public sealed class AutocompleteTests
     }
 
     [Fact]
+    public async Task EnterDuringLoadingDoesNotCommitTheUnmatchedQuery()
+    {
+        using var context = CreateContext();
+        var providerStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var providerCompletion = new TaskCompletionSource<IReadOnlyList<BzsAutocompleteOption<string?>>>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var provider = new DelegateProvider<string?>((_, _) =>
+        {
+            providerStarted.TrySetResult();
+            return new ValueTask<IReadOnlyList<BzsAutocompleteOption<string?>>>(providerCompletion.Task);
+        });
+        var model = new AutocompleteModel();
+        var editContext = new EditContext(model);
+        var cut = RenderAutocomplete(context, editContext, model, provider);
+
+        var inputEvent = cut.Find("[role='combobox']")
+            .TriggerEventAsync("oninput", new ChangeEventArgs { Value = "al" });
+        await providerStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        cut.WaitForAssertion(() => Assert.Equal("Loading suggestions", cut.Find("[role='status']").TextContent.Trim()));
+
+        await cut.Find("[role='combobox']").TriggerEventAsync("onkeydown", new KeyboardEventArgs { Key = "Enter" });
+
+        Assert.Null(model.Choice);
+        Assert.Empty(cut.FindAll("[role='alert']"));
+
+        providerCompletion.SetResult([new("alpha", "Alpha")]);
+        await inputEvent;
+
+        Assert.Null(model.Choice);
+        Assert.Empty(cut.FindAll("[role='alert']"));
+        Assert.Equal("Alpha", Assert.Single(cut.FindAll("[role='option']")).TextContent.Trim());
+    }
+
+    [Fact]
     public async Task DisablingCancelsTheProviderAndClosesTheSuggestionPanel()
     {
         using var context = CreateContext();
