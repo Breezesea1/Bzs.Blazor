@@ -25,6 +25,43 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.9.3",
+            "0.9.3",
+            new DateTimeOffset(2026, 10, 11, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Maintenance release", "维护版本"),
+            new DemoLocalizedText(
+                "Enter waits for the suggestions",
+                "回车键等待建议加载"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.9.3 makes BzsAutocomplete ignore Enter while a suggestion request is still in flight. Pressing Enter during a slow or debounced load used to commit the typed query against an empty option list, which surfaced a \"must match a suggestion\" validation error for text the user had not finished choosing.",
+                "Bzs.Blazor 0.9.3 让 BzsAutocomplete 在建议请求尚未返回时忽略回车键。在加载缓慢或经过防抖时按下回车，过去会用空的候选列表去校验用户输入的查询，从而对尚未选完的文本报出“必须匹配某个建议”的校验错误。"),
+            [
+                new DemoLocalizedText(
+                    "Both entry points are guarded: the closed-panel path that commits the typed query directly, and the open-panel path that fell through to a raw-text commit whenever no suggestion was active.",
+                    "两个入口都加了守卫：面板关闭时直接提交输入文本的路径，以及面板打开但在没有任何激活项时落到原始文本提交的路径。"),
+                new DemoLocalizedText(
+                    "Selection itself is unchanged. Enter still commits the active suggestion once suggestions have loaded, and strict mode still rejects genuinely unmatched text after the list has settled — only the in-flight window differs.",
+                    "选择行为本身不变。建议加载完成后回车依然提交当前激活项，严格模式在列表稳定后依然拒绝确实无法匹配的文本——差异仅限请求进行中的那个窗口。"),
+                new DemoLocalizedText(
+                    "The defect was found when a timing-sensitive unit test failed the 0.9.2 publication gate twice; that test is now deterministic, and a new unit test pins the ignored-Enter behaviour.",
+                    "该缺陷是在一个时序敏感的单测两次让 0.9.2 发布门禁失败时暴露的；该测试现已改为确定性，并新增一个单测锁定“加载中忽略回车”的行为。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Autocomplete", "自动完成"),
+                    [
+                        new DemoLocalizedText(
+                            "A user who types and immediately presses Enter — a common pattern when the suggestion list is slow or still inside its debounce window — no longer sees a validation error appear under the field before any suggestion could have been chosen.",
+                            "用户输入后立刻按下回车——在建议较慢或仍处于防抖窗口内时这是常见操作——不再出现“任何建议都还没来得及选，字段下方就冒出校验错误”的情况。"),
+                        new DemoLocalizedText(
+                            "No public API changed. The fix is confined to the internal key-down handling of the autocomplete, and the public API analyzer baseline is untouched.",
+                            "公开 API 没有变化。修复仅限于自动完成组件内部的按键处理，公开 API 分析器基线未改动。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "Non-breaking for consumers upgrading from 0.9.2. No public API changes; the only behavioural difference is that Enter during an in-flight suggestion request no longer produces a validation error, and the supported render modes and static SSR boundaries are unchanged.",
+                "从 0.9.2 升级对使用方不构成破坏性变更。公开 API 无变化；唯一的行为差异是建议请求进行中按下回车不再产生校验错误，受支持的渲染模式与静态 SSR 边界不变。")),
+        new(
             "v0.9.2",
             "0.9.2",
             new DateTimeOffset(2026, 10, 11, 0, 0, 0, TimeSpan.Zero),
