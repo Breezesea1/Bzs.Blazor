@@ -332,7 +332,15 @@ public sealed class AutocompleteTests
             retainedSuggestion,
         ]);
         await nextInput;
-        cut.Find("[role='combobox']").KeyDown("Enter");
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(3, cut.FindAll("[role='option']").Count);
+            Assert.EndsWith(
+                "-option-1",
+                cut.Find("[role='combobox']").GetAttribute("aria-activedescendant"),
+                StringComparison.Ordinal);
+        });
+        await cut.Find("[role='combobox']").TriggerEventAsync("onkeydown", new KeyboardEventArgs { Key = "Enter" });
 
         Assert.Equal("shared", model.Choice);
         Assert.Equal("First enabled", cut.Find("[role='combobox']").GetAttribute("value"));
