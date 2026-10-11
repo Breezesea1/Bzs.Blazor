@@ -25,6 +25,59 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.9.1",
+            "0.9.1",
+            new DateTimeOffset(2026, 10, 11, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Maintenance release", "维护版本"),
+            new DemoLocalizedText(
+                "Overlays above the drawer, internal modules consolidated",
+                "覆盖层越过抽屉，内部模块收敛"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.9.1 lifts anchored overlay panels into the browser top layer so an open navigation drawer can no longer cover a DataGrid column menu, and it consolidates the modal panel lifecycle, the overlay-owner protocol, and the severity, level, and size lookups behind shared internal modules.",
+                "Bzs.Blazor 0.9.1 让锚定覆盖层面板进入浏览器顶层，打开着的导航抽屉不再能盖住 DataGrid 列菜单；同时把模态面板生命周期、覆盖层 owner 协议以及 severity、level、size 查表收敛到共享的内部模块。"),
+            [
+                new DemoLocalizedText(
+                    "The shared anchored-overlay module already contained a top-layer path that required the panel to carry a popover attribute, but BzsPopover never rendered it, so the branch was unreachable and the panel z-index could not clear the sibling navigation drawer stacking context.",
+                    "共享的锚定覆盖层模块本就带有顶层路径，但它要求面板带有 popover 属性，而 BzsPopover 从未渲染该属性，于是这条分支不可达，面板的 z-index 也就无法越过同级导航抽屉的层叠上下文。"),
+                new DemoLocalizedText(
+                    "BzsPopover now renders popover=manual on the panel, which activates the module existing show and hide pairs for every consumer: DataGrid column menus, Popover, Menu, Select, MultiSelect, and the date picker. Browsers without a usable Popover API keep the in-place fixed fallback.",
+                    "BzsPopover 现在在面板上渲染 popover=manual，从而为所有使用方激活模块既有的显示与隐藏配对：DataGrid 列菜单、Popover、Menu、Select、MultiSelect 与日期选择器。不可用 Popover API 的浏览器仍走原地 fixed 回退。"),
+                new DemoLocalizedText(
+                    "Dialog and Drawer shared byte-identical lifecycle state and activation logic; an internal BzsModalPanelLifecycle owner now holds that bookkeeping, and both shells keep only markup, parameters, and public events.",
+                    "Dialog 与 Drawer 此前共享逐字节相同的生命周期状态与激活逻辑；现在由内部 BzsModalPanelLifecycle owner 持有这些记账，两个外壳只保留标记、参数与公开事件。"),
+                new DemoLocalizedText(
+                    "Eight overlay owners each re-declared the anchored session protocol, including an attempt limit that had already drifted between them; the session now owns the limit, desired-state construction and validation, the browser-close policy, and disposal.",
+                    "八个覆盖层 owner 各自重复声明锚定会话的协议，其中包括已经在它们之间漂移的尝试次数上限；现在由会话持有该上限、期望状态的构造与校验、浏览器关闭策略以及释放逻辑。"),
+                new DemoLocalizedText(
+                    "The severity mapping, the surface-level switch, and three size switches are single-sourced in internal modules, while the two public severity enums stay separate.",
+                    "severity 映射、surface level 分支以及三处 size 分支各自收敛到内部模块，两个公开的 severity 枚举依旧保持独立。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Anchored overlays", "锚定覆盖层"),
+                    [
+                        new DemoLocalizedText(
+                            "At an 800x1000 viewport the open drawer covered the left edge of the column filter input and the lower part of its panel; a browser test now opens the column menu beside the drawer and requires the filter input to stay reachable across its width before filtering the grid to a single row.",
+                            "在 800x1000 视口下，打开着的抽屉会盖住列筛选输入框的左边缘以及面板下半部分；新的浏览器测试在抽屉旁打开列菜单，要求筛选输入框整条宽度都可命中，然后把表格筛选到只剩一行。"),
+                        new DemoLocalizedText(
+                            "Placement, appearance, dismissal, and focus behavior are unchanged; only the element that hosts the panel moved into the platform top layer.",
+                            "定位、外观、关闭与焦点行为均未改变；改变的只是承载面板的元素进入了平台顶层。"),
+                    ]),
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Internal consolidation", "内部收敛"),
+                    [
+                        new DemoLocalizedText(
+                            "The refactors add thirty focused tests for the consolidated lookups and six for the modal panel lifecycle owner, and they remove duplicated declarations from the component shells.",
+                            "这些重构为收敛后的查表新增了三十个聚焦测试、为模态面板生命周期 owner 新增了六个，并从组件外壳中移除了重复声明。"),
+                        new DemoLocalizedText(
+                            "A new verification-tier guide and the architecture decision history document how a change is verified and why the anchored-overlay keydown registry proposal was rejected.",
+                            "新增的验证分层指南与架构决策历史记录了变更如何验证，以及锚定覆盖层 keydown 注册表提案被否决的原因。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "Non-breaking for consumers upgrading from 0.9.0. No public API changes; anchored panels keep their appearance, placement, dismissal, and focus behavior, and the refactors are internal.",
+                "从 0.9.0 升级对使用方不构成破坏性变更。公开 API 无变化；锚定面板的外观、定位、关闭与焦点行为保持不变，重构均属内部。")),
+        new(
             "v0.9.0",
             "0.9.0",
             new DateTimeOffset(2026, 10, 4, 0, 0, 0, TimeSpan.Zero),
