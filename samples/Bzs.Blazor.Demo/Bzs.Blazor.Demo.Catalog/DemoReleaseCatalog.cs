@@ -25,6 +25,43 @@ internal static class DemoReleaseCatalog
     public static IReadOnlyList<DemoReleaseEntry> All { get; } =
     [
         new(
+            "v0.9.2",
+            "0.9.2",
+            new DateTimeOffset(2026, 10, 11, 0, 0, 0, TimeSpan.Zero),
+            new DemoLocalizedText("Maintenance release", "维护版本"),
+            new DemoLocalizedText(
+                "Softer light-theme depth",
+                "更柔和的浅色主题深度"),
+            new DemoLocalizedText(
+                "Bzs.Blazor 0.9.2 recalibrates the built-in light theme raised, inset, and overlay shadow tokens — larger blur radii, lower opacities, and slightly wider offsets — so light surfaces read as softer and further back, with bzs.blazor.css and BzsTheme.cs changing in lockstep.",
+                "Bzs.Blazor 0.9.2 重新校准内建浅色主题的 raised、inset 与 overlay 阴影 token：模糊半径更大、透明度更低、偏移略增，浅色表面因此更柔和、更像退后一层；bzs.blazor.css 与 BzsTheme.cs 同步修改。"),
+            [
+                new DemoLocalizedText(
+                    "The raised shadow becomes 5px 7px 19px rgb(112 116 122 / 0.29) with a -5px -5px 14px highlight, the inset shadow becomes inset 2px 2px 9px rgb(112 116 122 / 0.3) with a 0.68 highlight, and the overlay shadow becomes 0 17px 34px rgb(45 48 54 / 0.2).",
+                    "raised 阴影变为 5px 7px 19px rgb(112 116 122 / 0.29) 搭配 -5px -5px 14px 高光，inset 阴影变为 inset 2px 2px 9px rgb(112 116 122 / 0.3) 搭配 0.68 高光，overlay 阴影变为 0 17px 34px rgb(45 48 54 / 0.2)。"),
+                new DemoLocalizedText(
+                    "The focus ring token is untouched, so focus visibility keeps its current strength, and the dark scheme keeps its existing depth record.",
+                    "焦点环 token 未改动，焦点可见性保持原有强度，深色方案沿用既有深度记录。"),
+                new DemoLocalizedText(
+                    "The drift gate and the custom-theme parity test stay green because the static stylesheet and the built-in theme record carry the same values.",
+                    "由于静态样式表与内建主题记录携带相同的值，漂移门禁与自定义主题一致性测试保持绿色。"),
+            ],
+            [
+                new DemoReleaseSection(
+                    new DemoLocalizedText("Theme system", "主题系统"),
+                    [
+                        new DemoLocalizedText(
+                            "Light surfaces lose visual weight: blur radii grow by a few pixels, every opacity drops, and the raised and inset offsets spread by a pixel or two.",
+                            "浅色表面减轻视觉重量：模糊半径增加数像素、透明度整体降低，raised 与 inset 偏移各扩散一两像素。"),
+                        new DemoLocalizedText(
+                            "A refresh dispatch confirmed the committed Linux baselines already match the pinned environment within the gate tolerance of eight channel levels per pixel and half a percent of pixels, so no baseline was recaptured.",
+                            "一次刷新派发确认已提交的 Linux 基线在门禁容差（每像素八级通道差、千分之五的像素比例）内已经匹配钉定环境，因此没有重新采集基线。"),
+                    ]),
+            ],
+            new DemoLocalizedText(
+                "Non-breaking for consumers upgrading from 0.9.1. No public API changes; consumer depth-token overrides still win, and the supported render modes and static SSR boundaries are unchanged.",
+                "从 0.9.1 升级对使用方不构成破坏性变更。公开 API 无变化；使用方自己的深度 token 覆盖依然生效，受支持的渲染模式与静态 SSR 边界不变。")),
+        new(
             "v0.9.1",
             "0.9.1",
             new DateTimeOffset(2026, 10, 11, 0, 0, 0, TimeSpan.Zero),

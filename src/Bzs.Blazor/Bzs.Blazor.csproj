@@ -7,14 +7,14 @@
     <RootNamespace>Bzs.Blazor</RootNamespace>
     <AssemblyName>Bzs.Blazor</AssemblyName>
     <PackageId>Bzs.Blazor</PackageId>
-    <Version>0.9.1</Version>
+    <Version>0.9.2</Version>
     <Authors>tongyu</Authors>
     <Description>A compact, accessible Blazor component library with restrained neumorphic light and dark themes.</Description>
     <PackageTags>blazor;components;ui;neumorphism;wasm</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageCopyright>Copyright (c) 2026 tongyu</PackageCopyright>
-    <PackageReleaseNotes>Lift anchored overlay panels into the browser top layer so an open navigation drawer can no longer cover a DataGrid column menu, and consolidate the modal panel lifecycle, the overlay-owner protocol, and the severity, level, and size lookups behind shared internal modules. See docs/releases/0.9.1.md in the repository.</PackageReleaseNotes>
+    <PackageReleaseNotes>Recalibrate the built-in light theme raised, inset, and overlay shadow tokens so light surfaces read as softer and further back, with bzs.blazor.css and BzsTheme.cs changing in lockstep. See docs/releases/0.9.2.md in the repository.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
