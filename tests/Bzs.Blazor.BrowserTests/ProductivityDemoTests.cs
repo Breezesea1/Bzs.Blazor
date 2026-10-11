@@ -337,6 +337,49 @@ public sealed class ProductivityDemoTests(DemoServerFixture server) : BrowserGat
     }
 
     [Fact]
+    public async Task ColumnFilterPanelRemainsReachableBesideTheNavigationDrawer()
+    {
+        BeginBrowserGateTest("column-menu-drawer");
+        await Page.SetViewportSizeAsync(800, 1000);
+        var response = await Page.GotoAsync(
+            server.Urls.ProductivityRenderMode("server", DemoDestinationUrls.English));
+        Assert.True(response?.Ok ?? false);
+        await Expect(Page.GetByTestId("productivity-workbench"))
+            .ToHaveAttributeAsync("data-bzs-interactive", "true");
+
+        var grid = Page.GetByTestId("productivity-workbench-grid");
+        await grid.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Review column menu", Exact = true }).ClickAsync();
+        var filterValue = grid.GetByRole(
+            AriaRole.Textbox,
+            new() { Name = "Review filter value", Exact = true });
+        await Expect(filterValue).ToBeVisibleAsync();
+        var unobscured = await filterValue.EvaluateAsync<bool>(
+            """
+            element => {
+                const rect = element.getBoundingClientRect();
+                return [0.1, 0.5, 0.9].every(fraction => {
+                    const top = document.elementFromPoint(
+                        rect.left + rect.width * fraction, rect.top + rect.height / 2);
+                    return top === element || element.contains(top);
+                });
+            }
+            """);
+        await Page.ScreenshotAsync(new()
+        {
+            Path = Path.Combine(RepositoryLayout.Root, "TestResults", "column-filter-drawer.png"),
+        });
+        Assert.True(unobscured, "The column filter input is obscured by the navigation drawer or clipped.");
+        await filterValue.FillAsync("Warehouse");
+        await grid.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Apply Review filter", Exact = true }).ClickAsync();
+        await Expect(grid.GetByText("Showing 1-1 of 1", new() { Exact = true })).ToBeVisibleAsync();
+        AssertNoUnexpectedBrowserErrors("Column filter beside navigation drawer");
+    }
+
+    [Fact]
     public async Task MenuKeyboardNavigationDoesNotScrollTheDocument()
     {
         BeginBrowserGateTest();
